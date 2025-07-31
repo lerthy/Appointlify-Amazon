@@ -46,3 +46,6 @@ function App() {
 export default App;// Basic routing setup
 // Basic routing setup
 // Basic routing setup
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
