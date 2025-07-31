@@ -1,0 +1,378 @@
+  import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Plus, 
+  Calendar, 
+  User, 
+  MessageSquare, 
+  Dumbbell, 
+  List, 
+  Clock, 
+  CheckCircle, 
+  Star, 
+  ArrowRight,
+  Users,
+  Shield,
+  Zap,
+  Smartphone
+} from 'lucide-react';
+import Container from '../components/ui/Container';
+import Button from '../components/ui/Button';
+import { useApp } from '../context/AppContext';
+import Header from '../components/shared/Header';
+import Footer from '../components/shared/Footer';
+import { supabase } from '../utils/supabaseClient';
+
+const iconMap: Record<string, React.ReactNode> = {
+  default: <List size={48} />,
+  plus: <Plus size={48} />,
+  calendar: <Calendar size={48} />,
+  user: <User size={48} />,
+  message: <MessageSquare size={48} />,
+  dumbbell: <Dumbbell size={48} />,
+};
+
+// Background images for the hero section
+const heroImages = [
+  {
+    url: "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    alt: "Business meeting and appointment scheduling"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=2076&q=80",
+    alt: "Professional calendar and scheduling"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    alt: "Team collaboration and planning"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    alt: "Customer service and appointment booking"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80",
+    alt: "Business team working together"
+  }
+];
+
+const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [businesses, setBusinesses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, description, logo');
+      if (!error && data) {
+        setBusinesses(data);
+      }
+      setLoading(false);
+    };
+    fetchBusinesses();
+  }, []);
+
+  // Auto-rotate background images
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000); // Change image every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const features = [
+    {
+      icon: <Clock className="w-8 h-8 text-blue-600" />,
+      title: "24/7 Booking",
+      description: "Book appointments anytime, anywhere with our seamless online platform"
+    },
+    {
+      icon: <CheckCircle className="w-8 h-8 text-green-600" />,
+      title: "Instant Confirmation",
+      description: "Get immediate confirmation and reminders for all your appointments"
+    },
+    {
+      icon: <Users className="w-8 h-8 text-purple-600" />,
+      title: "Business Management",
+      description: "Complete solution for businesses to manage appointments and customers"
+    },
+    {
+      icon: <Shield className="w-8 h-8 text-orange-600" />,
+      title: "Secure & Reliable",
+      description: "Your data is protected with enterprise-grade security measures"
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "Fitness Studio Owner",
+      content: "This platform transformed how we manage appointments. Our clients love the easy booking process!",
+      rating: 5
+    },
+    {
+      name: "Mike Chen",
+      role: "Spa Manager",
+      content: "The automated reminders and calendar integration saved us hours every week.",
+      rating: 5
+    },
+    {
+      name: "Emily Rodriguez",
+      role: "Dental Practice",
+      content: "Professional, reliable, and incredibly user-friendly. Highly recommended!",
+      rating: 5
+    }
+  ];
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star key={i} className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+    ));
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      
+      {/* Hero Section with Dynamic Background */}
+      <section className="relative py-20 overflow-hidden">
+        {/* Background Images */}
+        <div className="absolute inset-0 z-0">
+          {heroImages.map((image, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <img
+                src={image.url}
+                alt={image.alt}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 via-purple-900/60 to-blue-900/70"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Content Overlay */}
+        <div className="relative z-10">
+          <Container maxWidth="full">
+            <div className="text-center max-w-4xl mx-auto">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white">
+                Smart Appointment Booking
+              </h1>
+              <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+                Streamline your business with our intelligent appointment scheduling platform. 
+                Book, manage, and grow your business with ease.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <Button 
+                  size="lg" 
+                  className="text-xl px-10 py-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold"
+                  onClick={() => navigate('/register')}
+                >
+                  Start Free Trial
+                  <ArrowRight className="ml-3 w-6 h-6" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-blue-600"
+                  onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Learn More
+                </Button>
+              </div>
+            </div>
+          </Container>
+        </div>
+
+        {/* Image Indicators */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+          {heroImages.map((_, index) => (
+            <button
+              key={index}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentImageIndex 
+                  ? 'bg-white scale-125' 
+                  : 'bg-white/50 hover:bg-white/75'
+              }`}
+              onClick={() => setCurrentImageIndex(index)}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-white">
+        <Container maxWidth="full">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Why Choose Our Platform?</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Powerful features designed to make appointment booking effortless for both businesses and customers
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="flex justify-center mb-4">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-blue-600 text-white">
+        <Container maxWidth="full">
+          <div className="grid md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold mb-2">10,000+</div>
+              <div className="text-blue-100">Happy Customers</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">500+</div>
+              <div className="text-blue-100">Businesses</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">99.9%</div>
+              <div className="text-blue-100">Uptime</div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20 bg-gray-50">
+        <Container maxWidth="full">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">What Our Customers Say</h2>
+            <p className="text-xl text-gray-600">Trusted by businesses worldwide</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-white p-6 rounded-xl shadow-sm">
+                <div className="flex mb-4">
+                  {renderStars(testimonial.rating)}
+                </div>
+                <p className="text-gray-600 mb-4 italic">"{testimonial.content}"</p>
+                <div>
+                  <div className="font-semibold">{testimonial.name}</div>
+                  <div className="text-sm text-gray-500">{testimonial.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Available Businesses Section */}
+      <section className="py-20 bg-white">
+        <Container maxWidth="full">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Book Your Appointment</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Choose from our network of trusted businesses and book your appointment in seconds
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-8 px-4">
+            {loading ? (
+              <div className="text-center text-gray-500 py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                Loading businesses...
+              </div>
+            ) : businesses.length === 0 ? (
+              <div className="text-center text-gray-500 py-12">
+                <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <p className="text-lg">No businesses available at the moment.</p>
+                <p className="text-sm">Check back soon for new businesses joining our platform!</p>
+              </div>
+            ) : (
+              businesses.map((business) => (
+                <div
+                  key={business.id}
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden w-full max-w-sm"
+                >
+                  <div className="p-8 text-center">
+                    <div className="mb-6 flex items-center justify-center">
+                      {business.logo ? (
+                        <img
+                          src={business.logo}
+                          alt={business.name}
+                          className="object-contain rounded-full border-4 border-gray-100 w-24 h-24"
+                        />
+                      ) : (
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white text-2xl font-bold">
+                            {business.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 text-gray-900">{business.name}</h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed">{business.description}</p>
+                    <Button 
+                      onClick={() => navigate(`/book/${business.id}`)}
+                      className="w-full"
+                      size="lg"
+                    >
+                      Book Appointment
+                      <ArrowRight className="ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </Container>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <Container maxWidth="full">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
+            <p className="text-xl mb-8 text-blue-100">
+              Join thousands of businesses already using our platform to streamline their appointment booking process.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <Button 
+                size="lg" 
+                className="text-xl px-10 py-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold border-0"
+                onClick={() => navigate('/register')}
+              >
+                Start Free Trial
+                <ArrowRight className="ml-3 w-6 h-6" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="text-lg px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-blue-600"
+                onClick={() => navigate('/login')}
+              >
+                Sign In
+              </Button>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default HomePage;

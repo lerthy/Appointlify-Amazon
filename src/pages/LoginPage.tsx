@@ -1,0 +1,129 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from '../components/shared/Header';
+import { supabase } from '../utils/supabaseClient';
+import { useAuth } from '../context/AuthContext';
+import SplitAuthLayout from '../components/shared/SplitAuthLayout';
+import AuthPageTransition from '../components/shared/AuthPageTransition';
+
+const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
+
+const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    if (!form.email || !form.password) {
+      setError('Please enter both email and password.');
+      setIsSubmitting(false);
+      return;
+    }
+    const { data, error: queryError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', form.email)
+      .eq('password_hash', form.password)
+      .single();
+    if (queryError || !data) {
+      setError('Invalid email or password.');
+      setIsSubmitting(false);
+      return;
+    }
+    login(data);
+    setIsSubmitting(false);
+    navigate('/dashboard');
+  };
+
+  return (
+    <>
+      <Header />
+      <AuthPageTransition>
+        <SplitAuthLayout
+          logoUrl={LOGO_URL}
+          title="Welcome Back!"
+          subtitle="Sign in to access your personalized dashboard and explore new features."
+          quote="Empowering your journey, one login at a time."
+        >
+          <h2 className="text-xl font-bold text-gray-900 text-center mb-4">Sign in to your account</h2>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-gray-700">Email address</label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Email address"
+                autoComplete="email"
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-gray-700">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Password"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">
+                {error}
+              </div>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded text-sm transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                'Sign in'
+              )}
+            </button>
+          </form>
+          <div className="mt-4 text-center space-y-1">
+            <p className="text-gray-600 text-xs">
+              Don't have an account?{' '}
+              <button
+                className="text-green-600 hover:text-green-700 font-medium hover:underline transition-colors"
+                onClick={() => navigate('/register')}
+              >
+                Sign up
+              </button>
+            </p>
+            <p className="text-blue-700 text-xs">
+              Forgot password?{' '}
+              <span className="underline cursor-pointer" onClick={() => alert('Password reset coming soon!')}>Click to change</span>
+            </p>
+          </div>
+        </SplitAuthLayout>
+      </AuthPageTransition>
+    </>
+  );
+};
+
+export default LoginPage; 
