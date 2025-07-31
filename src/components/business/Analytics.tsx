@@ -218,3 +218,39 @@ const Analytics: React.FC = () => {
 export default Analytics;// Analytics
 // Analytics
 // Analytics
+export const Analytics = () => {
+  const [analytics, setAnalytics] = useState({
+    peakHours: [],
+    popularServices: [],
+    monthlyRevenue: []
+  });
+  return (
+    <div className='p-6'>
+      <h2 className='text-xl font-semibold mb-4'>Analytics Dashboard</h2>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <div className='bg-white p-4 rounded shadow'>
+          <h3 className='text-lg font-semibold mb-2'>Peak Hours</h3>
+          <div className='space-y-2'>
+            {analytics.peakHours.map((hour, index) => (
+              <div key={index} className='flex justify-between'>
+                <span>{hour.time}</span>
+                <span className='font-semibold'>{hour.bookings}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className='bg-white p-4 rounded shadow'>
+          <h3 className='text-lg font-semibold mb-2'>Popular Services</h3>
+          <div className='space-y-2'>
+            {analytics.popularServices.map((service, index) => (
+              <div key={index} className='flex justify-between'>
+                <span>{service.name}</span>
+                <span className='font-semibold'>{service.bookings}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

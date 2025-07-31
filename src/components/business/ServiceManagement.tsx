@@ -337,3 +337,18 @@ const ServiceManagement: React.FC = () => {
 export default ServiceManagement; // Service management
 // Service management
 // Service management
+export const ServiceManagement = () => {
+  const [services, setServices] = useState([]);
+  const [newService, setNewService] = useState({ name: '', price: '', duration: '' });
+  return (
+    <div className='p-6'>
+      <h2 className='text-xl font-semibold mb-4'>Service Management</h2>
+      <form className='space-y-4 mb-6'>
+        <input type='text' placeholder='Service Name' className='border p-2 rounded' />
+        <input type='number' placeholder='Price' className='border p-2 rounded' />
+        <input type='number' placeholder='Duration (minutes)' className='border p-2 rounded' />
+        <button type='submit' className='bg-blue-500 text-white px-4 py-2 rounded'>Add Service</button>
+      </form>
+    </div>
+  );
+};
