@@ -66,3 +66,7 @@ export const generateVerificationCode = (): string => {
 };// Form validation
 // Form validation
 // Form validation
+export const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
