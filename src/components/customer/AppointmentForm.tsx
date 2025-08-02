@@ -679,3 +679,12 @@ export default AppointmentForm;
 // Appointment booking
 // Appointment booking
 // Appointment booking
+export const AppointmentForm = () => {
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  return (
+    <form className='space-y-4'>
+      <input type='date' value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+    </form>
+  );
+};
