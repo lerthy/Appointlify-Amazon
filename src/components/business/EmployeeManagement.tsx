@@ -474,3 +474,20 @@ const EmployeeManagement: React.FC = () => {
 export default EmployeeManagement; // Employee management
 // Employee management
 // Employee management
+export const EmployeeManagement = () => {
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  return (
+    <div className='p-6'>
+      <h2 className='text-xl font-semibold mb-4'>Employee Management</h2>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        {employees.map(employee => (
+          <div key={employee.id} className='border p-4 rounded'>
+            <h3>{employee.name}</h3>
+            <p>{employee.role}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
