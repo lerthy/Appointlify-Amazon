@@ -15,3 +15,11 @@
   status = 200  // Deployment config
 // Deployment config
 // Deployment config
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
