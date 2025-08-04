@@ -53,3 +53,11 @@
 // Final optimizations
 // Final optimizations
 // Final optimizations
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build:functions && vite build",
+    "build:functions": "cd netlify/functions && npm install",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "server": "node server.js"
+  },
