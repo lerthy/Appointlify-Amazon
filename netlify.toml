@@ -13,3 +13,9 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Specific redirect for booking confirmation
+[[redirects]]
+  from = "/booking-confirmation"
+  to = "/index.html"
+  status = 200

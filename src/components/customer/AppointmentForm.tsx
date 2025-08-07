@@ -361,7 +361,15 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       };
 
       // Redirect to confirmation page with booking data
+      console.log('Redirecting to booking confirmation with data:', bookingConfirmationData);
       navigate('/booking-confirmation', { state: bookingConfirmationData });
+      
+      // Fallback: if navigation doesn't work, redirect after a short delay
+      setTimeout(() => {
+        if (window.location.pathname !== '/booking-confirmation') {
+          window.location.href = '/booking-confirmation';
+        }
+      }, 1000);
     } catch (error) {
       console.error('Error booking appointment:', error);
       setErrors(prev => ({ ...prev, form: 'Failed to book appointment. Please try again.' }));
