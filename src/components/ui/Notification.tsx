@@ -29,22 +29,3 @@ const Notification: React.FC<NotificationProps> = ({ message, type, onClose, dur
 };
 
 export default Notification; // UI improvements
-// UI improvements
-// UI improvements
-export const Notification = ({ message, type = 'info' }) => {
-  const [isVisible, setIsVisible] = useState(true);
-  const bgColor = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    warning: 'bg-yellow-500',
-    info: 'bg-blue-500'
-  }[type];
-  return isVisible ? (
-    <div className={}>
-      <div className='flex justify-between items-center'>
-        <span>{message}</span>
-        <button onClick={() => setIsVisible(false)} className='ml-4 text-white'>×</button>
-      </div>
-    </div>
-  ) : null;
-};

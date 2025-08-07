@@ -35,8 +35,4 @@ export const useAuth = () => {
     return { user: null, login: () => {}, logout: () => {}, loading: true };
   }
   return context;
-}; // Authentication setup
-// Authentication setup
-// Authentication setup
-import { createClient } from '@supabase/supabase-js';
-const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
+};

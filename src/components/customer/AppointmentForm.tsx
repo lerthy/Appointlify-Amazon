@@ -344,8 +344,24 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         showNotification('Appointment booked successfully! Check your email and phone for confirmation. 🎉', 'success');
       }
       
-      // Redirect to confirmation page
-      navigate(`/appointment/${appointmentId}`);
+      // Prepare booking confirmation data
+      const bookingConfirmationData = {
+        appointmentId,
+        customerName: formData.name,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        businessName: business?.name || 'Business',
+        serviceName: selectedService?.name || 'Service',
+        appointmentDate: formData.date,
+        appointmentTime: formData.time,
+        duration: serviceDuration,
+        price: selectedService?.price || 0,
+        businessLogo: business?.logo,
+        cancelLink
+      };
+
+      // Redirect to confirmation page with booking data
+      navigate('/booking-confirmation', { state: bookingConfirmationData });
     } catch (error) {
       console.error('Error booking appointment:', error);
       setErrors(prev => ({ ...prev, form: 'Failed to book appointment. Please try again.' }));
@@ -676,15 +692,4 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 };
 
 export default AppointmentForm;
-// Appointment booking
-// Appointment booking
-// Appointment booking
-export const AppointmentForm = () => {
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
-  return (
-    <form className='space-y-4'>
-      <input type='date' value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
-    </form>
-  );
-};
+

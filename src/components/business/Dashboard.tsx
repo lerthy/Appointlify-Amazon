@@ -221,31 +221,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;// Business dashboard
-// Business dashboard
-// Business dashboard
-export const Dashboard = () => {
-  const [stats, setStats] = useState({
-    totalAppointments: 0,
-    todayAppointments: 0,
-    totalRevenue: 0
-  });
-  return (
-    <div className='p-6'>
-      <h1 className='text-2xl font-bold mb-6'>Business Dashboard</h1>
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-        <div className='bg-white p-4 rounded shadow'>
-          <h3 className='text-lg font-semibold'>Total Appointments</h3>
-          <p className='text-2xl font-bold text-blue-600'>{stats.totalAppointments}</p>
-        </div>
-        <div className='bg-white p-4 rounded shadow'>
-          <h3 className='text-lg font-semibold'>Today's Appointments</h3>
-          <p className='text-2xl font-bold text-green-600'>{stats.todayAppointments}</p>
-        </div>
-        <div className='bg-white p-4 rounded shadow'>
-          <h3 className='text-lg font-semibold'>Total Revenue</h3>
-        </div>
-      </div>
-    </div>
-  );
-};
+export default Dashboard;

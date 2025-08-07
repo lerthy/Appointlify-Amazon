@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CancelAppointment from './components/customer/CancelAppointment';
 import ProfilePage from './pages/ProfilePage';
+import BookingConfirmationPage from './pages/BookingConfirmationPage';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
@@ -34,6 +35,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Router>
@@ -43,9 +45,4 @@ function App() {
   );
 }
 
-export default App;// Basic routing setup
-// Basic routing setup
-// Basic routing setup
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
+export default App;
