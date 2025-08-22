@@ -33,6 +33,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+
             <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />

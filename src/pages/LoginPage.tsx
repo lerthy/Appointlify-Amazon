@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/shared/Header';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
@@ -46,7 +45,6 @@ const LoginPage: React.FC = () => {
 
   return (
     <>
-      <Header />
       <AuthPageTransition>
         <SplitAuthLayout
           logoUrl={LOGO_URL}
@@ -54,7 +52,7 @@ const LoginPage: React.FC = () => {
           subtitle="Sign in to access your personalized dashboard and explore new features."
           quote="Empowering your journey, one login at a time."
         >
-          <h2 className="text-xl font-bold text-gray-900 text-center mb-4">Sign in to your account</h2>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">Sign in to your account</h2>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Email address</label>
@@ -63,7 +61,7 @@ const LoginPage: React.FC = () => {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all duration-200"
                 placeholder="Email address"
                 autoComplete="email"
                 required
@@ -76,7 +74,7 @@ const LoginPage: React.FC = () => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all duration-200"
                 placeholder="Password"
                 autoComplete="current-password"
                 required
@@ -89,7 +87,7 @@ const LoginPage: React.FC = () => {
             )}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded text-sm transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -109,13 +107,13 @@ const LoginPage: React.FC = () => {
             <p className="text-gray-600 text-xs">
               Don't have an account?{' '}
               <button
-                className="text-green-600 hover:text-green-700 font-medium hover:underline transition-colors"
+                className="text-purple-600 hover:text-purple-700 font-medium hover:underline transition-colors"
                 onClick={() => navigate('/register')}
               >
                 Sign up
               </button>
             </p>
-            <p className="text-blue-700 text-xs">
+            <p className="text-indigo-700 text-xs">
               Forgot password?{' '}
               <span className="underline cursor-pointer" onClick={() => alert('Password reset coming soon!')}>Click to change</span>
             </p>

@@ -89,22 +89,22 @@ const HomePage: React.FC = () => {
 
   const features = [
     {
-      icon: <Clock className="w-8 h-8 text-blue-600" />,
+      icon: <Clock className="w-8 h-8 text-indigo-600" />,
       title: "24/7 Booking",
       description: "Book appointments anytime, anywhere with our seamless online platform"
     },
     {
-      icon: <CheckCircle className="w-8 h-8 text-green-600" />,
+      icon: <CheckCircle className="w-8 h-8 text-emerald-600" />,
       title: "Instant Confirmation",
       description: "Get immediate confirmation and reminders for all your appointments"
     },
     {
-      icon: <Users className="w-8 h-8 text-purple-600" />,
+      icon: <Users className="w-8 h-8 text-violet-600" />,
       title: "Business Management",
       description: "Complete solution for businesses to manage appointments and customers"
     },
     {
-      icon: <Shield className="w-8 h-8 text-orange-600" />,
+      icon: <Shield className="w-8 h-8 text-amber-600" />,
       title: "Secure & Reliable",
       description: "Your data is protected with enterprise-grade security measures"
     }
@@ -142,7 +142,7 @@ const HomePage: React.FC = () => {
       <Header />
       
       {/* Hero Section with Dynamic Background */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-36 overflow-hidden">
         {/* Background Images */}
         <div className="absolute inset-0 z-0">
           {heroImages.map((image, index) => (
@@ -157,7 +157,7 @@ const HomePage: React.FC = () => {
                 alt={image.alt}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 via-purple-900/60 to-blue-900/70"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-indigo-900/70 to-slate-900/80"></div>
             </div>
           ))}
         </div>
@@ -169,23 +169,23 @@ const HomePage: React.FC = () => {
               <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white">
                 Smart Appointment Booking
               </h1>
-              <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+              <p className="text-xl text-slate-200 mb-8 leading-relaxed">
                 Streamline your business with our intelligent appointment scheduling platform. 
                 Book, manage, and grow your business with ease.
               </p>
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <Button 
                   size="lg" 
-                  className="text-xl px-10 py-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold"
+                  className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold"
                   onClick={() => navigate('/register')}
                 >
                   Start Free Trial
-                  <ArrowRight className="ml-3 w-6 h-6" />
+                  <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-blue-600"
+                  className="text-base px-6 py-3 border-2 border-white text-white hover:bg-white hover:text-indigo-600"
                   onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   Learn More
@@ -200,7 +200,7 @@ const HomePage: React.FC = () => {
           {heroImages.map((_, index) => (
             <button
               key={index}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
                 index === currentImageIndex 
                   ? 'bg-white scale-125' 
                   : 'bg-white/50 hover:bg-white/75'
@@ -212,7 +212,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="py-36 bg-white">
         <Container maxWidth="full">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Why Choose Our Platform?</h2>
@@ -222,7 +222,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div key={index} className="text-center p-8 rounded-xl bg-white border border-gray-200 shadow-md hover:bg-gray-100 hover:shadow-lg transition-all duration-300">
                 <div className="flex justify-center mb-4">
                   {feature.icon}
                 </div>
@@ -235,20 +235,20 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-blue-600 text-white">
+      <section className="py-16 bg-gradient-to-r from-slate-800 to-indigo-800 text-white">
         <Container maxWidth="full">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold mb-2">10,000+</div>
-              <div className="text-blue-100">Happy Customers</div>
+              <div className="text-slate-200">Happy Customers</div>
             </div>
             <div>
               <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-blue-100">Businesses</div>
+              <div className="text-slate-200">Businesses</div>
             </div>
             <div>
               <div className="text-4xl font-bold mb-2">99.9%</div>
-              <div className="text-blue-100">Uptime</div>
+              <div className="text-slate-200">Uptime</div>
             </div>
           </div>
         </Container>
@@ -315,7 +315,7 @@ const HomePage: React.FC = () => {
                           className="object-contain rounded-full border-4 border-gray-100 w-24 h-24"
                         />
                       ) : (
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <div className="w-24 h-24 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full flex items-center justify-center">
                           <span className="text-white text-2xl font-bold">
                             {business.name.charAt(0).toUpperCase()}
                           </span>
@@ -341,26 +341,26 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-slate-800 to-indigo-800 text-white">
         <Container maxWidth="full">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
-            <p className="text-xl mb-8 text-blue-100">
+            <p className="text-xl mb-8 text-slate-200">
               Join thousands of businesses already using our platform to streamline their appointment booking process.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Button 
                 size="lg" 
-                className="text-xl px-10 py-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold border-0"
+                className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold border-0"
                 onClick={() => navigate('/register')}
               >
                 Start Free Trial
-                <ArrowRight className="ml-3 w-6 h-6" />
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="text-lg px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-blue-600"
+                className="text-base px-6 py-3 border-2 border-white text-white hover:bg-white hover:text-indigo-600"
                 onClick={() => navigate('/login')}
               >
                 Sign In

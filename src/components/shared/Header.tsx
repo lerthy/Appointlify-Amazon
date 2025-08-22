@@ -22,7 +22,7 @@ const Header: React.FC = () => {
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-20">
           <div className="flex">
             <button
               className="flex-shrink-0 flex items-center focus:outline-none"
@@ -76,16 +76,18 @@ const Header: React.FC = () => {
               ) : currentView === 'customer' ? (
                 <>
                   <Button
-                    variant="primary"
+                    variant="outline"
+                    size="md"
                     onClick={() => navigate('/login')}
-                    className="ml-2"
+                    className="ml-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
                   >
                     Login
                   </Button>
                   <Button
-                    variant="secondary"
+                    variant="primary"
+                    size="md"
                     onClick={() => navigate('/register')}
-                    className="ml-2"
+                    className="ml-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0"
                   >
                     Register as a business
                   </Button>
@@ -164,24 +166,26 @@ const Header: React.FC = () => {
             ) : currentView === 'customer' ? (
               <>
                 <Button
-                  variant="primary"
+                  variant="outline"
+                  size="md"
                   fullWidth
                   onClick={() => {
                     navigate('/login');
                     setMenuOpen(false);
                   }}
-                  className="mt-2"
+                  className="mt-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
                 >
                   Login
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="primary"
+                  size="md"
                   fullWidth
                   onClick={() => {
                     navigate('/register');
                     setMenuOpen(false);
                   }}
-                  className="mt-2"
+                  className="mt-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0"
                 >
                   Register
                 </Button>

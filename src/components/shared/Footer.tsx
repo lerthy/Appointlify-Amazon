@@ -7,8 +7,9 @@ const Footer: React.FC = () => {
   
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="w-full px-4 py-12 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center">
@@ -93,9 +94,9 @@ const Footer: React.FC = () => {
               </li>
             </ul>
           </div>
-        </div>
+          </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-800">
+          <div className="mt-12 pt-8 border-t border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
               &copy; {new Date().getFullYear()} {businessSettings?.name || 'Appointly-ks'}. All rights reserved.
@@ -107,6 +108,7 @@ const Footer: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </footer>
   );
