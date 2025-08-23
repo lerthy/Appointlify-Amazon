@@ -213,10 +213,10 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
           className="fixed bottom-6 right-6 z-50 cursor-pointer transform transition-transform hover:scale-110"
           onClick={() => setIsOpen(true)}
         >
-          <div className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors">
+          <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-full shadow-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300">
             <MessageCircle size={24} />
           </div>
-          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+          <div className="absolute -top-2 -right-2 bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
             AI
           </div>
         </div>
@@ -226,7 +226,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
       {isOpen && (
         <div className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col">
           {/* Header */}
-          <div className="bg-blue-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+          <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-t-lg flex justify-between items-center">
             <div>
               <h3 className="font-semibold">AI Booking Assistant</h3>
               <p className="text-sm opacity-90">{businessName}</p>
@@ -249,7 +249,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
                 <div
                   className={`max-w-[80%] p-3 rounded-lg ${
                     message.sender === 'user'
-                      ? 'bg-blue-600 text-white rounded-br-none'
+                      ? 'bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white rounded-br-none'
                       : 'bg-gray-100 text-gray-800 rounded-bl-none'
                   }`}
                 >
@@ -284,13 +284,13 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputValue.trim()}
-                className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-2 rounded-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send size={18} />
               </button>
