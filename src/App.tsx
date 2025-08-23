@@ -4,6 +4,8 @@ import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 
+// Using real services from database
+
 // Pages
 import HomePage from './pages/HomePage';
 import AppointmentPage from './pages/AppointmentPage';
@@ -13,6 +15,10 @@ import RegisterPage from './pages/RegisterPage';
 import CancelAppointment from './components/customer/CancelAppointment';
 import ProfilePage from './pages/ProfilePage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
+import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
+import AIChatbot from './components/shared/AIChatbot';
+
+// Components
 
 function Providers({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
@@ -21,6 +27,7 @@ function Providers({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+
   return (
     <AuthProvider>
       <Providers>
@@ -37,8 +44,12 @@ function App() {
             <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+            <Route path="/ai-demo" element={<AIChatbotDemoPage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+          
+          {/* AI Chatbot - Available on all pages with OpenAI integration */}
+          <AIChatbot />
         </Router>
         </NotificationProvider>
       </Providers>
