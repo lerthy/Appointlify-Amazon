@@ -15,6 +15,16 @@ Handles SMS sending via Twilio API.
 ### `test-sms.js`
 Test function to verify environment variables and function availability.
 
+### `chat.js`
+Handles AI chatbot conversations using OpenAI GPT-3.5 Turbo or fallback mock service.
+
+**Required Environment Variables:**
+- `OPENAI_API_KEY` - Your OpenAI API key (optional, will use mock service if not set)
+- `USE_OPENAI` - Set to 'true' to enable OpenAI (optional, defaults to mock service)
+
+### `book-appointment.js`
+Handles appointment booking requests and creates booking records.
+
 ## Setup
 
 1. Install dependencies:
@@ -24,7 +34,8 @@ Test function to verify environment variables and function availability.
 
 2. Set environment variables in Netlify dashboard:
    - Go to Site settings → Environment variables
-   - Add the three Twilio variables listed above
+   - Add the Twilio variables listed above
+   - Add OpenAI variables if you want to use real AI (optional)
 
 3. Deploy to trigger function installation
 
@@ -34,6 +45,8 @@ After deployment, you can test the functions:
 
 - Test function: `https://your-site.netlify.app/.netlify/functions/test-sms`
 - SMS function: `https://your-site.netlify.app/.netlify/functions/send-sms`
+- Chat function: `https://your-site.netlify.app/.netlify/functions/chat`
+- Booking function: `https://your-site.netlify.app/.netlify/functions/book-appointment`
 
 ## Troubleshooting
 

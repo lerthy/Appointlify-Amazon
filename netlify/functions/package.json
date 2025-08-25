@@ -4,7 +4,8 @@
   "description": "Netlify functions for the appointment booking system",
   "main": "index.js",
   "dependencies": {
-    "twilio": "^5.7.0"
+    "twilio": "^5.7.0",
+    "openai": "^5.15.0"
   },
   "devDependencies": {},
   "scripts": {

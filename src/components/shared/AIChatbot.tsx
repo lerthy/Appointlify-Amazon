@@ -82,8 +82,8 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
         content: inputValue
       });
 
-      // Call backend API
-      const response = await fetch('http://localhost:3001/api/chat', {
+      // Call Netlify function
+      const response = await fetch('/.netlify/functions/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -161,8 +161,8 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
 
   const handleBooking = async (bookingData: any) => {
     try {
-      // Simulate booking API call
-      const response = await fetch('http://localhost:3001/api/book-appointment', {
+      // Call Netlify function for booking
+      const response = await fetch('/.netlify/functions/book-appointment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
