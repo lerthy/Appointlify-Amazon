@@ -5,7 +5,8 @@ const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
+const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY; // kept for backward compatibility (browser usage)
+const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY; // preferred for server-to-server requests
 const SITE_URL = (process.env.SITE_URL || '').replace(/\/$/, '');
 
 let supabase = null;
@@ -42,16 +43,22 @@ exports.handler = async (event) => {
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
 
     // Send via EmailJS
-    if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY) {
+    if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && (EMAILJS_PRIVATE_KEY || EMAILJS_PUBLIC_KEY)) {
+      // Prefer server-to-server with PRIVATE KEY (Authorization header). Falls back to PUBLIC KEY payload if provided.
       const emailJsBody = {
         service_id: EMAILJS_SERVICE_ID,
         template_id: EMAILJS_TEMPLATE_ID,
-        user_id: EMAILJS_PUBLIC_KEY,
+        // user_id is required when using public key from browsers; ignored when Authorization header is used
+        ...(EMAILJS_PRIVATE_KEY ? {} : { user_id: EMAILJS_PUBLIC_KEY }),
         template_params: { reset_url: resetUrl, email, to_email: email },
       };
+      const headers = { 'Content-Type': 'application/json' };
+      if (EMAILJS_PRIVATE_KEY) {
+        headers.Authorization = `Bearer ${EMAILJS_PRIVATE_KEY}`;
+      }
       const resp = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(emailJsBody),
       });
       const text = await resp.text();
