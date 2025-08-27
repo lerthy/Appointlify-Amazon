@@ -5,7 +5,11 @@
   "main": "index.js",
   "dependencies": {
     "twilio": "^5.7.0",
-    "openai": "^5.15.0"
+    "openai": "^5.15.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "bcryptjs": "^2.4.3",
+    "nanoid": "^5.0.7",
+    "@sendgrid/mail": "^8.1.0"
   },
   "devDependencies": {},
   "scripts": {

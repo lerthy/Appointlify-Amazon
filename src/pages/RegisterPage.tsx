@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
+import { hashPassword } from '../utils/password';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
@@ -41,7 +42,7 @@ const RegisterPage: React.FC = () => {
     if (logoFile) {
       const fileExt = logoFile.name.split('.').pop();
       const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
+      const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
       if (uploadError) {
         setError('Failed to upload logo: ' + uploadError.message);
         setIsSubmitting(false);
@@ -49,11 +50,13 @@ const RegisterPage: React.FC = () => {
       }
       logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
     }
+    // Hash password before saving
+    const passwordHash = await hashPassword(form.password);
     const { data: userData, error: insertError } = await supabase.from('users').insert([
       {
         name: form.name,
         email: form.email,
-        password_hash: form.password,
+        password_hash: passwordHash,
         description: form.description,
         logo: logoUrl,
       }

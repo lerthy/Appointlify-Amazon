@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
+import { verifyPassword, hashPassword } from '../utils/password';
 import { useAuth } from '../context/AuthContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
@@ -31,9 +32,23 @@ const LoginPage: React.FC = () => {
       .from('users')
       .select('*')
       .eq('email', form.email)
-      .eq('password_hash', form.password)
       .single();
     if (queryError || !data) {
+      setError('Invalid email or password.');
+      setIsSubmitting(false);
+      return;
+    }
+    let isValid = await verifyPassword(form.password, data.password_hash);
+    if (!isValid) {
+      // Seamless migration for legacy plaintext passwords
+      if (data.password_hash === form.password) {
+        const newHash = await hashPassword(form.password);
+        await supabase.from('users').update({ password_hash: newHash }).eq('id', data.id);
+        isValid = true;
+        data.password_hash = newHash;
+      }
+    }
+    if (!isValid) {
       setError('Invalid email or password.');
       setIsSubmitting(false);
       return;
@@ -124,7 +139,12 @@ const LoginPage: React.FC = () => {
             </p>
             <p className="text-indigo-700 text-xs">
               Forgot password?{' '}
-              <span className="underline cursor-pointer" onClick={() => alert('Password reset coming soon!')}>Click to change</span>
+              <button
+                className="underline cursor-pointer"
+                onClick={() => navigate('/forgot-password')}
+              >
+                Click to reset
+              </button>
             </p>
           </div>
         </SplitAuthLayout>

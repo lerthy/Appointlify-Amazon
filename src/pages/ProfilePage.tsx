@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabaseClient';
+import { hashPassword, verifyPassword } from '../utils/password';
 import Header from '../components/shared/Header';
 
 const ProfilePage: React.FC = () => {
@@ -100,22 +101,28 @@ const ProfilePage: React.FC = () => {
       setPwSubmitting(false);
       return;
     }
-    // Check current password
-    const { data, error: checkError } = await supabase
+    // Fetch current password hash
+    const { data: userRow, error: fetchError } = await supabase
       .from('users')
-      .select('id')
+      .select('id, password_hash')
       .eq('id', user.id)
-      .eq('password_hash', pwForm.current)
       .single();
-    if (checkError || !data) {
+    if (fetchError || !userRow) {
+      setPwError('Unable to verify current password.');
+      setPwSubmitting(false);
+      return;
+    }
+    const matches = await verifyPassword(pwForm.current, userRow.password_hash);
+    if (!matches) {
       setPwError('Current password is incorrect.');
       setPwSubmitting(false);
       return;
     }
-    // Update password
+    // Update password with hash
+    const newHash = await hashPassword(pwForm.new);
     const { error: updateError } = await supabase
       .from('users')
-      .update({ password_hash: pwForm.new })
+      .update({ password_hash: newHash })
       .eq('id', user.id);
     if (updateError) {
       setPwError(updateError.message);

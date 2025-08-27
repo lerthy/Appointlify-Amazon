@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { mockAiService } from '../../utils/mockAiService';
 
 interface Message {
   id: string;
@@ -15,17 +16,12 @@ interface AIChatbotProps {
   onBookingReady?: (bookingData: any) => void;
 }
 
-const AIChatbot: React.FC<AIChatbotProps> = ({ 
-  businessName = 'Appointly',
-  services = [],
-  availableTimes = [],
-  onBookingReady
-}) => {
+const AIChatbot: React.FC<AIChatbotProps> = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Hello! I'm your AI booking assistant for ${businessName}. I can help you schedule an appointment. What service are you interested in today?`,
+      content: `Hello! I'm your AI booking assistant for Appointly. I can help you book appointments with various businesses. Would you like to start booking an appointment?`,
       sender: 'assistant',
       timestamp: new Date()
     }
@@ -33,6 +29,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sessionId = useRef<string>(`session_${Date.now()}`);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -57,94 +54,25 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
     setIsLoading(true);
 
     try {
-      // Prepare context for the AI
-      const context = {
-        businessName,
-        services: services.length > 0 ? services : [
-          { id: '1', name: 'Consultation', price: 50, duration: 30, description: 'Initial consultation' },
-          { id: '2', name: 'Basic Service', price: 75, duration: 45, description: 'Standard service' },
-          { id: '3', name: 'Premium Service', price: 120, duration: 60, description: 'Comprehensive service' }
-        ],
-        availableTimes: availableTimes.length > 0 ? availableTimes : [
-          '9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM'
-        ]
+      // Use the Mock AI service directly
+      const aiResponse = await mockAiService.generateResponse(
+        inputValue, 
+        messages.map(msg => ({
+          sender: msg.sender,
+          content: msg.content
+        })),
+        sessionId.current
+      );
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: aiResponse,
+        sender: 'assistant',
+        timestamp: new Date()
       };
 
-      // Prepare messages for API (exclude id and timestamp)
-      const apiMessages = messages.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }));
-
-      // Add the current user message
-      apiMessages.push({
-        role: 'user',
-        content: inputValue
-      });
-
-      // Call Netlify function
-      const response = await fetch('/.netlify/functions/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: apiMessages,
-          context
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        let assistantMessage = data.message;
-        
-        // Check if the AI indicates booking is ready
-        if (assistantMessage.includes('BOOKING_READY:')) {
-          try {
-            const bookingDataMatch = assistantMessage.match(/BOOKING_READY:\s*({.*})/);
-            if (bookingDataMatch) {
-              const bookingData = JSON.parse(bookingDataMatch[1]);
-              
-              // Clean up the message to remove the booking data
-              assistantMessage = assistantMessage.replace(/BOOKING_READY:.*/, 
-                'Perfect! I have all the information needed. Let me book that appointment for you...');
-              
-              // Trigger booking
-              if (onBookingReady) {
-                onBookingReady(bookingData);
-              } else {
-                // Default booking flow
-                setTimeout(() => {
-                  handleBooking(bookingData);
-                }, 1000);
-              }
-            }
-          } catch (e) {
-            console.error('Error parsing booking data:', e);
-          }
-        }
-
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          content: assistantMessage,
-          sender: 'assistant',
-          timestamp: new Date()
-        };
-
-        setMessages(prev => [...prev, aiResponse]);
-        
-        // Log AI provider for debugging
-        if (data.provider) {
-          console.log(`AI Response from: ${data.provider}`, data.note || '');
-        }
-      } else {
-        throw new Error(data.error || 'Failed to get AI response');
-      }
+      setMessages(prev => [...prev, assistantMessage]);
+      
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
@@ -159,50 +87,18 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
     }
   };
 
-  const handleBooking = async (bookingData: any) => {
-    try {
-      // Call Netlify function for booking
-      const response = await fetch('/.netlify/functions/book-appointment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...bookingData,
-          email: 'customer@example.com', // You might want to collect this
-          phone: '+1234567890' // You might want to collect this
-        }),
-      });
-
-      const result = await response.json();
-
-      const confirmationMessage: Message = {
-        id: Date.now().toString(),
-        content: result.success 
-          ? `Great! Your appointment has been booked successfully. Booking ID: ${result.bookingId}. You should receive a confirmation email shortly.`
-          : 'Sorry, there was an issue booking your appointment. Please try again or contact us directly.',
-        sender: 'assistant',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, confirmationMessage]);
-    } catch (error) {
-      console.error('Booking error:', error);
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        content: 'Sorry, there was a technical issue with the booking. Please contact us directly to complete your appointment.',
-        sender: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    }
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    // Clear the conversation when closing
+    mockAiService.clearConversation(sessionId.current);
+    sessionId.current = `session_${Date.now()}`;
   };
 
   return (
@@ -229,10 +125,10 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
           <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-t-lg flex justify-between items-center">
             <div>
               <h3 className="font-semibold">AI Booking Assistant</h3>
-              <p className="text-sm opacity-90">{businessName}</p>
+              <p className="text-sm opacity-90">Appointly</p>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               className="text-white hover:text-gray-200 transition-colors"
             >
               <X size={20} />
@@ -296,7 +192,7 @@ const AIChatbot: React.FC<AIChatbotProps> = ({
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Powered by OpenAI GPT-3.5 Turbo
+              Powered by Appointly AI Assistant
             </p>
           </div>
         </div>

@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS business_settings CASCADE;
 DROP TABLE IF EXISTS employees CASCADE;
 DROP TABLE IF EXISTS customers CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS password_reset_tokens CASCADE;
 
 -- 1. Users table (business owners and general users)
 CREATE TABLE IF NOT EXISTS users (
@@ -23,6 +24,17 @@ CREATE TABLE IF NOT EXISTS users (
     logo TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 1b. Password reset tokens (one-time, time-limited)
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    token TEXT PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires_at ON password_reset_tokens(expires_at);
 
 -- 2. Customers table (appointment bookings)
 CREATE TABLE IF NOT EXISTS customers (
