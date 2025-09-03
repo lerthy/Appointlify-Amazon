@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, AlertCircle } from 'lucide-react';
+import { Calendar, AlertCircle, Clock } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { Card, CardHeader, CardContent } from '../ui/Card';
@@ -9,7 +9,6 @@ import { useAuth } from '../../context/AuthContext';
 
 const Settings: React.FC = () => {
   const { businessSettings, updateBusinessSettings } = useApp();
-  const [duration, setDuration] = useState('30 minutes');
   const [weekend, setWeekend] = useState({ saturday: false, sunday: false });
   const [opening, setOpening] = useState('09:00');
   const [closing, setClosing] = useState('17:00');
@@ -24,7 +23,6 @@ const Settings: React.FC = () => {
 
   useEffect(() => {
     if (businessSettings) {
-      setDuration(businessSettings.appointment_duration ? `${businessSettings.appointment_duration} minutes` : '30 minutes');
       setWeekend({
         saturday: businessSettings.working_hours?.find((wh: any) => wh.day === 'Saturday')?.isClosed === false,
         sunday: businessSettings.working_hours?.find((wh: any) => wh.day === 'Sunday')?.isClosed === false
@@ -35,7 +33,6 @@ const Settings: React.FC = () => {
       setBlockedDates(businessSettings.blocked_dates || []);
     } else {
       // Set default values when businessSettings is null
-      setDuration('30 minutes');
       setWeekend({ saturday: false, sunday: false });
       setOpening('09:00');
       setClosing('17:00');
@@ -94,18 +91,7 @@ const Settings: React.FC = () => {
         isClosed: (day === 'Saturday' && !weekend.saturday) || (day === 'Sunday' && !weekend.sunday)
       }));
 
-      // Save business settings, including appointment_duration
-      let durationValue = 30;
-      if (duration.includes('hour')) {
-        const match = duration.match(/(\d+)/);
-        if (match) durationValue = parseInt(match[1], 10) * 60;
-      } else {
-        const match = duration.match(/(\d+)/);
-        if (match) durationValue = parseInt(match[1], 10);
-      }
-
       const settingsToSave = {
-        appointment_duration: durationValue,
         working_hours: workingHours,
         blocked_dates: blockedDates,
         breaks: breaks
@@ -127,49 +113,8 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <h2 className="text-2xl font-bold text-gray-900">Appointment Settings</h2>
-          <p className="text-gray-600">Configure your business hours and availability</p>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="space-y-8">
-            {/* Duration Settings */}
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Clock className="mr-2" size={20} />
-                Appointment Duration
-              </h3>
-              <div className="flex gap-3">
-                <Button 
-                  variant={duration === '30 minutes' ? 'primary' : 'outline'} 
-                  onClick={() => setDuration('30 minutes')}
-                  className="flex-1"
-                >
-                  30 minutes
-                </Button>
-                <Button 
-                  variant={duration === '1 hour' ? 'primary' : 'outline'} 
-                  onClick={() => setDuration('1 hour')}
-                  className="flex-1"
-                >
-                  1 hour
-                </Button>
-                <Button 
-                  variant={duration === '2 hours' ? 'primary' : 'outline'} 
-                  onClick={() => setDuration('2 hours')}
-                  className="flex-1"
-                >
-                  2 hours
-                </Button>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                This will be the default appointment duration when clients book with you.
-              </p>
-            </div>
-
+         <div className="max-w-4xl mx-auto p-6">
+       <div className="space-y-8">
             {/* Weekend Availability */}
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
@@ -322,11 +267,9 @@ const Settings: React.FC = () => {
               >
                 {saved ? 'Saved!' : 'Save Changes'}
               </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                         </div>
+           </div>
+         </div>
   );
 };
 

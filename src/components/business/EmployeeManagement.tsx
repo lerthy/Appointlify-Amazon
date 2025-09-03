@@ -250,8 +250,7 @@ const EmployeeManagement: React.FC = () => {
                     </div>
                   )}
                   <div className="ml-4">
-                    <h3 className="font-semibold text-gray-900 text-lg mb-2">{employee.name}</h3>
-                    <p className="text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full inline-block">{employee.role}</p>
+                    <h3 className="font-semibold text-gray-900 text-lg">{employee.name}</h3>
                   </div>
                 </div>
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

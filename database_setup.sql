@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS services (
     description TEXT,
     duration INTEGER NOT NULL, -- in minutes
     price NUMERIC(10,2) NOT NULL,
+    icon TEXT DEFAULT 'Briefcase', -- Icon name for the service
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -120,6 +121,9 @@ CREATE INDEX IF NOT EXISTS idx_employees_business_id ON employees(business_id);
 CREATE INDEX IF NOT EXISTS idx_services_business_id ON services(business_id);
 CREATE INDEX IF NOT EXISTS idx_business_settings_business_id ON business_settings(business_id);
 CREATE INDEX IF NOT EXISTS idx_employee_availability_employee_id ON employee_availability(employee_id);
+
+-- Migration: Add icon column to existing services table (for existing databases)
+ALTER TABLE services ADD COLUMN IF NOT EXISTS icon TEXT DEFAULT 'Briefcase';
 
 -- Sample data for testing (optional)
 -- Insert a sample business user
@@ -175,13 +179,14 @@ VALUES (
 );
 
 -- Insert sample service
-INSERT INTO services (business_id, name, description, duration, price)
+INSERT INTO services (business_id, name, description, duration, price, icon)
 VALUES (
     '550e8400-e29b-41d4-a716-446655440000',
     'Haircut',
     'Professional haircut service',
     30,
-    25.00
+    25.00,
+    'Scissors'
 );
 
 -- Insert sample customer

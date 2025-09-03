@@ -220,7 +220,7 @@ const HomePage: React.FC = () => {
               Powerful features designed to make appointment booking effortless for both businesses and customers
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
             {features.map((feature, index) => (
               <div key={index} className="text-center p-8 rounded-xl bg-white border border-gray-200 shadow-md hover:bg-gray-100 hover:shadow-lg transition-all duration-300">
                 <div className="flex justify-center mb-4">
@@ -304,9 +304,9 @@ const HomePage: React.FC = () => {
               businesses.map((business) => (
                 <div
                   key={business.id}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden w-full max-w-sm"
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden w-full max-w-sm flex flex-col"
                 >
-                  <div className="p-8 text-center">
+                  <div className="p-8 text-center flex-1 flex flex-col">
                     <div className="mb-6 flex items-center justify-center">
                       {business.logo ? (
                         <img
@@ -323,10 +323,10 @@ const HomePage: React.FC = () => {
                       )}
                     </div>
                     <h3 className="text-2xl font-bold mb-3 text-gray-900">{business.name}</h3>
-                    <p className="text-gray-600 mb-6 leading-relaxed">{business.description}</p>
+                    <p className="text-gray-600 mb-6 leading-relaxed flex-1">{business.description}</p>
                     <Button 
                       onClick={() => navigate(`/book/${business.id}`)}
-                      className="w-full"
+                      className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-semibold"
                       size="lg"
                     >
                       Book Appointment

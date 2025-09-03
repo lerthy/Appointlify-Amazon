@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -28,33 +28,45 @@ function Providers({ children }: { children: React.ReactNode }) {
   return <AppProvider>{children}</AppProvider>;
 }
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  
+  // Hide AI chat on login and signup pages
+  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password'].includes(location.pathname);
+  
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/book" element={<AppointmentPage />} />
+        <Route path="/book/:businessId" element={<AppointmentPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+        <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+        <Route path="/ai-demo" element={<AIChatbotDemoPage />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+      
+      {/* AI Chatbot - Hidden on auth pages */}
+      {shouldShowAIChat && <AIChatbot />}
+    </>
+  );
+}
+
+function App() {
   return (
     <AuthProvider>
       <Providers>
         <NotificationProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/book" element={<AppointmentPage />} />
-            <Route path="/book/:businessId" element={<AppointmentPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-            <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-            <Route path="/ai-demo" element={<AIChatbotDemoPage />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-          
-          {/* AI Chatbot - Available on all pages with OpenAI integration */}
-          <AIChatbot />
-        </Router>
+          <Router>
+            <AppContent />
+          </Router>
         </NotificationProvider>
       </Providers>
     </AuthProvider>

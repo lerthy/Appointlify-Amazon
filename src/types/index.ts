@@ -51,6 +51,7 @@ export interface Service {
   description: string;
   duration: number; // in minutes
   price: number;
+  icon?: string; // Icon name from lucide-react
   created_at: string;
 }
 

@@ -413,20 +413,20 @@ const AppointmentManagement: React.FC = () => {
                   key={index}
                   onClick={() => setSelectedDate(date)}
                   className={`
-                    min-h-[80px] p-2 border cursor-pointer transition-all duration-200 relative
+                    min-h-[80px] p-2 border cursor-pointer transition-all duration-200 relative rounded-md
                     ${isCurrentMonth ? 'bg-white' : 'bg-gray-50'}
                     ${isSelected 
-                      ? 'bg-blue-500 border-blue-500 shadow-lg transform scale-105 ring-4 ring-blue-200' 
+                      ? 'border-blue-500 border-2' 
                       : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                     }
-                    ${isToday && !isSelected ? 'ring-2 ring-blue-200' : ''}
+                    ${isToday && !isSelected ? 'border-blue-300 border-2' : ''}
                   `}
                 >
                   <div className={`
                     text-sm font-medium mb-1
                     ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
                     ${isToday && !isSelected ? 'text-blue-600' : ''}
-                    ${isSelected ? 'text-white font-bold' : ''}
+                    ${isSelected ? 'text-gray-900 font-bold' : ''}
                   `}>
                     {date.getDate()}
                   </div>
@@ -436,11 +436,11 @@ const AppointmentManagement: React.FC = () => {
                     {dayAppointments.slice(0, 2).map((appointment) => {
                       const status = appointment.status;
                       const statusColors = isSelected ? {
-                        'scheduled': 'bg-yellow-200 text-yellow-900 border border-yellow-300',
-                        'confirmed': 'bg-white text-blue-700 border border-blue-200',
-                        'completed': 'bg-white text-green-700 border border-green-200',
-                        'cancelled': 'bg-white text-red-700 border border-red-200',
-                        'no-show': 'bg-white text-orange-700 border border-orange-200'
+                        'scheduled': 'bg-yellow-100 text-yellow-800 border border-yellow-300',
+                        'confirmed': 'bg-blue-100 text-blue-800 border border-blue-300',
+                        'completed': 'bg-green-100 text-green-800 border border-green-300',
+                        'cancelled': 'bg-red-100 text-red-800 border border-red-300',
+                        'no-show': 'bg-orange-100 text-orange-800 border border-orange-300'
                       } : {
                         'scheduled': 'bg-yellow-100 text-yellow-800',
                         'confirmed': 'bg-blue-100 text-blue-800',
@@ -463,11 +463,11 @@ const AppointmentManagement: React.FC = () => {
                       );
                     })}
                     
-                    {dayAppointments.length > 2 && (
-                      <div className={`text-xs ${isSelected ? 'text-white font-medium' : 'text-gray-500'}`}>
-                        +{dayAppointments.length - 2} more
-                      </div>
-                    )}
+                                         {dayAppointments.length > 2 && (
+                       <div className={`text-xs ${isSelected ? 'text-gray-700 font-medium' : 'text-gray-500'}`}>
+                         +{dayAppointments.length - 2} more
+                       </div>
+                     )}
                   </div>
                 </div>
               );

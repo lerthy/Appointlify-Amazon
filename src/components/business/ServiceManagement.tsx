@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { Briefcase, Plus, Edit, Trash2, Clock, DollarSign, FileText } from 'lucide-react';
+import { 
+  Briefcase, Plus, Edit, Trash2, Clock, DollarSign, FileText,
+  Scissors, Heart, Zap, Star, Coffee, Car, Home, Phone, Mail, 
+  Camera, Music, Paintbrush, Wrench, Hammer, Stethoscope, 
+  GraduationCap, Book, Laptop, Smartphone, Headphones, Monitor,
+  Utensils, ChefHat, Wine, Gift, ShoppingBag, Shirt, 
+  Flower, TreePine, Sun, Moon, Droplets, Flame,
+  Dumbbell, Activity, Target, Trophy, Users, UserCheck,
+  MapPin, Compass, Globe, Plane, Train, Ship
+} from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { Card, CardHeader, CardContent } from '../ui/Card';
@@ -13,7 +22,64 @@ interface ServiceFormData {
   description: string;
   duration: number;
   price: number;
+  icon: string;
 }
+
+// Icon options for services
+const iconOptions = [
+  { name: 'Briefcase', icon: Briefcase, category: 'Business' },
+  { name: 'Scissors', icon: Scissors, category: 'Beauty' },
+  { name: 'Heart', icon: Heart, category: 'Health' },
+  { name: 'Stethoscope', icon: Stethoscope, category: 'Health' },
+  { name: 'Zap', icon: Zap, category: 'Energy' },
+  { name: 'Star', icon: Star, category: 'Premium' },
+  { name: 'Coffee', icon: Coffee, category: 'Food' },
+  { name: 'Utensils', icon: Utensils, category: 'Food' },
+  { name: 'ChefHat', icon: ChefHat, category: 'Food' },
+  { name: 'Wine', icon: Wine, category: 'Food' },
+  { name: 'Car', icon: Car, category: 'Transport' },
+  { name: 'Home', icon: Home, category: 'Home' },
+  { name: 'Phone', icon: Phone, category: 'Communication' },
+  { name: 'Mail', icon: Mail, category: 'Communication' },
+  { name: 'Camera', icon: Camera, category: 'Creative' },
+  { name: 'Music', icon: Music, category: 'Creative' },
+  { name: 'Paintbrush', icon: Paintbrush, category: 'Creative' },
+  { name: 'Wrench', icon: Wrench, category: 'Repair' },
+  { name: 'Hammer', icon: Hammer, category: 'Repair' },
+  { name: 'GraduationCap', icon: GraduationCap, category: 'Education' },
+  { name: 'Book', icon: Book, category: 'Education' },
+  { name: 'Laptop', icon: Laptop, category: 'Technology' },
+  { name: 'Smartphone', icon: Smartphone, category: 'Technology' },
+  { name: 'Headphones', icon: Headphones, category: 'Technology' },
+  { name: 'Monitor', icon: Monitor, category: 'Technology' },
+  { name: 'Gift', icon: Gift, category: 'Retail' },
+  { name: 'ShoppingBag', icon: ShoppingBag, category: 'Retail' },
+  { name: 'Shirt', icon: Shirt, category: 'Fashion' },
+  { name: 'Flower', icon: Flower, category: 'Nature' },
+  { name: 'TreePine', icon: TreePine, category: 'Nature' },
+  { name: 'Sun', icon: Sun, category: 'Nature' },
+  { name: 'Moon', icon: Moon, category: 'Nature' },
+  { name: 'Droplets', icon: Droplets, category: 'Nature' },
+  { name: 'Flame', icon: Flame, category: 'Energy' },
+  { name: 'Dumbbell', icon: Dumbbell, category: 'Fitness' },
+  { name: 'Activity', icon: Activity, category: 'Fitness' },
+  { name: 'Target', icon: Target, category: 'Fitness' },
+  { name: 'Trophy', icon: Trophy, category: 'Achievement' },
+  { name: 'Users', icon: Users, category: 'Social' },
+  { name: 'UserCheck', icon: UserCheck, category: 'Service' },
+  { name: 'MapPin', icon: MapPin, category: 'Location' },
+  { name: 'Compass', icon: Compass, category: 'Travel' },
+  { name: 'Globe', icon: Globe, category: 'Travel' },
+  { name: 'Plane', icon: Plane, category: 'Travel' },
+  { name: 'Train', icon: Train, category: 'Travel' },
+  { name: 'Ship', icon: Ship, category: 'Travel' }
+];
+
+// Function to get icon component by name
+const getIconComponent = (iconName: string) => {
+  const iconOption = iconOptions.find(option => option.name === iconName);
+  return iconOption ? iconOption.icon : Briefcase;
+};
 
 const ServiceManagement: React.FC = () => {
   const { services, addService, updateService, deleteService } = useApp();
@@ -26,7 +92,8 @@ const ServiceManagement: React.FC = () => {
     name: '',
     description: '',
     duration: 30,
-    price: 0
+    price: 0,
+    icon: 'Briefcase'
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -52,7 +119,8 @@ const ServiceManagement: React.FC = () => {
           name: formData.name,
           description: formData.description,
           duration: formData.duration,
-          price: formData.price
+          price: formData.price,
+          icon: formData.icon
         });
         showNotification('Service updated successfully!', 'success');
         setEditingService(null);
@@ -63,7 +131,8 @@ const ServiceManagement: React.FC = () => {
           name: formData.name,
           description: formData.description,
           duration: formData.duration,
-          price: formData.price
+          price: formData.price,
+          icon: formData.icon
         });
         showNotification('Service added successfully!', 'success');
       }
@@ -81,7 +150,8 @@ const ServiceManagement: React.FC = () => {
       name: '',
       description: '',
       duration: 30,
-      price: 0
+      price: 0,
+      icon: 'Briefcase'
     });
   };
 
@@ -92,7 +162,8 @@ const ServiceManagement: React.FC = () => {
         name: service.name,
         description: service.description,
         duration: service.duration,
-        price: service.price
+        price: service.price,
+        icon: service.icon || 'Briefcase'
       });
       setEditingService(serviceId);
       setIsAddingService(true);
@@ -154,7 +225,7 @@ const ServiceManagement: React.FC = () => {
               <div className="flex justify-between items-start mb-6">
                               <div className="flex items-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center shadow-sm">
-                  <Briefcase className="h-6 w-6 text-green-600" />
+                  {React.createElement(getIconComponent(service.icon || 'Briefcase'), { className: "h-6 w-6 text-green-600" })}
                 </div>
                                   <div className="ml-4">
                     <h3 className="font-semibold text-gray-900 text-lg mb-2">{service.name}</h3>
@@ -254,6 +325,37 @@ const ServiceManagement: React.FC = () => {
                     rows={3}
                     required
                   />
+                </div>
+
+                {/* Icon Selection */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Service Icon *
+                  </label>
+                  <div className="grid grid-cols-8 gap-2 p-4 border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-gray-50">
+                    {iconOptions.map((option) => (
+                      <button
+                        key={option.name}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, icon: option.name }))}
+                        className={`p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                          formData.icon === option.name
+                            ? 'border-green-500 bg-green-50 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                        title={`${option.name} (${option.category})`}
+                      >
+                        {React.createElement(option.icon, { 
+                          className: `h-5 w-5 ${formData.icon === option.name ? 'text-green-600' : 'text-gray-600'}` 
+                        })}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 flex items-center">
+                    <span className="mr-2">Selected:</span>
+                    {React.createElement(getIconComponent(formData.icon), { className: "h-4 w-4 text-green-600 mr-1" })}
+                    <span className="font-medium">{formData.icon}</span>
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
