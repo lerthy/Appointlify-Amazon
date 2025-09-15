@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
+import { createClient } from '@supabase/supabase-js';
 
 // Mock AI Service for fallback
 async function getMockAIResponse(messages, context) {
@@ -88,6 +89,24 @@ export async function handler(event, context) {
 
   try {
     const { messages, context: chatContext } = JSON.parse(event.body);
+
+    // Fetch live business/services context from Supabase
+    let dbContext = { businesses: [], services: [] };
+    try {
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (supabaseUrl && serviceKey) {
+        const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+        const [{ data: businesses }, { data: services }] = await Promise.all([
+          sb.from('business_settings').select('id, business_name, description').limit(50),
+          sb.from('services').select('id, name, price, duration, description, business_id').limit(200)
+        ]);
+        dbContext.businesses = businesses || [];
+        dbContext.services = services || [];
+      }
+    } catch (e) {
+      console.warn('chat.js: failed to fetch Supabase context', e);
+    }
     
     // Prefer Groq if available; else OpenAI; else mock
     const useGroq = Boolean(process.env.GROQ_API_KEY);
@@ -115,9 +134,12 @@ export async function handler(event, context) {
       const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
       // Create system prompt with booking context
+      const servicesByBiz = dbContext.services.map(s => `- ${s.name} ($${s.price}, ${s.duration} min)`).slice(0, 50).join('\n');
+      const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.business_name}${b.description ? ' - ' + b.description : ''}`).slice(0, 25).join('\n');
       const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. \n`
         + `You help customers book appointments in a conversational way.\n`
-        + `Available services (if provided):\n${chatContext?.services?.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).join('\n') || 'Loading services...'}\n\n`
+        + `Businesses from database (sample):\n${businessList || 'No businesses found.'}\n\n`
+        + `Services from database (sample):\n${servicesByBiz || 'No services found.'}\n\n`
         + `Available time slots (if provided):\n${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}\n\n`
         + `Only emit BOOKING_READY when all required fields are present.`;
 
@@ -153,11 +175,16 @@ export async function handler(event, context) {
     });
 
     // Create system prompt with booking context
+    const servicesByBiz = dbContext.services.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).slice(0, 50).join('\n');
+    const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.business_name}${b.description ? ' - ' + b.description : ''}`).slice(0, 25).join('\n');
     const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. 
 You help customers book appointments in a conversational way.
 
-AVAILABLE SERVICES:
-${chatContext?.services?.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).join('\n') || 'Loading services...'}
+BUSINESSES (sample from database):
+${businessList || 'No businesses found.'}
+
+AVAILABLE SERVICES (sample from database):
+${servicesByBiz || 'Loading services...'}
 
 AVAILABLE TIME SLOTS:
 ${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}
