@@ -54,34 +54,68 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
     setIsLoading(true);
 
     try {
-      // Use the Mock AI service directly
-      const aiResponse = await mockAiService.generateResponse(
-        inputValue, 
-        messages.map(msg => ({
-          sender: msg.sender,
-          content: msg.content
-        })),
-        sessionId.current
-      );
+      // Prefer real Netlify function (Groq/OpenAI) and fall back to mock on failure
+      const payload = {
+        messages: [
+          { role: 'system', content: 'You are a helpful booking assistant.' },
+          ...messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.content })),
+          { role: 'user', content: inputValue }
+        ],
+        context: {
+          businessName: undefined,
+          services: undefined,
+          availableTimes: undefined
+        }
+      };
+
+      const res = await fetch('/.netlify/functions/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        throw new Error(`Chat function error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      const aiText = data?.message || 'Sorry, I could not generate a response.';
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: aiResponse,
+        content: aiText,
         sender: 'assistant',
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again or contact us directly to book your appointment.",
+        content: "I'm having trouble reaching the AI service. Retrying with a local fallback...",
         sender: 'assistant',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+
+      // Fallback to mock so the user still gets a response
+      try {
+        const aiResponse = await mockAiService.generateResponse(
+          inputValue,
+          messages.map(msg => ({ sender: msg.sender, content: msg.content })),
+          sessionId.current
+        );
+        const assistantMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          content: aiResponse,
+          sender: 'assistant',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      } catch (e) {
+        // swallow
+      }
     } finally {
       setIsLoading(false);
     }
