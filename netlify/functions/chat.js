@@ -98,7 +98,7 @@ export async function handler(event, context) {
       if (supabaseUrl && serviceKey) {
         const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
         const [{ data: businesses }, { data: services }] = await Promise.all([
-          sb.from('business_settings').select('id, business_name, description').limit(50),
+          sb.from('business_settings').select('id, name, working_hours').limit(50),
           sb.from('services').select('id, name, price, duration, description, business_id').limit(200)
         ]);
         dbContext.businesses = businesses || [];
@@ -135,7 +135,7 @@ export async function handler(event, context) {
 
       // Create system prompt with booking context
       const servicesByBiz = dbContext.services.map(s => `- ${s.name} ($${s.price}, ${s.duration} min)`).slice(0, 50).join('\n');
-      const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.business_name}${b.description ? ' - ' + b.description : ''}`).slice(0, 25).join('\n');
+      const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n');
       const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. \n`
         + `You help customers book appointments in a conversational way.\n`
         + `Businesses from database (sample):\n${businessList || 'No businesses found.'}\n\n`
@@ -176,7 +176,7 @@ export async function handler(event, context) {
 
     // Create system prompt with booking context
     const servicesByBiz = dbContext.services.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).slice(0, 50).join('\n');
-    const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.business_name}${b.description ? ' - ' + b.description : ''}`).slice(0, 25).join('\n');
+    const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n');
     const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. 
 You help customers book appointments in a conversational way.
 
