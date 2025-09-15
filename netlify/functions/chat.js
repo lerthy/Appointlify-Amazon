@@ -92,6 +92,7 @@ export async function handler(event, context) {
     // Prefer Groq if available; else OpenAI; else mock
     const useGroq = Boolean(process.env.GROQ_API_KEY);
     const useOpenAI = Boolean(process.env.OPENAI_API_KEY) && process.env.USE_OPENAI !== 'false';
+    console.log('chat.js provider flags => useGroq:', useGroq, 'useOpenAI:', useOpenAI);
     
     if (!useGroq && !useOpenAI) {
       // Use mock AI service as fallback
@@ -125,6 +126,7 @@ export async function handler(event, context) {
         ...messages
       ];
 
+      console.log('chat.js using provider: groq');
       const completion = await groq.chat.completions.create({
         model,
         messages: chatMessages,
@@ -145,6 +147,7 @@ export async function handler(event, context) {
     }
 
     // Initialize OpenAI client
+    console.log('chat.js using provider: openai');
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
