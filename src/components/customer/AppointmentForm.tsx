@@ -94,9 +94,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     fetchBusiness();
   }, [businessId]);
 
-  // Fetch booked slots for the selected date
+  // Fetch booked slots for the selected date and employee
   useEffect(() => {
-    if (!formData.date || !businessId) {
+    if (!formData.date || !businessId || !formData.employee_id) {
       setBookedSlots([]);
       return;
     }
@@ -109,19 +109,30 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         
         const { data, error } = await supabase
           .from('appointments')
-          .select('date')
+          .select('date, duration, employee_id')
           .eq('business_id', businessId)
+          .eq('employee_id', formData.employee_id) // Only get appointments for the selected employee
           .gte('date', startOfDay.toISOString())
           .lte('date', endOfDay.toISOString());
           
         if (error) throw error;
         
         if (data) {
-          const slots = data.map((appt: any) => {
-            const d = new Date(appt.date);
-            return `${d.getUTCHours().toString().padStart(2, '0')}:${d.getUTCMinutes().toString().padStart(2, '0')}`;
+          const bookedSlots = new Set<string>();
+          
+          data.forEach((appt: any) => {
+            const appointmentTime = new Date(appt.date);
+            const duration = appt.duration || 30; // Default to 30 minutes if no duration
+            
+            // Add all time slots that are occupied by this appointment for this specific employee
+            for (let i = 0; i < duration; i += 30) {
+              const slotTime = new Date(appointmentTime);
+              slotTime.setMinutes(slotTime.getMinutes() + i);
+              bookedSlots.add(slotTime.toTimeString().slice(0, 5));
+            }
           });
-          setBookedSlots(slots);
+          
+          setBookedSlots(Array.from(bookedSlots));
         }
       } catch (err) {
         console.error('Error fetching booked slots:', err);
@@ -129,22 +140,29 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       }
     };
     fetchBookedSlots();
-  }, [formData.date, businessId]);
+  }, [formData.date, businessId, formData.employee_id]);
 
   // Use duration from selected service or businessSettings.appointment_duration
   const selectedService = businessServices.find(s => s.id === formData.service_id);
   let serviceDuration = selectedService?.duration || businessSettings?.appointment_duration || 30;
 
-  // Generate available time slots for the selected date
+  // Generate available time slots for the selected date and employee
   useEffect(() => {
-    if (!formData.date || !businessSettings) {
+    if (!formData.date || !businessSettings || !formData.employee_id) {
       setAvailableTimeSlots([]);
       return;
     }
 
     const slots = getAvailableTimeSlots(new Date(formData.date), serviceDuration);
     setAvailableTimeSlots(slots);
-  }, [formData.date, businessSettings, serviceDuration]);
+  }, [formData.date, businessSettings, serviceDuration, bookedSlots, formData.employee_id]);
+
+  // Clear time selection when employee changes (since availability changes)
+  useEffect(() => {
+    if (formData.employee_id) {
+      setFormData(prev => ({ ...prev, time: '' }));
+    }
+  }, [formData.employee_id]);
 
   const getAvailableTimeSlots = (date: Date, duration: number): string[] => {
     const slots: string[] = [];
@@ -165,14 +183,38 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     const closeTime = new Date(date);
     closeTime.setHours(closeHour, closeMinute, 0, 0);
     
-    const currentTime = openTime;
+    const currentTime = new Date(openTime);
     
     while (currentTime < closeTime) {
       const timeString = currentTime.toTimeString().slice(0, 5);
-      if (!bookedSlots.includes(timeString)) {
+      
+      // Check if this time slot and the required duration would fit
+      const slotEndTime = new Date(currentTime);
+      slotEndTime.setMinutes(slotEndTime.getMinutes() + duration);
+      
+      // Check if the slot would go beyond closing time
+      if (slotEndTime > closeTime) {
+        break;
+      }
+      
+      // Check if any part of this time slot is booked
+      let isSlotAvailable = true;
+      const checkTime = new Date(currentTime);
+      
+      for (let i = 0; i < duration; i += 30) {
+        const checkTimeString = checkTime.toTimeString().slice(0, 5);
+        if (bookedSlots.includes(checkTimeString)) {
+          isSlotAvailable = false;
+          break;
+        }
+        checkTime.setMinutes(checkTime.getMinutes() + 30);
+      }
+      
+      if (isSlotAvailable) {
         slots.push(timeString);
       }
-      currentTime.setMinutes(currentTime.getMinutes() + duration);
+      
+      currentTime.setMinutes(currentTime.getMinutes() + 30); // Move to next 30-minute slot
     }
     
     return slots;

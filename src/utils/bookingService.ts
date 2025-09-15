@@ -115,7 +115,7 @@ export class BookingService {
   }
 
   // Get available times for a specific date
-  async getAvailableTimes(date: string, serviceDuration: number = 60): Promise<string[]> {
+  async getAvailableTimes(date: string, serviceDuration: number = 60, employeeId?: string): Promise<string[]> {
     try {
       const settings = await this.getBusinessSettings();
       if (!settings) {
@@ -125,7 +125,7 @@ export class BookingService {
 
       const selectedDate = new Date(date);
       const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-      console.log(`Getting available times for ${date} (${dayOfWeek})`);
+      console.log(`Getting available times for ${date} (${dayOfWeek})${employeeId ? ` for employee ${employeeId}` : ''}`);
       
       // Find working hours for this day
       const daySettings = settings.working_hours.find(h => h.day === dayOfWeek);
@@ -140,8 +140,8 @@ export class BookingService {
       const timeSlots = this.generateTimeSlots(daySettings.open, daySettings.close, serviceDuration);
       console.log(`Generated time slots:`, timeSlots);
       
-      // Filter out booked times
-      const availableSlots = await this.filterBookedSlots(date, timeSlots, serviceDuration);
+      // Filter out booked times (optionally for specific employee)
+      const availableSlots = await this.filterBookedSlots(date, timeSlots, serviceDuration, employeeId);
       console.log(`Available slots after filtering:`, availableSlots);
       
       return availableSlots;
@@ -152,10 +152,10 @@ export class BookingService {
   }
 
   // Check if a specific date/time is available
-  async checkAvailability(date: string, time: string, serviceDuration: number = 60): Promise<boolean> {
+  async checkAvailability(date: string, time: string, serviceDuration: number = 60, employeeId?: string): Promise<boolean> {
     try {
-      const availableTimes = await this.getAvailableTimes(date, serviceDuration);
-      console.log(`Checking availability for ${date} at ${time}. Available times:`, availableTimes);
+      const availableTimes = await this.getAvailableTimes(date, serviceDuration, employeeId);
+      console.log(`Checking availability for ${date} at ${time}${employeeId ? ` for employee ${employeeId}` : ''}. Available times:`, availableTimes);
       const isAvailable = availableTimes.includes(time);
       console.log(`Time ${time} is ${isAvailable ? 'available' : 'not available'}`);
       return isAvailable;
@@ -283,7 +283,7 @@ export class BookingService {
 
     // Check if it's a working day
     const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
-    const daySettings = settings.working_hours.find(h => h.day === dayOfWeek);
+    const daySettings = settings.working_hours.find(h => h.day === dayOfWeek) || false  ;
     
     return daySettings && !daySettings.isClosed;
   }
@@ -305,17 +305,24 @@ export class BookingService {
   }
 
   // Filter out already booked time slots
-  private async filterBookedSlots(date: string, timeSlots: string[], duration: number): Promise<string[]> {
+  private async filterBookedSlots(date: string, timeSlots: string[], duration: number, employeeId?: string): Promise<string[]> {
     try {
       const startOfDay = new Date(`${date}T00:00:00`);
       const endOfDay = new Date(`${date}T23:59:59`);
 
-      const { data: existingAppointments } = await supabase
+      let query = supabase
         .from('appointments')
-        .select('date, duration')
+        .select('date, duration, employee_id')
         .eq('business_id', this.businessId)
         .gte('date', startOfDay.toISOString())
         .lte('date', endOfDay.toISOString());
+
+      // nese ka employee id bani check veq per qat employee
+      if (employeeId) {
+        query = query.eq('employee_id', employeeId);
+      }
+
+      const { data: existingAppointments } = await query;
 
       if (!existingAppointments) return timeSlots;
 
@@ -323,7 +330,6 @@ export class BookingService {
       
       existingAppointments.forEach(appointment => {
         const appointmentTime = new Date(appointment.date);
-        const appointmentStart = appointmentTime.toTimeString().slice(0, 5);
         
         // Add all slots that overlap with this appointment
         for (let i = 0; i < Math.max(appointment.duration, duration); i += 30) {
