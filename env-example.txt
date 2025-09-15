@@ -12,3 +12,21 @@ USE_OPENAI=false
 
 # Server Configuration
 PORT=3001
+
+# MCP (Model Context Protocol) - Supabase server
+# Generate a Supabase Personal Access Token in your account settings
+# https://app.supabase.com/account/tokens
+SUPABASE_MCP_ACCESS_TOKEN=your_supabase_pat_here
+
+# Supabase project (required for Netlify MCP function)
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Embeddings for RAG (used by MCP ingest/query)
+# Default model: text-embedding-3-small (OpenAI). You can switch providers.
+OPENAI_API_KEY=your_openai_api_key_here
+EMBEDDING_MODEL=text-embedding-3-small
+
+# Groq (free-tier chat models)
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=llama-3.1-8b-instant

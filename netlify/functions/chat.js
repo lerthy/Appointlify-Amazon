@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import Groq from 'groq-sdk';
 
 // Mock AI Service for fallback
 async function getMockAIResponse(messages, context) {
@@ -88,10 +89,11 @@ export async function handler(event, context) {
   try {
     const { messages, context: chatContext } = JSON.parse(event.body);
     
-    // Check if OpenAI is available
-    const useOpenAI = process.env.OPENAI_API_KEY && process.env.USE_OPENAI !== 'false';
+    // Prefer Groq if available; else OpenAI; else mock
+    const useGroq = Boolean(process.env.GROQ_API_KEY);
+    const useOpenAI = Boolean(process.env.OPENAI_API_KEY) && process.env.USE_OPENAI !== 'false';
     
-    if (!useOpenAI) {
+    if (!useGroq && !useOpenAI) {
       // Use mock AI service as fallback
       const mockResponse = await getMockAIResponse(messages, chatContext);
       return {
@@ -102,6 +104,42 @@ export async function handler(event, context) {
           message: mockResponse,
           provider: 'mock',
           note: 'Using mock AI service. Set OPENAI_API_KEY and USE_OPENAI=true to use OpenAI.'
+        })
+      };
+    }
+
+    // Try Groq first
+    if (useGroq) {
+      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+      const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+
+      // Create system prompt with booking context
+      const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. \n`
+        + `You help customers book appointments in a conversational way.\n`
+        + `Available services (if provided):\n${chatContext?.services?.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).join('\n') || 'Loading services...'}\n\n`
+        + `Available time slots (if provided):\n${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}\n\n`
+        + `Only emit BOOKING_READY when all required fields are present.`;
+
+      const chatMessages = [
+        { role: 'system', content: systemPrompt },
+        ...messages
+      ];
+
+      const completion = await groq.chat.completions.create({
+        model,
+        messages: chatMessages,
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+
+      const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ 
+          success: true, 
+          message: assistantMessage,
+          provider: 'groq'
         })
       };
     }

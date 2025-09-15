@@ -4,6 +4,39 @@ This directory contains Netlify serverless functions for the appointment booking
 
 ## Functions
 
+### MCP (Model Context Protocol)
+
+An HTTP MCP endpoint is available at `/.netlify/functions/mcp` using the Netlify guide's Streamable HTTP transport. It exposes tools to read from and write to Supabase.
+
+Client config example (via proxy for compatibility):
+
+```json
+{
+  "mcpServers": {
+    "supabase-remote": {
+      "command": "npx",
+      "args": ["mcp-remote@next", "https://<your-site>/.netlify/functions/mcp"]
+    }
+  }
+}
+```
+
+Reference: Building MCPs with Netlify: https://developers.netlify.com/guides/write-mcps-on-netlify/
+
+#### RAG (pgvector) tools
+
+SQL setup file: `supabase_pgvector_setup.sql` (run in Supabase SQL editor):
+- enables `vector` extension
+- creates `public.knowledge` table and `match_knowledge` RPC
+
+Tools exposed:
+- `ingest-text(source, content, metadata?)`: embeds with `EMBEDDING_MODEL` and stores
+- `query-knowledge(question, matchCount?, minSimilarity?)`: returns top matches via `match_knowledge`
+
+Required env:
+- `OPENAI_API_KEY` (or swap to another embedding provider)
+- `EMBEDDING_MODEL` (default: `text-embedding-3-small`)
+
 ### `send-sms.js`
 Handles SMS sending via Twilio API.
 
@@ -16,11 +49,15 @@ Handles SMS sending via Twilio API.
 Test function to verify environment variables and function availability.
 
 ### `chat.js`
-Handles AI chatbot conversations using OpenAI GPT-3.5 Turbo or fallback mock service.
+Handles AI chatbot conversations preferring Groq (Llama 3.1) when configured, then OpenAI, then mock.
 
-**Required Environment Variables:**
-- `OPENAI_API_KEY` - Your OpenAI API key (optional, will use mock service if not set)
-- `USE_OPENAI` - Set to 'true' to enable OpenAI (optional, defaults to mock service)
+**Environment Variables:**
+- Groq (preferred, low-cost/free tier):
+  - `GROQ_API_KEY`
+  - `GROQ_MODEL` (default: `llama-3.1-8b-instant`)
+- OpenAI (fallback):
+  - `OPENAI_API_KEY`
+  - `USE_OPENAI` (set to 'true' to enable)
 
 ### `book-appointment.js`
 Handles appointment booking requests and creates booking records.

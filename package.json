@@ -9,7 +9,8 @@
     "build:functions": "cd netlify/functions && npm install",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server.js"
+    "server": "node server.js",
+    "mcp:supabase": "npx -y @supabase/mcp-server-supabase@latest"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
