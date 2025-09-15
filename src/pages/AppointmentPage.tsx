@@ -98,7 +98,7 @@ const AppointmentPage: React.FC = () => {
         <AuthPageTransition>
           <main className="flex-grow py-8 flex items-center justify-center">
             <motion.div
-              className="w-full max-w-lg bg-white rounded-xl shadow-xl p-6 md:p-8 flex flex-col items-center"
+              className="w-full max-w-xl bg-white rounded-xl shadow-xl p-6 md:p-8 flex flex-col items-center"
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }}
               exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.3, ease: 'easeIn' } }}

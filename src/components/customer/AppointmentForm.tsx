@@ -471,9 +471,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <div className="flex items-center justify-between mb-4">
+    <Card className="w-full max-w-lg shadow-none mx-auto">
+      {/* <CardHeader>
+        <div className="flex items-center justify-center text-center mb-4">
           <Button
             type="button"
             variant="ghost"
@@ -486,9 +486,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Book Appointment</h2>
             <p className="text-gray-600">Fill out the form below to schedule your appointment</p>
           </div>
-          <div className="w-9"></div> {/* Spacer to balance the layout */}
         </div>
-      </CardHeader>
+      </CardHeader> */}
       
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -498,59 +497,62 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             </div>
           )}
 
-          {/* Service Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Briefcase className="inline w-4 h-4 mr-1" />
-              Service
-            </label>
-            <Select
-              name="service_id"
-              value={formData.service_id}
-              onChange={(value) => {
-                setFormData(prev => ({ ...prev, service_id: value }));
-                setErrors(prev => ({ ...prev, service_id: '' }));
-                // If service changed, update duration
-                const newService = businessServices.find(s => s.id === value);
-                if (newService) {
-                  serviceDuration = newService.duration;
-                }
-              }}
-              error={errors.service_id}
-              required
-              options={[
-                { value: '', label: 'Select a service' },
-                ...businessServices.map((service) => ({
-                  value: service.id,
-                  label: `${service.name} - $${service.price} (${service.duration} min)`
-                }))
-              ]}
-            />
-          </div>
+          {/* Service and Employee Selection */}
+          <div className='flex direction-row gap-3 justify-between'>
+            {/* Service Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Briefcase className="inline w-4 h-4 mr-1" />
+                Service
+              </label>
+              <Select
+                name="service_id"
+                value={formData.service_id}
+                onChange={(value) => {
+                  setFormData(prev => ({ ...prev, service_id: value }));
+                  setErrors(prev => ({ ...prev, service_id: '' }));
+                  // If service changed, update duration
+                  const newService = businessServices.find(s => s.id === value);
+                  if (newService) {
+                    serviceDuration = newService.duration;
+                  }
+                }}
+                error={errors.service_id}
+                required
+                options={[
+                  { value: '', label: 'Select a service' },
+                  ...businessServices.map((service) => ({
+                    value: service.id,
+                    label: `${service.name} - $${service.price} (${service.duration} min)`
+                  }))
+                ]}
+              />
+            </div>
 
-          {/* Employee Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Users className="inline w-4 h-4 mr-1" />
-              Employee
-            </label>
-            <Select
-              name="employee_id"
-              value={formData.employee_id}
-              onChange={(value) => {
-                setFormData(prev => ({ ...prev, employee_id: value }));
-                setErrors(prev => ({ ...prev, employee_id: '' }));
-              }}
-              error={errors.employee_id}
-              required
-              options={[
-                { value: '', label: 'Select an employee' },
-                ...businessEmployees.map((employee) => ({
-                  value: employee.id,
-                  label: `${employee.name} (${employee.role})`
-                }))
-              ]}
-            />
+            {/* Employee Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Users className="inline w-4 h-4 mr-1" />
+                Employee
+              </label>
+              <Select
+                name="employee_id"
+                value={formData.employee_id}
+                onChange={(value) => {
+                  setFormData(prev => ({ ...prev, employee_id: value }));
+                  setErrors(prev => ({ ...prev, employee_id: '' }));
+                }}
+                error={errors.employee_id}
+                required
+                options={[
+                  { value: '', label: 'Select an employee' },
+                  ...businessEmployees.map((employee) => ({
+                    value: employee.id,
+                    label: `${employee.name} (${employee.role})`
+                  }))
+                ]}
+              />
+            </div>
           </div>
 
           {/* Name */}
@@ -570,93 +572,98 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             />
           </div>
 
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Phone className="inline w-4 h-4 mr-1" />
-              Phone Number
-            </label>
-            <Input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="+383 44 123 456"
-              error={errors.phone}
-              required
-            />
-          </div>
+          {/* Phone and Email */}
+          <div className='flex direction-row gap-3 justify-between'>
+            {/* Phone */}
+            <div className='w-full'>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Phone className="inline w-4 h-4 mr-1" />
+                Phone Number
+              </label>
+              <Input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="+383 44 123 456"
+                error={errors.phone}
+                required
+              />
+            </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Mail className="inline w-4 h-4 mr-1" />
-              Email Address
-            </label>
-            <Input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="your.email@example.com"
-              error={errors.email}
-              required
-            />
+            {/* Email */}
+            <div className='w-full'>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Mail className="inline w-4 h-4 mr-1" />
+                Email Address
+              </label>
+              <Input
+                className='w-2xl'
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="your.email@example.com"
+                error={errors.email}
+                required
+              />
+            </div>
           </div>
+          <div className='flex direction-row gap-3 justify-between'>
+            {/* Date */}
+            <div className='w-full'>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="inline w-4 h-4 mr-1" />
+                Date
+              </label>
+              <Select
+                name="date"
+                value={formData.date}
+                onChange={(value) => {
+                  setFormData(prev => ({ ...prev, date: value }));
+                  setErrors(prev => ({ ...prev, date: '' }));
+                }}
+                error={errors.date}
+                required
+                options={[
+                  { value: '', label: 'Select a date' },
+                  ...availableDates.map((date) => ({
+                    value: date.toISOString().split('T')[0],
+                    label: date.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })
+                  }))
+                ]}
+              />
+            </div>
 
-          {/* Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Calendar className="inline w-4 h-4 mr-1" />
-              Date
-            </label>
-            <Select
-              name="date"
-              value={formData.date}
-              onChange={(value) => {
-                setFormData(prev => ({ ...prev, date: value }));
-                setErrors(prev => ({ ...prev, date: '' }));
-              }}
-              error={errors.date}
-              required
-              options={[
-                { value: '', label: 'Select a date' },
-                ...availableDates.map((date) => ({
-                  value: date.toISOString().split('T')[0],
-                  label: date.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })
-                }))
-              ]}
-            />
-          </div>
-
-          {/* Time */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Clock className="inline w-4 h-4 mr-1" />
-              Time
-            </label>
-            <Select
-              name="time"
-              value={formData.time}
-              onChange={(value) => {
-                setFormData(prev => ({ ...prev, time: value }));
-                setErrors(prev => ({ ...prev, time: '' }));
-              }}
-              error={errors.time}
-              required
-              options={[
-                { value: '', label: 'Select a time' },
-                ...availableTimeSlots.map((slot) => ({
-                  value: slot,
-                  label: slot
-                }))
-              ]}
-            />
+            {/* Time */}
+            <div className='w-full'>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Clock className="inline w-4 h-4 mr-1" />
+                Time
+              </label>
+              <Select
+                name="time"
+                value={formData.time}
+                onChange={(value) => {
+                  setFormData(prev => ({ ...prev, time: value }));
+                  setErrors(prev => ({ ...prev, time: '' }));
+                }}
+                error={errors.time}
+                required
+                options={[
+                  { value: '', label: 'Select a time' },
+                  ...availableTimeSlots.map((slot) => ({
+                    value: slot,
+                    label: slot
+                  }))
+                ]}
+              />
+            </div>
           </div>
 
           {/* Notes */}
@@ -670,13 +677,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               value={formData.notes}
               onChange={handleChange}
               placeholder="Any special requests or notes..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none outline-none"
               rows={3}
             />
           </div>
         </CardContent>
 
-        <CardFooter className="flex gap-3">
+        <CardFooter className="flex gap-3 bg-white">
           <Button
             type="button"
             variant="outline"

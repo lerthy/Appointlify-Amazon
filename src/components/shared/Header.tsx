@@ -79,7 +79,9 @@ const Header: React.FC = () => {
                 alt="Appointly-ks logo"
                 
               />
-              <span className="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out transform translate-x-4 group-hover:translate-x-0">Appointly-ks</span>
+              <span className="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0">
+                Appointly-ks
+              </span>
             </button>
           </div>
           {/* Desktop Navigation */}
