@@ -337,7 +337,7 @@ async function createAppointment(bookingData) {
 
     // Create appointment record
     const appointmentData = {
-      id: `apt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: crypto.randomUUID(),
       business_id: businessId,
       service_id: serviceId,
       customer_id: null, // Will be set to null for now
