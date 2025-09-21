@@ -383,7 +383,10 @@ async function createAppointment(bookingData) {
     });
 
     const result = await response.json();
+    console.log('MCP upsert result:', JSON.stringify(result, null, 2));
+    
     if (result.error) {
+      console.error('MCP upsert error:', result.error);
       throw new Error(result.error.message);
     }
 
@@ -391,6 +394,7 @@ async function createAppointment(bookingData) {
     return appointmentData.id;
   } catch (error) {
     console.error('Error creating appointment:', error);
+    console.error('Appointment data that failed:', JSON.stringify(appointmentData, null, 2));
     return null;
   }
 }
