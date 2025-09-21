@@ -67,7 +67,7 @@ async function getEnhancedContext(chatContext, messages = []) {
   
   // If no frontend context, try to detect business from user message
   const userMessage = messages[messages.length - 1]?.content || '';
-  const businessNameMatch = userMessage.match(/\b(lerdi salihi|nike|sample business|my business|filan fisteku)\b/i);
+  const businessNameMatch = userMessage.match(/(lerdi salihi|nike|sample business|my business|filan fisteku|business test|bussiness test)/i);
   if (businessNameMatch) {
     const detectedBusiness = businessNameMatch[0].toLowerCase();
     console.log('chat.js: Detected business from message:', detectedBusiness);
@@ -78,7 +78,9 @@ async function getEnhancedContext(chatContext, messages = []) {
       'nike': '8632da60-830e-4df1-9f64-3e60d274bcb5',
       'sample business': '550e8400-e29b-41d4-a716-446655440000',
       'my business': '8632da60-830e-4df1-9f64-3e60d274bcb5',
-      'filan fisteku': 'd5319a6d-a78f-4a56-b288-aa123da023af'
+      'filan fisteku': 'd5319a6d-a78f-4a56-b288-aa123da023af',
+      'business test': '9cd05682-b03d-4bff-80b2-4c623dd7fd0a',
+      'bussiness test': '9cd05682-b03d-4bff-80b2-4c623dd7fd0a'
     };
     
     const businessId = businessMap[detectedBusiness];
@@ -97,10 +99,12 @@ async function getEnhancedContext(chatContext, messages = []) {
             .eq('business_id', businessId);
           
           if (!svcError && services) {
-            console.log('chat.js: Found services for detected business:', services.length);
+            console.log('chat.js: Found services for detected business:', services.length, 'services:', services.map(s => s.name));
             dbContext.businesses = [{ name: businessNameMatch[0], id: businessId }];
             dbContext.services = services;
             return dbContext;
+          } else {
+            console.log('chat.js: Error fetching services for detected business:', svcError);
           }
         }
       } catch (e) {
