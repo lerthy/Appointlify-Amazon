@@ -341,13 +341,19 @@ async function createAppointment(bookingData) {
       throw new Error('Failed to create customer');
     }
 
+    // Get employee_id for the business
+    const employeeId = await getEmployeeId(businessId);
+    if (!employeeId) {
+      throw new Error('No employee found for business');
+    }
+
     // Create appointment record
     const appointmentData = {
       id: crypto.randomUUID(),
       business_id: businessId,
       service_id: serviceId,
       customer_id: customerId,
-      employee_id: null, // Will be set to null for now
+      employee_id: employeeId,
       name: bookingData.name,
       email: bookingData.email,
       phone: bookingData.phone,
@@ -569,6 +575,47 @@ async function getOrCreateCustomer(bookingData) {
     return newCustomerData.id;
   } catch (error) {
     console.error('Error getting or creating customer:', error);
+    return null;
+  }
+}
+
+// Get employee_id for a business
+async function getEmployeeId(businessId) {
+  try {
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+    
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'fetch-table',
+          arguments: {
+            table: 'employees',
+            eq: { 
+              business_id: businessId
+            }
+          }
+        }
+      })
+    });
+
+    const result = await response.json();
+    console.log('Employee lookup result:', JSON.stringify(result, null, 2));
+    
+    if (result.result?.content?.[0]?.json?.[0]) {
+      const employeeId = result.result.content[0].json[0].id;
+      console.log(`Found employee ID: ${employeeId}`);
+      return employeeId;
+    }
+    
+    console.log('No employee found for business');
+    return null;
+  } catch (error) {
+    console.error('Error getting employee ID:', error);
     return null;
   }
 }
