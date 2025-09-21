@@ -57,6 +57,14 @@ async function queryMCPKnowledge(question, matchCount = 3) {
 async function getEnhancedContext(chatContext) {
   let dbContext = { businesses: [], services: [], knowledge: [] };
   
+  // If we have business context from the frontend, use it
+  if (chatContext?.businessName && chatContext?.services) {
+    console.log('chat.js: Using frontend business context:', chatContext.businessName);
+    dbContext.businesses = [{ name: chatContext.businessName, id: chatContext.businessId }];
+    dbContext.services = chatContext.services || [];
+    return dbContext;
+  }
+  
   // Fetch live business/services context from Supabase
   console.log('chat.js: Starting Supabase fetch...');
   try {
