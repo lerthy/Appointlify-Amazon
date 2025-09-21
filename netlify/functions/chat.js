@@ -791,16 +791,22 @@ export async function handler(event, context) {
     // First check if this is a confirmation response (user said yes/no to booking)
     const userMessageLower = userMessage.toLowerCase();
     if ((userMessageLower.includes('yes') || userMessageLower.includes('no')) && messages.length > 1) {
+      console.log('chat.js: Confirmation response detected, looking for booking info in previous messages');
       // Look for booking information in previous messages
       const previousMessages = messages.slice(0, -1);
       for (let i = previousMessages.length - 1; i >= 0; i--) {
         const msg = previousMessages[i].content;
-        if (hasCompleteBookingInfo(msg)) {
+        console.log('chat.js: Checking message', i, ':', msg);
+        const hasComplete = hasCompleteBookingInfo(msg);
+        console.log('chat.js: Has complete booking info:', hasComplete);
+        if (hasComplete) {
           console.log('chat.js: Found booking info in previous message, processing confirmation');
           const bookingInfo = extractBookingInfo(msg);
+          console.log('chat.js: Extracted booking info:', bookingInfo);
           return await handleBookingConfirmation(messages, bookingInfo, headers);
         }
       }
+      console.log('chat.js: No booking info found in previous messages');
     }
     
     // Then check if user message contains complete booking information
