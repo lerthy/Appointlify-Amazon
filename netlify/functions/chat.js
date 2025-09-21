@@ -866,7 +866,21 @@ export async function handler(event, context) {
           return await handleBookingConfirmation(messages, bookingInfo, headers);
         }
       }
-      console.log('chat.js: No booking info found in previous messages');
+      console.log('chat.js: No booking info found in previous messages, trying fallback approach');
+      
+      // Fallback: if user said yes but no booking info found, try to create booking from user's original message
+      if (userMessageLower.includes('yes')) {
+        console.log('chat.js: Fallback - looking for booking info in user messages');
+        for (let i = 0; i < previousMessages.length; i++) {
+          const msg = previousMessages[i].content;
+          if (hasCompleteBookingInfo(msg)) {
+            console.log('chat.js: Found booking info in user message, processing confirmation');
+            const bookingInfo = extractBookingInfo(msg);
+            console.log('chat.js: Extracted booking info:', bookingInfo);
+            return await handleBookingConfirmation(messages, bookingInfo, headers);
+          }
+        }
+      }
     }
     
     // Then check if user message contains complete booking information
