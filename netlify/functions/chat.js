@@ -606,7 +606,22 @@ export async function handler(event, context) {
     const knowledge = await queryMCPKnowledge(userMessage, 3);
     dbContext.knowledge = knowledge;
     
-    // Check if user message contains complete booking information
+    // First check if this is a confirmation response (user said yes/no to booking)
+    const userMessageLower = userMessage.toLowerCase();
+    if ((userMessageLower.includes('yes') || userMessageLower.includes('no')) && messages.length > 1) {
+      // Look for booking information in previous messages
+      const previousMessages = messages.slice(0, -1);
+      for (let i = previousMessages.length - 1; i >= 0; i--) {
+        const msg = previousMessages[i].content;
+        if (hasCompleteBookingInfo(msg)) {
+          console.log('chat.js: Found booking info in previous message, processing confirmation');
+          const bookingInfo = extractBookingInfo(msg);
+          return await handleBookingConfirmation(messages, bookingInfo, headers);
+        }
+      }
+    }
+    
+    // Then check if user message contains complete booking information
     console.log('chat.js: Checking for complete booking info in message:', userMessage);
     const hasComplete = hasCompleteBookingInfo(userMessage);
     console.log('chat.js: Has complete booking info:', hasComplete);
@@ -723,20 +738,6 @@ Required fields: name, business, service, date, time, email, phone.`;
         return await handleBookingReady(assistantMessage, headers);
       }
       
-      // Check if this is a confirmation response (user said yes/no to booking)
-      const userMessageGroq = messages[messages.length - 1]?.content?.toLowerCase() || '';
-      if (userMessageGroq.includes('yes') && messages.length > 1) {
-        // Look for booking information in previous messages
-        const previousMessages = messages.slice(0, -1);
-        for (let i = previousMessages.length - 1; i >= 0; i--) {
-          const msg = previousMessages[i].content;
-          if (hasCompleteBookingInfo(msg)) {
-            console.log('chat.js: Found booking info in previous message, processing confirmation');
-            const bookingInfo = extractBookingInfo(msg);
-            return await handleBookingConfirmation(messages, bookingInfo, headers);
-          }
-        }
-      }
       
       return {
         statusCode: 200,
@@ -840,20 +841,6 @@ Required fields: name, business, service, date, time, email, phone.`;
       return await handleBookingReady(assistantMessage, headers);
     }
     
-    // Check if this is a confirmation response (user said yes/no to booking)
-    const userMessageOpenAI = messages[messages.length - 1]?.content?.toLowerCase() || '';
-    if (userMessageOpenAI.includes('yes') && messages.length > 1) {
-      // Look for booking information in previous messages
-      const previousMessages = messages.slice(0, -1);
-      for (let i = previousMessages.length - 1; i >= 0; i--) {
-        const msg = previousMessages[i].content;
-        if (hasCompleteBookingInfo(msg)) {
-          console.log('chat.js: Found booking info in previous message, processing confirmation');
-          const bookingInfo = extractBookingInfo(msg);
-          return await handleBookingConfirmation(messages, bookingInfo, headers);
-        }
-      }
-    }
     
     return {
       statusCode: 200,
