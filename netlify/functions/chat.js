@@ -335,12 +335,18 @@ async function createAppointment(bookingData) {
       throw new Error('Service not found');
     }
 
+    // Get or create customer
+    const customerId = await getOrCreateCustomer(bookingData);
+    if (!customerId) {
+      throw new Error('Failed to create customer');
+    }
+
     // Create appointment record
     const appointmentData = {
       id: crypto.randomUUID(),
       business_id: businessId,
       service_id: serviceId,
-      customer_id: null, // Will be set to null for now
+      customer_id: customerId,
       employee_id: null, // Will be set to null for now
       name: bookingData.name,
       email: bookingData.email,
@@ -487,6 +493,82 @@ async function getServiceId(serviceName, businessId) {
     return null;
   } catch (error) {
     console.error('Error getting service ID:', error);
+    return null;
+  }
+}
+
+// Get or create customer
+async function getOrCreateCustomer(bookingData) {
+  try {
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+    
+    // First, try to find existing customer by email
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'fetch-table',
+          arguments: {
+            table: 'customers',
+            eq: { 
+              email: bookingData.email
+            }
+          }
+        }
+      })
+    });
+
+    const result = await response.json();
+    console.log('Customer lookup result:', JSON.stringify(result, null, 2));
+    
+    if (result.result?.content?.[0]?.json?.[0]) {
+      const customerId = result.result.content[0].json[0].id;
+      console.log(`Found existing customer: ${customerId}`);
+      return customerId;
+    }
+    
+    // If no existing customer, create a new one
+    console.log('No existing customer found, creating new customer...');
+    const newCustomerData = {
+      id: crypto.randomUUID(),
+      name: bookingData.name,
+      email: bookingData.email,
+      phone: bookingData.phone,
+      created_at: new Date().toISOString()
+    };
+
+    const createResponse = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'upsert-rows',
+          arguments: {
+            table: 'customers',
+            rows: [newCustomerData]
+          }
+        }
+      })
+    });
+
+    const createResult = await createResponse.json();
+    console.log('Customer creation result:', JSON.stringify(createResult, null, 2));
+    
+    if (createResult.error) {
+      throw new Error(createResult.error.message);
+    }
+    
+    console.log(`Created new customer: ${newCustomerData.id}`);
+    return newCustomerData.id;
+  } catch (error) {
+    console.error('Error getting or creating customer:', error);
     return null;
   }
 }
