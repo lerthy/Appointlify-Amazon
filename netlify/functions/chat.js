@@ -152,7 +152,7 @@ function hasCompleteBookingInfo(userMessage) {
   const message = userMessage.toLowerCase();
   
   // Check for required fields - support both user input format and assistant response format
-  const hasName = /(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i.test(userMessage) || /\*\*name:\*\*\s*([a-zA-Z\s]+)/i.test(userMessage);
+  const hasName = /(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i.test(userMessage) || /•\s*\*\*name:\*\*\s*([a-zA-Z\s]+)/i.test(userMessage);
   const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(userMessage);
   const hasPhone = /\+?[\d\s\-\(\)]{10,}/.test(userMessage);
   const hasService = /(?:haircut|consultation|basic service|diqka tjeter)/i.test(userMessage);
@@ -176,7 +176,7 @@ function extractBookingInfo(userMessage) {
   
   // If no name found in user format, try assistant response format
   if (!nameMatch) {
-    nameMatch = userMessage.match(/\*\*name:\*\*\s*([a-zA-Z\s]+)/i);
+    nameMatch = userMessage.match(/•\s*\*\*name:\*\*\s*([a-zA-Z\s]+)/i);
   }
   
   return {
