@@ -606,9 +606,14 @@ export async function handler(event, context) {
     dbContext.knowledge = knowledge;
     
     // Check if user message contains complete booking information
-    if (hasCompleteBookingInfo(userMessage)) {
+    console.log('chat.js: Checking for complete booking info in message:', userMessage);
+    const hasComplete = hasCompleteBookingInfo(userMessage);
+    console.log('chat.js: Has complete booking info:', hasComplete);
+    
+    if (hasComplete) {
       console.log('chat.js: Complete booking info detected, generating BOOKING_READY response');
       const bookingInfo = extractBookingInfo(userMessage);
+      console.log('chat.js: Extracted booking info:', bookingInfo);
       const bookingReadyMessage = `BOOKING_READY: ${JSON.stringify(bookingInfo)}`;
       return await handleBookingReady(bookingReadyMessage, headers);
     }
