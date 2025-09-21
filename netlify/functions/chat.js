@@ -57,9 +57,9 @@ async function queryMCPKnowledge(question, matchCount = 3) {
 async function getEnhancedContext(chatContext) {
   let dbContext = { businesses: [], services: [], knowledge: [] };
   
-  // If we have business context from the frontend, use it
+  // If we have business context from the frontend, use it exclusively
   if (chatContext?.businessName && chatContext?.services) {
-    console.log('chat.js: Using frontend business context:', chatContext.businessName);
+    console.log('chat.js: Using frontend business context exclusively:', chatContext.businessName);
     dbContext.businesses = [{ name: chatContext.businessName, id: chatContext.businessId }];
     dbContext.services = chatContext.services || [];
     return dbContext;
@@ -206,7 +206,9 @@ export async function handler(event, context) {
     const { messages, context: chatContext } = JSON.parse(event.body);
 
     // Get enhanced context with MCP integration
+    console.log('chat.js: Received context:', JSON.stringify(chatContext, null, 2));
     const dbContext = await getEnhancedContext(chatContext);
+    console.log('chat.js: Final dbContext:', JSON.stringify(dbContext, null, 2));
     
     // Query MCP knowledge base for relevant information
     const userMessage = messages[messages.length - 1]?.content || '';

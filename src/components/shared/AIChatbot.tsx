@@ -66,7 +66,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
             const { data: businessSettings, error: settingsError } = await supabase
               .from('business_settings')
               .select('business_id')
-              .eq('id', businessId)
+              .eq('business_id', businessId)
               .single();
             
             if (!settingsError && businessSettings) {
