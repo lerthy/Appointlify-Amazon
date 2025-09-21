@@ -54,7 +54,7 @@ async function queryMCPKnowledge(question, matchCount = 3) {
 }
 
 // Enhanced context fetching with MCP integration
-async function getEnhancedContext(chatContext) {
+async function getEnhancedContext(chatContext, messages = []) {
   let dbContext = { businesses: [], services: [], knowledge: [] };
   
   // If we have business context from the frontend, use it exclusively
@@ -63,6 +63,50 @@ async function getEnhancedContext(chatContext) {
     dbContext.businesses = [{ name: chatContext.businessName, id: chatContext.businessId }];
     dbContext.services = chatContext.services || [];
     return dbContext;
+  }
+  
+  // If no frontend context, try to detect business from user message
+  const userMessage = messages[messages.length - 1]?.content || '';
+  const businessNameMatch = userMessage.match(/\b(lerdi salihi|nike|sample business|my business|filan fisteku)\b/i);
+  if (businessNameMatch) {
+    const detectedBusiness = businessNameMatch[0].toLowerCase();
+    console.log('chat.js: Detected business from message:', detectedBusiness);
+    
+    // Map detected business names to their business_ids (for services table)
+    const businessMap = {
+      'lerdi salihi': 'c7aac928-b5dd-407e-90d5-3621f18fede1',
+      'nike': '8632da60-830e-4df1-9f64-3e60d274bcb5',
+      'sample business': '550e8400-e29b-41d4-a716-446655440000',
+      'my business': '8632da60-830e-4df1-9f64-3e60d274bcb5',
+      'filan fisteku': 'd5319a6d-a78f-4a56-b288-aa123da023af'
+    };
+    
+    const businessId = businessMap[detectedBusiness];
+    if (businessId) {
+      // Fetch services for this specific business
+      try {
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        
+        if (supabaseUrl && serviceKey) {
+          const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+          
+          const { data: services, error: svcError } = await sb
+            .from('services')
+            .select('id, name, price, duration, description')
+            .eq('business_id', businessId);
+          
+          if (!svcError && services) {
+            console.log('chat.js: Found services for detected business:', services.length);
+            dbContext.businesses = [{ name: businessNameMatch[0], id: businessId }];
+            dbContext.services = services;
+            return dbContext;
+          }
+        }
+      } catch (e) {
+        console.error('chat.js: Error fetching services for detected business:', e);
+      }
+    }
   }
   
   // Fetch live business/services context from Supabase
@@ -207,7 +251,7 @@ export async function handler(event, context) {
 
     // Get enhanced context with MCP integration
     console.log('chat.js: Received context:', JSON.stringify(chatContext, null, 2));
-    const dbContext = await getEnhancedContext(chatContext);
+    const dbContext = await getEnhancedContext(chatContext, messages);
     console.log('chat.js: Final dbContext:', JSON.stringify(dbContext, null, 2));
     
     // Query MCP knowledge base for relevant information
