@@ -5,9 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 // MCP Client for RAG capabilities
 async function queryMCPKnowledge(question, matchCount = 3) {
   try {
-    const mcpUrl = process.env.NETLIFY_URL ? 
-      `${process.env.NETLIFY_URL}/.netlify/functions/mcp` : 
-      'http://localhost:8888/.netlify/functions/mcp';
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
     
     const mcpRequest = {
       jsonrpc: "2.0",

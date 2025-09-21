@@ -52,9 +52,7 @@ async function ingestKnowledge() {
   try {
     console.log('📚 Ingesting sample knowledge into MCP knowledge base...\n');
 
-    const mcpUrl = process.env.NETLIFY_URL ? 
-      `${process.env.NETLIFY_URL}/.netlify/functions/mcp` : 
-      'http://localhost:8888/.netlify/functions/mcp';
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
 
     let successCount = 0;
     let errorCount = 0;

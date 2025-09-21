@@ -11,9 +11,7 @@ async function testMCPIntegration() {
 
     // Test 1: Direct MCP function call
     console.log('1️⃣ Testing MCP function directly...');
-    const mcpUrl = process.env.NETLIFY_URL ? 
-      `${process.env.NETLIFY_URL}/.netlify/functions/mcp` : 
-      'http://localhost:8888/.netlify/functions/mcp';
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
 
     const mcpRequest = {
       jsonrpc: "2.0",
@@ -46,9 +44,7 @@ async function testMCPIntegration() {
     console.log('\n2️⃣ Testing Chat function with MCP integration...');
     
     // Test 2: Chat function with MCP integration
-    const chatUrl = process.env.NETLIFY_URL ? 
-      `${process.env.NETLIFY_URL}/.netlify/functions/chat` : 
-      'http://localhost:8888/.netlify/functions/chat';
+    const chatUrl = 'https://appointly-ks.netlify.app/.netlify/functions/chat';
 
     const chatRequest = {
       messages: [
