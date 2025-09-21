@@ -507,7 +507,7 @@ What service are you interested in?`;
       const timeMatch = userMessage.match(/\d{1,2}:?\d{0,2}\s*(am|pm)/i);
       const dateStr = new Date().toISOString().split('T')[0]; // Default to today
       
-      return `BOOKING_READY: {"name": "${nameMatch?.[1] || 'Customer'}", "service": "${serviceName}", "date": "${dateStr}", "time": "${timeMatch?.[0] || '2:00 PM'}"}`;
+      return `BOOKING_READY: {"name": "${nameMatch?.[1] || 'Customer'}", "business": "Selected Business", "service": "${serviceName}", "date": "${dateStr}", "time": "${timeMatch?.[0] || '2:00 PM'}", "email": "customer@example.com", "phone": "+1234567890"}`;
     }
     
     if (!hasName) {
@@ -628,6 +628,12 @@ BOOKING FLOW:
 6. Confirm all details
 7. Use BOOKING_READY format when complete
 
+BOOKING_READY FORMAT (CRITICAL):
+When you have all booking details, you MUST output exactly this format:
+BOOKING_READY: {"name": "Customer Name", "business": "Business Name", "service": "Service Name", "date": "Date", "time": "Time", "email": "email@example.com", "phone": "+1234567890"}
+
+Do NOT format it as a nice message. Output the exact JSON format above.
+
 RESPONSE STYLE:
 - Use bullet points for lists
 - Be concise but informative
@@ -635,7 +641,7 @@ RESPONSE STYLE:
 - Provide clear next steps
 - Use professional but warm tone
 
-Only use BOOKING_READY format when you have: name, business, service, date, and time.`;
+Only use BOOKING_READY format when you have: name, business, service, date, time, email, and phone.`;
 
       const chatMessages = [
         { role: 'system', content: systemPrompt },
@@ -727,6 +733,12 @@ BOOKING FLOW:
 6. Confirm all details
 7. Use BOOKING_READY format when complete
 
+BOOKING_READY FORMAT (CRITICAL):
+When you have all booking details, you MUST output exactly this format:
+BOOKING_READY: {"name": "Customer Name", "business": "Business Name", "service": "Service Name", "date": "Date", "time": "Time", "email": "email@example.com", "phone": "+1234567890"}
+
+Do NOT format it as a nice message. Output the exact JSON format above.
+
 RESPONSE STYLE:
 - Use bullet points for lists
 - Be concise but informative
@@ -734,7 +746,7 @@ RESPONSE STYLE:
 - Provide clear next steps
 - Use professional but warm tone
 
-Only use BOOKING_READY format when you have: name, business, service, date, and time.`;
+Only use BOOKING_READY format when you have: name, business, service, date, time, email, and phone.`;
 
     // Prepare messages array with system prompt
     const chatMessages = [
