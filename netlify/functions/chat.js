@@ -340,11 +340,15 @@ async function createAppointment(bookingData) {
       id: `apt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       business_id: businessId,
       service_id: serviceId,
-      customer_name: bookingData.name,
-      customer_email: bookingData.email,
-      customer_phone: bookingData.phone,
+      customer_id: null, // Will be set to null for now
+      employee_id: null, // Will be set to null for now
+      name: bookingData.name,
+      email: bookingData.email,
+      phone: bookingData.phone,
       date: new Date(`${bookingData.date} ${bookingData.time}`).toISOString(),
+      duration: 30, // Default duration, could be fetched from service
       status: 'scheduled',
+      reminder_sent: false,
       notes: bookingData.notes || '',
       created_at: new Date().toISOString()
     };
