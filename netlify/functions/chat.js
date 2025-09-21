@@ -632,6 +632,11 @@ BOOKING_READY FORMAT (CRITICAL):
 When you have all booking details, you MUST output exactly this format:
 BOOKING_READY: {"name": "Customer Name", "business": "Business Name", "service": "Service Name", "date": "Date", "time": "Time", "email": "email@example.com", "phone": "+1234567890"}
 
+EXAMPLE:
+If customer says "Book me for a haircut at Lerdi Salihi on Monday at 10 AM, my name is John, email is john@email.com, phone is +1234567890"
+You MUST respond with:
+BOOKING_READY: {"name": "John", "business": "Lerdi Salihi", "service": "Haircut", "date": "Monday", "time": "10:00 AM", "email": "john@email.com", "phone": "+1234567890"}
+
 Do NOT format it as a nice message. Output the exact JSON format above.
 
 RESPONSE STYLE:
@@ -736,6 +741,11 @@ BOOKING FLOW:
 BOOKING_READY FORMAT (CRITICAL):
 When you have all booking details, you MUST output exactly this format:
 BOOKING_READY: {"name": "Customer Name", "business": "Business Name", "service": "Service Name", "date": "Date", "time": "Time", "email": "email@example.com", "phone": "+1234567890"}
+
+EXAMPLE:
+If customer says "Book me for a haircut at Lerdi Salihi on Monday at 10 AM, my name is John, email is john@email.com, phone is +1234567890"
+You MUST respond with:
+BOOKING_READY: {"name": "John", "business": "Lerdi Salihi", "service": "Haircut", "date": "Monday", "time": "10:00 AM", "email": "john@email.com", "phone": "+1234567890"}
 
 Do NOT format it as a nice message. Output the exact JSON format above.
 
