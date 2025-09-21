@@ -184,37 +184,55 @@ async function handleUpsertRows(args) {
 
 async function handleIngestText(args) {
   const { source, content, metadata } = args;
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
-  const emb = await openai.embeddings.create({ model: embeddingModel, input: content });
-  const vector = emb.data?.[0]?.embedding;
-  if (!Array.isArray(vector)) throw new Error("Failed to create embedding");
+  
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
+    const emb = await openai.embeddings.create({ model: embeddingModel, input: content });
+    const vector = emb.data?.[0]?.embedding;
+    if (!Array.isArray(vector)) throw new Error("Failed to create embedding");
 
-  const supabase = getSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("knowledge")
-    .insert([{ source, content, metadata: metadata || {}, embedding: vector }])
-    .select("id, source");
-  if (error) throw error;
-  return { content: [{ type: "json", json: data?.[0] || null }] };
+    const supabase = getSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("knowledge")
+      .insert([{ source, content, metadata: metadata || {}, embedding: vector }])
+      .select("id, source");
+    if (error) throw error;
+    return { content: [{ type: "json", json: data?.[0] || null }] };
+  } catch (error) {
+    if (error.code === 'insufficient_quota' || error.status === 429) {
+      console.log("OpenAI quota exceeded, cannot create embeddings");
+      throw new Error("OpenAI quota exceeded. Please check your billing and add credits to use knowledge base features.");
+    }
+    throw error;
+  }
 }
 
 async function handleQueryKnowledge(args) {
   const { question, matchCount = 5, minSimilarity = 0 } = args;
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
-  const emb = await openai.embeddings.create({ model: embeddingModel, input: question });
-  const vector = emb.data?.[0]?.embedding;
-  if (!Array.isArray(vector)) throw new Error("Failed to create embedding");
+  
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
+    const emb = await openai.embeddings.create({ model: embeddingModel, input: question });
+    const vector = emb.data?.[0]?.embedding;
+    if (!Array.isArray(vector)) throw new Error("Failed to create embedding");
 
-  const supabase = getSupabaseServerClient();
-  const { data, error } = await supabase.rpc("match_knowledge", {
-    query_embedding: vector,
-    match_count: matchCount,
-    min_similarity: minSimilarity
-  });
-  if (error) throw error;
-  return { content: [{ type: "json", json: data ?? [] }] };
+    const supabase = getSupabaseServerClient();
+    const { data, error } = await supabase.rpc("match_knowledge", {
+      query_embedding: vector,
+      match_count: matchCount,
+      min_similarity: minSimilarity
+    });
+    if (error) throw error;
+    return { content: [{ type: "json", json: data ?? [] }] };
+  } catch (error) {
+    if (error.code === 'insufficient_quota' || error.status === 429) {
+      console.log("OpenAI quota exceeded, returning empty knowledge results");
+      return { content: [{ type: "json", json: [] }] };
+    }
+    throw error;
+  }
 }
 
 export default async (req) => {

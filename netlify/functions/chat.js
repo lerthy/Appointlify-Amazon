@@ -34,6 +34,16 @@ async function queryMCPKnowledge(question, matchCount = 3) {
     }
 
     const result = await response.json();
+    
+    // Handle MCP errors gracefully
+    if (result.error) {
+      console.log('chat.js: MCP error:', result.error.message);
+      if (result.error.message.includes('quota') || result.error.message.includes('billing')) {
+        console.log('chat.js: OpenAI quota exceeded, continuing without knowledge');
+      }
+      return [];
+    }
+    
     const knowledge = result.result?.content?.[0]?.json || [];
     console.log('chat.js: MCP returned', knowledge.length, 'knowledge items');
     return knowledge;
