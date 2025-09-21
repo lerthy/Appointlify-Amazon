@@ -103,7 +103,12 @@ async function getMockAIResponse(messages, context) {
   
   // Greeting
   if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(message)) {
-    return `Hello! Welcome to ${businessName}. I'm here to help you book an appointment. What service would you like to schedule today?`;
+    return `Hello! Welcome to Appointly. I'm here to help you book an appointment with one of our businesses.
+
+**Available Businesses:**
+${services.slice(0, 5).map((s, i) => `${i + 1}. ${s.name || 'Business'}`).join('\n')}
+
+What can I help you with today? Would you like to book an appointment?`;
   }
   
   // Service inquiry
@@ -113,6 +118,19 @@ async function getMockAIResponse(messages, context) {
            'We offer various services including consultations, treatments, and more. What type of service are you looking for?';
   }
   
+  // Business selection
+  if (/\b(lerdi salihi|sample business|my business|nike|filan fisteku)\b/i.test(userMessage)) {
+    const businessName = userMessage.match(/\b(lerdi salihi|sample business|my business|nike|filan fisteku)\b/i)?.[0];
+    return `Great choice! ${businessName} is one of our available businesses.
+
+**Next Steps:**
+1. **Service Selection** - What service would you like to book?
+2. **Date & Time** - When would you prefer?
+3. **Your Details** - I'll need your name and contact info
+
+What service are you interested in?`;
+  }
+
   // Booking intent
   if (/\b(book|appointment|schedule|want|need)\b/.test(message)) {
     // Simple booking flow - check if we have enough info
@@ -218,14 +236,43 @@ export async function handler(event, context) {
       const knowledgeContext = dbContext.knowledge.length > 0 ? 
         `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
       
-      const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. \n`
-        + `You help customers book appointments in a conversational way.\n`
-        + `Businesses from database (sample):\n${businessList || 'No businesses found.'}\n\n`
-        + `Services from database (sample):\n${servicesByBiz || 'No services found.'}\n\n`
-        + `Available time slots (if provided):\n${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}\n\n`
-        + knowledgeContext
-        + `Use the knowledge base information above to provide more accurate and helpful responses.\n`
-        + `Only emit BOOKING_READY when all required fields are present.`;
+      const systemPrompt = `You are a professional booking assistant for Appointly. You help customers book appointments with a friendly, structured approach.
+
+BUSINESSES AVAILABLE:
+${businessList || 'No businesses found.'}
+
+SERVICES AVAILABLE:
+${servicesByBiz || 'No services found.'}
+
+AVAILABLE TIME SLOTS:
+${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}
+
+${knowledgeContext}
+CONVERSATION GUIDELINES:
+1. Be professional, friendly, and helpful
+2. Use clear, structured responses
+3. Guide customers through booking step by step
+4. Ask for one piece of information at a time
+5. Confirm details before finalizing
+6. Use the knowledge base information to provide accurate answers
+
+BOOKING FLOW:
+1. Greet and ask what they need
+2. Help them choose a business
+3. Help them select a service
+4. Ask for preferred date and time
+5. Collect their name and contact info
+6. Confirm all details
+7. Use BOOKING_READY format when complete
+
+RESPONSE STYLE:
+- Use bullet points for lists
+- Be concise but informative
+- Ask follow-up questions naturally
+- Provide clear next steps
+- Use professional but warm tone
+
+Only use BOOKING_READY format when you have: name, business, service, date, and time.`;
 
       const chatMessages = [
         { role: 'system', content: systemPrompt },
@@ -270,33 +317,43 @@ export async function handler(event, context) {
     const knowledgeContext = dbContext.knowledge.length > 0 ? 
       `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
     
-    const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. 
-You help customers book appointments in a conversational way.
+    const systemPrompt = `You are a professional booking assistant for Appointly. You help customers book appointments with a friendly, structured approach.
 
-BUSINESSES (sample from database):
+BUSINESSES AVAILABLE:
 ${businessList || 'No businesses found.'}
 
-AVAILABLE SERVICES (sample from database):
-${servicesByBiz || 'Loading services...'}
+SERVICES AVAILABLE:
+${servicesByBiz || 'No services found.'}
 
 AVAILABLE TIME SLOTS:
 ${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}
+
 ${knowledgeContext}
-BOOKING INSTRUCTIONS:
-1. Be friendly and conversational
-2. Help customers choose the right service
-3. Collect: Customer name, service selection, preferred date and time
-4. Confirm all details before finalizing
-5. If they have all required info, respond with: "BOOKING_READY: {name: 'Customer Name', service: 'Service Name', date: 'YYYY-MM-DD', time: 'HH:MM AM/PM'}"
-6. Use the knowledge base information above to provide more accurate and helpful responses
+CONVERSATION GUIDELINES:
+1. Be professional, friendly, and helpful
+2. Use clear, structured responses
+3. Guide customers through booking step by step
+4. Ask for one piece of information at a time
+5. Confirm details before finalizing
+6. Use the knowledge base information to provide accurate answers
 
-PERSONALITY:
-- Professional but friendly
-- Helpful and proactive
-- Ask clarifying questions if needed
-- Provide service recommendations when appropriate
+BOOKING FLOW:
+1. Greet and ask what they need
+2. Help them choose a business
+3. Help them select a service
+4. Ask for preferred date and time
+5. Collect their name and contact info
+6. Confirm all details
+7. Use BOOKING_READY format when complete
 
-Always respond naturally in conversation. Only use the BOOKING_READY format when you have all required information.`;
+RESPONSE STYLE:
+- Use bullet points for lists
+- Be concise but informative
+- Ask follow-up questions naturally
+- Provide clear next steps
+- Use professional but warm tone
+
+Only use BOOKING_READY format when you have: name, business, service, date, and time.`;
 
     // Prepare messages array with system prompt
     const chatMessages = [
