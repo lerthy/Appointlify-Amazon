@@ -254,11 +254,17 @@ async function handleBookingReady(assistantMessage, headers) {
 // Handle booking confirmation
 async function handleBookingConfirmation(messages, bookingData, headers) {
   try {
+    console.log('handleBookingConfirmation: Starting confirmation process');
+    console.log('handleBookingConfirmation: Booking data:', JSON.stringify(bookingData, null, 2));
+    
     const userMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    console.log('handleBookingConfirmation: User message:', userMessage);
     
     if (userMessage.includes('yes') || userMessage.includes('confirm') || userMessage.includes('book')) {
+      console.log('handleBookingConfirmation: User confirmed, creating appointment...');
       // Create appointment in Supabase via MCP
       const appointmentId = await createAppointment(bookingData);
+      console.log('handleBookingConfirmation: Appointment ID:', appointmentId);
       
       if (appointmentId) {
         // Send confirmation email and SMS
