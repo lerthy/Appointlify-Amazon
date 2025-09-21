@@ -1,6 +1,5 @@
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { toFetchResponse, toReqRes } from "fetch-to-node";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
@@ -154,26 +153,124 @@ function getServer() {
   return server;
 }
 
+// Handler functions for MCP tools
+async function handleFetchTable(args) {
+  const { table, select = "*", limit = 100, eq, ilike, orderBy, ascending = true } = args;
+  const supabase = getSupabaseServerClient();
+  let query = supabase.from(table).select(select).limit(limit);
+  if (eq) {
+    for (const [col, val] of Object.entries(eq)) query = query.eq(col, val);
+  }
+  if (ilike) {
+    for (const [col, val] of Object.entries(ilike))
+      query = query.ilike(col, val);
+  }
+  if (orderBy) query = query.order(orderBy, { ascending });
+  const { data, error } = await query;
+  if (error) throw error;
+  return { content: [{ type: "json", json: data ?? [] }] };
+}
+
+async function handleUpsertRows(args) {
+  const { table, rows, onConflict } = args;
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from(table)
+    .upsert(rows, onConflict ? { onConflict } : undefined)
+    .select("*");
+  if (error) throw error;
+  return { content: [{ type: "json", json: data ?? [] }] };
+}
+
+async function handleIngestText(args) {
+  const { source, content, metadata } = args;
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
+  const emb = await openai.embeddings.create({ model: embeddingModel, input: content });
+  const vector = emb.data?.[0]?.embedding;
+  if (!Array.isArray(vector)) throw new Error("Failed to create embedding");
+
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("knowledge")
+    .insert([{ source, content, metadata: metadata || {}, embedding: vector }])
+    .select("id, source");
+  if (error) throw error;
+  return { content: [{ type: "json", json: data?.[0] || null }] };
+}
+
+async function handleQueryKnowledge(args) {
+  const { question, matchCount = 5, minSimilarity = 0 } = args;
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
+  const emb = await openai.embeddings.create({ model: embeddingModel, input: question });
+  const vector = emb.data?.[0]?.embedding;
+  if (!Array.isArray(vector)) throw new Error("Failed to create embedding");
+
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase.rpc("match_knowledge", {
+    query_embedding: vector,
+    match_count: matchCount,
+    min_similarity: minSimilarity
+  });
+  if (error) throw error;
+  return { content: [{ type: "json", json: data ?? [] }] };
+}
+
 export default async (req) => {
   try {
     if (req.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
     }
 
-    const { req: nodeReq, res: nodeRes } = toReqRes(req);
-    const server = getServer();
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
-    await server.connect(transport);
-
     const body = await req.json();
-    await transport.handleRequest(nodeReq, nodeRes, body);
-
-    nodeRes.on("close", () => {
-      transport.close();
-      server.close();
-    });
-
-    return toFetchResponse(nodeRes);
+    const server = getServer();
+    
+    // Handle the MCP request directly
+    if (body.method === "tools/call") {
+      const { name, arguments: args } = body.params;
+      
+      try {
+        let result;
+        
+        switch (name) {
+          case "fetch-table":
+            result = await handleFetchTable(args);
+            break;
+          case "upsert-rows":
+            result = await handleUpsertRows(args);
+            break;
+          case "ingest-text":
+            result = await handleIngestText(args);
+            break;
+          case "query-knowledge":
+            result = await handleQueryKnowledge(args);
+            break;
+          default:
+            throw new Error(`Unknown tool: ${name}`);
+        }
+        
+        return new Response(
+          JSON.stringify({ jsonrpc: "2.0", result, id: body.id }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      } catch (error) {
+        console.error("Tool execution error:", error);
+        return new Response(
+          JSON.stringify({ 
+            jsonrpc: "2.0", 
+            error: { code: -32603, message: error.message }, 
+            id: body.id 
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+    
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", error: { code: -32601, message: "Method not found" }, id: body.id }),
+      { status: 404, headers: { "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error("MCP error:", error);
     return new Response(
