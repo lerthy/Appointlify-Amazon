@@ -123,7 +123,8 @@ async function ingestKnowledge() {
     console.log('1. Make sure your Netlify site is deployed');
     console.log('2. Check that NETLIFY_URL is set in your environment');
     console.log('3. Verify MCP function is accessible');
-    console.log('4. Check that OPENAI_API_KEY is set for embeddings');
+    console.log('4. MCP now uses FREE Hugging Face embeddings (no API key required!)');
+    console.log('5. Optional: Set HUGGINGFACE_API_KEY for better rate limits');
   }
 }
 

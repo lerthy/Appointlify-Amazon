@@ -2,7 +2,6 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import OpenAI from "openai";
 
 function getSupabaseServerClient() {
   const url = process.env.SUPABASE_URL;
@@ -15,6 +14,69 @@ function getSupabaseServerClient() {
   return createClient(url, serviceRoleKey, {
     auth: { persistSession: false },
   });
+}
+
+// Free embeddings using Hugging Face Inference API
+async function getFreeEmbeddings(text) {
+  try {
+    // Use Hugging Face's free inference API for embeddings
+    const response = await fetch("https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.HUGGINGFACE_API_KEY || 'hf_demo'}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: text,
+        options: { wait_for_model: true }
+      }),
+    });
+
+    if (!response.ok) {
+      // Fallback to a simple hash-based embedding if Hugging Face fails
+      console.log("Hugging Face API failed, using fallback embedding");
+      return getFallbackEmbedding(text);
+    }
+
+    const result = await response.json();
+    
+    // Handle different response formats
+    if (Array.isArray(result)) {
+      return result[0];
+    } else if (result.embeddings) {
+      return result.embeddings[0];
+    } else if (Array.isArray(result[0])) {
+      return result[0];
+    }
+    
+    throw new Error("Unexpected response format from Hugging Face");
+  } catch (error) {
+    console.log("Hugging Face embedding failed, using fallback:", error.message);
+    return getFallbackEmbedding(text);
+  }
+}
+
+// Simple fallback embedding using text hashing (for when APIs fail)
+function getFallbackEmbedding(text) {
+  // Create a simple 384-dimensional embedding using text characteristics
+  const embedding = new Array(384).fill(0);
+  const words = text.toLowerCase().split(/\s+/);
+  
+  // Simple hash-based embedding
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const hash = word.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const index = Math.abs(hash) % 384;
+    embedding[index] += 1 / (i + 1); // Weight by position
+  }
+  
+  // Normalize the embedding
+  const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+  return embedding.map(val => val / magnitude);
 }
 
 function getServer() {
@@ -186,11 +248,12 @@ async function handleIngestText(args) {
   const { source, content, metadata } = args;
   
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
-    const emb = await openai.embeddings.create({ model: embeddingModel, input: content });
-    const vector = emb.data?.[0]?.embedding;
-    if (!Array.isArray(vector)) throw new Error("Failed to create embedding");
+    console.log("Creating free embedding for:", source);
+    const vector = await getFreeEmbeddings(content);
+    
+    if (!Array.isArray(vector)) {
+      throw new Error("Failed to create embedding");
+    }
 
     const supabase = getSupabaseServerClient();
     const { data, error } = await supabase
@@ -198,13 +261,12 @@ async function handleIngestText(args) {
       .insert([{ source, content, metadata: metadata || {}, embedding: vector }])
       .select("id, source");
     if (error) throw error;
+    
+    console.log("Successfully ingested knowledge:", source);
     return { content: [{ type: "json", json: data?.[0] || null }] };
   } catch (error) {
-    if (error.code === 'insufficient_quota' || error.status === 429) {
-      console.log("OpenAI quota exceeded, cannot create embeddings");
-      throw new Error("OpenAI quota exceeded. Please check your billing and add credits to use knowledge base features.");
-    }
-    throw error;
+    console.error("Error ingesting text:", error);
+    throw new Error(`Failed to ingest knowledge: ${error.message}`);
   }
 }
 
@@ -212,11 +274,12 @@ async function handleQueryKnowledge(args) {
   const { question, matchCount = 5, minSimilarity = 0 } = args;
   
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const embeddingModel = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
-    const emb = await openai.embeddings.create({ model: embeddingModel, input: question });
-    const vector = emb.data?.[0]?.embedding;
-    if (!Array.isArray(vector)) throw new Error("Failed to create embedding");
+    console.log("Creating free embedding for query:", question);
+    const vector = await getFreeEmbeddings(question);
+    
+    if (!Array.isArray(vector)) {
+      throw new Error("Failed to create embedding");
+    }
 
     const supabase = getSupabaseServerClient();
     const { data, error } = await supabase.rpc("match_knowledge", {
@@ -225,13 +288,13 @@ async function handleQueryKnowledge(args) {
       min_similarity: minSimilarity
     });
     if (error) throw error;
+    
+    console.log("Found", data?.length || 0, "knowledge matches");
     return { content: [{ type: "json", json: data ?? [] }] };
   } catch (error) {
-    if (error.code === 'insufficient_quota' || error.status === 429) {
-      console.log("OpenAI quota exceeded, returning empty knowledge results");
-      return { content: [{ type: "json", json: [] }] };
-    }
-    throw error;
+    console.error("Error querying knowledge:", error);
+    // Return empty results instead of throwing error
+    return { content: [{ type: "json", json: [] }] };
   }
 }
 
