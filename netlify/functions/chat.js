@@ -227,7 +227,8 @@ async function handleBookingReady(assistantMessage, headers) {
         message: confirmationMessage,
         provider: 'booking-confirmation',
         bookingData: bookingData,
-        requiresConfirmation: true
+        requiresConfirmation: true,
+        nextStep: 'confirmation'
       })
     };
   } catch (error) {
@@ -724,13 +725,16 @@ Required fields: name, business, service, date, time, email, phone.`;
       
       // Check if this is a confirmation response (user said yes/no to booking)
       const userMessageGroq = messages[messages.length - 1]?.content?.toLowerCase() || '';
-      if ((userMessageGroq.includes('yes') || userMessageGroq.includes('no') || userMessageGroq.includes('confirm')) && 
-          messages.length > 1 && 
-          messages[messages.length - 2]?.content?.includes('Please confirm')) {
-        // This is a response to a booking confirmation
-        const previousResponse = JSON.parse(event.body);
-        if (previousResponse.bookingData) {
-          return await handleBookingConfirmation(messages, previousResponse.bookingData, headers);
+      if (userMessageGroq.includes('yes') && messages.length > 1) {
+        // Look for booking information in previous messages
+        const previousMessages = messages.slice(0, -1);
+        for (let i = previousMessages.length - 1; i >= 0; i--) {
+          const msg = previousMessages[i].content;
+          if (hasCompleteBookingInfo(msg)) {
+            console.log('chat.js: Found booking info in previous message, processing confirmation');
+            const bookingInfo = extractBookingInfo(msg);
+            return await handleBookingConfirmation(messages, bookingInfo, headers);
+          }
         }
       }
       
@@ -838,13 +842,16 @@ Required fields: name, business, service, date, time, email, phone.`;
     
     // Check if this is a confirmation response (user said yes/no to booking)
     const userMessageOpenAI = messages[messages.length - 1]?.content?.toLowerCase() || '';
-    if ((userMessageOpenAI.includes('yes') || userMessageOpenAI.includes('no') || userMessageOpenAI.includes('confirm')) && 
-        messages.length > 1 && 
-        messages[messages.length - 2]?.content?.includes('Please confirm')) {
-      // This is a response to a booking confirmation
-      const previousResponse = JSON.parse(event.body);
-      if (previousResponse.bookingData) {
-        return await handleBookingConfirmation(messages, previousResponse.bookingData, headers);
+    if (userMessageOpenAI.includes('yes') && messages.length > 1) {
+      // Look for booking information in previous messages
+      const previousMessages = messages.slice(0, -1);
+      for (let i = previousMessages.length - 1; i >= 0; i--) {
+        const msg = previousMessages[i].content;
+        if (hasCompleteBookingInfo(msg)) {
+          console.log('chat.js: Found booking info in previous message, processing confirmation');
+          const bookingInfo = extractBookingInfo(msg);
+          return await handleBookingConfirmation(messages, bookingInfo, headers);
+        }
       }
     }
     
