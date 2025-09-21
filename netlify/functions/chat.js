@@ -147,6 +147,311 @@ async function getEnhancedContext(chatContext, messages = []) {
   return dbContext;
 }
 
+// Handle booking ready responses
+async function handleBookingReady(assistantMessage, headers) {
+  try {
+    // Extract booking data from the message
+    const bookingMatch = assistantMessage.match(/BOOKING_READY:\s*({.*})/);
+    if (!bookingMatch) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          message: assistantMessage,
+          provider: 'booking-ready',
+          requiresConfirmation: true
+        })
+      };
+    }
+
+    const bookingData = JSON.parse(bookingMatch[1]);
+    console.log('Booking data extracted:', bookingData);
+
+    // Ask for confirmation
+    const confirmationMessage = `I have all the details for your appointment:
+
+**Appointment Details:**
+• **Business:** ${bookingData.business || 'Selected Business'}
+• **Service:** ${bookingData.service}
+• **Date:** ${bookingData.date}
+• **Time:** ${bookingData.time}
+• **Name:** ${bookingData.name}
+• **Email:** ${bookingData.email}
+• **Phone:** ${bookingData.phone}
+
+**Please confirm:** Would you like me to book this appointment? Type "yes" to confirm or "no" to make changes.`;
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        message: confirmationMessage,
+        provider: 'booking-confirmation',
+        bookingData: bookingData,
+        requiresConfirmation: true
+      })
+    };
+  } catch (error) {
+    console.error('Error handling booking ready:', error);
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        message: assistantMessage,
+        provider: 'booking-ready-error'
+      })
+    };
+  }
+}
+
+// Handle booking confirmation
+async function handleBookingConfirmation(messages, bookingData, headers) {
+  try {
+    const userMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    
+    if (userMessage.includes('yes') || userMessage.includes('confirm') || userMessage.includes('book')) {
+      // Create appointment in Supabase via MCP
+      const appointmentId = await createAppointment(bookingData);
+      
+      if (appointmentId) {
+        // Send confirmation email and SMS
+        await sendConfirmationNotifications(bookingData, appointmentId);
+        
+        const successMessage = `✅ **Appointment Confirmed!**
+
+**Your booking details:**
+• **Booking ID:** ${appointmentId}
+• **Business:** ${bookingData.business || 'Selected Business'}
+• **Service:** ${bookingData.service}
+• **Date:** ${bookingData.date}
+• **Time:** ${bookingData.time}
+• **Name:** ${bookingData.name}
+
+You will receive a confirmation email and SMS shortly. If you need to make any changes, please contact us.
+
+Thank you for choosing Appointly! 🎉`;
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            message: successMessage,
+            provider: 'booking-confirmed',
+            appointmentId: appointmentId
+          })
+        };
+      } else {
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: false,
+            message: "Sorry, there was an error creating your appointment. Please try again or contact support.",
+            provider: 'booking-error'
+          })
+        };
+      }
+    } else {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          message: "No problem! What would you like to change about your appointment?",
+          provider: 'booking-cancelled'
+        })
+      };
+    }
+  } catch (error) {
+    console.error('Error handling booking confirmation:', error);
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        message: "Sorry, there was an error processing your confirmation. Please try again.",
+        provider: 'booking-confirmation-error'
+      })
+    };
+  }
+}
+
+// Create appointment in Supabase
+async function createAppointment(bookingData) {
+  try {
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+    
+    // Get business_id for the appointment
+    const businessId = await getBusinessId(bookingData.business);
+    if (!businessId) {
+      throw new Error('Business not found');
+    }
+
+    // Get service_id for the appointment
+    const serviceId = await getServiceId(bookingData.service, businessId);
+    if (!serviceId) {
+      throw new Error('Service not found');
+    }
+
+    // Create appointment record
+    const appointmentData = {
+      id: `apt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      business_id: businessId,
+      service_id: serviceId,
+      customer_name: bookingData.name,
+      customer_email: bookingData.email,
+      customer_phone: bookingData.phone,
+      date: new Date(`${bookingData.date} ${bookingData.time}`).toISOString(),
+      status: 'scheduled',
+      notes: bookingData.notes || '',
+      created_at: new Date().toISOString()
+    };
+
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'upsert-rows',
+          arguments: {
+            table: 'appointments',
+            rows: [appointmentData]
+          }
+        }
+      })
+    });
+
+    const result = await response.json();
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    console.log('Appointment created successfully:', appointmentData.id);
+    return appointmentData.id;
+  } catch (error) {
+    console.error('Error creating appointment:', error);
+    return null;
+  }
+}
+
+// Get business_id from business name
+async function getBusinessId(businessName) {
+  try {
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+    
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'fetch-table',
+          arguments: {
+            table: 'business_settings',
+            eq: { name: businessName }
+          }
+        }
+      })
+    });
+
+    const result = await response.json();
+    if (result.result?.content?.[0]?.json?.[0]) {
+      return result.result.content[0].json[0].business_id;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting business ID:', error);
+    return null;
+  }
+}
+
+// Get service_id from service name and business_id
+async function getServiceId(serviceName, businessId) {
+  try {
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+    
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'fetch-table',
+          arguments: {
+            table: 'services',
+            eq: { 
+              name: serviceName,
+              business_id: businessId
+            }
+          }
+        }
+      })
+    });
+
+    const result = await response.json();
+    if (result.result?.content?.[0]?.json?.[0]) {
+      return result.result.content[0].json[0].id;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting service ID:', error);
+    return null;
+  }
+}
+
+// Send confirmation notifications
+async function sendConfirmationNotifications(bookingData, appointmentId) {
+  try {
+    // Send email notification
+    const emailResponse = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: bookingData.email,
+        subject: 'Appointment Confirmation - Appointly',
+        html: `
+          <h2>Appointment Confirmed!</h2>
+          <p>Dear ${bookingData.name},</p>
+          <p>Your appointment has been successfully booked.</p>
+          <ul>
+            <li><strong>Booking ID:</strong> ${appointmentId}</li>
+            <li><strong>Business:</strong> ${bookingData.business}</li>
+            <li><strong>Service:</strong> ${bookingData.service}</li>
+            <li><strong>Date:</strong> ${bookingData.date}</li>
+            <li><strong>Time:</strong> ${bookingData.time}</li>
+          </ul>
+          <p>Thank you for choosing Appointly!</p>
+        `
+      })
+    });
+
+    // Send SMS notification
+    const smsResponse = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: bookingData.phone,
+        message: `Appointment confirmed! Booking ID: ${appointmentId}. ${bookingData.service} on ${bookingData.date} at ${bookingData.time}. - Appointly`
+      })
+    });
+
+    console.log('Notifications sent:', { email: emailResponse.ok, sms: smsResponse.ok });
+  } catch (error) {
+    console.error('Error sending notifications:', error);
+  }
+}
+
 // Mock AI Service for fallback
 async function getMockAIResponse(messages, context) {
   const userMessage = messages[messages.length - 1]?.content || '';
@@ -346,6 +651,24 @@ Only use BOOKING_READY format when you have: name, business, service, date, and 
       });
 
       const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+      
+      // Check if this is a booking ready response
+      if (assistantMessage.includes('BOOKING_READY:')) {
+        return await handleBookingReady(assistantMessage, headers);
+      }
+      
+      // Check if this is a confirmation response (user said yes/no to booking)
+      const userMessageGroq = messages[messages.length - 1]?.content?.toLowerCase() || '';
+      if ((userMessageGroq.includes('yes') || userMessageGroq.includes('no') || userMessageGroq.includes('confirm')) && 
+          messages.length > 1 && 
+          messages[messages.length - 2]?.content?.includes('Please confirm')) {
+        // This is a response to a booking confirmation
+        const previousResponse = JSON.parse(event.body);
+        if (previousResponse.bookingData) {
+          return await handleBookingConfirmation(messages, previousResponse.bookingData, headers);
+        }
+      }
+      
       return {
         statusCode: 200,
         headers,
@@ -427,6 +750,23 @@ Only use BOOKING_READY format when you have: name, business, service, date, and 
     });
 
     const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+    
+    // Check if this is a booking ready response
+    if (assistantMessage.includes('BOOKING_READY:')) {
+      return await handleBookingReady(assistantMessage, headers);
+    }
+    
+    // Check if this is a confirmation response (user said yes/no to booking)
+    const userMessageOpenAI = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    if ((userMessageOpenAI.includes('yes') || userMessageOpenAI.includes('no') || userMessageOpenAI.includes('confirm')) && 
+        messages.length > 1 && 
+        messages[messages.length - 2]?.content?.includes('Please confirm')) {
+      // This is a response to a booking confirmation
+      const previousResponse = JSON.parse(event.body);
+      if (previousResponse.bookingData) {
+        return await handleBookingConfirmation(messages, previousResponse.bookingData, headers);
+      }
+    }
     
     return {
       statusCode: 200,
