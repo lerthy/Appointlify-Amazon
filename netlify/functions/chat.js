@@ -2,6 +2,87 @@ import OpenAI from 'openai';
 import Groq from 'groq-sdk';
 import { createClient } from '@supabase/supabase-js';
 
+// MCP Client for RAG capabilities
+async function queryMCPKnowledge(question, matchCount = 3) {
+  try {
+    const mcpUrl = process.env.NETLIFY_URL ? 
+      `${process.env.NETLIFY_URL}/.netlify/functions/mcp` : 
+      'http://localhost:8888/.netlify/functions/mcp';
+    
+    const mcpRequest = {
+      jsonrpc: "2.0",
+      id: Date.now(),
+      method: "tools/call",
+      params: {
+        name: "query-knowledge",
+        arguments: {
+          question,
+          matchCount,
+          minSimilarity: 0.1
+        }
+      }
+    };
+
+    console.log('chat.js: Querying MCP knowledge for:', question);
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mcpRequest)
+    });
+
+    if (!response.ok) {
+      console.log('chat.js: MCP query failed:', response.status);
+      return [];
+    }
+
+    const result = await response.json();
+    const knowledge = result.result?.content?.[0]?.json || [];
+    console.log('chat.js: MCP returned', knowledge.length, 'knowledge items');
+    return knowledge;
+  } catch (error) {
+    console.error('chat.js: MCP query error:', error);
+    return [];
+  }
+}
+
+// Enhanced context fetching with MCP integration
+async function getEnhancedContext(chatContext) {
+  let dbContext = { businesses: [], services: [], knowledge: [] };
+  
+  // Fetch live business/services context from Supabase
+  console.log('chat.js: Starting Supabase fetch...');
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (supabaseUrl && serviceKey) {
+      const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+      console.log('chat.js: Created Supabase client, querying...');
+      
+      const [{ data: businesses, error: bizError }, { data: services, error: svcError }] = await Promise.all([
+        sb.from('business_settings').select('id, name, working_hours').limit(50),
+        sb.from('services').select('id, name, price, duration, description, business_id').limit(200)
+      ]);
+      
+      console.log('chat.js: Query results:', { 
+        businessCount: businesses?.length || 0, 
+        serviceCount: services?.length || 0,
+        bizError: bizError?.message,
+        svcError: svcError?.message
+      });
+      
+      dbContext.businesses = businesses || [];
+      dbContext.services = services || [];
+    } else {
+      console.log('chat.js: Missing Supabase env vars, skipping DB fetch');
+    }
+  } catch (e) {
+    console.error('chat.js: Supabase fetch failed:', e);
+  }
+  
+  return dbContext;
+}
+
 // Mock AI Service for fallback
 async function getMockAIResponse(messages, context) {
   const userMessage = messages[messages.length - 1]?.content || '';
@@ -90,23 +171,13 @@ export async function handler(event, context) {
   try {
     const { messages, context: chatContext } = JSON.parse(event.body);
 
-    // Fetch live business/services context from Supabase
-    let dbContext = { businesses: [], services: [] };
-    try {
-      const supabaseUrl = process.env.SUPABASE_URL;
-      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (supabaseUrl && serviceKey) {
-        const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
-        const [{ data: businesses }, { data: services }] = await Promise.all([
-          sb.from('business_settings').select('id, name, working_hours').limit(50),
-          sb.from('services').select('id, name, price, duration, description, business_id').limit(200)
-        ]);
-        dbContext.businesses = businesses || [];
-        dbContext.services = services || [];
-      }
-    } catch (e) {
-      console.warn('chat.js: failed to fetch Supabase context', e);
-    }
+    // Get enhanced context with MCP integration
+    const dbContext = await getEnhancedContext(chatContext);
+    
+    // Query MCP knowledge base for relevant information
+    const userMessage = messages[messages.length - 1]?.content || '';
+    const knowledge = await queryMCPKnowledge(userMessage, 3);
+    dbContext.knowledge = knowledge;
     
     // Prefer Groq if available; else OpenAI; else mock
     const useGroq = Boolean(process.env.GROQ_API_KEY);
@@ -133,14 +204,19 @@ export async function handler(event, context) {
       const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
       const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
-      // Create system prompt with booking context
+      // Create system prompt with booking context and MCP knowledge
       const servicesByBiz = dbContext.services.map(s => `- ${s.name} ($${s.price}, ${s.duration} min)`).slice(0, 50).join('\n');
       const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n');
+      const knowledgeContext = dbContext.knowledge.length > 0 ? 
+        `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
+      
       const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. \n`
         + `You help customers book appointments in a conversational way.\n`
         + `Businesses from database (sample):\n${businessList || 'No businesses found.'}\n\n`
         + `Services from database (sample):\n${servicesByBiz || 'No services found.'}\n\n`
         + `Available time slots (if provided):\n${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}\n\n`
+        + knowledgeContext
+        + `Use the knowledge base information above to provide more accurate and helpful responses.\n`
         + `Only emit BOOKING_READY when all required fields are present.`;
 
       const chatMessages = [
@@ -163,7 +239,13 @@ export async function handler(event, context) {
         body: JSON.stringify({ 
           success: true, 
           message: assistantMessage,
-          provider: 'groq'
+          provider: 'groq',
+          mcpKnowledgeUsed: dbContext.knowledge.length,
+          context: {
+            businesses: dbContext.businesses.length,
+            services: dbContext.services.length,
+            knowledge: dbContext.knowledge.length
+          }
         })
       };
     }
@@ -174,9 +256,12 @@ export async function handler(event, context) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    // Create system prompt with booking context
+    // Create system prompt with booking context and MCP knowledge
     const servicesByBiz = dbContext.services.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).slice(0, 50).join('\n');
     const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n');
+    const knowledgeContext = dbContext.knowledge.length > 0 ? 
+      `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
+    
     const systemPrompt = `You are an intelligent booking assistant for ${chatContext?.businessName || 'our business'}. 
 You help customers book appointments in a conversational way.
 
@@ -188,13 +273,14 @@ ${servicesByBiz || 'Loading services...'}
 
 AVAILABLE TIME SLOTS:
 ${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}
-
+${knowledgeContext}
 BOOKING INSTRUCTIONS:
 1. Be friendly and conversational
 2. Help customers choose the right service
 3. Collect: Customer name, service selection, preferred date and time
 4. Confirm all details before finalizing
 5. If they have all required info, respond with: "BOOKING_READY: {name: 'Customer Name', service: 'Service Name', date: 'YYYY-MM-DD', time: 'HH:MM AM/PM'}"
+6. Use the knowledge base information above to provide more accurate and helpful responses
 
 PERSONALITY:
 - Professional but friendly
@@ -226,7 +312,13 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
         success: true, 
         message: assistantMessage,
         provider: 'openai',
-        usage: completion.usage
+        usage: completion.usage,
+        mcpKnowledgeUsed: dbContext.knowledge.length,
+        context: {
+          businesses: dbContext.businesses.length,
+          services: dbContext.services.length,
+          knowledge: dbContext.knowledge.length
+        }
       })
     };
   } catch (error) {
