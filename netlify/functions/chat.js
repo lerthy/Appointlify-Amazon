@@ -147,6 +147,43 @@ async function getEnhancedContext(chatContext, messages = []) {
   return dbContext;
 }
 
+// Check if user message contains complete booking information
+function hasCompleteBookingInfo(userMessage) {
+  const message = userMessage.toLowerCase();
+  
+  // Check for required fields
+  const hasName = /(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i.test(userMessage);
+  const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(userMessage);
+  const hasPhone = /\+?[\d\s\-\(\)]{10,}/.test(userMessage);
+  const hasService = /(?:haircut|consultation|basic service|diqka tjeter)/i.test(userMessage);
+  const hasBusiness = /(?:lerdi salihi|nike|sample business|my business|filan fisteku|business test)/i.test(userMessage);
+  const hasDate = /(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow)/i.test(userMessage);
+  const hasTime = /\d{1,2}:?\d{0,2}\s*(am|pm)/i.test(userMessage);
+  
+  return hasName && hasEmail && hasPhone && hasService && hasBusiness && hasDate && hasTime;
+}
+
+// Extract booking information from user message
+function extractBookingInfo(userMessage) {
+  const nameMatch = userMessage.match(/(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i);
+  const emailMatch = userMessage.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  const phoneMatch = userMessage.match(/(\+?[\d\s\-\(\)]{10,})/);
+  const serviceMatch = userMessage.match(/(haircut|consultation|basic service|diqka tjeter)/i);
+  const businessMatch = userMessage.match(/(lerdi salihi|nike|sample business|my business|filan fisteku|business test)/i);
+  const dateMatch = userMessage.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow)/i);
+  const timeMatch = userMessage.match(/(\d{1,2}:?\d{0,2}\s*(am|pm))/i);
+  
+  return {
+    name: nameMatch ? nameMatch[1].trim() : null,
+    email: emailMatch ? emailMatch[1] : null,
+    phone: phoneMatch ? phoneMatch[1].trim() : null,
+    service: serviceMatch ? serviceMatch[1] : null,
+    business: businessMatch ? businessMatch[1] : null,
+    date: dateMatch ? dateMatch[1] : null,
+    time: timeMatch ? timeMatch[1] : null
+  };
+}
+
 // Handle booking ready responses
 async function handleBookingReady(assistantMessage, headers) {
   try {
@@ -567,6 +604,14 @@ export async function handler(event, context) {
     const userMessage = messages[messages.length - 1]?.content || '';
     const knowledge = await queryMCPKnowledge(userMessage, 3);
     dbContext.knowledge = knowledge;
+    
+    // Check if user message contains complete booking information
+    if (hasCompleteBookingInfo(userMessage)) {
+      console.log('chat.js: Complete booking info detected, generating BOOKING_READY response');
+      const bookingInfo = extractBookingInfo(userMessage);
+      const bookingReadyMessage = `BOOKING_READY: ${JSON.stringify(bookingInfo)}`;
+      return await handleBookingReady(bookingReadyMessage, headers);
+    }
     
     // Prefer Groq if available; else OpenAI; else mock
     const useGroq = Boolean(process.env.GROQ_API_KEY);
