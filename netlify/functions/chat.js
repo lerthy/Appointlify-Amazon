@@ -151,8 +151,8 @@ async function getEnhancedContext(chatContext, messages = []) {
 function hasCompleteBookingInfo(userMessage) {
   const message = userMessage.toLowerCase();
   
-  // Check for required fields
-  const hasName = /(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i.test(userMessage);
+  // Check for required fields - support both user input format and assistant response format
+  const hasName = /(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i.test(userMessage) || /\*\*name:\*\*\s*([a-zA-Z\s]+)/i.test(userMessage);
   const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(userMessage);
   const hasPhone = /\+?[\d\s\-\(\)]{10,}/.test(userMessage);
   const hasService = /(?:haircut|consultation|basic service|diqka tjeter)/i.test(userMessage);
@@ -165,13 +165,19 @@ function hasCompleteBookingInfo(userMessage) {
 
 // Extract booking information from user message
 function extractBookingInfo(userMessage) {
-  const nameMatch = userMessage.match(/(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i);
-  const emailMatch = userMessage.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-  const phoneMatch = userMessage.match(/(\+?[\d\s\-\(\)]{10,})/);
-  const serviceMatch = userMessage.match(/(haircut|consultation|basic service|diqka tjeter)/i);
-  const businessMatch = userMessage.match(/(lerdi salihi|nike|sample business|my business|filan fisteku|business test)/i);
-  const dateMatch = userMessage.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow)/i);
-  const timeMatch = userMessage.match(/(\d{1,2}:?\d{0,2}\s*(am|pm))/i);
+  // Try user input format first
+  let nameMatch = userMessage.match(/(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i);
+  let emailMatch = userMessage.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  let phoneMatch = userMessage.match(/(\+?[\d\s\-\(\)]{10,})/);
+  let serviceMatch = userMessage.match(/(haircut|consultation|basic service|diqka tjeter)/i);
+  let businessMatch = userMessage.match(/(lerdi salihi|nike|sample business|my business|filan fisteku|business test)/i);
+  let dateMatch = userMessage.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow)/i);
+  let timeMatch = userMessage.match(/(\d{1,2}:?\d{0,2}\s*(am|pm))/i);
+  
+  // If no name found in user format, try assistant response format
+  if (!nameMatch) {
+    nameMatch = userMessage.match(/\*\*name:\*\*\s*([a-zA-Z\s]+)/i);
+  }
   
   return {
     name: nameMatch ? nameMatch[1].trim() : null,
