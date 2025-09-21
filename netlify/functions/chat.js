@@ -330,6 +330,60 @@ Thank you for choosing Appointly! 🎉`;
   }
 }
 
+// Parse appointment date from day name and time
+function parseAppointmentDate(dayName, time) {
+  try {
+    // Get the next occurrence of the specified day
+    const today = new Date();
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const targetDay = dayNames.indexOf(dayName.toLowerCase());
+    
+    if (targetDay === -1) {
+      throw new Error(`Invalid day name: ${dayName}`);
+    }
+    
+    // Calculate days until the target day
+    const currentDay = today.getDay();
+    let daysUntilTarget = targetDay - currentDay;
+    if (daysUntilTarget <= 0) {
+      daysUntilTarget += 7; // Next week
+    }
+    
+    // Create the target date
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysUntilTarget);
+    
+    // Parse the time
+    const timeMatch = time.match(/(\d{1,2}):?(\d{0,2})\s*(am|pm)/i);
+    if (!timeMatch) {
+      throw new Error(`Invalid time format: ${time}`);
+    }
+    
+    let hours = parseInt(timeMatch[1]);
+    const minutes = parseInt(timeMatch[2] || '0');
+    const ampm = timeMatch[3].toLowerCase();
+    
+    // Convert to 24-hour format
+    if (ampm === 'pm' && hours !== 12) {
+      hours += 12;
+    } else if (ampm === 'am' && hours === 12) {
+      hours = 0;
+    }
+    
+    // Set the time
+    targetDate.setHours(hours, minutes, 0, 0);
+    
+    return targetDate.toISOString();
+  } catch (error) {
+    console.error('Error parsing appointment date:', error);
+    // Fallback to current date + 1 day
+    const fallbackDate = new Date();
+    fallbackDate.setDate(fallbackDate.getDate() + 1);
+    fallbackDate.setHours(10, 0, 0, 0);
+    return fallbackDate.toISOString();
+  }
+}
+
 // Create appointment in Supabase
 async function createAppointment(bookingData) {
   try {
@@ -369,7 +423,7 @@ async function createAppointment(bookingData) {
       name: bookingData.name,
       email: bookingData.email,
       phone: bookingData.phone,
-      date: new Date(`${bookingData.date} ${bookingData.time}`).toISOString(),
+      date: parseAppointmentDate(bookingData.date, bookingData.time),
       duration: 30, // Default duration, could be fetched from service
       status: 'scheduled',
       reminder_sent: false,
