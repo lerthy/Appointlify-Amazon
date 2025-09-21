@@ -601,6 +601,8 @@ export async function handler(event, context) {
       
       const systemPrompt = `You are a professional booking assistant for Appointly. You help customers book appointments with a friendly, structured approach.
 
+CRITICAL INSTRUCTION: When a customer provides ALL booking details (name, business, service, date, time, email, phone), you MUST immediately output the BOOKING_READY JSON format. Do not ask for confirmation or summarize. Just output the JSON.
+
 BUSINESSES AVAILABLE:
 ${businessList || 'No businesses found.'}
 
@@ -646,7 +648,9 @@ RESPONSE STYLE:
 - Provide clear next steps
 - Use professional but warm tone
 
-Only use BOOKING_READY format when you have: name, business, service, date, time, email, and phone.`;
+IMPORTANT: When you have ALL the required information (name, business, service, date, time, email, phone), you MUST immediately output the BOOKING_READY format. Do not ask for more confirmation. Do not summarize. Just output the JSON format.
+
+Required fields: name, business, service, date, time, email, phone.`;
 
       const chatMessages = [
         { role: 'system', content: systemPrompt },
@@ -711,6 +715,8 @@ Only use BOOKING_READY format when you have: name, business, service, date, time
     
     const systemPrompt = `You are a professional booking assistant for Appointly. You help customers book appointments with a friendly, structured approach.
 
+CRITICAL INSTRUCTION: When a customer provides ALL booking details (name, business, service, date, time, email, phone), you MUST immediately output the BOOKING_READY JSON format. Do not ask for confirmation or summarize. Just output the JSON.
+
 BUSINESSES AVAILABLE:
 ${businessList || 'No businesses found.'}
 
@@ -756,7 +762,9 @@ RESPONSE STYLE:
 - Provide clear next steps
 - Use professional but warm tone
 
-Only use BOOKING_READY format when you have: name, business, service, date, time, email, and phone.`;
+IMPORTANT: When you have ALL the required information (name, business, service, date, time, email, phone), you MUST immediately output the BOOKING_READY format. Do not ask for more confirmation. Do not summarize. Just output the JSON format.
+
+Required fields: name, business, service, date, time, email, phone.`;
 
     // Prepare messages array with system prompt
     const chatMessages = [
