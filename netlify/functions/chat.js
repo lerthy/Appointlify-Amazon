@@ -382,30 +382,24 @@ async function createAppointment(bookingData) {
 // Get business_id from business name
 async function getBusinessId(businessName) {
   try {
-    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+    // Use the business mapping we already have
+    const businessMap = {
+      'lerdi salihi': 'c7aac928-b5dd-407e-90d5-3621f18fede1',
+      'nike': '8632da60-830e-4df1-9f64-3e60d274bcb5',
+      'sample business': '550e8400-e29b-41d4-a716-446655440000',
+      'my business': '8632da60-830e-4df1-9f64-3e60d274bcb5',
+      'filan fisteku': 'd5319a6d-a78f-4a56-b288-aa123da023af',
+      'business test': '9cd05682-b03d-4bff-80b2-4c623dd7fd0a',
+      'bussiness test': '9cd05682-b03d-4bff-80b2-4c623dd7fd0a'
+    };
     
-    const response = await fetch(mcpUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'tools/call',
-        params: {
-          name: 'fetch-table',
-          arguments: {
-            table: 'business_settings',
-            eq: { name: businessName }
-          }
-        }
-      })
-    });
-
-    const result = await response.json();
-    if (result.result?.content?.[0]?.json?.[0]) {
-      return result.result.content[0].json[0].business_id;
+    const businessId = businessMap[businessName.toLowerCase()];
+    if (!businessId) {
+      throw new Error(`Business "${businessName}" not found in mapping`);
     }
-    return null;
+    
+    console.log(`Found business ID for "${businessName}": ${businessId}`);
+    return businessId;
   } catch (error) {
     console.error('Error getting business ID:', error);
     return null;
@@ -415,6 +409,7 @@ async function getBusinessId(businessName) {
 // Get service_id from service name and business_id
 async function getServiceId(serviceName, businessId) {
   try {
+    console.log(`Looking for service "${serviceName}" for business ID: ${businessId}`);
     const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
     
     const response = await fetch(mcpUrl, {
@@ -438,9 +433,53 @@ async function getServiceId(serviceName, businessId) {
     });
 
     const result = await response.json();
+    console.log('Service lookup result:', JSON.stringify(result, null, 2));
+    
     if (result.result?.content?.[0]?.json?.[0]) {
-      return result.result.content[0].json[0].id;
+      const serviceId = result.result.content[0].json[0].id;
+      console.log(`Found service ID: ${serviceId}`);
+      return serviceId;
     }
+    
+    console.log('No service found with exact name match, trying case-insensitive search...');
+    
+    // Try case-insensitive search
+    const response2 = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'fetch-table',
+          arguments: {
+            table: 'services',
+            eq: { 
+              business_id: businessId
+            }
+          }
+        }
+      })
+    });
+
+    const result2 = await response2.json();
+    console.log('All services for business:', JSON.stringify(result2, null, 2));
+    
+    if (result2.result?.content?.[0]?.json) {
+      const services = result2.result.content[0].json;
+      const matchingService = services.find(service => 
+        service.name.toLowerCase().includes(serviceName.toLowerCase()) ||
+        serviceName.toLowerCase().includes(service.name.toLowerCase())
+      );
+      
+      if (matchingService) {
+        console.log(`Found matching service: ${matchingService.name} (ID: ${matchingService.id})`);
+        return matchingService.id;
+      }
+    }
+    
+    console.log('No matching service found');
     return null;
   } catch (error) {
     console.error('Error getting service ID:', error);
