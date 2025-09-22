@@ -78,7 +78,7 @@ exports.handler = async function(event, context) {
     });
 
     // Configure Nodemailer with Gmail SMTP
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.GMAIL_USER || 'lerdi890@gmail.com', // Your Gmail
