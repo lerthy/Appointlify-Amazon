@@ -696,45 +696,82 @@ async function getEmployeeId(businessId) {
   }
 }
 
-// Send confirmation notifications
+// Send confirmation notifications using the same methods as appointment form
 async function sendConfirmationNotifications(bookingData, appointmentId) {
   try {
-    // Send email notification
-    const emailResponse = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: bookingData.email,
-        subject: 'Appointment Confirmation - Appointly',
-        html: `
-          <h2>Appointment Confirmed!</h2>
-          <p>Dear ${bookingData.name},</p>
-          <p>Your appointment has been successfully booked.</p>
-          <ul>
-            <li><strong>Booking ID:</strong> ${appointmentId}</li>
-            <li><strong>Business:</strong> ${bookingData.business}</li>
-            <li><strong>Service:</strong> ${bookingData.service}</li>
-            <li><strong>Date:</strong> ${bookingData.date}</li>
-            <li><strong>Time:</strong> ${bookingData.time}</li>
-          </ul>
-          <p>Thank you for choosing Appointly!</p>
-        `
-      })
+    // Parse the date to proper format
+    const appointmentDate = parseAppointmentDate(bookingData.date, bookingData.time);
+    const dateObj = new Date(appointmentDate);
+    const dateString = dateObj.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const timeString = dateObj.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
 
-    // Send SMS notification
-    const smsResponse = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-sms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: bookingData.phone,
-        message: `Appointment confirmed! Booking ID: ${appointmentId}. ${bookingData.service} on ${bookingData.date} at ${bookingData.time}. - Appointly`
-      })
-    });
+    // Create cancel link
+    const cancelLink = `https://appointly-ks.netlify.app/cancel/${appointmentId}`;
 
-    console.log('Notifications sent:', { email: emailResponse.ok, sms: smsResponse.ok });
+    // Send email notification using the frontend email service
+    try {
+      const emailResponse = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-email-via-emailjs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to_name: bookingData.name,
+          to_email: bookingData.email,
+          appointment_date: dateString,
+          appointment_time: timeString,
+          business_name: bookingData.business,
+          service_name: bookingData.service,
+          cancel_link: cancelLink
+        })
+      });
+
+      if (emailResponse.ok) {
+        console.log('✅ Email notification sent successfully');
+      } else {
+        console.log('⚠️ Email notification failed:', await emailResponse.text());
+      }
+    } catch (emailError) {
+      console.error('❌ Email notification failed:', emailError);
+    }
+
+    // Send SMS notification using the frontend SMS service  
+    try {
+      const smsMessage = `Hi ${bookingData.name}! Your ${bookingData.service} appointment is confirmed for ${dateString} at ${timeString}. Reply STOP to cancel.`;
+      
+      const smsResponse = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: bookingData.phone,
+          message: smsMessage
+        })
+      });
+
+      if (smsResponse.ok) {
+        const smsData = await smsResponse.json();
+        if (smsData.success) {
+          console.log('✅ SMS notification sent successfully');
+        } else {
+          console.log('⚠️ SMS notification failed:', smsData.error);
+        }
+      } else {
+        console.log('⚠️ SMS notification failed:', await smsResponse.text());
+      }
+    } catch (smsError) {
+      console.error('❌ SMS notification failed:', smsError);
+    }
+
+    console.log('Notification process completed for appointment:', appointmentId);
   } catch (error) {
-    console.error('Error sending notifications:', error);
+    console.error('Error in notification system:', error);
+    // Don't fail the booking if notifications fail
   }
 }
 
