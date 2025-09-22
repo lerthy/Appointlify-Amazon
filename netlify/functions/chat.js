@@ -25,7 +25,10 @@ async function queryMCPKnowledge(question, matchCount = 3) {
     console.log('chat.js: Querying MCP knowledge for:', question);
     const response = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify(mcpRequest)
     });
 
@@ -75,7 +78,10 @@ async function getEnhancedContext(chatContext, messages = []) {
     const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
     const businessResponse = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -106,7 +112,10 @@ async function getEnhancedContext(chatContext, messages = []) {
         // Fetch services for this specific business via MCP
         const servicesResponse = await fetch(mcpUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
           body: JSON.stringify({
             jsonrpc: '2.0',
             id: 2,
@@ -144,7 +153,10 @@ async function getEnhancedContext(chatContext, messages = []) {
     const [businessResponse, servicesResponse] = await Promise.all([
       fetch(mcpUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
         body: JSON.stringify({
           jsonrpc: '2.0',
           id: 1,
@@ -161,7 +173,10 @@ async function getEnhancedContext(chatContext, messages = []) {
       }),
       fetch(mcpUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
         body: JSON.stringify({
           jsonrpc: '2.0',
           id: 2,
@@ -522,7 +537,10 @@ async function createAppointment(bookingData) {
 
     const response = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -565,7 +583,10 @@ async function getBusinessId(businessName) {
     
     const response = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -609,7 +630,10 @@ async function getServiceId(serviceName, businessId) {
     
     const response = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -641,7 +665,10 @@ async function getServiceId(serviceName, businessId) {
     // Try case-insensitive search
     const response2 = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -690,7 +717,10 @@ async function getOrCreateCustomer(bookingData) {
     // First, try to find existing customer by email
     const response = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -728,7 +758,10 @@ async function getOrCreateCustomer(bookingData) {
 
     const createResponse = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -765,7 +798,10 @@ async function getEmployeeId(businessId) {
     
     const response = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -823,7 +859,10 @@ async function sendConfirmationNotifications(bookingData, appointmentId) {
     try {
       const emailSent = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-appointment-confirmation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
         body: JSON.stringify({
           to_name: bookingData.name,
           to_email: bookingData.email,
@@ -852,7 +891,10 @@ async function sendConfirmationNotifications(bookingData, appointmentId) {
       
       const smsResponse = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-sms', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
         body: JSON.stringify({
           to: bookingData.phone,
           message: smsMessage
@@ -907,7 +949,10 @@ async function getAvailableTimesForContext(messages, dbContext) {
     const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
     const response = await fetch(mcpUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.MCP_API_KEY
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
@@ -1082,11 +1127,16 @@ What service are you interested in?`;
 }
 
 export async function handler(event, context) {
-  // Enable CORS
+  // Security headers with proper CORS
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    'Access-Control-Allow-Origin': process.env.FRONTEND_URL || 'https://appointly-ks.netlify.app',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'Content-Type': 'application/json'
   };
 
   // Handle preflight requests

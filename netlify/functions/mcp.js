@@ -215,11 +215,68 @@ function getServer() {
   return server;
 }
 
+// Input sanitization and validation
+function sanitizeTableName(table) {
+  const allowedTables = [
+    'users', 'services', 'appointments', 'customers', 
+    'employees', 'business_settings', 'knowledge'
+  ];
+  
+  if (!table || typeof table !== 'string') {
+    throw new Error('Invalid table name');
+  }
+  
+  if (!allowedTables.includes(table)) {
+    throw new Error(`Table '${table}' is not allowed`);
+  }
+  
+  return table;
+}
+
+function sanitizeSelectFields(select) {
+  if (!select || typeof select !== 'string') {
+    return '*';
+  }
+  
+  // Remove any potential SQL injection attempts
+  const cleanSelect = select.replace(/[;'"\\]/g, '');
+  
+  // Validate field names (alphanumeric, underscore, comma, space, asterisk)
+  if (!/^[\w\s,*]+$/.test(cleanSelect)) {
+    throw new Error('Invalid select fields');
+  }
+  
+  return cleanSelect;
+}
+
+function validateLimit(limit) {
+  const numLimit = parseInt(limit);
+  if (isNaN(numLimit) || numLimit < 1 || numLimit > 1000) {
+    return 100; // Default safe limit
+  }
+  return numLimit;
+}
+
+function sanitizeStringValue(value) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  
+  // Remove potential SQL injection patterns
+  return value.replace(/['"\\;]/g, '');
+}
+
 // Handler functions for MCP tools
 async function handleFetchTable(args) {
   const { table, select = "*", limit = 100, eq, ilike, orderBy, ascending = true } = args;
+  
+  // Sanitize inputs
+  const sanitizedTable = sanitizeTableName(table);
+  const sanitizedSelect = sanitizeSelectFields(select);
+  const sanitizedLimit = validateLimit(limit);
+  
   const supabase = getSupabaseServerClient();
-  let query = supabase.from(table).select(select).limit(limit);
+  let query = supabase.from(sanitizedTable).select(sanitizedSelect).limit(sanitizedLimit);
   if (eq) {
     for (const [col, val] of Object.entries(eq)) query = query.eq(col, val);
   }
@@ -235,10 +292,41 @@ async function handleFetchTable(args) {
 
 async function handleUpsertRows(args) {
   const { table, rows, onConflict } = args;
+  
+  // Sanitize inputs
+  const sanitizedTable = sanitizeTableName(table);
+  
+  if (!Array.isArray(rows) || rows.length === 0) {
+    throw new Error('Rows must be a non-empty array');
+  }
+  
+  if (rows.length > 100) {
+    throw new Error('Too many rows - maximum 100 allowed');
+  }
+  
+  // Sanitize row data
+  const sanitizedRows = rows.map(row => {
+    if (typeof row !== 'object' || row === null) {
+      throw new Error('Each row must be an object');
+    }
+    
+    const sanitizedRow = {};
+    for (const [key, value] of Object.entries(row)) {
+      // Validate column names
+      if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+        throw new Error(`Invalid column name: ${key}`);
+      }
+      
+      sanitizedRow[key] = typeof value === 'string' ? sanitizeStringValue(value) : value;
+    }
+    
+    return sanitizedRow;
+  });
+  
   const supabase = getSupabaseServerClient();
   const { data, error } = await supabase
-    .from(table)
-    .upsert(rows, onConflict ? { onConflict } : undefined)
+    .from(sanitizedTable)
+    .upsert(sanitizedRows, onConflict ? { onConflict } : undefined)
     .select("*");
   if (error) throw error;
   return { content: [{ type: "json", json: data ?? [] }] };
@@ -247,9 +335,27 @@ async function handleUpsertRows(args) {
 async function handleIngestText(args) {
   const { source, content, metadata } = args;
   
+  // Validate inputs
+  if (!source || typeof source !== 'string' || source.length > 255) {
+    throw new Error('Source must be a string with max 255 characters');
+  }
+  
+  if (!content || typeof content !== 'string' || content.length > 10000) {
+    throw new Error('Content must be a string with max 10000 characters');
+  }
+  
+  if (metadata && typeof metadata !== 'object') {
+    throw new Error('Metadata must be an object');
+  }
+  
+  // Sanitize inputs
+  const sanitizedSource = sanitizeStringValue(source);
+  const sanitizedContent = sanitizeStringValue(content);
+  const sanitizedMetadata = metadata || {};
+  
   try {
-    console.log("Creating free embedding for:", source);
-    const vector = await getFreeEmbeddings(content);
+    console.log("Creating free embedding for:", sanitizedSource);
+    const vector = await getFreeEmbeddings(sanitizedContent);
     
     if (!Array.isArray(vector)) {
       throw new Error("Failed to create embedding");
@@ -258,11 +364,16 @@ async function handleIngestText(args) {
     const supabase = getSupabaseServerClient();
     const { data, error } = await supabase
       .from("knowledge")
-      .insert([{ source, content, metadata: metadata || {}, embedding: vector }])
+      .insert([{ 
+        source: sanitizedSource, 
+        content: sanitizedContent, 
+        metadata: sanitizedMetadata, 
+        embedding: vector 
+      }])
       .select("id, source");
     if (error) throw error;
     
-    console.log("Successfully ingested knowledge:", source);
+    console.log("Successfully ingested knowledge:", sanitizedSource);
     return { content: [{ type: "json", json: data?.[0] || null }] };
   } catch (error) {
     console.error("Error ingesting text:", error);
@@ -273,9 +384,18 @@ async function handleIngestText(args) {
 async function handleQueryKnowledge(args) {
   const { question, matchCount = 5, minSimilarity = 0 } = args;
   
+  // Validate inputs
+  if (!question || typeof question !== 'string' || question.length > 1000) {
+    throw new Error('Question must be a string with max 1000 characters');
+  }
+  
+  const sanitizedQuestion = sanitizeStringValue(question);
+  const sanitizedMatchCount = validateLimit(matchCount);
+  const sanitizedMinSimilarity = Math.max(0, Math.min(1, parseFloat(minSimilarity) || 0));
+  
   try {
-    console.log("Creating free embedding for query:", question);
-    const vector = await getFreeEmbeddings(question);
+    console.log("Creating free embedding for query:", sanitizedQuestion);
+    const vector = await getFreeEmbeddings(sanitizedQuestion);
     
     if (!Array.isArray(vector)) {
       throw new Error("Failed to create embedding");
@@ -284,8 +404,8 @@ async function handleQueryKnowledge(args) {
     const supabase = getSupabaseServerClient();
     const { data, error } = await supabase.rpc("match_knowledge", {
       query_embedding: vector,
-      match_count: matchCount,
-      min_similarity: minSimilarity
+      match_count: sanitizedMatchCount,
+      min_similarity: sanitizedMinSimilarity
     });
     if (error) throw error;
     
@@ -298,10 +418,87 @@ async function handleQueryKnowledge(args) {
   }
 }
 
+// Authentication middleware
+function validateApiKey(req) {
+  const apiKey = req.headers.get('x-api-key');
+  const validApiKey = process.env.MCP_API_KEY;
+  
+  if (!validApiKey) {
+    console.error('MCP_API_KEY not configured');
+    return false;
+  }
+  
+  return apiKey === validApiKey;
+}
+
+// Rate limiting (basic implementation)
+const rateLimitMap = new Map();
+function checkRateLimit(clientId) {
+  const now = Date.now();
+  const windowMs = 60000; // 1 minute
+  const maxRequests = 30; // 30 requests per minute
+  
+  if (!rateLimitMap.has(clientId)) {
+    rateLimitMap.set(clientId, []);
+  }
+  
+  const requests = rateLimitMap.get(clientId);
+  
+  // Remove old requests outside the window
+  const validRequests = requests.filter(time => now - time < windowMs);
+  
+  if (validRequests.length >= maxRequests) {
+    return false;
+  }
+  
+  validRequests.push(now);
+  rateLimitMap.set(clientId, validRequests);
+  return true;
+}
+
 export default async (req) => {
   try {
+    // Security headers
+    const securityHeaders = {
+      'Content-Type': 'application/json',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      'Access-Control-Allow-Origin': process.env.FRONTEND_URL || 'https://appointly-ks.netlify.app',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-api-key'
+    };
+
+    // Handle CORS preflight
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 200, headers: securityHeaders });
+    }
+
     if (req.method !== "POST") {
-      return new Response("Method not allowed", { status: 405 });
+      return new Response(JSON.stringify({ error: "Method not allowed" }), { 
+        status: 405, 
+        headers: securityHeaders 
+      });
+    }
+
+    // Validate API key
+    if (!validateApiKey(req)) {
+      console.warn('MCP: Unauthorized access attempt');
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
+        status: 401, 
+        headers: securityHeaders 
+      });
+    }
+
+    // Rate limiting
+    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown';
+    if (!checkRateLimit(clientIp)) {
+      console.warn(`MCP: Rate limit exceeded for ${clientIp}`);
+      return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { 
+        status: 429, 
+        headers: securityHeaders 
+      });
     }
 
     const body = await req.json();
@@ -333,7 +530,7 @@ export default async (req) => {
         
         return new Response(
           JSON.stringify({ jsonrpc: "2.0", result, id: body.id }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          { status: 200, headers: securityHeaders }
         );
       } catch (error) {
         console.error("Tool execution error:", error);
@@ -343,20 +540,20 @@ export default async (req) => {
             error: { code: -32603, message: error.message }, 
             id: body.id 
           }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
+          { status: 500, headers: securityHeaders }
         );
       }
     }
     
     return new Response(
       JSON.stringify({ jsonrpc: "2.0", error: { code: -32601, message: "Method not found" }, id: body.id }),
-      { status: 404, headers: { "Content-Type": "application/json" } }
+      { status: 404, headers: securityHeaders }
     );
   } catch (error) {
     console.error("MCP error:", error);
     return new Response(
       JSON.stringify({ jsonrpc: "2.0", error: { code: -32603, message: "Internal server error" }, id: "" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: securityHeaders }
     );
   }
 };
