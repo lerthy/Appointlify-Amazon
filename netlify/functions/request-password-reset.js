@@ -1,16 +1,19 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
-
-// Use node-fetch for HTTP requests in Node.js environment
-const fetch = require('node-fetch');
+const nodemailer = require('nodemailer');
 
 // Required env
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY;
-const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
+
+// Email configuration
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = process.env.SMTP_PORT || 587;
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const FROM_EMAIL = process.env.FROM_EMAIL || process.env.SMTP_USER;
+const FROM_NAME = process.env.FROM_NAME || 'Appointly';
+
 const SITE_URL = (process.env.SITE_URL || '').replace(/\/$/, '');
 
 // Rate limiting configuration
@@ -193,42 +196,108 @@ exports.handler = async (event) => {
     const origin = SITE_URL || (event.headers.origin || '').replace(/\/$/, '') || `https://${event.headers.host}`;
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
 
-    // Send email via EmailJS
-    if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && (EMAILJS_PRIVATE_KEY || EMAILJS_PUBLIC_KEY)) {
+    // Send email via Nodemailer
+    if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
       try {
-        const emailJsBody = {
-          service_id: EMAILJS_SERVICE_ID,
-          template_id: EMAILJS_TEMPLATE_ID,
-          ...(EMAILJS_PRIVATE_KEY ? {} : { user_id: EMAILJS_PUBLIC_KEY }),
-          template_params: { 
-            reset_url: resetUrl, 
-            email: normalizedEmail, 
-            to_email: normalizedEmail,
-            user_name: user.name || 'User',
-            expires_in: '1 hour'
+        console.log('Setting up email transporter...');
+        
+        // Create transporter
+        const transporter = nodemailer.createTransporter({
+          host: SMTP_HOST,
+          port: parseInt(SMTP_PORT),
+          secure: parseInt(SMTP_PORT) === 465, // true for 465, false for other ports
+          auth: {
+            user: SMTP_USER,
+            pass: SMTP_PASS,
           },
-        };
-
-        const emailHeaders = { 'Content-Type': 'application/json' };
-        if (EMAILJS_PRIVATE_KEY) {
-          emailHeaders.Authorization = `Bearer ${EMAILJS_PRIVATE_KEY}`;
-        }
-
-        const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-          method: 'POST',
-          headers: emailHeaders,
-          body: JSON.stringify(emailJsBody),
         });
 
-        if (!emailResponse.ok) {
-          const errorText = await emailResponse.text();
-          console.error('EmailJS error:', emailResponse.status, errorText);
-          throw new Error(`EmailJS failed: ${emailResponse.status}`);
-        }
+        // Email template
+        const emailHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Password Reset Request</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+                .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🔐 Password Reset Request</h1>
+                </div>
+                <div class="content">
+                    <p>Hello <strong>${user.name || 'User'}</strong>,</p>
+                    
+                    <p>We received a request to reset your password for your account associated with <strong>${normalizedEmail}</strong>.</p>
+                    
+                    <p>Click the button below to reset your password:</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="${resetUrl}" class="button">Reset Password</a>
+                    </div>
+                    
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; background: #eee; padding: 10px; border-radius: 5px;"><a href="${resetUrl}">${resetUrl}</a></p>
+                    
+                    <p><strong>⏰ This link will expire in 1 hour.</strong></p>
+                    
+                    <p>If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+                    
+                    <div class="footer">
+                        <p>Best regards,<br>
+                        <strong>${FROM_NAME} Team</strong></p>
+                        <p style="margin-top: 20px; font-size: 12px; color: #999;">
+                            This is an automated message. Please do not reply to this email.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
 
-        console.log(`Password reset email sent successfully to: ${normalizedEmail}`);
+        const emailText = `
+Password Reset Request
+
+Hello ${user.name || 'User'},
+
+We received a request to reset your password for your account associated with ${normalizedEmail}.
+
+Reset your password by clicking this link:
+${resetUrl}
+
+This link will expire in 1 hour.
+
+If you didn't request this password reset, you can safely ignore this email.
+
+Best regards,
+${FROM_NAME} Team
+        `;
+
+        // Email options
+        const mailOptions = {
+          from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+          to: normalizedEmail,
+          subject: `🔐 Password Reset Request - ${FROM_NAME}`,
+          text: emailText,
+          html: emailHtml,
+        };
+
+        console.log('Sending email to:', normalizedEmail);
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Password reset email sent successfully to: ${normalizedEmail}`);
+        
       } catch (emailError) {
-        console.error('Failed to send password reset email:', emailError);
+        console.error('❌ Failed to send password reset email:', emailError.message);
+        console.error('Stack:', emailError.stack);
         
         // Mark token as used since email failed
         await supabase
@@ -243,8 +312,9 @@ exports.handler = async (event) => {
         };
       }
     } else {
-      console.log('EmailJS not configured, reset link:', resetUrl);
-      console.warn('Password reset email could not be sent - EmailJS not configured');
+      console.log('📧 SMTP not configured, reset link would be:', resetUrl);
+      console.warn('Password reset email could not be sent - SMTP not configured');
+      console.warn('Missing SMTP config - Need: SMTP_HOST, SMTP_USER, SMTP_PASS');
     }
 
     return genericResponse;
