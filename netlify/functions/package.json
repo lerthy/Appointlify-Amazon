@@ -12,6 +12,7 @@
     "fetch-to-node": "^2.0.2",
     "groq-sdk": "^0.7.0",
     "nanoid": "^5.0.7",
+    "nodemailer": "^7.0.6",
     "openai": "^5.15.0",
     "twilio": "^5.7.0",
     "zod": "^3.23.8"

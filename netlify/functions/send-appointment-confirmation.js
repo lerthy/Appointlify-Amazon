@@ -1,5 +1,7 @@
-// Netlify function that replicates the exact sendAppointmentConfirmation function from the frontend
-// This allows backend functions to use the same email service as the appointment form
+// Netlify function that sends appointment confirmation emails using Nodemailer
+// This replaces EmailJS with a reliable server-side email solution
+
+const nodemailer = require('nodemailer');
 
 exports.handler = async function(event, context) {
   // Enable CORS
@@ -58,12 +60,7 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Use the EXACT same EmailJS configuration as frontend
-    const SERVICE_ID = 'service_n4o1nab';
-    const TEMPLATE_ID = 'template_6nc7amq';
-    const PUBLIC_KEY = 'KBjlWLFZG4KBjiPvL';
-
-    // Prepare template params EXACTLY like the frontend
+    // Prepare email data
     const templateParams = {
       to_name: to_name,
       email: to_email,
@@ -74,76 +71,41 @@ exports.handler = async function(event, context) {
       cancel_link: cancel_link,
     };
 
-    console.log('Sending appointment confirmation email:', {
+    console.log('Sending appointment confirmation email via Nodemailer:', {
       to: to_email,
       business: business_name,
       service: service_name
     });
 
-    // EmailJS blocks server calls, so use a direct SMTP service or alternative
-    // For now, use a simple email service that mimics EmailJS behavior
-    
-    // Check if we have a real email service configured
-    const emailServiceUrl = process.env.EMAIL_SERVICE_URL;
-    
-    if (emailServiceUrl) {
-      // Use alternative email service
-      const response = await fetch(emailServiceUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.EMAIL_SERVICE_KEY}`
-        },
-        body: JSON.stringify({
-          to: to_email,
-          subject: 'Appointment Confirmation - ' + business_name,
-          html: generateEmailHTML(templateParams)
-        })
-      });
-    } else {
-      // Fallback: Generate email HTML and return success (for development)
-      console.log('📧 Email would be sent to:', to_email);
-      console.log('Email content:', generateEmailHTML(templateParams));
-      
-      // Simulate successful email sending
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ 
-          success: true, 
-          messageId: `simulated_${Date.now()}`,
-          message: 'Email simulated successfully (EmailJS requires browser environment)',
-          simulated: true
-        })
-      };
-    }
-    
-    const response = null; // Will be set above if real service is used
+    // Configure Nodemailer with Gmail SMTP
+    const transporter = nodemailer.createTransporter({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER || 'lerdi890@gmail.com', // Your Gmail
+        pass: process.env.GMAIL_APP_PASSWORD // Gmail App Password (not regular password)
+      }
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('EmailJS API error:', response.status, errorText);
-      return {
-        statusCode: 200, // Don't fail the booking
-        headers,
-        body: JSON.stringify({ 
-          success: false, 
-          error: `EmailJS error: ${response.status}`,
-          details: errorText
-        })
-      };
-    }
+    // Email content
+    const mailOptions = {
+      from: `"${business_name}" <${process.env.GMAIL_USER || 'lerdi890@gmail.com'}>`,
+      to: to_email,
+      subject: `Appointment Confirmation - ${business_name}`,
+      html: generateEmailHTML(templateParams),
+      text: generateEmailText(templateParams) // Plain text fallback
+    };
 
-    const result = await response.text();
-    console.log('✅ Email sent successfully:', result);
+    // Send the email
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully via Nodemailer:', result.messageId);
     
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({ 
         success: true, 
-        messageId: result,
-        message: 'Appointment confirmation email sent successfully'
+        messageId: result.messageId,
+        message: 'Appointment confirmation email sent successfully via Nodemailer'
       })
     };
   } catch (error) {
@@ -208,5 +170,34 @@ function generateEmailHTML(params) {
         </div>
     </body>
     </html>
+  `;
+}
+
+// Generate plain text version of the email
+function generateEmailText(params) {
+  return `
+Appointment Confirmed!
+
+Dear ${params.to_name},
+
+Your appointment has been successfully booked. Here are your appointment details:
+
+📅 Appointment Details
+Business: ${params.business_name}
+Service: ${params.service_name}
+Date: ${params.appointment_date}
+Time: ${params.appointment_time}
+
+If you need to cancel or reschedule your appointment, please visit:
+${params.cancel_link}
+
+We look forward to seeing you!
+
+Best regards,
+${params.business_name}
+
+---
+This email was sent from Appointly booking system.
+If you have any questions, please contact ${params.business_name} directly.
   `;
 }
