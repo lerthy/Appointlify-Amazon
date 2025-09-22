@@ -1,18 +1,20 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 // Required env
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Email configuration
-const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = process.env.SMTP_PORT || 587;
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASS = process.env.SMTP_PASS;
-const FROM_EMAIL = process.env.FROM_EMAIL || process.env.SMTP_USER;
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@yourdomain.com';
 const FROM_NAME = process.env.FROM_NAME || 'Appointly';
+
+// Configure SendGrid
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+}
 
 const SITE_URL = (process.env.SITE_URL || '').replace(/\/$/, '');
 
@@ -196,22 +198,11 @@ exports.handler = async (event) => {
     const origin = SITE_URL || (event.headers.origin || '').replace(/\/$/, '') || `https://${event.headers.host}`;
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
 
-    // Send email via Nodemailer
-    if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+    // Send email via SendGrid
+    if (SENDGRID_API_KEY) {
       try {
-        console.log('Setting up email transporter...');
+        console.log('Sending email via SendGrid...');
         
-        // Create transporter
-        const transporter = nodemailer.createTransporter({
-          host: SMTP_HOST,
-          port: parseInt(SMTP_PORT),
-          secure: parseInt(SMTP_PORT) === 465, // true for 465, false for other ports
-          auth: {
-            user: SMTP_USER,
-            pass: SMTP_PASS,
-          },
-        });
-
         // Email template
         const emailHtml = `
         <!DOCTYPE html>
@@ -220,12 +211,13 @@ exports.handler = async (event) => {
             <meta charset="utf-8">
             <title>Password Reset Request</title>
             <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
                 .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
                 .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
                 .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+                .link-backup { word-break: break-all; background: #eee; padding: 10px; border-radius: 5px; }
             </style>
         </head>
         <body>
@@ -245,7 +237,7 @@ exports.handler = async (event) => {
                     </div>
                     
                     <p>Or copy and paste this link into your browser:</p>
-                    <p style="word-break: break-all; background: #eee; padding: 10px; border-radius: 5px;"><a href="${resetUrl}">${resetUrl}</a></p>
+                    <p class="link-backup"><a href="${resetUrl}">${resetUrl}</a></p>
                     
                     <p><strong>⏰ This link will expire in 1 hour.</strong></p>
                     
@@ -264,8 +256,7 @@ exports.handler = async (event) => {
         </html>
         `;
 
-        const emailText = `
-Password Reset Request
+        const emailText = `Password Reset Request
 
 Hello ${user.name || 'User'},
 
@@ -279,20 +270,22 @@ This link will expire in 1 hour.
 If you didn't request this password reset, you can safely ignore this email.
 
 Best regards,
-${FROM_NAME} Team
-        `;
+${FROM_NAME} Team`;
 
-        // Email options
-        const mailOptions = {
-          from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+        // SendGrid message
+        const msg = {
           to: normalizedEmail,
+          from: {
+            email: FROM_EMAIL,
+            name: FROM_NAME
+          },
           subject: `🔐 Password Reset Request - ${FROM_NAME}`,
           text: emailText,
           html: emailHtml,
         };
 
-        console.log('Sending email to:', normalizedEmail);
-        await transporter.sendMail(mailOptions);
+        console.log('Sending to:', normalizedEmail);
+        await sgMail.send(msg);
         console.log(`✅ Password reset email sent successfully to: ${normalizedEmail}`);
         
       } catch (emailError) {
@@ -312,9 +305,9 @@ ${FROM_NAME} Team
         };
       }
     } else {
-      console.log('📧 SMTP not configured, reset link would be:', resetUrl);
-      console.warn('Password reset email could not be sent - SMTP not configured');
-      console.warn('Missing SMTP config - Need: SMTP_HOST, SMTP_USER, SMTP_PASS');
+      console.log('📧 SendGrid not configured, reset link would be:', resetUrl);
+      console.warn('Password reset email could not be sent - SendGrid not configured');
+      console.warn('Missing SENDGRID_API_KEY environment variable');
     }
 
     return genericResponse;
