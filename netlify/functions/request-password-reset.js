@@ -192,15 +192,30 @@ exports.handler = async (event) => {
       };
     }
 
-    // Generate reset URL - FORCE production URL
-    console.log('🔍 DEBUG - Headers:', JSON.stringify(event.headers, null, 2));
-    console.log('🔍 DEBUG - SITE_URL:', SITE_URL);
+    // Generate reset URL - FORCE production URL WITH EXTREME DEBUGGING
+    console.log('🔥 DEBUGGING LOCALHOST ISSUE:');
+    console.log('🔍 Headers.host:', event.headers.host);
+    console.log('🔍 Headers.origin:', event.headers.origin);
+    console.log('🔍 Headers.referer:', event.headers.referer);
+    console.log('🔍 SITE_URL env var:', SITE_URL);
     
-    // FORCE the production URL - no more localhost!
-    const origin = SITE_URL || 'https://appointly-ks.netlify.app';
+    // ABSOLUTE FORCE - IGNORE EVERYTHING AND USE PRODUCTION
+    let origin = 'https://appointly-ks.netlify.app';
+    
+    // Check if SITE_URL is set to localhost (this might be the problem!)
+    if (SITE_URL) {
+      console.log('🚨 SITE_URL is set to:', SITE_URL);
+      if (SITE_URL.includes('localhost')) {
+        console.log('🚨 SITE_URL CONTAINS LOCALHOST! Ignoring it!');
+        origin = 'https://appointly-ks.netlify.app';
+      } else {
+        origin = SITE_URL;
+      }
+    }
     
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
-    console.log('🔗 FORCED reset URL:', resetUrl);
+    console.log('🔗 FINAL RESET URL:', resetUrl);
+    console.log('🔥 If this still shows localhost, something is very wrong!');
 
     // Send email via Nodemailer
     if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
