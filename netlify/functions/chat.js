@@ -1131,8 +1131,13 @@ export async function handler(event, context) {
     console.log('chat.js provider flags => useGroq:', useGroq, 'useOpenAI:', useOpenAI);
     
     if (!useGroq && !useOpenAI) {
-      // Use mock AI service as fallback
-      const mockResponse = await getMockAIResponse(messages, chatContext);
+      // Use mock AI service as fallback - pass the real dbContext with businesses
+      const contextWithBusinesses = {
+        ...chatContext,
+        businesses: dbContext.businesses,
+        services: dbContext.services
+      };
+      const mockResponse = await getMockAIResponse(messages, contextWithBusinesses);
       return {
         statusCode: 200,
         headers,
@@ -1140,7 +1145,11 @@ export async function handler(event, context) {
           success: true, 
           message: mockResponse,
           provider: 'mock',
-          note: 'Using mock AI service. Set OPENAI_API_KEY and USE_OPENAI=true to use OpenAI.'
+          note: 'Using mock AI service. Set OPENAI_API_KEY and USE_OPENAI=true to use OpenAI.',
+          context: {
+            businesses: dbContext.businesses.length,
+            services: dbContext.services.length
+          }
         })
       };
     }
