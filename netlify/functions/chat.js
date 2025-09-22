@@ -1281,12 +1281,36 @@ export async function handler(event, context) {
       });
 
       // Create system prompt with booking context and MCP knowledge
-      const servicesByBiz = dbContext.services.map(s => `- ${s.name} ($${s.price}, ${s.duration} min)`).slice(0, 50).join('\n');
+      // Group services by business to show proper associations
+      const businessServiceMap = new Map();
+      
+      // Initialize map with all businesses
+      dbContext.businesses.forEach(business => {
+        businessServiceMap.set(business.id, {
+          name: business.name,
+          description: business.description,
+          services: []
+        });
+      });
+      
+      // Add services to their respective businesses
+      dbContext.services.forEach(service => {
+        if (businessServiceMap.has(service.business_id)) {
+          businessServiceMap.get(service.business_id).services.push(service);
+        }
+      });
+      
+      // Create business list with their services
       const businessList = dbContext.businesses.length > 0
-        ? dbContext.businesses.map((b, i) => `${i + 1}. ${b.name}${b.description ? ' - ' + b.description : ''}`).slice(0, 25).join('\n')
+        ? Array.from(businessServiceMap.values()).map((bizData, i) => {
+            const serviceList = bizData.services.length > 0 
+              ? bizData.services.map(s => `  - ${s.name} ($${s.price}, ${s.duration} min)`).join('\n')
+              : '  - No services available';
+            return `${i + 1}. ${bizData.name}${bizData.description ? ' - ' + bizData.description : ''}\n   Services:\n${serviceList}`;
+          }).slice(0, 25).join('\n\n')
         : 'No businesses found in database. Please add businesses via the admin panel.';
       
-      console.log('chat.js: Groq businessList:', businessList);
+      console.log('chat.js: Groq businessList with services:', businessList);
       
       const knowledgeContext = dbContext.knowledge.length > 0 ? 
         `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
@@ -1298,11 +1322,20 @@ export async function handler(event, context) {
 
 CRITICAL INSTRUCTION: When a customer provides ALL booking details (name, business, service, date, time, email, phone), you MUST immediately output the BOOKING_READY JSON format. Do not ask for confirmation or summarize. Just output the JSON.
 
-BUSINESSES AVAILABLE:
+BUSINESSES AND THEIR SERVICES:
 ${businessList || 'No businesses found.'}
 
-SERVICES AVAILABLE:
-${servicesByBiz || 'No services found.'}
+STRICT SERVICE RULES:
+1. ONLY use the exact business-service associations shown above
+2. NEVER assume or infer that a business offers a service not explicitly listed
+3. When asked "which business has X service", ONLY mention businesses that explicitly list that service
+4. If a business shows "No services available", it has NO services - do not suggest any
+5. Do not mix services between businesses under any circumstances
+
+EXAMPLE:
+If only "Lerdi Salihi" shows "asd ($22.97, 30 min)" in their services list, then:
+- When asked "which business has asd service?" → Answer: "Only Lerdi Salihi offers the asd service"
+- When asked about "Daja" services → Answer: "Daja has no services available" (if their list shows "No services available")
 
 AVAILABLE TIME SLOTS:
 ${availableTimesContext}
