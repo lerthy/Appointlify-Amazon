@@ -261,7 +261,22 @@ exports.handler = async (event) => {
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
                 .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-                .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+                .button { 
+                    display: inline-block; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white !important; 
+                    padding: 20px 40px; 
+                    text-decoration: none; 
+                    border-radius: 8px; 
+                    margin: 30px 0; 
+                    font-weight: bold; 
+                    font-size: 18px;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    transition: all 0.3s ease;
+                    border: none;
+                }
                 .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
                 .link-backup { word-break: break-all; background: #eee; padding: 10px; border-radius: 5px; }
             </style>
@@ -276,10 +291,23 @@ exports.handler = async (event) => {
                     
                     <p>We received a request to reset your password for your account associated with <strong>${normalizedEmail}</strong>.</p>
                     
-                    <p>Click the button below to reset your password:</p>
+                    <p><strong>Click the big button below to reset your password:</strong></p>
                     
-                    <div style="text-align: center;">
-                        <a href="${resetUrl}" class="button">Reset Password</a>
+                    <div style="text-align: center; margin: 40px 0;">
+                        <a href="${resetUrl}" class="button" style="
+                            display: inline-block; 
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                            color: white !important; 
+                            padding: 20px 40px; 
+                            text-decoration: none; 
+                            border-radius: 8px; 
+                            font-weight: bold; 
+                            font-size: 18px;
+                            text-transform: uppercase;
+                            letter-spacing: 1px;
+                            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                            border: none;
+                        ">🔐 RESET PASSWORD</a>
                     </div>
                     
                     <p>Or copy and paste this link into your browser:</p>
