@@ -238,15 +238,24 @@ function sanitizeSelectFields(select) {
     return '*';
   }
   
-  // Remove any potential SQL injection attempts
-  const cleanSelect = select.replace(/[;'"\\]/g, '');
+  // Whitelist allowed field names
+  const allowedFields = [
+    'id', 'name', 'email', 'description', 'price', 'duration', 
+    'business_id', 'created_at', 'updated_at', 'logo', 'phone',
+    'role', 'status', 'date', 'notes', 'icon'
+  ];
   
-  // Validate field names (alphanumeric, underscore, comma, space, asterisk)
-  if (!/^[\w\s,*]+$/.test(cleanSelect)) {
-    throw new Error('Invalid select fields');
+  // Parse comma-separated fields
+  const fields = select.split(',').map(f => f.trim());
+  
+  // Validate each field
+  for (const field of fields) {
+    if (field !== '*' && !allowedFields.includes(field)) {
+      throw new Error(`Field '${field}' is not allowed`);
+    }
   }
   
-  return cleanSelect;
+  return fields.join(', ');
 }
 
 function validateLimit(limit) {
@@ -431,9 +440,25 @@ function validateApiKey(req) {
   return apiKey === validApiKey;
 }
 
-// Rate limiting (basic implementation)
+// Enhanced logging and rate limiting
 const rateLimitMap = new Map();
-function checkRateLimit(clientId) {
+
+function logSecurityEvent(type, details, clientIp = 'unknown') {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    type,
+    clientIp,
+    details,
+    userAgent: details.userAgent || 'unknown'
+  };
+  
+  console.log(`SECURITY_LOG: ${JSON.stringify(logEntry)}`);
+  
+  // In production, send to monitoring service
+  // await sendToMonitoring(logEntry);
+}
+
+function checkRateLimit(clientId, userAgent = 'unknown') {
   const now = Date.now();
   const windowMs = 60000; // 1 minute
   const maxRequests = 30; // 30 requests per minute
@@ -448,6 +473,11 @@ function checkRateLimit(clientId) {
   const validRequests = requests.filter(time => now - time < windowMs);
   
   if (validRequests.length >= maxRequests) {
+    logSecurityEvent('RATE_LIMIT_EXCEEDED', {
+      clientIp: clientId,
+      requestCount: validRequests.length,
+      userAgent
+    });
     return false;
   }
   
@@ -484,7 +514,11 @@ export default async (req) => {
 
     // Validate API key
     if (!validateApiKey(req)) {
-      console.warn('MCP: Unauthorized access attempt');
+      const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown';
+      logSecurityEvent('UNAUTHORIZED_ACCESS', {
+        userAgent: req.headers.get('user-agent'),
+        origin: req.headers.get('origin')
+      }, clientIp);
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 
         status: 401, 
         headers: securityHeaders 
@@ -493,8 +527,8 @@ export default async (req) => {
 
     // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown';
-    if (!checkRateLimit(clientIp)) {
-      console.warn(`MCP: Rate limit exceeded for ${clientIp}`);
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+    if (!checkRateLimit(clientIp, userAgent)) {
       return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { 
         status: 429, 
         headers: securityHeaders 
