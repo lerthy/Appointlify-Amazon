@@ -716,26 +716,48 @@ async function sendConfirmationNotifications(bookingData, appointmentId) {
     // Create cancel link
     const cancelLink = `https://appointly-ks.netlify.app/cancel/${appointmentId}`;
 
-    // Send email notification using the frontend email service
+    // Send email notification using EmailJS directly (same as appointment form frontend)
     try {
-      const emailResponse = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-email-via-emailjs', {
+      // Use the exact same EmailJS call as the frontend appointment form
+      const emailjsUrl = 'https://api.emailjs.com/api/v1.0/email/send';
+      
+      const templateParams = {
+        to_name: bookingData.name,
+        email: bookingData.email,
+        appointment_date: dateString,
+        appointment_time: timeString,
+        service_name: bookingData.service,
+        business_name: bookingData.business,
+        cancel_link: cancelLink,
+      };
+
+      const emailjsPayload = {
+        service_id: 'service_n4o1nab',
+        template_id: 'template_6nc7amq',
+        user_id: 'KBjlWLFZG4KBjiPvL',
+        template_params: templateParams
+      };
+
+      console.log('Sending email via EmailJS API:', {
+        to: bookingData.email,
+        business: bookingData.business,
+        service: bookingData.service
+      });
+
+      const emailResponse = await fetch(emailjsUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to_name: bookingData.name,
-          to_email: bookingData.email,
-          appointment_date: dateString,
-          appointment_time: timeString,
-          business_name: bookingData.business,
-          service_name: bookingData.service,
-          cancel_link: cancelLink
-        })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailjsPayload)
       });
 
       if (emailResponse.ok) {
-        console.log('✅ Email notification sent successfully');
+        const result = await emailResponse.text();
+        console.log('✅ Email notification sent successfully via EmailJS:', result);
       } else {
-        console.log('⚠️ Email notification failed:', await emailResponse.text());
+        const errorText = await emailResponse.text();
+        console.log('⚠️ Email notification failed:', emailResponse.status, errorText);
       }
     } catch (emailError) {
       console.error('❌ Email notification failed:', emailError);
