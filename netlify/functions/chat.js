@@ -897,10 +897,16 @@ async function getMockAIResponse(messages, context) {
   
   // Greeting
   if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(message)) {
+    // Get businesses from context or use fallback list
+    const businesses = context?.businesses || [];
+    const businessList = businesses.length > 0 
+      ? businesses.slice(0, 5).map((b, i) => `${i + 1}. ${b.name || 'Business'}`).join('\n')
+      : `1. Lerdi Salihi\n2. Nike\n3. Sample Business\n4. Filan Fisteku`;
+    
     return `Hello! Welcome to Appointly. I'm here to help you book an appointment with one of our businesses.
 
 **Available Businesses:**
-${services.slice(0, 5).map((s, i) => `${i + 1}. ${s.name || 'Business'}`).join('\n')}
+${businessList}
 
 What can I help you with today? Would you like to book an appointment?`;
   }
@@ -1082,7 +1088,13 @@ export async function handler(event, context) {
 
       // Create system prompt with booking context and MCP knowledge
       const servicesByBiz = dbContext.services.map(s => `- ${s.name} ($${s.price}, ${s.duration} min)`).slice(0, 50).join('\n');
-      const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n');
+      const businessList = dbContext.businesses.length > 0
+        ? dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n')
+        : `1. Lerdi Salihi - Haircut specialist
+2. Nike - Sports services  
+3. Sample Business - Various services
+4. Filan Fisteku - Professional services`;
+      
       const knowledgeContext = dbContext.knowledge.length > 0 ? 
         `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
       
@@ -1185,7 +1197,15 @@ Required fields: name, business, service, date, time, email, phone.`;
 
     // Create system prompt with booking context and MCP knowledge
     const servicesByBiz = dbContext.services.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).slice(0, 50).join('\n');
-    const businessList = dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n');
+    
+    // Create business list with fallback
+    const businessList = dbContext.businesses.length > 0
+      ? dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n')
+      : `1. Lerdi Salihi - Haircut specialist
+2. Nike - Sports services  
+3. Sample Business - Various services
+4. Filan Fisteku - Professional services`;
+    
     const knowledgeContext = dbContext.knowledge.length > 0 ? 
       `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
     
