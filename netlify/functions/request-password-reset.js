@@ -1,20 +1,18 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
-const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 
 // Required env
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Email configuration
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@yourdomain.com';
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = process.env.SMTP_PORT || 587;
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
+const FROM_EMAIL = process.env.FROM_EMAIL || process.env.SMTP_USER;
 const FROM_NAME = process.env.FROM_NAME || 'Appointly';
-
-// Configure SendGrid
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-}
 
 const SITE_URL = (process.env.SITE_URL || '').replace(/\/$/, '');
 
@@ -198,12 +196,39 @@ exports.handler = async (event) => {
     const origin = SITE_URL || (event.headers.origin || '').replace(/\/$/, '') || `https://${event.headers.host}`;
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
 
-    // Send email via SendGrid
-    if (SENDGRID_API_KEY) {
+    // Send email via Nodemailer
+    if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
       try {
-        console.log('Sending email via SendGrid...');
+        console.log('📧 Setting up Nodemailer transporter...');
+        console.log('SMTP Config:', { host: SMTP_HOST, port: SMTP_PORT, user: SMTP_USER });
         
-        // Email template
+        // Create reusable transporter object using SMTP transport
+        const transporter = nodemailer.createTransporter({
+          host: SMTP_HOST,
+          port: parseInt(SMTP_PORT),
+          secure: parseInt(SMTP_PORT) === 465, // true for 465, false for other ports
+          auth: {
+            user: SMTP_USER,
+            pass: SMTP_PASS,
+          },
+          // Additional options for better compatibility
+          tls: {
+            rejectUnauthorized: false
+          }
+        });
+
+        console.log('🔍 Verifying SMTP connection...');
+        
+        // Verify connection configuration
+        try {
+          await transporter.verify();
+          console.log('✅ SMTP Server is ready to take our messages');
+        } catch (verifyError) {
+          console.error('❌ SMTP verification failed:', verifyError.message);
+          throw verifyError;
+        }
+
+        // Beautiful email template
         const emailHtml = `
         <!DOCTYPE html>
         <html>
@@ -272,42 +297,42 @@ If you didn't request this password reset, you can safely ignore this email.
 Best regards,
 ${FROM_NAME} Team`;
 
-        // SendGrid message
-        const msg = {
+        // Email options
+        const mailOptions = {
+          from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
           to: normalizedEmail,
-          from: {
-            email: FROM_EMAIL,
-            name: FROM_NAME
-          },
           subject: `🔐 Password Reset Request - ${FROM_NAME}`,
           text: emailText,
           html: emailHtml,
         };
 
-        console.log('Sending to:', normalizedEmail);
-        await sgMail.send(msg);
-        console.log(`✅ Password reset email sent successfully to: ${normalizedEmail}`);
+        console.log('📤 Sending email to:', normalizedEmail);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully! Message ID:', info.messageId);
+        console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
         
       } catch (emailError) {
         console.error('❌ Failed to send password reset email:', emailError.message);
-        console.error('Stack:', emailError.stack);
+        console.error('Full error:', emailError);
         
-        // Mark token as used since email failed
-        await supabase
-          .from('password_reset_tokens')
-          .update({ used: true })
-          .eq('token', token);
-        
+        // Don't mark token as used on email failure - let user retry
         return {
           statusCode: 500,
           headers,
-          body: JSON.stringify({ error: 'Failed to send reset email. Please try again.' })
+          body: JSON.stringify({ 
+            error: 'Failed to send reset email. Please check your email configuration and try again.',
+            details: emailError.message 
+          })
         };
       }
     } else {
-      console.log('📧 SendGrid not configured, reset link would be:', resetUrl);
-      console.warn('Password reset email could not be sent - SendGrid not configured');
-      console.warn('Missing SENDGRID_API_KEY environment variable');
+      console.log('📧 SMTP not configured, reset link would be:', resetUrl);
+      console.warn('Missing SMTP configuration. Need: SMTP_HOST, SMTP_USER, SMTP_PASS');
+      console.log('Current config:', {
+        SMTP_HOST: !!SMTP_HOST,
+        SMTP_USER: !!SMTP_USER, 
+        SMTP_PASS: !!SMTP_PASS
+      });
     }
 
     return genericResponse;
