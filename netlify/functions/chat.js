@@ -66,52 +66,73 @@ async function getEnhancedContext(chatContext, messages = []) {
     return dbContext;
   }
   
-  // If no frontend context, try to detect business from user message
+  // If no frontend context, try to detect business from user message using MCP
   const userMessage = messages[messages.length - 1]?.content || '';
-  const businessNameMatch = userMessage.match(/(lerdi salihi|nike|sample business|my business|filan fisteku|business test|bussiness test)/i);
-  if (businessNameMatch) {
-    const detectedBusiness = businessNameMatch[0].toLowerCase();
-    console.log('chat.js: Detected business from message:', detectedBusiness);
-    
-    // Map detected business names to their business_ids (for services table)
-    const businessMap = {
-      'lerdi salihi': 'c7aac928-b5dd-407e-90d5-3621f18fede1',
-      'nike': '8632da60-830e-4df1-9f64-3e60d274bcb5',
-      'sample business': '550e8400-e29b-41d4-a716-446655440000',
-      'my business': '8632da60-830e-4df1-9f64-3e60d274bcb5',
-      'filan fisteku': 'd5319a6d-a78f-4a56-b288-aa123da023af',
-      'business test': '9cd05682-b03d-4bff-80b2-4c623dd7fd0a',
-      'bussiness test': '9cd05682-b03d-4bff-80b2-4c623dd7fd0a'
-    };
-    
-    const businessId = businessMap[detectedBusiness];
-    if (businessId) {
-      // Fetch services for this specific business
-      try {
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        
-        if (supabaseUrl && serviceKey) {
-          const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
-          
-          const { data: services, error: svcError } = await sb
-            .from('services')
-            .select('id, name, price, duration, description')
-            .eq('business_id', businessId);
-          
-          if (!svcError && services) {
-            console.log('chat.js: Found services for detected business:', services.length, 'services:', services.map(s => s.name));
-            dbContext.businesses = [{ name: businessNameMatch[0], id: businessId }];
-            dbContext.services = services;
-            return dbContext;
-          } else {
-            console.log('chat.js: Error fetching services for detected business:', svcError);
+  console.log('chat.js: Attempting to detect business from user message via MCP');
+  
+  // First get all businesses via MCP to check against user message
+  try {
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+    const businessResponse = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'fetch-table',
+          arguments: {
+            table: 'users',
+            select: 'id, name, description, logo',
+            limit: 50
           }
         }
-      } catch (e) {
-        console.error('chat.js: Error fetching services for detected business:', e);
+      })
+    });
+    
+    const businessResult = await businessResponse.json();
+    if (!businessResult.error && businessResult.result?.content?.[0]?.json) {
+      const businesses = businessResult.result.content[0].json;
+      
+      // Look for business name mentions in user message
+      const mentionedBusiness = businesses.find(business => 
+        userMessage.toLowerCase().includes(business.name.toLowerCase())
+      );
+      
+      if (mentionedBusiness) {
+        console.log('chat.js: Detected business from message:', mentionedBusiness.name);
+        
+        // Fetch services for this specific business via MCP
+        const servicesResponse = await fetch(mcpUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 2,
+            method: 'tools/call',
+            params: {
+              name: 'fetch-table',
+              arguments: {
+                table: 'services',
+                select: 'id, name, price, duration, description, business_id',
+                eq: { business_id: mentionedBusiness.id }
+              }
+            }
+          })
+        });
+        
+        const servicesResult = await servicesResponse.json();
+        if (!servicesResult.error && servicesResult.result?.content?.[0]?.json) {
+          dbContext.businesses = [mentionedBusiness];
+          dbContext.services = servicesResult.result.content[0].json;
+          console.log('chat.js: Found services for detected business:', dbContext.services.length, 'services');
+          return dbContext;
+        }
       }
     }
+  } catch (e) {
+    console.error('chat.js: Error detecting business via MCP:', e);
   }
   
   // Fetch live business/services context using MCP integration
@@ -222,8 +243,8 @@ function hasCompleteBookingInfo(userMessage) {
   const hasName = /(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i.test(userMessage) || /•\s*\*\*name:\*\*\s*([a-zA-Z\s]+)/i.test(userMessage);
   const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(userMessage);
   const hasPhone = /\+?[\d\s\-\(\)]{10,}/.test(userMessage);
-  const hasService = /(?:haircut|consultation|basic service|diqka tjeter)/i.test(userMessage);
-  const hasBusiness = /(?:lerdi salihi|nike|sample business|my business|filan fisteku|business test)/i.test(userMessage);
+  const hasService = /(?:haircut|consultation|basic service|diqka tjeter|service|appointment)/i.test(userMessage);
+  const hasBusiness = /\b(business|salon|clinic|shop|store|company)\b/i.test(userMessage) || userMessage.length > 10; // More flexible business detection
   const hasDate = /(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow)/i.test(userMessage);
   const hasTime = /\d{1,2}:?\d{0,2}\s*(am|pm)/i.test(userMessage);
   
@@ -236,8 +257,8 @@ function extractBookingInfo(userMessage) {
   let nameMatch = userMessage.match(/(?:name is|i'm|i am)\s+([a-zA-Z\s]+)/i);
   let emailMatch = userMessage.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
   let phoneMatch = userMessage.match(/(\+?[\d\s\-\(\)]{10,})/);
-  let serviceMatch = userMessage.match(/(haircut|consultation|basic service|diqka tjeter)/i);
-  let businessMatch = userMessage.match(/(lerdi salihi|nike|sample business|my business|filan fisteku|business test)/i);
+  let serviceMatch = userMessage.match(/(haircut|consultation|basic service|diqka tjeter|service|appointment)/i);
+  let businessMatch = userMessage.match(/\b([A-Z][a-z]+ [A-Z][a-z]+|[A-Z][a-z]+(?:\s+(?:business|salon|clinic|shop|store|company))?)\b/i); // Flexible business name detection
   let dateMatch = userMessage.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow)/i);
   let timeMatch = userMessage.match(/(\d{1,2}:?\d{0,2}\s*(am|pm))/i);
   
@@ -537,27 +558,43 @@ async function createAppointment(bookingData) {
   }
 }
 
-// Get business_id from business name
+// Get business_id from business name using MCP
 async function getBusinessId(businessName) {
   try {
-    // Use the business mapping we already have
-    const businessMap = {
-      'lerdi salihi': 'c7aac928-b5dd-407e-90d5-3621f18fede1',
-      'nike': '8632da60-830e-4df1-9f64-3e60d274bcb5',
-      'sample business': '550e8400-e29b-41d4-a716-446655440000',
-      'my business': '8632da60-830e-4df1-9f64-3e60d274bcb5',
-      'filan fisteku': 'd5319a6d-a78f-4a56-b288-aa123da023af',
-      'business test': '9cd05682-b03d-4bff-80b2-4c623dd7fd0a',
-      'bussiness test': '9cd05682-b03d-4bff-80b2-4c623dd7fd0a'
-    };
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
     
-    const businessId = businessMap[businessName.toLowerCase()];
-    if (!businessId) {
-      throw new Error(`Business "${businessName}" not found in mapping`);
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'fetch-table',
+          arguments: {
+            table: 'users',
+            select: 'id, name',
+            limit: 100
+          }
+        }
+      })
+    });
+
+    const result = await response.json();
+    if (result.result?.content?.[0]?.json) {
+      const businesses = result.result.content[0].json;
+      const business = businesses.find(b => 
+        b.name.toLowerCase() === businessName.toLowerCase()
+      );
+      
+      if (business) {
+        console.log(`Found business ID for "${businessName}": ${business.id}`);
+        return business.id;
+      }
     }
     
-    console.log(`Found business ID for "${businessName}": ${businessId}`);
-    return businessId;
+    throw new Error(`Business "${businessName}" not found in database`);
   } catch (error) {
     console.error('Error getting business ID:', error);
     return null;
@@ -848,23 +885,16 @@ async function getAvailableTimesForContext(messages, dbContext) {
   try {
     // Look for business names mentioned in recent messages
     const recentMessages = messages.slice(-5).map(m => m.content).join(' ');
-    const businessMatches = recentMessages.match(/(lerdi salihi|nike|sample business|my business|filan fisteku|business test)/gi);
+    const businessMatches = recentMessages.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+(?:business|salon|clinic|shop|store|company))?)\b/gi);
     
     if (!businessMatches) {
       return 'No specific business mentioned - available times will be shown when you select a business.';
     }
     
-    const businessName = businessMatches[0].toLowerCase();
-    const businessIds = {
-      'lerdi salihi': 'c7aac928-b5dd-407e-90d5-3621f18fede1',
-      'nike': 'business-id-2',
-      'sample business': 'business-id-3',
-      'my business': 'business-id-4',
-      'filan fisteku': 'business-id-5',
-      'business test': 'business-id-6'
-    };
+    const businessName = businessMatches[0];
     
-    const businessId = businessIds[businessName];
+    // Get business ID dynamically via MCP
+    const businessId = await getBusinessId(businessName);
     if (!businessId) {
       return 'Business not found in our system.';
     }
@@ -994,9 +1024,10 @@ What can I help you with today? Would you like to book an appointment?`;
            'We offer various services including consultations, treatments, and more. What type of service are you looking for?';
   }
   
-  // Business selection
-  if (/\b(lerdi salihi|sample business|my business|nike|filan fisteku)\b/i.test(userMessage)) {
-    const businessName = userMessage.match(/\b(lerdi salihi|sample business|my business|nike|filan fisteku)\b/i)?.[0];
+  // Business selection - more flexible pattern matching
+  const businessNameMatch = userMessage.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+(?:business|salon|clinic|shop|store|company))?)\b/i);
+  if (businessNameMatch) {
+    const businessName = businessNameMatch[0];
     
     // Get available times for this business
     const businessTimesContext = await getAvailableTimesForContext([{content: userMessage}], {});
