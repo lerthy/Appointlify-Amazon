@@ -170,6 +170,8 @@ async function getEnhancedContext(chatContext, messages = []) {
     if (!businessResult.error && businessResult.result?.content?.[0]?.json) {
       dbContext.businesses = businessResult.result.content[0].json;
       console.log('chat.js: Found', dbContext.businesses.length, 'businesses:', dbContext.businesses.map(b => b.name));
+    } else {
+      console.log('chat.js: No businesses found - error:', businessResult.error?.message, 'result:', businessResult.result);
     }
     
     if (!servicesResult.error && servicesResult.result?.content?.[0]?.json) {
@@ -956,6 +958,14 @@ async function getMockAIResponse(messages, context) {
   const services = context?.services || [];
   const availableTimes = context?.availableTimes || [];
   
+  // Debug logging
+  console.log('getMockAIResponse - received context:', {
+    businessCount: context?.businesses?.length || 0,
+    serviceCount: context?.services?.length || 0,
+    businessNames: context?.businesses?.map(b => b.name) || [],
+    contextKeys: Object.keys(context || {})
+  });
+  
   // Simple mock AI logic
   const message = userMessage.toLowerCase();
   
@@ -963,6 +973,8 @@ async function getMockAIResponse(messages, context) {
   if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(message)) {
     // Get businesses from context
     const businesses = context?.businesses || [];
+    console.log('getMockAIResponse - greeting businesses:', businesses.length, businesses.map(b => b.name));
+    
     const businessList = businesses.length > 0 
       ? businesses.slice(0, 5).map((b, i) => `${i + 1}. ${b.name}${b.description ? ' - ' + b.description : ''}`).join('\n')
       : 'No businesses found. Please contact support.';
@@ -1137,6 +1149,10 @@ export async function handler(event, context) {
         businesses: dbContext.businesses,
         services: dbContext.services
       };
+      console.log('chat.js: Passing context to mock AI:', {
+        businessCount: contextWithBusinesses.businesses?.length || 0,
+        businessNames: contextWithBusinesses.businesses?.map(b => b.name) || []
+      });
       const mockResponse = await getMockAIResponse(messages, contextWithBusinesses);
       return {
         statusCode: 200,
