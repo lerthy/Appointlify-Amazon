@@ -1092,14 +1092,45 @@ export async function handler(event, context) {
     // First check if this is a confirmation response (user said yes/no to booking)
     const userMessageLower = userMessage.toLowerCase();
     if ((userMessageLower.includes('yes') || userMessageLower.includes('no')) && messages.length > 1) {
-      console.log('chat.js: Confirmation response detected, looking for booking info in previous messages');
-      // Look for booking information in previous messages
+      console.log('chat.js: Confirmation response detected, looking for booking details');
+      
+      // Look for AI confirmation message that contains appointment details
       const previousMessages = messages.slice(0, -1);
       for (let i = previousMessages.length - 1; i >= 0; i--) {
         const msg = previousMessages[i].content;
-        console.log('chat.js: Checking message', i, ':', msg);
+        console.log('chat.js: Checking message', i, 'for appointment details');
+        
+        // Check if this is an AI confirmation message with appointment details
+        if (msg.includes('**Appointment Details:**') && msg.includes('**Please confirm:**')) {
+          console.log('chat.js: Found AI confirmation message, extracting booking data');
+          
+          // Extract booking data from the AI's confirmation message
+          const businessMatch = msg.match(/\*\*Business:\*\* ([^\n]+)/);
+          const serviceMatch = msg.match(/\*\*Service:\*\* ([^\n]+)/);
+          const dateMatch = msg.match(/\*\*Date:\*\* ([^\n]+)/);
+          const timeMatch = msg.match(/\*\*Time:\*\* ([^\n]+)/);
+          const nameMatch = msg.match(/\*\*Name:\*\* ([^\n]+)/);
+          const emailMatch = msg.match(/\*\*Email:\*\* ([^\n]+)/);
+          const phoneMatch = msg.match(/\*\*Phone:\*\* ([^\n]+)/);
+          
+          if (businessMatch && serviceMatch && dateMatch && timeMatch && nameMatch && emailMatch && phoneMatch) {
+            const bookingInfo = {
+              business: businessMatch[1].trim(),
+              service: serviceMatch[1].trim(),
+              date: dateMatch[1].trim(),
+              time: timeMatch[1].trim(),
+              name: nameMatch[1].trim(),
+              email: emailMatch[1].trim(),
+              phone: phoneMatch[1].trim()
+            };
+            
+            console.log('chat.js: Extracted booking info from confirmation:', bookingInfo);
+            return await handleBookingConfirmation(messages, bookingInfo, headers);
+          }
+        }
+        
+        // Fallback: check for complete booking info in user messages
         const hasComplete = hasCompleteBookingInfo(msg);
-        console.log('chat.js: Has complete booking info:', hasComplete);
         if (hasComplete) {
           console.log('chat.js: Found booking info in previous message, processing confirmation');
           const bookingInfo = extractBookingInfo(msg);
@@ -1107,21 +1138,8 @@ export async function handler(event, context) {
           return await handleBookingConfirmation(messages, bookingInfo, headers);
         }
       }
-      console.log('chat.js: No booking info found in previous messages, trying fallback approach');
       
-      // Fallback: if user said yes but no booking info found, try to create booking from user's original message
-      if (userMessageLower.includes('yes')) {
-        console.log('chat.js: Fallback - looking for booking info in user messages');
-        for (let i = 0; i < previousMessages.length; i++) {
-          const msg = previousMessages[i].content;
-          if (hasCompleteBookingInfo(msg)) {
-            console.log('chat.js: Found booking info in user message, processing confirmation');
-            const bookingInfo = extractBookingInfo(msg);
-            console.log('chat.js: Extracted booking info:', bookingInfo);
-            return await handleBookingConfirmation(messages, bookingInfo, headers);
-          }
-        }
-      }
+      console.log('chat.js: No booking data found in confirmation flow');
     }
     
     // Then check if user message contains complete booking information
