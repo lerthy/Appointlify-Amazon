@@ -386,6 +386,7 @@ function parseAppointmentDate(dayName, time) {
 
 // Create appointment in Supabase
 async function createAppointment(bookingData) {
+  let appointmentData = null;
   try {
     const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
     
@@ -414,7 +415,7 @@ async function createAppointment(bookingData) {
     }
 
     // Create appointment record
-    const appointmentData = {
+    appointmentData = {
       id: crypto.randomUUID(),
       business_id: businessId,
       service_id: serviceId,
@@ -460,7 +461,11 @@ async function createAppointment(bookingData) {
     return appointmentData.id;
   } catch (error) {
     console.error('Error creating appointment:', error);
-    console.error('Appointment data that failed:', JSON.stringify(appointmentData, null, 2));
+    if (appointmentData) {
+      console.error('Appointment data that failed:', JSON.stringify(appointmentData, null, 2));
+    } else {
+      console.error('Failed before appointment data was created');
+    }
     return null;
   }
 }
