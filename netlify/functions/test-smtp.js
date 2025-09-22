@@ -47,7 +47,7 @@ exports.handler = async (event) => {
 
     // Create transporter
     console.log('🔧 Creating transporter...');
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: parseInt(SMTP_PORT),
       secure: parseInt(SMTP_PORT) === 465,

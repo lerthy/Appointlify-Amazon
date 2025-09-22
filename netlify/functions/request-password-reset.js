@@ -203,7 +203,7 @@ exports.handler = async (event) => {
         console.log('SMTP Config:', { host: SMTP_HOST, port: SMTP_PORT, user: SMTP_USER });
         
         // Create reusable transporter object using SMTP transport
-        const transporter = nodemailer.createTransporter({
+        const transporter = nodemailer.createTransport({
           host: SMTP_HOST,
           port: parseInt(SMTP_PORT),
           secure: parseInt(SMTP_PORT) === 465, // true for 465, false for other ports
