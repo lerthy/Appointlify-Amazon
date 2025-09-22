@@ -114,35 +114,99 @@ async function getEnhancedContext(chatContext, messages = []) {
     }
   }
   
-  // Fetch live business/services context from Supabase
-  console.log('chat.js: Starting Supabase fetch...');
+  // Fetch live business/services context using MCP integration
+  console.log('chat.js: Starting MCP fetch for businesses and services...');
   try {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
     
-    if (supabaseUrl && serviceKey) {
-      const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
-      console.log('chat.js: Created Supabase client, querying...');
-      
-      const [{ data: businesses, error: bizError }, { data: services, error: svcError }] = await Promise.all([
-        sb.from('business_settings').select('id, name, working_hours').limit(50),
-        sb.from('services').select('id, name, price, duration, description, business_id').limit(200)
-      ]);
-      
-      console.log('chat.js: Query results:', { 
-        businessCount: businesses?.length || 0, 
-        serviceCount: services?.length || 0,
-        bizError: bizError?.message,
-        svcError: svcError?.message
-      });
-      
-      dbContext.businesses = businesses || [];
-      dbContext.services = services || [];
-    } else {
-      console.log('chat.js: Missing Supabase env vars, skipping DB fetch');
+    // Fetch businesses from users table and services
+    const [businessResponse, servicesResponse] = await Promise.all([
+      fetch(mcpUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: {
+            name: 'fetch-table',
+            arguments: {
+              table: 'users',
+              select: 'id, name, description, logo',
+              limit: 50
+            }
+          }
+        })
+      }),
+      fetch(mcpUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/call',
+          params: {
+            name: 'fetch-table',
+            arguments: {
+              table: 'services',
+              select: 'id, name, price, duration, description, business_id',
+              limit: 200
+            }
+          }
+        })
+      })
+    ]);
+    
+    const businessResult = await businessResponse.json();
+    const servicesResult = await servicesResponse.json();
+    
+    console.log('chat.js: MCP results:', {
+      businessSuccess: !businessResult.error,
+      servicesSuccess: !servicesResult.error,
+      businessError: businessResult.error?.message,
+      servicesError: servicesResult.error?.message
+    });
+    
+    if (!businessResult.error && businessResult.result?.content?.[0]?.json) {
+      dbContext.businesses = businessResult.result.content[0].json;
+      console.log('chat.js: Found', dbContext.businesses.length, 'businesses:', dbContext.businesses.map(b => b.name));
     }
+    
+    if (!servicesResult.error && servicesResult.result?.content?.[0]?.json) {
+      dbContext.services = servicesResult.result.content[0].json;
+      console.log('chat.js: Found', dbContext.services.length, 'services');
+    }
+    
   } catch (e) {
-    console.error('chat.js: Supabase fetch failed:', e);
+    console.error('chat.js: MCP fetch failed:', e);
+    
+    // Fallback to direct Supabase if MCP fails
+    console.log('chat.js: Falling back to direct Supabase...');
+    try {
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      
+      if (supabaseUrl && serviceKey) {
+        const sb = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+        
+        const [{ data: businesses, error: bizError }, { data: services, error: svcError }] = await Promise.all([
+          sb.from('users').select('id, name, description, logo').limit(50),
+          sb.from('services').select('id, name, price, duration, description, business_id').limit(200)
+        ]);
+        
+        console.log('chat.js: Supabase fallback results:', { 
+          businessCount: businesses?.length || 0, 
+          serviceCount: services?.length || 0,
+          bizError: bizError?.message,
+          svcError: svcError?.message
+        });
+        
+        dbContext.businesses = businesses || [];
+        dbContext.services = services || [];
+      }
+    } catch (fallbackError) {
+      console.error('chat.js: Supabase fallback also failed:', fallbackError);
+    }
   }
   
   return dbContext;
@@ -897,11 +961,11 @@ async function getMockAIResponse(messages, context) {
   
   // Greeting
   if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(message)) {
-    // Get businesses from context or use fallback list
+    // Get businesses from context
     const businesses = context?.businesses || [];
     const businessList = businesses.length > 0 
-      ? businesses.slice(0, 5).map((b, i) => `${i + 1}. ${b.name || 'Business'}`).join('\n')
-      : `1. Lerdi Salihi\n2. Nike\n3. Sample Business\n4. Filan Fisteku`;
+      ? businesses.slice(0, 5).map((b, i) => `${i + 1}. ${b.name}${b.description ? ' - ' + b.description : ''}`).join('\n')
+      : 'No businesses found. Please contact support.';
     
     return `Hello! Welcome to Appointly. I'm here to help you book an appointment with one of our businesses.
 
@@ -1089,11 +1153,8 @@ export async function handler(event, context) {
       // Create system prompt with booking context and MCP knowledge
       const servicesByBiz = dbContext.services.map(s => `- ${s.name} ($${s.price}, ${s.duration} min)`).slice(0, 50).join('\n');
       const businessList = dbContext.businesses.length > 0
-        ? dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n')
-        : `1. Lerdi Salihi - Haircut specialist
-2. Nike - Sports services  
-3. Sample Business - Various services
-4. Filan Fisteku - Professional services`;
+        ? dbContext.businesses.map((b, i) => `${i + 1}. ${b.name}${b.description ? ' - ' + b.description : ''}`).slice(0, 25).join('\n')
+        : 'No businesses found in database. Please add businesses via the admin panel.';
       
       const knowledgeContext = dbContext.knowledge.length > 0 ? 
         `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
@@ -1198,13 +1259,10 @@ Required fields: name, business, service, date, time, email, phone.`;
     // Create system prompt with booking context and MCP knowledge
     const servicesByBiz = dbContext.services.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).slice(0, 50).join('\n');
     
-    // Create business list with fallback
+    // Create business list from database
     const businessList = dbContext.businesses.length > 0
-      ? dbContext.businesses.map((b, i) => `${i + 1}. ${b.name || 'Business'}${b.working_hours ? ' - Working hours available' : ''}`).slice(0, 25).join('\n')
-      : `1. Lerdi Salihi - Haircut specialist
-2. Nike - Sports services  
-3. Sample Business - Various services
-4. Filan Fisteku - Professional services`;
+      ? dbContext.businesses.map((b, i) => `${i + 1}. ${b.name}${b.description ? ' - ' + b.description : ''}`).slice(0, 25).join('\n')
+      : 'No businesses found in database. Please add businesses via the admin panel.';
     
     const knowledgeContext = dbContext.knowledge.length > 0 ? 
       `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
