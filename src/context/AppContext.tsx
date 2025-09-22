@@ -21,6 +21,7 @@ interface AppContextType {
   businessSettings: BusinessSettings | null;
   analytics: Analytics;
   currentView: 'customer' | 'business';
+  businessId: string | null;
   
   // Appointment functions
   addAppointment: (appointment: {
@@ -65,7 +66,8 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverride?: string }> = ({ children, businessIdOverride }) => {
   const { user } = useAuth();
-  const businessId = businessIdOverride || user?.id;
+  const [actualBusinessId, setActualBusinessId] = useState<string | null>(null);
+  const businessId = businessIdOverride || actualBusinessId;
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -79,6 +81,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     peakHours: []
   });
   const [currentView, setCurrentView] = useState<'customer' | 'business'>('customer');
+
+  // Fetch actual business ID from users table based on auth user
+  useEffect(() => {
+    const fetchBusinessId = async () => {
+      if (!user?.email) return;
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', user.email)
+        .single();
+      
+      if (!error && data) {
+        setActualBusinessId(data.id);
+      }
+    };
+    
+    fetchBusinessId();
+  }, [user?.email]);
 
   // Fetch business settings from Supabase
   useEffect(() => {
@@ -525,6 +546,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
       businessSettings,
       analytics,
       currentView,
+      businessId,
       addAppointment,
       updateAppointmentStatus,
       addCustomer,
