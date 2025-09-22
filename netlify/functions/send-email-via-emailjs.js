@@ -1,13 +1,10 @@
 // Netlify function to send emails via EmailJS (same as frontend)
 // This allows backend functions like the chatbot to use the same email service
 
-const emailjs = require('@emailjs/nodejs');
-
 // EmailJS configuration (same as frontend)
 const SERVICE_ID = 'service_n4o1nab';
 const TEMPLATE_ID = 'template_6nc7amq';
 const PUBLIC_KEY = 'KBjlWLFZG4KBjiPvL';
-const PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY; // Set this in Netlify environment
 
 exports.handler = async function(event, context) {
   // Enable CORS
@@ -83,25 +80,38 @@ exports.handler = async function(event, context) {
       business: business_name
     });
 
-    // Send email via EmailJS
-    const result = await emailjs.send(
-      SERVICE_ID, 
-      TEMPLATE_ID, 
-      templateParams, 
-      {
-        publicKey: PUBLIC_KEY,
-        privateKey: PRIVATE_KEY
-      }
-    );
+    // Use fetch to call EmailJS REST API directly (works better in serverless)
+    const emailjsUrl = 'https://api.emailjs.com/api/v1.0/email/send';
+    
+    const emailjsPayload = {
+      service_id: SERVICE_ID,
+      template_id: TEMPLATE_ID,
+      user_id: PUBLIC_KEY,
+      template_params: templateParams
+    };
 
-    console.log('EmailJS success:', result.status, result.text);
+    const response = await fetch(emailjsUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailjsPayload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`EmailJS API error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.text();
+    console.log('EmailJS success:', response.status, result);
     
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({ 
         success: true, 
-        messageId: result.text,
+        messageId: result,
         message: 'Email sent successfully via EmailJS'
       })
     };
