@@ -1,6 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 
+// Polyfill fetch for Node.js environment if not available
+if (typeof fetch === 'undefined') {
+  global.fetch = require('node-fetch');
+}
+
 // Required env
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
