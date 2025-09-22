@@ -1175,14 +1175,25 @@ export async function handler(event, context) {
       const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
       const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
+      // Debug Groq context
+      console.log('chat.js: Groq section - dbContext businesses:', {
+        count: dbContext.businesses.length,
+        names: dbContext.businesses.map(b => b.name)
+      });
+
       // Create system prompt with booking context and MCP knowledge
       const servicesByBiz = dbContext.services.map(s => `- ${s.name} ($${s.price}, ${s.duration} min)`).slice(0, 50).join('\n');
       const businessList = dbContext.businesses.length > 0
         ? dbContext.businesses.map((b, i) => `${i + 1}. ${b.name}${b.description ? ' - ' + b.description : ''}`).slice(0, 25).join('\n')
         : 'No businesses found in database. Please add businesses via the admin panel.';
       
+      console.log('chat.js: Groq businessList:', businessList);
+      
       const knowledgeContext = dbContext.knowledge.length > 0 ? 
         `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
+      
+      // Get available times for businesses mentioned in recent messages
+      const availableTimesContext = await getAvailableTimesForContext(messages, dbContext);
       
       const systemPrompt = `You are a professional booking assistant for Appointly. You help customers book appointments with a friendly, structured approach.
 
