@@ -777,6 +777,114 @@ async function sendConfirmationNotifications(bookingData, appointmentId) {
   }
 }
 
+// Get available times for businesses mentioned in conversation
+async function getAvailableTimesForContext(messages, dbContext) {
+  try {
+    // Look for business names mentioned in recent messages
+    const recentMessages = messages.slice(-5).map(m => m.content).join(' ');
+    const businessMatches = recentMessages.match(/(lerdi salihi|nike|sample business|my business|filan fisteku|business test)/gi);
+    
+    if (!businessMatches) {
+      return 'No specific business mentioned - available times will be shown when you select a business.';
+    }
+    
+    const businessName = businessMatches[0].toLowerCase();
+    const businessIds = {
+      'lerdi salihi': 'c7aac928-b5dd-407e-90d5-3621f18fede1',
+      'nike': 'business-id-2',
+      'sample business': 'business-id-3',
+      'my business': 'business-id-4',
+      'filan fisteku': 'business-id-5',
+      'business test': 'business-id-6'
+    };
+    
+    const businessId = businessIds[businessName];
+    if (!businessId) {
+      return 'Business not found in our system.';
+    }
+    
+    // Get today's date for available times
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Fetch business settings to get working hours
+    const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+    const response = await fetch(mcpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'query-rows',
+          arguments: {
+            table: 'business_settings',
+            where: { business_id: businessId }
+          }
+        }
+      })
+    });
+    
+    const result = await response.json();
+    const businessSettings = result?.result?.rows?.[0];
+    
+    if (!businessSettings?.working_hours) {
+      return `${businessName} - Working hours not configured yet.`;
+    }
+    
+    // Get today's working hours
+    const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' });
+    const todayHours = businessSettings.working_hours.find(wh => wh.day === dayOfWeek);
+    
+    if (!todayHours || todayHours.isClosed) {
+      return `${businessName} is closed today (${dayOfWeek}).`;
+    }
+    
+    // Generate available time slots (simplified version)
+    const availableTimes = generateSimpleTimeSlots(todayHours.open, todayHours.close);
+    
+    return `${businessName} is available today (${dayOfWeek}) from ${todayHours.open} to ${todayHours.close}. Available slots: ${availableTimes.slice(0, 8).join(', ')}${availableTimes.length > 8 ? '...' : ''}`;
+    
+  } catch (error) {
+    console.error('Error getting available times for context:', error);
+    return 'Checking availability...';
+  }
+}
+
+// Generate simple time slots between open and close times
+function generateSimpleTimeSlots(openTime, closeTime) {
+  const slots = [];
+  const [openHour, openMinute] = openTime.split(':').map(Number);
+  const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+  
+  const open = new Date();
+  open.setHours(openHour, openMinute, 0, 0);
+  
+  const close = new Date();
+  close.setHours(closeHour, closeMinute, 0, 0);
+  
+  let current = new Date(open);
+  
+  while (current < close) {
+    const timeStr = current.toTimeString().slice(0, 5);
+    const hour = current.getHours();
+    const minute = current.getMinutes();
+    
+    // Format as 12-hour time
+    const displayTime = current.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    slots.push(displayTime);
+    current.setMinutes(current.getMinutes() + 30); // 30-minute slots
+  }
+  
+  return slots;
+}
+
 // Mock AI Service for fallback
 async function getMockAIResponse(messages, context) {
   const userMessage = messages[messages.length - 1]?.content || '';
@@ -807,7 +915,13 @@ What can I help you with today? Would you like to book an appointment?`;
   // Business selection
   if (/\b(lerdi salihi|sample business|my business|nike|filan fisteku)\b/i.test(userMessage)) {
     const businessName = userMessage.match(/\b(lerdi salihi|sample business|my business|nike|filan fisteku)\b/i)?.[0];
+    
+    // Get available times for this business
+    const businessTimesContext = await getAvailableTimesForContext([{content: userMessage}], {});
+    
     return `Great choice! ${businessName} is one of our available businesses.
+
+${businessTimesContext}
 
 **Next Steps:**
 1. **Service Selection** - What service would you like to book?
@@ -983,7 +1097,7 @@ SERVICES AVAILABLE:
 ${servicesByBiz || 'No services found.'}
 
 AVAILABLE TIME SLOTS:
-${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}
+${availableTimesContext}
 
 ${knowledgeContext}
 CONVERSATION GUIDELINES:
@@ -1075,6 +1189,9 @@ Required fields: name, business, service, date, time, email, phone.`;
     const knowledgeContext = dbContext.knowledge.length > 0 ? 
       `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
     
+    // Get available times for businesses mentioned in recent messages
+    const availableTimesContext = await getAvailableTimesForContext(messages, dbContext);
+    
     const systemPrompt = `You are a professional booking assistant for Appointly. You help customers book appointments with a friendly, structured approach.
 
 CRITICAL INSTRUCTION: When a customer provides ALL booking details (name, business, service, date, time, email, phone), you MUST immediately output the BOOKING_READY JSON format. Do not ask for confirmation or summarize. Just output the JSON.
@@ -1086,7 +1203,7 @@ SERVICES AVAILABLE:
 ${servicesByBiz || 'No services found.'}
 
 AVAILABLE TIME SLOTS:
-${chatContext?.availableTimes?.join(', ') || 'Checking availability...'}
+${availableTimesContext}
 
 ${knowledgeContext}
 CONVERSATION GUIDELINES:
