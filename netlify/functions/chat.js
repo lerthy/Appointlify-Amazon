@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
 import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'crypto';
 
 // MCP Client for RAG capabilities
 async function queryMCPKnowledge(question, matchCount = 3) {
@@ -416,7 +417,7 @@ async function createAppointment(bookingData) {
 
     // Create appointment record
     appointmentData = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       business_id: businessId,
       service_id: serviceId,
       customer_id: customerId,
@@ -615,7 +616,7 @@ async function getOrCreateCustomer(bookingData) {
     // If no existing customer, create a new one
     console.log('No existing customer found, creating new customer...');
     const newCustomerData = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       name: bookingData.name,
       email: bookingData.email,
       phone: bookingData.phone,
