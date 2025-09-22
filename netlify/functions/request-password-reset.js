@@ -192,9 +192,22 @@ exports.handler = async (event) => {
       };
     }
 
-    // Generate reset URL
-    const origin = SITE_URL || (event.headers.origin || '').replace(/\/$/, '') || `https://${event.headers.host}`;
+    // Generate reset URL - prioritize production URL
+    let origin;
+    
+    if (SITE_URL) {
+      origin = SITE_URL;
+    } else if (event.headers.host && event.headers.host.includes('netlify.app')) {
+      origin = `https://${event.headers.host}`;
+    } else if (event.headers.host && !event.headers.host.includes('localhost')) {
+      origin = `https://${event.headers.host}`;
+    } else {
+      // Fallback to your actual domain
+      origin = 'https://appointly-ks.netlify.app';
+    }
+    
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
+    console.log('🔗 Generated reset URL:', resetUrl);
 
     // Send email via Nodemailer
     if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
