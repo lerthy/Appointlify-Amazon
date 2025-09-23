@@ -109,8 +109,8 @@ const CancelAppointment: React.FC = () => {
     if (!appointment?.created_at) return false;
     
     const createdAt = new Date(appointment.created_at);
-    const currentTime = new Date();
-    const timeDiffMs = currentTime.getTime() - createdAt.getTime();
+    const currentTime = new Date(Date.now());
+    const timeDiffMs = createdAt.getTime() - currentTime.getTime();
     const hoursSinceCreation = timeDiffMs / (1000 * 60 * 60);
     
     return hoursSinceCreation <= 1;
