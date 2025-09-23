@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabaseClient';
+import { createServiceClient } from '../utils/supabaseServiceClient';
 import { hashPassword, verifyPassword } from '../utils/password';
 import Header from '../components/shared/Header';
 
@@ -58,7 +59,19 @@ const ProfilePage: React.FC = () => {
       }
       logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
     }
-    const { data, error: updateError } = await supabase
+    // Use service client to bypass RLS for profile updates
+    let serviceClient;
+    try {
+      serviceClient = createServiceClient();
+      console.log('✅ Service client created successfully');
+    } catch (error) {
+      console.error('❌ Failed to create service client:', error);
+      setError('Configuration error. Please contact support.');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    const { data, error: updateError } = await serviceClient
       .from('users')
       .update({
         name: form.name,
@@ -67,14 +80,27 @@ const ProfilePage: React.FC = () => {
         logo: logoUrl,
       })
       .eq('id', user.id)
-      .select('*')
-      .single();
+      .select('*');
+      
     if (updateError) {
       setError(updateError.message);
       setIsSubmitting(false);
       return;
     }
-    login(data); // update context/localStorage
+    
+    if (!data || data.length === 0) {
+      setError('User not found or no changes were made');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (data.length > 1) {
+      setError('Multiple user records found. Please contact support.');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    login(data[0]); // update context/localStorage
     setSuccess('Profile updated!');
     setIsSubmitting(false);
     // Optionally: navigate('/dashboard');
@@ -101,8 +127,9 @@ const ProfilePage: React.FC = () => {
       setPwSubmitting(false);
       return;
     }
-    // Fetch current password hash
-    const { data: userRow, error: fetchError } = await supabase
+    // Fetch current password hash using service client
+    const serviceClient = createServiceClient();
+    const { data: userRow, error: fetchError } = await serviceClient
       .from('users')
       .select('id, password_hash')
       .eq('id', user.id)
@@ -118,9 +145,9 @@ const ProfilePage: React.FC = () => {
       setPwSubmitting(false);
       return;
     }
-    // Update password with hash
+    // Update password with hash using service client
     const newHash = await hashPassword(pwForm.new);
-    const { error: updateError } = await supabase
+    const { error: updateError } = await serviceClient
       .from('users')
       .update({ password_hash: newHash })
       .eq('id', user.id);
