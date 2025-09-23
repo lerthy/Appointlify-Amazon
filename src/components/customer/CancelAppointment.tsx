@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../utils/supabaseClient';
 import { useNotification } from '../../context/NotificationContext';
-import { Card, CardHeader, CardContent, CardFooter } from '../ui/Card';
+import { Card, CardHeader, CardContent } from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import Select from '../ui/Select';
 
 interface AppointmentData {
   id: string;
@@ -61,17 +60,7 @@ const CancelAppointment: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [editData, setEditData] = useState<Partial<AppointmentData>>({});
 
-  // Sample services for the select dropdown
-  const serviceOptions = [
-    { value: '', label: 'Select a service' },
-    { value: 'haircut', label: 'Haircut & Styling' },
-    { value: 'coloring', label: 'Hair Coloring' },
-    { value: 'treatment', label: 'Hair Treatment' },
-    { value: 'manicure', label: 'Manicure' },
-    { value: 'pedicure', label: 'Pedicure' },
-    { value: 'facial', label: 'Facial' },
-    { value: 'massage', label: 'Massage' },
-  ];
+  // Sample services list removed (unused)
 
   useEffect(() => {
     const fetchAppointment = async () => {
@@ -116,20 +105,20 @@ const CancelAppointment: React.FC = () => {
     fetchAppointment();
   }, [appointmentId]);
 
-  const isWithinSixHours = () => {
-    if (!appointment?.date) return false;
+  const isWithinOneHourOfCreation = () => {
+    if (!appointment?.created_at) return false;
     
-    const appointmentTime = new Date(appointment.date);
+    const createdAt = new Date(appointment.created_at);
     const currentTime = new Date();
-    const timeDiff = appointmentTime.getTime() - currentTime.getTime();
-    const hoursUntilAppointment = timeDiff / (1000 * 60 * 60);
+    const timeDiffMs = currentTime.getTime() - createdAt.getTime();
+    const hoursSinceCreation = timeDiffMs / (1000 * 60 * 60);
     
-    return hoursUntilAppointment <= 6;
+    return hoursSinceCreation <= 1;
   };
 
   const handleCancel = async () => {
-    if (isWithinSixHours()) {
-      showNotification('Cannot cancel appointment - it is within 6 hours of the scheduled time.', 'error');
+    if (!isWithinOneHourOfCreation()) {
+      showNotification('Cannot cancel appointment - cancellations are allowed only within 1 hour of booking.', 'error');
       return;
     }
 
@@ -280,8 +269,8 @@ const CancelAppointment: React.FC = () => {
     );
   }
 
-  const withinSixHours = isWithinSixHours();
-  const hoursRemaining = appointment ? Math.round((new Date(appointment.date).getTime() - new Date().getTime()) / (1000 * 60 * 60)) : 0;
+  const withinOneHourOfCreation = isWithinOneHourOfCreation();
+  const hoursSinceCreation = appointment ? Math.floor((new Date().getTime() - new Date(appointment.created_at).getTime()) / (1000 * 60 * 60)) : 0;
   const { date: formattedDate, time: formattedTime } = formatDateTime(appointment?.date || '');
 
   return (
@@ -390,7 +379,7 @@ const CancelAppointment: React.FC = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {withinSixHours && (
+                  {!withinOneHourOfCreation && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">
                         <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -398,8 +387,8 @@ const CancelAppointment: React.FC = () => {
                         </svg>
                         <h3 className="text-lg font-semibold text-red-800">Cannot Cancel Appointment</h3>
                       </div>
-                      <p className="text-red-700 mb-2">Appointments can only be cancelled at least 6 hours before the scheduled time.</p>
-                      <p className="text-red-700 font-medium">Your appointment is in {hoursRemaining} hours.</p>
+                      <p className="text-red-700 mb-2">Appointments can only be cancelled within 1 hour of booking.</p>
+                      <p className="text-red-700 font-medium">This appointment was created {hoursSinceCreation} hour(s) ago.</p>
                     </div>
                   )}
 
@@ -429,16 +418,16 @@ const CancelAppointment: React.FC = () => {
                         isLoading={cancelling} 
                         variant="danger"
                         fullWidth
-                        disabled={withinSixHours}
+                        disabled={!withinOneHourOfCreation}
                         icon={
                           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         }
                       >
-                        {withinSixHours 
-                          ? `Cannot Cancel (${hoursRemaining} hours until appointment)` 
-                          : 'Cancel Appointment'}
+                        {withinOneHourOfCreation 
+                          ? 'Cancel Appointment'
+                          : 'Cannot Cancel (outside 1 hour of booking)'}
                       </Button>
                     </div>
                   </div>
