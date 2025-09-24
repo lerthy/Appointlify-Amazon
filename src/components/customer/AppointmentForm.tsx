@@ -515,21 +515,16 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   return (
     <Card className="w-full max-w-lg shadow-none mx-auto">
       {/* <CardHeader>
-        <div className="flex items-center justify-center text-center mb-4">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             onClick={() => navigate(-1)}
-            className="p-2"
+            className="flex-1"
           >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Book Appointment</h2>
-            <p className="text-gray-600">Fill out the form below to schedule your appointment</p>
-          </div>
-        </div>
-      </CardHeader> */}
+            <ArrowLeft className="w-4 h-4" />
+          </Button> */}
+      {/* </CardHeader> */}
+      
       
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -726,15 +721,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         </CardContent>
 
         <CardFooter className="flex gap-3 bg-white">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="flex-1"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
-          </Button>
           <Button
             type="submit"
             disabled={isSubmitting}

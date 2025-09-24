@@ -304,7 +304,10 @@ const HomePage: React.FC = () => {
               businesses.map((business) => (
                 <div
                   key={business.id}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden w-full max-w-sm flex flex-col"
+                  onClick={() => navigate(`/book/${business.id}`)}
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden w-full max-w-sm flex flex-col hover:cursor-pointer"
+                  onMouseEnter={() => { (document.querySelector(`.book-appointment-btn-${business.id}`) as HTMLDivElement).classList.add('text-black', 'text-4xl', 'font-bold'); }}
+                  onMouseLeave={() => { (document.querySelector(`.book-appointment-btn-${business.id}`) as HTMLDivElement).classList.remove('text-black', 'text-4xl', 'font-bold'); }}
                 >
                   <div className="p-8 text-center flex-1 flex flex-col">
                     <div className="mb-6 flex items-center justify-center">
@@ -325,12 +328,10 @@ const HomePage: React.FC = () => {
                     <h3 className="text-2xl font-bold mb-3 text-gray-900">{business.name}</h3>
                     <p className="text-gray-600 mb-6 leading-relaxed flex-1">{business.description}</p>
                     <Button 
-                      onClick={() => navigate(`/book/${business.id}`)}
-                      className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-semibold"
+                      className={`book-appointment-btn-${business.id} w-full bg-transparent text-transparent border-0 font-semibold hover:bg-transparent`}
                       size="lg"
                     >
                       Book Appointment
-                      <ArrowRight className="ml-2" />
                     </Button>
                   </div>
                 </div>

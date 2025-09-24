@@ -5,11 +5,12 @@ import Container from '../components/ui/Container';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import { useApp } from '../context/AppContext';
-import { Plus, Calendar, User, MessageSquare, Dumbbell, List } from 'lucide-react';
+import { Plus, Calendar, User, MessageSquare, Dumbbell, List, ArrowLeft } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
 import { AppProvider } from '../context/AppContext';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 import { motion } from 'framer-motion';
+import Button from '../components/ui/Button';
 
 const iconMap: Record<string, React.ReactNode> = {
   default: <List size={32} />, // fallback icon
@@ -103,6 +104,14 @@ const AppointmentPage: React.FC = () => {
               animate={{ opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }}
               exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.3, ease: 'easeIn' } }}
             >
+              {/* <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(-1)}
+                className="position-absolute self-start mb-4 w-contain"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button> */}
               <motion.div
                 className="flex flex-col items-center mb-4 w-full"
                 variants={fadeUp}
