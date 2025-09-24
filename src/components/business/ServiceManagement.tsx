@@ -13,7 +13,6 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { useApp } from '../../context/AppContext';
-import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import AlertDialog from '../ui/AlertDialog';
 
@@ -82,8 +81,7 @@ const getIconComponent = (iconName: string) => {
 };
 
 const ServiceManagement: React.FC = () => {
-  const { services, addService, updateService, deleteService } = useApp();
-  const { user } = useAuth();
+  const { services, addService, updateService, deleteService, businessId } = useApp();
   const { showNotification } = useNotification();
   const [isAddingService, setIsAddingService] = useState(false);
   const [editingService, setEditingService] = useState<string | null>(null);
@@ -112,6 +110,11 @@ const ServiceManagement: React.FC = () => {
       return;
     }
 
+    if (!businessId) {
+      showNotification('Business ID not found. Please refresh the page and try again.', 'error');
+      return;
+    }
+
     try {
       if (editingService) {
         // Update existing service
@@ -125,9 +128,9 @@ const ServiceManagement: React.FC = () => {
         showNotification('Service updated successfully!', 'success');
         setEditingService(null);
       } else {
-        // Add new service
+        // Add new service - use businessId from AppContext
         await addService({
-          business_id: user?.id || '',
+          business_id: businessId || '', // Use the resolved business ID from AppContext
           name: formData.name,
           description: formData.description,
           duration: formData.duration,
@@ -180,6 +183,7 @@ const ServiceManagement: React.FC = () => {
       showNotification('Failed to delete service. Please try again.', 'error');
     }
   };
+
 
   const formatDuration = (minutes: number) => {
     if (minutes < 60) {

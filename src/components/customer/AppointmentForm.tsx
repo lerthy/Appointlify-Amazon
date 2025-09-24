@@ -524,8 +524,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             <ArrowLeft className="w-4 h-4" />
           </Button> */}
       {/* </CardHeader> */}
-      
-      
+            
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {errors.form && (

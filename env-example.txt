@@ -22,6 +22,11 @@ SUPABASE_MCP_ACCESS_TOKEN=your_supabase_pat_here
 SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
+# Frontend Supabase Configuration
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+VITE_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
 # Embeddings for RAG (used by MCP ingest/query)
 # Default model: text-embedding-3-small (OpenAI). You can switch providers.
 OPENAI_API_KEY=your_openai_api_key_here
