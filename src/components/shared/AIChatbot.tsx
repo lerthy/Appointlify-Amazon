@@ -53,32 +53,23 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
         const businessId = bookMatch[1];
         try {
           // Fetch business info
-          console.log('🔍 AIChatbot: Fetching business with ID:', businessId);
           const { data: business, error: bizError } = await supabase
             .from('users')
             .select('id, name, description')
             .eq('id', businessId)
             .single();
           
-          console.log('👤 AIChatbot: Business fetch result:', { business, bizError });
-          
           if (!bizError && business) {
             setCurrentBusiness(business);
             
             // Fetch services for this business directly (same as AppointmentForm)
-            console.log('🛍️ AIChatbot: Fetching services for business_id:', businessId);
             const { data: services, error: servicesError } = await supabase
               .from('services')
               .select('id, name, price, duration, description')
               .eq('business_id', businessId);
             
-            console.log('📋 AIChatbot: Services fetch result:', { services, servicesError });
-            
             if (!servicesError && services) {
               setCurrentServices(services);
-              console.log('✅ AIChatbot: Set current services:', services);
-            } else {
-              console.log('❌ AIChatbot: No services found or error:', servicesError);
             }
           }
         } catch (error) {
@@ -124,27 +115,17 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
         }
       };
 
-      console.log('💬 AIChatbot: Sending to AI with context:', {
-        businessName: currentBusiness?.name,
-        businessId: currentBusiness?.id,
-        servicesCount: currentServices?.length,
-        services: currentServices
-      });
-
       const res = await fetch('/.netlify/functions/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      console.log('🌐 AIChatbot: Netlify function response status:', res.status);
-
       if (!res.ok) {
         throw new Error(`Chat function error: ${res.status}`);
       }
 
       const data = await res.json();
-      console.log('🤖 AIChatbot: Netlify function response:', data);
       const aiText = data?.message || 'Sorry, I could not generate a response.';
 
       const assistantMessage: Message = {
@@ -156,7 +137,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('🔄 AIChatbot: Error sending message, falling back to mock:', error);
+      console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "I'm having trouble reaching the AI service. Retrying with a local fallback...",
@@ -167,19 +148,11 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
 
       // Fallback to mock so the user still gets a response
       try {
-        console.log('📦 AIChatbot: Using mock service with context:', {
-          currentBusiness: currentBusiness?.name,
-          currentServices: currentServices?.length,
-          sessionId: sessionId.current
-        });
-        
         const aiResponse = await mockAiService.generateResponse(
           inputValue,
           messages.map(msg => ({ sender: msg.sender, content: msg.content })),
           sessionId.current
         );
-        
-        console.log('🎭 AIChatbot: Mock service response:', aiResponse);
         
         const assistantMessage: Message = {
           id: (Date.now() + 2).toString(),
