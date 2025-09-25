@@ -256,7 +256,7 @@ const Header: React.FC = () => {
                 </Button>
               </>
             ) : (
-                              <Button 
+                <Button 
                   variant="ghost" 
                   fullWidth
                   onClick={() => {

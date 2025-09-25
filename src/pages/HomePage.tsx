@@ -1,4 +1,4 @@
-  import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -330,9 +330,9 @@ const HomePage: React.FC = () => {
                   key={business.id}
                   onClick={() => navigate(`/book/${business.id}`)}
                   className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden w-full max-w-sm flex flex-col hover:cursor-pointer"
-                  onMouseEnter={() => { (document.querySelector(`.book-appointment-btn-${business.id}`) as HTMLDivElement).classList.add('text-black', 'text-4xl', 'font-bold');
+                  onMouseEnter={() => { (document.querySelector(`.book-appointment-btn-${business.id}`) as HTMLDivElement).classList.add('text-black', 'text-4xl', 'font-bold', 'border-2', 'border-black');
                                         document.querySelector(`.book-appointment-btn-${business.id}`)?.classList.remove('text-white'); }}
-                  onMouseLeave={() => { (document.querySelector(`.book-appointment-btn-${business.id}`) as HTMLDivElement).classList.remove('text-black', 'text-4xl', 'font-bold');
+                  onMouseLeave={() => { (document.querySelector(`.book-appointment-btn-${business.id}`) as HTMLDivElement).classList.remove('text-black', 'text-4xl', 'font-bold', 'border-2', 'border-black');
                                         document.querySelector(`.book-appointment-btn-${business.id}`)?.classList.add('text-white'); }}
                 >
                   <div className="p-8 text-center flex-1 flex flex-col">
@@ -354,7 +354,7 @@ const HomePage: React.FC = () => {
                     <h3 className="text-2xl font-bold mb-3 text-gray-900">{business.name}</h3>
                     <p className="text-gray-600 mb-6 leading-relaxed flex-1">{business.description}</p>
                     <Button 
-                      className={`book-appointment-btn-${business.id} w-full bg-transparent text-white border-0 font-semibold hover:bg-transparent`}
+                      className={`book-appointment-btn-${business.id} w-full bg-transparent text-white font-semibold hover:bg-transparent`}
                       size="lg"
                     >
                       Book Appointment

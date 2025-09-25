@@ -12,6 +12,7 @@ import AppointmentPage from './pages/AppointmentPage';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import Pricing from './pages/Pricing';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import CancelAppointment from './components/customer/CancelAppointment';
@@ -30,9 +31,9 @@ function Providers({ children }: { children: React.ReactNode }) {
 
 function AppContent() {
   const location = useLocation();
-  
-  // Hide AI chat on login and signup pages
-  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password'].includes(location.pathname);
+
+  // Hide AI chat on login and signup, dashboard, pricing pages
+  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard', '/pricing'].includes(location.pathname);
   
   return (
     <>
@@ -43,6 +44,7 @@ function AppContent() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
