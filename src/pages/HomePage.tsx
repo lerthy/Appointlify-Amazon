@@ -1,20 +1,13 @@
   import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Plus, 
   Calendar, 
-  User, 
-  MessageSquare, 
-  Dumbbell, 
-  List, 
   Clock, 
   CheckCircle, 
   Star, 
   ArrowRight,
   Users,
-  Shield,
-  Zap,
-  Smartphone
+  Shield
 } from 'lucide-react';
 import Container from '../components/ui/Container';
 import Button from '../components/ui/Button';
@@ -23,14 +16,6 @@ import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import { supabase } from '../utils/supabaseClient';
 
-const iconMap: Record<string, React.ReactNode> = {
-  default: <List size={48} />,
-  plus: <Plus size={48} />,
-  calendar: <Calendar size={48} />,
-  user: <User size={48} />,
-  message: <MessageSquare size={48} />,
-  dumbbell: <Dumbbell size={48} />,
-};
 
 // Background images for the hero section
 const heroImages = [
@@ -110,26 +95,14 @@ const HomePage: React.FC = () => {
     }
   ];
 
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Fitness Studio Owner",
-      content: "This platform transformed how we manage appointments. Our clients love the easy booking process!",
-      rating: 5
-    },
-    {
-      name: "Mike Chen",
-      role: "Spa Manager",
-      content: "The automated reminders and calendar integration saved us hours every week.",
-      rating: 5
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "Dental Practice",
-      content: "Professional, reliable, and incredibly user-friendly. Highly recommended!",
-      rating: 5
-    }
-  ];
+  // Fetch top reviews from context
+  const { getTopReviews } = useApp();
+  const testimonials = getTopReviews(3).map(review => ({
+    name: review.customer_name,
+    role: review.business_id, // We'll need to fetch business name later if needed
+    content: review.content,
+    rating: review.rating
+  }));
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -262,18 +235,67 @@ const HomePage: React.FC = () => {
             <p className="text-xl text-gray-600">Trusted by businesses worldwide</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-sm">
-                <div className="flex mb-4">
-                  {renderStars(testimonial.rating)}
+            {testimonials.length > 0 ? (
+              testimonials.map((testimonial, index) => (
+                <div key={index} className="bg-white p-6 rounded-xl shadow-sm">
+                  <div className="flex mb-4">
+                    {renderStars(testimonial.rating)}
+                  </div>
+                  <p className="text-gray-600 mb-4 italic">"{testimonial.content}"</p>
+                  <div>
+                    <div className="font-semibold">{testimonial.name}</div>
+                    <div className="text-sm text-gray-500">Verified Customer</div>
+                  </div>
                 </div>
-                <p className="text-gray-600 mb-4 italic">"{testimonial.content}"</p>
-                <div>
-                  <div className="font-semibold">{testimonial.name}</div>
-                  <div className="text-sm text-gray-500">{testimonial.role}</div>
+              ))
+            ) : (
+              // Fallback to static testimonials if no reviews available
+              [
+                {
+                  name: "Sarah Johnson",
+                  role: "Fitness Studio Owner",
+                  content: "This platform transformed how we manage appointments. Our clients love the easy booking process!",
+                  rating: 5
+                },
+                {
+                  name: "Mike Chen",
+                  role: "Spa Manager", 
+                  content: "The automated reminders and calendar integration saved us hours every week.",
+                  rating: 5
+                },
+                {
+                  name: "Emily Rodriguez",
+                  role: "Dental Practice",
+                  content: "Professional, reliable, and incredibly user-friendly. Highly recommended!",
+                  rating: 5
+                }
+              ].map((testimonial, index) => (
+                <div key={index} className="bg-white p-6 rounded-xl shadow-sm">
+                  <div className="flex mb-4">
+                    {renderStars(testimonial.rating)}
+                  </div>
+                  <p className="text-gray-600 mb-4 italic">"{testimonial.content}"</p>
+                  <div>
+                    <div className="font-semibold">{testimonial.name}</div>
+                    <div className="text-sm text-gray-500">{testimonial.role}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
+          </div>
+          
+          {/* Write a Review CTA */}
+          <div className="text-center mt-12">
+            <p className="text-lg text-gray-600 mb-6">
+              Have you used our platform? Share your experience with others!
+            </p>
+            <Button 
+              onClick={() => navigate('/review')}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3"
+            >
+              <Star className="w-5 h-5 mr-2" />
+              Write a Review
+            </Button>
           </div>
         </Container>
       </section>

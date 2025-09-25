@@ -91,6 +91,23 @@ export interface Analytics {
   peakHours: { hour: number; count: number }[];
 }
 
+// Review table - for customer reviews and feedback
+export interface Review {
+  id: string;
+  customer_id: string;
+  business_id: string;
+  appointment_id?: string;
+  customer_name: string;
+  customer_email: string;
+  rating: number; // 1-5 stars
+  title: string;
+  content: string;
+  is_featured: boolean;
+  is_approved: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Extended appointment with related data
 export interface AppointmentWithDetails extends Appointment {
   customer?: Customer;

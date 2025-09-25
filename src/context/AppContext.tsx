@@ -7,8 +7,7 @@ import {
   Analytics,
   Customer,
   Employee,
-  EmployeeAvailability,
-  User
+  Review
 } from '../types';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from './AuthContext';
@@ -18,6 +17,7 @@ interface AppContextType {
   customers: Customer[];
   employees: Employee[];
   services: Service[];
+  reviews: Review[];
   businessSettings: BusinessSettings | null;
   analytics: Analytics;
   currentView: 'customer' | 'business';
@@ -58,6 +58,11 @@ interface AppContextType {
   // Business settings functions
   updateBusinessSettings: (settings: Partial<BusinessSettings>) => Promise<void>;
   
+  // Review functions
+  addReview: (review: Omit<Review, 'id' | 'created_at' | 'updated_at'>) => Promise<string>;
+  getReviewsByBusinessId: (businessId: string) => Review[];
+  getTopReviews: (limit?: number) => Review[];
+  
   // UI functions
   setCurrentView: (view: 'customer' | 'business') => void;
 }
@@ -73,6 +78,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [businessSettings, setBusinessSettings] = useState<BusinessSettings | null>(null);
   const [analytics, setAnalytics] = useState<Analytics>({
     averageWaitTime: 0,
@@ -253,6 +259,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     };
     fetchServices();
   }, [businessId]);
+
+  // Fetch reviews from Supabase
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false });
+      
+      if (!error && data) {
+        setReviews(data);
+      }
+    };
+    fetchReviews();
+  }, []);
 
   // Update analytics when appointments change
   useEffect(() => {
@@ -537,12 +559,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     }
   };
 
+  // Review functions
+  const addReview = async (review: Omit<Review, 'id' | 'created_at' | 'updated_at'>): Promise<string> => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert({
+        ...review,
+        is_approved: true, // Auto-approve for now
+        is_featured: false
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error adding review:', error);
+      throw error;
+    }
+    
+    if (data) {
+      setReviews(prev => [data, ...prev]);
+      return data.id;
+    }
+    
+    throw new Error('Failed to create review');
+  };
+
+  const getReviewsByBusinessId = (businessId: string): Review[] => {
+    return reviews.filter(review => review.business_id === businessId);
+  };
+
+  const getTopReviews = (limit: number = 3): Review[] => {
+    return reviews
+      .filter(review => review.is_approved)
+      .sort((a, b) => {
+        // Sort by rating (descending) and then by date (newest first)
+        if (a.rating !== b.rating) {
+          return b.rating - a.rating;
+        }
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      })
+      .slice(0, limit);
+  };
+
   return (
     <AppContext.Provider value={{
       appointments,
       customers,
       employees,
       services,
+      reviews,
       businessSettings,
       analytics,
       currentView,
@@ -557,6 +622,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
       updateEmployee,
       deleteEmployee,
       updateBusinessSettings,
+      addReview,
+      getReviewsByBusinessId,
+      getTopReviews,
       getAppointmentById,
       getCustomerById,
       getServiceById,

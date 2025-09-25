@@ -18,6 +18,7 @@ import CancelAppointment from './components/customer/CancelAppointment';
 import ProfilePage from './pages/ProfilePage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
+import ReviewPage from './pages/ReviewPage';
 import AIChatbot from './components/shared/AIChatbot';
 
 // Components
@@ -50,6 +51,7 @@ function AppContent() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
         <Route path="/ai-demo" element={<AIChatbotDemoPage />} />
+        <Route path="/review" element={<ReviewPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       
