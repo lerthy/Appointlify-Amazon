@@ -544,23 +544,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   return (
     <Card className="w-full max-w-lg shadow-none mx-auto">
-      <CardHeader>
-        <div className="mb-4">
-          <button
+      {/* <CardHeader>
+          <Button
             type="button"
+            variant="outline"
             onClick={() => navigate(-1)}
-            className="flex items-center text-blue-600 hover:text-blue-800 font-medium mb-4 transition-colors"
+            className="flex-1"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back
-          </button>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Book Appointment</h2>
-            <p className="text-gray-600">Fill out the form below to schedule your appointment</p>
-          </div>
-        </div>
-      </CardHeader>
-      
+            <ArrowLeft className="w-4 h-4" />
+          </Button> */}
+      {/* </CardHeader> */}
+            
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {errors.form && (
@@ -756,15 +750,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         </CardContent>
 
         <CardFooter className="flex gap-3 bg-white">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="flex-1"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
-          </Button>
           <Button
             type="submit"
             disabled={isSubmitting}

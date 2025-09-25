@@ -18,12 +18,8 @@ const ProfilePage: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [pwForm, setPwForm] = useState({
-    current: '',
-    new: '',
-    confirm: '',
-  });
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pwForm, setPwForm] = useState({ current: '', new: '', confirm: '' });
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState('');
   const [pwSubmitting, setPwSubmitting] = useState(false);
@@ -103,7 +99,6 @@ const ProfilePage: React.FC = () => {
     login(data[0]); // update context/localStorage
     setSuccess('Profile updated!');
     setIsSubmitting(false);
-    // Optionally: navigate('/dashboard');
   };
 
   const handlePwChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,6 +154,7 @@ const ProfilePage: React.FC = () => {
     setPwSuccess('Password changed successfully!');
     setPwForm({ current: '', new: '', confirm: '' });
     setPwSubmitting(false);
+    setShowPasswordModal(false);
   };
 
   return (
@@ -170,29 +166,15 @@ const ProfilePage: React.FC = () => {
           <div className="flex justify-center mb-6">
             <label htmlFor="logo-upload" className="relative cursor-pointer group">
               {logoFile ? (
-                <img
-                  src={URL.createObjectURL(logoFile)}
-                  alt="New logo preview"
-                  className="h-24 w-24 rounded-full object-cover border-4 border-indigo-200 shadow group-hover:opacity-80 transition-opacity duration-200"
-                />
+                <img src={URL.createObjectURL(logoFile)} alt="New logo preview" className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 group-hover:opacity-80 transition-opacity duration-200" />
               ) : user.logo ? (
-                <img
-                  src={user.logo}
-                  alt="Current logo"
-                  className="h-24 w-24 rounded-full object-cover border-4 border-indigo-200 shadow group-hover:opacity-80 transition-opacity duration-200"
-                />
+                <img src={user.logo} alt="Current logo" className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 shadow group-hover:opacity-80 transition-opacity duration-200" />
               ) : (
                 <div className="h-24 w-24 rounded-full bg-indigo-100 flex items-center justify-center text-4xl text-indigo-700 font-bold border-4 border-indigo-200 shadow">
                   {user.name?.charAt(0).toUpperCase()}
                 </div>
               )}
-              <input
-                id="logo-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleLogoChange}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
+              <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="absolute inset-0 opacity-0 cursor-pointer" />
               <span className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200">Change</span>
             </label>
           </div>
@@ -200,103 +182,58 @@ const ProfilePage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-indigo-50"
-                required
-              />
+              <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-indigo-50"
-                required
-              />
+              <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-indigo-50 resize-none"
-                rows={5}
-              />
+              <textarea name="description" value={form.description} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100 resize-none" rows={5} />
             </div>
             {error && <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">{error}</div>}
             {success && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{success}</div>}
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </button>
+
+            <div className="flex gap-2">
+              <button type="submit" className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button type="button" className="flex-1 bg-gray-100 hover:bg-indigo-100 text-indigo-700 font-semibold py-2 rounded-lg text-base transition-all duration-200 border border-indigo-200" onClick={() => setShowPasswordModal(true)}>
+                Change Password
+              </button>
+            </div>
           </form>
-          <div className="mt-8">
-            <button
-              className="w-full bg-gray-100 hover:bg-indigo-100 text-indigo-700 font-semibold py-2 rounded-lg text-base transition-all duration-200 mb-2 border border-indigo-200"
-              onClick={() => setShowPassword(v => !v)}
-              type="button"
-            >
-              {showPassword ? 'Cancel Password Change' : 'Change Password'}
-            </button>
-            {showPassword && (
-              <form onSubmit={handlePasswordSubmit} className="space-y-4 mt-4 bg-indigo-50 p-4 rounded-lg border border-indigo-100">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Current Password</label>
-                  <input
-                    type="password"
-                    name="current"
-                    value={pwForm.current}
-                    onChange={handlePwChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">New Password</label>
-                  <input
-                    type="password"
-                    name="new"
-                    value={pwForm.new}
-                    onChange={handlePwChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Confirm New Password</label>
-                  <input
-                    type="password"
-                    name="confirm"
-                    value={pwForm.confirm}
-                    onChange={handlePwChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white"
-                    required
-                  />
-                </div>
-                {pwError && <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">{pwError}</div>}
-                {pwSuccess && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{pwSuccess}</div>}
-                <button
-                  type="submit"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 shadow"
-                  disabled={pwSubmitting}
-                >
-                  {pwSubmitting ? 'Changing...' : 'Change Password'}
-                </button>
-              </form>
-            )}
-          </div>
         </div>
       </div>
+
+      {showPasswordModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-xl p-6 relative">
+            <button onClick={() => setShowPasswordModal(false)} className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Change Password</h3>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Current Password</label>
+                <input type="password" name="current" value={pwForm.current} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">New Password</label>
+                <input type="password" name="new" value={pwForm.new} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Confirm New Password</label>
+                <input type="password" name="confirm" value={pwForm.confirm} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
+              </div>
+              {pwError && <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">{pwError}</div>}
+              {pwSuccess && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{pwSuccess}</div>}
+              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={pwSubmitting}>
+                {pwSubmitting ? 'Changing...' : 'Change Password'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };
