@@ -62,23 +62,14 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
           if (!bizError && business) {
             setCurrentBusiness(business);
             
-            // Fetch business settings to get the business_id for services
-            const { data: businessSettings, error: settingsError } = await supabase
-              .from('business_settings')
-              .select('business_id')
-              .eq('business_id', businessId)
-              .single();
+            // Fetch services for this business directly (same as AppointmentForm)
+            const { data: services, error: servicesError } = await supabase
+              .from('services')
+              .select('id, name, price, duration, description')
+              .eq('business_id', businessId);
             
-            if (!settingsError && businessSettings) {
-              // Fetch services for this business
-              const { data: services, error: servicesError } = await supabase
-                .from('services')
-                .select('id, name, price, duration, description')
-                .eq('business_id', businessSettings.business_id);
-              
-              if (!servicesError && services) {
-                setCurrentServices(services);
-              }
+            if (!servicesError && services) {
+              setCurrentServices(services);
             }
           }
         } catch (error) {
