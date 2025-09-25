@@ -14,6 +14,7 @@ import Button from '../components/ui/Button';
 import { useApp } from '../context/AppContext';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
+import ReviewModal from '../components/shared/ReviewModal';
 import { supabase } from '../utils/supabaseClient';
 
 
@@ -46,6 +47,7 @@ const HomePage: React.FC = () => {
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -96,7 +98,7 @@ const HomePage: React.FC = () => {
   ];
 
   // Fetch top reviews from context
-  const { getTopReviews } = useApp();
+  const { getTopReviews, refreshReviews } = useApp();
   const testimonials = getTopReviews(3).map(review => ({
     name: review.customer_name,
     role: review.business_id, // We'll need to fetch business name later if needed
@@ -290,7 +292,7 @@ const HomePage: React.FC = () => {
               Have you used our platform? Share your experience with others!
             </p>
             <Button 
-              onClick={() => navigate('/review')}
+              onClick={() => setIsReviewModalOpen(true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3"
             >
               <Star className="w-5 h-5 mr-2" />
@@ -396,6 +398,16 @@ const HomePage: React.FC = () => {
       </section>
 
       <Footer />
+      
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onSubmitSuccess={async () => {
+          // Refresh reviews to show the new review immediately
+          await refreshReviews();
+        }}
+      />
     </div>
   );
 };

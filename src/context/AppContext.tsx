@@ -62,6 +62,7 @@ interface AppContextType {
   addReview: (review: Omit<Review, 'id' | 'created_at' | 'updated_at'>) => Promise<string>;
   getReviewsByBusinessId: (businessId: string) => Review[];
   getTopReviews: (limit?: number) => Review[];
+  refreshReviews: () => Promise<void>;
   
   // UI functions
   setCurrentView: (view: 'customer' | 'business') => void;
@@ -261,18 +262,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
   }, [businessId]);
 
   // Fetch reviews from Supabase
+  const fetchReviews = async () => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('is_approved', true)
+      .order('created_at', { ascending: false });
+    
+    if (!error && data) {
+      setReviews(data);
+    }
+  };
+
   useEffect(() => {
-    const fetchReviews = async () => {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('is_approved', true)
-        .order('created_at', { ascending: false });
-      
-      if (!error && data) {
-        setReviews(data);
-      }
-    };
     fetchReviews();
   }, []);
 
@@ -472,6 +474,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
         }])
         .select()
         .single();
+        
+      if (insertError) {
+        console.error('Error creating business settings:', insertError);
+        throw insertError;
+      }
       
       if (inserted) setBusinessSettings(inserted);
     } else if (data) {
@@ -601,6 +608,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
       .slice(0, limit);
   };
 
+  const refreshReviews = async (): Promise<void> => {
+    await fetchReviews();
+  };
+
   return (
     <AppContext.Provider value={{
       appointments,
@@ -625,6 +636,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
       addReview,
       getReviewsByBusinessId,
       getTopReviews,
+      refreshReviews,
       getAppointmentById,
       getCustomerById,
       getServiceById,

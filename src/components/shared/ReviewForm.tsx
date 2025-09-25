@@ -36,6 +36,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showNotification } = useNotification();
 
+  // If no specific businessId is provided, we'll use a default platform review
+  const effectiveBusinessId = businessId || '550e8400-e29b-41d4-a716-446655440000'; // Default business ID for platform reviews
+
   const handleStarClick = (value: number) => {
     setRating(value);
   };
@@ -96,12 +99,12 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
         }
       }
 
-      // Insert the review
+      // Insert the review with proper business_id
       const { error: reviewError } = await supabase
         .from('reviews')
         .insert({
           customer_id,
-          business_id: businessId,
+          business_id: effectiveBusinessId, // Ensure this is always set
           appointment_id: appointmentId,
           customer_name: customerName.trim(),
           customer_email: customerEmail.trim(),
