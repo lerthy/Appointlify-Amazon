@@ -58,9 +58,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     name: '',
     phone: '',
     email: '',
-    service_id: businessServices.length > 0 ? businessServices[0].id : '',
-    employee_id: businessEmployees.length > 0 ? businessEmployees[0].id : '',
-    date: availableDates.length > 0 ? availableDates[0].toISOString().split('T')[0] : '',
+    service_id: '',
+    employee_id: '',
+    date: '',
     time: '',
     notes: ''
   });
@@ -71,6 +71,23 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       setIsLoadingSettings(false);
     }
   }, [businessSettings]);
+
+  // Initialize form data when employees and services are loaded
+  useEffect(() => {
+    if (businessServices.length > 0 && businessEmployees.length > 0 && availableDates.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        service_id: prev.service_id || businessServices[0].id,
+        employee_id: prev.employee_id || businessEmployees[0].id,
+        date: prev.date || availableDates[0].toISOString().split('T')[0]
+      }));
+    }
+  }, [businessServices.length, businessEmployees.length, availableDates.length]);
+
+  // Reset time when dependencies change
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, time: '' }));
+  }, [formData.date, formData.employee_id, formData.service_id]);
 
   // Fetch business data
   useEffect(() => {
@@ -96,10 +113,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   // Fetch booked slots for the selected date and employee
   useEffect(() => {
-    if (!formData.date || !businessId || !formData.employee_id) {
+    // Only fetch if we have all required data and the form has been properly initialized
+    if (!formData.date || !businessId || !formData.employee_id || !businessSettings) {
       setBookedSlots([]);
       return;
     }
+    
     const fetchBookedSlots = async () => {
       try {
         const startOfDay = new Date(formData.date);
@@ -115,7 +134,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           .gte('date', startOfDay.toISOString())
           .lte('date', endOfDay.toISOString());
           
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error fetching booked slots:', error);
+          // Don't show error notification for missing data, just set empty slots
+          setBookedSlots([]);
+          return;
+        }
         
         if (data) {
           const bookedSlots = new Set<string>();
@@ -133,14 +157,21 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           });
           
           setBookedSlots(Array.from(bookedSlots));
+        } else {
+          setBookedSlots([]);
         }
       } catch (err) {
         console.error('Error fetching booked slots:', err);
-        showNotification('Failed to load available time slots. Please try again.', 'error');
+        // Only show error for actual errors, not initialization issues
+        if (formData.employee_id && formData.date && businessId) {
+          showNotification('Failed to load available time slots. Please try again.', 'error');
+        }
+        setBookedSlots([]);
       }
     };
+    
     fetchBookedSlots();
-  }, [formData.date, businessId, formData.employee_id]);
+  }, [formData.date, businessId, formData.employee_id, businessSettings]);
 
   // Use duration from selected service or businessSettings.appointment_duration
   const selectedService = businessServices.find(s => s.id === formData.service_id);
@@ -148,21 +179,20 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   // Generate available time slots for the selected date and employee
   useEffect(() => {
-    if (!formData.date || !businessSettings || !formData.employee_id) {
+    if (!formData.date || !businessSettings || !formData.employee_id || isLoadingSettings) {
       setAvailableTimeSlots([]);
       return;
     }
 
-    const slots = getAvailableTimeSlots(new Date(formData.date), serviceDuration);
-    setAvailableTimeSlots(slots);
-  }, [formData.date, businessSettings, serviceDuration, bookedSlots, formData.employee_id]);
-
-  // Clear time selection when employee changes (since availability changes)
-  useEffect(() => {
-    if (formData.employee_id) {
-      setFormData(prev => ({ ...prev, time: '' }));
+    try {
+      const slots = getAvailableTimeSlots(new Date(formData.date), serviceDuration);
+      setAvailableTimeSlots(slots);
+    } catch (error) {
+      console.error('Error generating time slots:', error);
+      setAvailableTimeSlots([]);
     }
-  }, [formData.employee_id]);
+  }, [formData.date, businessSettings, serviceDuration, bookedSlots, formData.employee_id, isLoadingSettings]);
+
 
   const getAvailableTimeSlots = (date: Date, duration: number): string[] => {
     const slots: string[] = [];
@@ -421,7 +451,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     }
   };
 
-  if (isLoadingSettings) {
+  if (isLoadingSettings || (businessServices.length === 0 && services.length === 0) || (businessEmployees.length === 0 && employees.length === 0)) {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
