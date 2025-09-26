@@ -194,9 +194,9 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
           <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-full shadow-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300">
             <MessageCircle size={24} />
           </div>
-          <div className="absolute -top-2 -right-2 bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+          {/* <div className="absolute -top-2 -right-2 bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
             AI
-          </div>
+          </div> */}
         </div>
       )}
 
