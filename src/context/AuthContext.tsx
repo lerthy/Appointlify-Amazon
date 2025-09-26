@@ -17,9 +17,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  const logout = () => {
+  const logout = (callback?: () => void) => {
     setUser(null);
     localStorage.removeItem('user');
+    if (callback) {
+      callback();
+    }
   };
 
   return (

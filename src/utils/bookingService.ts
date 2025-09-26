@@ -137,7 +137,7 @@ export class BookingService {
       console.log(`Working hours: ${daySettings.open} - ${daySettings.close}`);
 
       // Generate time slots
-      const timeSlots = this.generateTimeSlots(daySettings.open, daySettings.close, serviceDuration);
+      const timeSlots = this.generateTimeSlots(daySettings.open, daySettings.close, serviceDuration, selectedDate);
       console.log(`Generated time slots:`, timeSlots);
       
       // Filter out booked times (optionally for specific employee)
@@ -289,15 +289,37 @@ export class BookingService {
   }
 
   // Generate time slots between open and close times
-  private generateTimeSlots(openTime: string, closeTime: string, duration: number): string[] {
+  private generateTimeSlots(openTime: string, closeTime: string, duration: number, selectedDate?: Date): string[] {
     const slots: string[] = [];
     const open = new Date(`2000-01-01T${openTime}`);
     const close = new Date(`2000-01-01T${closeTime}`);
     
     let current = new Date(open);
     
+    // Get current date and time to check for past slots
+    const now = new Date();
+    const isToday = selectedDate ? selectedDate.toDateString() === now.toDateString() : false;
+    
+    // Add 15 minutes buffer to current time to allow reasonable booking window
+    const currentTimeWithBuffer = new Date(now);
+    currentTimeWithBuffer.setMinutes(currentTimeWithBuffer.getMinutes() + 15);
+    
     while (current < close) {
-      slots.push(current.toTimeString().slice(0, 5));
+      const timeString = current.toTimeString().slice(0, 5);
+      
+      // Skip past times if the selected date is today (with 15-minute buffer)
+      if (isToday && selectedDate) {
+        const slotDateTime = new Date(selectedDate);
+        const [hours, minutes] = timeString.split(':').map(Number);
+        slotDateTime.setHours(hours, minutes, 0, 0);
+        
+        if (slotDateTime < currentTimeWithBuffer) {
+          current.setMinutes(current.getMinutes() + duration);
+          continue;
+        }
+      }
+      
+      slots.push(timeString);
       current.setMinutes(current.getMinutes() + duration);
     }
     

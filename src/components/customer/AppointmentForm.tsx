@@ -53,6 +53,29 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   // Get available services and employees for this business
   const businessServices = services.filter(service => service.business_id === businessId);
   const businessEmployees = employees.filter(employee => employee.business_id === businessId);
+
+  // Check if business is closed for today
+  const isBusinessClosedToday = () => {
+    if (!formData.date || !businessSettings) return false;
+    
+    const selectedDate = new Date(formData.date);
+    const now = new Date();
+    const isToday = selectedDate.toDateString() === now.toDateString();
+    
+    if (!isToday) return false;
+    
+    const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+    const workingHours = businessSettings?.working_hours || [];
+    const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
+    
+    if (!dayWorkingHours || dayWorkingHours.isClosed) return true;
+    
+    const [closeHour, closeMinute] = dayWorkingHours.close.split(':').map(Number);
+    const closeTime = new Date(selectedDate);
+    closeTime.setHours(closeHour, closeMinute, 0, 0);
+    
+    return now >= closeTime;
+  };
   
   const [formData, setFormData] = useState({
     name: '',
@@ -215,8 +238,22 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     
     const currentTime = new Date(openTime);
     
+    // Get current date and time to check for past slots
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    
+    // Add 15 minutes buffer to current time to allow reasonable booking window
+    const currentTimeWithBuffer = new Date(now);
+    currentTimeWithBuffer.setMinutes(currentTimeWithBuffer.getMinutes() + 15);
+    
     while (currentTime < closeTime) {
       const timeString = currentTime.toTimeString().slice(0, 5);
+      
+      // Skip past times if the selected date is today (with 15-minute buffer)
+      if (isToday && currentTime < currentTimeWithBuffer) {
+        currentTime.setMinutes(currentTime.getMinutes() + 30);
+        continue;
+      }
       
       // Check if this time slot and the required duration would fit
       const slotEndTime = new Date(currentTime);
@@ -712,23 +749,34 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                 <Clock className="inline w-4 h-4 mr-1" />
                 Time
               </label>
-              <Select
-                name="time"
-                value={formData.time}
-                onChange={(value) => {
-                  setFormData(prev => ({ ...prev, time: value }));
-                  setErrors(prev => ({ ...prev, time: '' }));
-                }}
-                error={errors.time}
-                required
-                options={[
-                  { value: '', label: 'Select a time' },
-                  ...availableTimeSlots.map((slot) => ({
-                    value: slot,
-                    label: slot
-                  }))
-                ]}
-              />
+              {isBusinessClosedToday() ? (
+                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-orange-50 border-orange-200 text-orange-700">
+                  <div className="font-medium">Business closed for today</div>
+                  <div className="text-sm">Please select a future date to book an appointment</div>
+                </div>
+              ) : availableTimeSlots.length === 0 && formData.date ? (
+                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                  No available times
+                </div>
+              ) : (
+                <Select
+                  name="time"
+                  value={formData.time}
+                  onChange={(value) => {
+                    setFormData(prev => ({ ...prev, time: value }));
+                    setErrors(prev => ({ ...prev, time: '' }));
+                  }}
+                  error={errors.time}
+                  required
+                  options={[
+                    { value: '', label: 'Select a time' },
+                    ...availableTimeSlots.map((slot) => ({
+                      value: slot,
+                      label: slot
+                    }))
+                  ]}
+                />
+              )}
             </div>
           </div>
 
@@ -752,10 +800,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         <CardFooter className="flex gap-3 bg-white">
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isBusinessClosedToday()}
             className="flex-1"
           >
-            {isSubmitting ? 'Booking Appointment...' : 'Book Appointment'}
+            {isSubmitting ? 'Booking Appointment...' : isBusinessClosedToday() ? 'Business Closed Today' : 'Book Appointment'}
           </Button>
         </CardFooter>
       </form>
