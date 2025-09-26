@@ -1,38 +1,47 @@
 import { Card, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 function Pricing() {
+    
+    const navigate = useNavigate();
+    
   const plans = [
     {
       name: "Basic",
       price: "2€",
       rate: "/ month",
       offer: "First 3 months free",
-      description: "Perfect for passion projects & simple websites.",
+      description: "Perfect for individuals and small businesses starting out.",
       features: [
-        "Unlimited API requests",
-        "50,000 monthly active users",
-        "500 MB database size",
-        "5 GB egress",
-        "5 GB cached egress",
-        "1 GB file storage",
+        "Dashboard access",
+        "Up to 5 Employees",
+        "Up to 3 Services",
+        "Homepage Appointment Widget",
+        "Email notifications for bookings",
+        "Basic calendar view",
+        "Standard customer support"
       ],
-      button: "Start for Free",
+      button: "Choose Plan",
     },
     {
       name: "Pro",
       price: "5€",
       rate: "/ 3 months",
       offer: "First 3 months free",
-      description: "For production applications with the power to scale.",
+      description: "Ideal for growing businesses needing more features and flexibility.",
       features: [
-        "100,000 monthly active users",
-        "8 GB disk size per project",
-        "250 GB egress",
-        "250 GB cached egress",
+        'Everything in Basic',
+        'Up to 20 employees',
+        'Up to 10 services',
+        'Optimized SEO tools',
+        'Analytics dashboard (appointments, client stats)',
+        'SMS reminders for clients',
+        // 'Exportable appointment reports',
+        'Priority support'
       ],
-      button: "Upgrade Now",
+      button: "Choose Plan",
       highlight: true,
     },
     {
@@ -40,16 +49,17 @@ function Pricing() {
       price: "20€",
       rate: "/ year",
       offer: "First 3 months free",
-      description: "Add features such as SSO, control over backups, and certifications.",
+      description: "Best for established businesses requiring advanced features & support.",
       features: [
-        "SOC2",
-        "Project-scoped and read-only access",
-        "HIPAA available as paid add-on",
-        "SSO for dashboard",
-        "Priority email support & SLAs",
-        "Daily backups stored for 14 days",
+        'Everything in Pro',
+        'Unlimited employees & services',
+        // 'Role-based access control (admin, staff, viewer)',
+        'SSO for dashboard',
+        'Daily backups (14 days retention)',
+        'Priority email support & SLA',
+        'Advanced integrations (Google Calendar, Stripe, PayPal)',
       ],
-      button: "Upgrade Now",
+      button: "Choose Plan",
     },
   ];
 
@@ -57,7 +67,7 @@ function Pricing() {
     <>
         <header className="relative text-center py-10 dark:bg-transparent">
             <div className="absolute left-10 top-10">
-                <Button className="flex items-center gap-2 rounded-3xl bg-gray-200 hover:bg-gray-500 dark:bg-gray-800 dark:hover:bg-gray-700 px-4 py-2 hover:scale-105 transition-transform" onClick={() => window.history.back()}>
+                <Button className="flex items-center gap-2 !rounded-3xl bg-gray-200 hover:bg-gray-500 dark:bg-gray-800 dark:hover:bg-gray-700 px-4 py-2 hover:scale-105 transition-transform" onClick={() => window.history.back()}>
                 <ArrowLeft /> Go Back
                 </Button>
             </div>
@@ -70,7 +80,7 @@ function Pricing() {
         {plans.map((plan, index) => (
             <Card
             key={index}
-            className={`flex-1 rounded-3xl shadow-xl p-8 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300
+            className={`flex-1 !rounded-3xl shadow-xl p-8 flex flex-col justify-between transition-transform transform hover:scale-105 duration-300
                 ${plan.highlight
                 ? "bg-gradient-to-b from-gray-900 to-gray-800 text-white hover:shadow-2xl border-2"
                 : "border-gray-900 hover:shadow-2xl border-2 hover:border-purple-500"
@@ -102,11 +112,12 @@ function Pricing() {
             </CardContent>
             <div className="mt-6">
                 <Button
-                className={`w-full py-3 text-lg font-semibold rounded-xl transition-colors duration-300 ${
+                className={`w-full py-3 text-lg font-semibold rounded-xl transition-colors duration-300 focus:ring-offset-0 ${
                     plan.highlight
-                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-gray-900"
+                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-indigo-700 hover:to-purple-700 text-white focus:ring-white"
+                    : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-gray-900 focus:ring-gray-900"
                 }`}
+                onClick={() => navigate(`/paymentForm-${plan.name.toLowerCase()}`)}
                 >
                 {plan.button}
                 </Button>
