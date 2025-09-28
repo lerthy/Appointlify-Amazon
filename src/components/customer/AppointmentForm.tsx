@@ -741,6 +741,37 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                   ]}
                 />
               </div>
+          {formData.service_id && formData.employee_id && (
+            <div className='flex direction-row gap-3 justify-between'>
+              {/* Date */}
+              <div className='w-full'>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="inline w-4 h-4 mr-1" />
+                  Date
+                </label>
+                <Select
+                  name="date"
+                  value={formData.date}
+                  onChange={(value) => {
+                    setFormData(prev => ({ ...prev, date: value }));
+                    setErrors(prev => ({ ...prev, date: '' }));
+                  }}
+                  error={errors.date}
+                  required
+                  options={[
+                    { value: '', label: 'Select a date' },
+                    ...availableDates.map((date) => ({
+                      value: date.toISOString().split('T')[0],
+                      label: date.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })
+                    }))
+                  ]}
+                />
+              </div>
 
             {/* Time */}
             <div className='w-full'>
@@ -748,23 +779,34 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                 <Clock className="inline w-4 h-4 mr-1" />
                 Time
               </label>
-              <Select
-                name="time"
-                value={formData.time}
-                onChange={(value) => {
-                  setFormData(prev => ({ ...prev, time: value }));
-                  setErrors(prev => ({ ...prev, time: '' }));
-                }}
-                error={errors.time}
-                required
-                options={[
-                  { value: '', label: 'Select a time' },
-                  ...availableTimeSlots.map((slot) => ({
-                    value: slot,
-                    label: slot
-                  }))
-                ]}
-              />
+              {isBusinessClosedToday() ? (
+                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-orange-50 border-orange-200 text-orange-700">
+                  <div className="font-medium">Business closed for today</div>
+                  <div className="text-sm">Please select a future date to book an appointment</div>
+                </div>
+              ) : availableTimeSlots.length === 0 && formData.date ? (
+                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                  No available times
+                </div>
+              ) : (
+                <Select
+                  name="time"
+                  value={formData.time}
+                  onChange={(value) => {
+                    setFormData(prev => ({ ...prev, time: value }));
+                    setErrors(prev => ({ ...prev, time: '' }));
+                  }}
+                  error={errors.time}
+                  required
+                  options={[
+                    { value: '', label: 'Select a time' },
+                    ...availableTimeSlots.map((slot) => ({
+                      value: slot,
+                      label: slot
+                    }))
+                  ]}
+                />
+              )}
             </div>
           </div>
 
