@@ -399,7 +399,9 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-slate-800 to-indigo-800 text-white">
+      {(isPaidUser && user) 
+      ? null 
+      : <section className="py-20 bg-gradient-to-r from-slate-800 to-indigo-800 text-white">
         <Container maxWidth="full">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
@@ -430,6 +432,7 @@ const HomePage: React.FC = () => {
           </div>
         </Container>
       </section>
+      }
 
       <Footer />
       

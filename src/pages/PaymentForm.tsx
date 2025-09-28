@@ -41,9 +41,9 @@ function PaymentForm() {
             } else {
                 console.log('Fetched user data:', paidUserData);
                 setPaidUser(paidUserData);
-                if (paidUserData?.payment !== 'guest') {
-                    showNotification('You already have an active plan.', 'error');
-                    navigate('/dashboard');
+                if (['basic', 'pro', 'team'].includes(paidUserData?.payment)) {
+                    // showNotification('You already have an active plan.', 'error');
+                    // navigate('/dashboard');
                 }
             }
             setIsLoading(false);
