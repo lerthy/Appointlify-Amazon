@@ -591,72 +591,64 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       {/* </CardHeader> */}
             
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className="grid grid-cols-2 gap-4">
           {errors.form && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="col-span-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
               {errors.form}
             </div>
           )}
 
-          {/* Service and Employee Selection */}
-          <div className='flex direction-row gap-3 justify-between'>
-            {/* Service Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Briefcase className="inline w-4 h-4 mr-1" />
-                Service
-              </label>
-              <Select
-                name="service_id"
-                value={formData.service_id}
-                onChange={(value) => {
-                  setFormData(prev => ({ ...prev, service_id: value }));
-                  setErrors(prev => ({ ...prev, service_id: '' }));
-                  // If service changed, update duration
-                  const newService = businessServices.find(s => s.id === value);
-                  if (newService) {
-                    serviceDuration = newService.duration;
-                  }
-                }}
-                error={errors.service_id}
-                required
-                options={[
-                  { value: '', label: 'Select a service' },
-                  ...businessServices.map((service) => ({
-                    value: service.id,
-                    label: `${service.name} - $${service.price} (${service.duration} min)`
-                  }))
-                ]}
-              />
-            </div>
-
-            {/* Employee Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Users className="inline w-4 h-4 mr-1" />
-                Employee
-              </label>
-              <Select
-                name="employee_id"
-                value={formData.employee_id}
-                onChange={(value) => {
-                  setFormData(prev => ({ ...prev, employee_id: value }));
-                  setErrors(prev => ({ ...prev, employee_id: '' }));
-                }}
-                error={errors.employee_id}
-                required
-                options={[
-                  { value: '', label: 'Select an employee' },
-                  ...businessEmployees.map((employee) => ({
-                    value: employee.id,
-                    label: `${employee.name} (${employee.role})`
-                  }))
-                ]}
-              />
-            </div>
+          {/* Service */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Briefcase className="inline w-4 h-4 mr-1" />
+              Service
+            </label>
+            <Select
+              name="service_id"
+              value={formData.service_id}
+              onChange={(value) => {
+                setFormData((prev) => ({ ...prev, service_id: value }));
+                setErrors((prev) => ({ ...prev, service_id: '' }));
+              }}
+              error={errors.service_id}
+              required
+              options={[
+                { value: '', label: 'Select a service' },
+                ...businessServices.map((service) => ({
+                  value: service.id,
+                  label: `${service.name} - $${service.price} (${service.duration} min)`,
+                })),
+              ]}
+            />
           </div>
 
-          {/* Name */}
+          {/* Employee */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Users className="inline w-4 h-4 mr-1" />
+              Employee
+            </label>
+            <Select
+              name="employee_id"
+              value={formData.employee_id}
+              onChange={(value) => {
+                setFormData((prev) => ({ ...prev, employee_id: value }));
+                setErrors((prev) => ({ ...prev, employee_id: '' }));
+              }}
+              error={errors.employee_id}
+              required
+              options={[
+                { value: '', label: 'Select an employee' },
+                ...businessEmployees.map((employee) => ({
+                  value: employee.id,
+                  label: `${employee.name} (${employee.role})`,
+                })),
+              ]}
+            />
+          </div>
+
+          {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <User className="inline w-4 h-4 mr-1" />
@@ -673,33 +665,30 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             />
           </div>
 
-          {/* Phone and Email */}
-          <div className='flex direction-row gap-3 justify-between'>
-            {/* Phone */}
-            <div className='w-full'>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Phone className="inline w-4 h-4 mr-1" />
-                Phone Number
-              </label>
-              <Input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+383 44 123 456"
-                error={errors.phone}
-                required
-              />
-            </div>
+          {/* Phone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Phone className="inline w-4 h-4 mr-1" />
+              Phone Number
+            </label>
+            <Input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="+383 44 123 456"
+              error={errors.phone}
+              required
+            />
+          </div>
 
-            {/* Email */}
-            <div className='w-full'>
+          {/* Email */}
+            <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Mail className="inline w-4 h-4 mr-1" />
                 Email Address
               </label>
               <Input
-                className='w-2xl'
                 type="email"
                 name="email"
                 value={formData.email}
@@ -709,11 +698,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                 required
               />
             </div>
-          </div>
+
+          {/* Date & Time (only show when both Service and Employee are chosen) */}
           {formData.service_id && formData.employee_id && (
-            <div className='flex direction-row gap-3 justify-between'>
+            <>
               {/* Date */}
-              <div className='w-full'>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Calendar className="inline w-4 h-4 mr-1" />
                   Date
@@ -722,8 +712,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                   name="date"
                   value={formData.date}
                   onChange={(value) => {
-                    setFormData(prev => ({ ...prev, date: value }));
-                    setErrors(prev => ({ ...prev, date: '' }));
+                    setFormData((prev) => ({ ...prev, date: value }));
+                    setErrors((prev) => ({ ...prev, date: '' }));
                   }}
                   error={errors.date}
                   required
@@ -731,19 +721,19 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                     { value: '', label: 'Select a date' },
                     ...availableDates.map((date) => ({
                       value: date.toISOString().split('T')[0],
-                      label: date.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })
-                    }))
+                      label: date.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      }),
+                    })),
                   ]}
                 />
               </div>
 
               {/* Time */}
-              <div className='w-full'>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Clock className="inline w-4 h-4 mr-1" />
                   Time
@@ -752,8 +742,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                   name="time"
                   value={formData.time}
                   onChange={(value) => {
-                    setFormData(prev => ({ ...prev, time: value }));
-                    setErrors(prev => ({ ...prev, time: '' }));
+                    setFormData((prev) => ({ ...prev, time: value }));
+                    setErrors((prev) => ({ ...prev, time: '' }));
                   }}
                   error={errors.time}
                   required
@@ -761,16 +751,16 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                     { value: '', label: 'Select a time' },
                     ...availableTimeSlots.map((slot) => ({
                       value: slot,
-                      label: slot
-                    }))
+                      label: slot,
+                    })),
                   ]}
                 />
               </div>
-            </div>
+            </>
           )}
 
-          {/* Notes */}
-          <div>
+          {/* Notes (full width) */}
+          <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <FileText className="inline w-4 h-4 mr-1" />
               Notes (Optional)
@@ -786,13 +776,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           </div>
         </CardContent>
 
-        <CardFooter className="flex gap-3 bg-white">
+        <CardFooter className="col-span-2 flex gap-3 bg-white">
           <Button
             type="submit"
             disabled={isSubmitting || isBusinessClosedToday()}
             className="flex-1"
           >
-            {isSubmitting ? 'Booking Appointment...' : isBusinessClosedToday() ? 'Business Closed Today' : 'Book Appointment'}
+            {isSubmitting
+              ? 'Booking Appointment...'
+              : isBusinessClosedToday()
+              ? 'Business Closed Today'
+              : 'Book Appointment'}
           </Button>
         </CardFooter>
       </form>
