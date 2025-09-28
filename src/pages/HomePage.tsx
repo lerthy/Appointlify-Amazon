@@ -16,6 +16,7 @@ import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import ReviewModal from '../components/shared/ReviewModal';
 import { supabase } from '../utils/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 
 
 // Background images for the hero section
@@ -48,7 +49,12 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [paidUser, setPaidUser] = useState<{ payment: string } | null>(null);
+  
+  const { user, logout } = useAuth();
 
+  const isPaidUser = ['basic', 'pro', 'team'].includes(paidUser?.payment || '');
+  
   useEffect(() => {
     const fetchBusinesses = async () => {
       setLoading(true);
@@ -62,6 +68,28 @@ const HomePage: React.FC = () => {
     };
     fetchBusinesses();
   }, []);
+
+  useEffect(() => {
+      const checkAuthAndPayment = async () => {
+        // if (!user || !user.id) {
+        //   navigate('/login');
+        //   return;
+        // }
+        setLoading(true);
+        const { data: paidUserData, error } = await supabase
+          .from('users')
+          .select('payment')
+          .eq('id', user.id)
+          .single();
+        if (error) {
+          console.error('Error fetching payment status:', error);
+        } else {
+          setPaidUser(paidUserData);
+        }
+        setLoading(false);
+      };
+      checkAuthAndPayment();
+    }, [user, navigate]);
 
   // Auto-rotate background images
   useEffect(() => {
@@ -149,18 +177,21 @@ const HomePage: React.FC = () => {
                 Book, manage, and grow your business with ease.
               </p>
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <Button 
-                  size="lg" 
-                  className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold"
-                  onClick={() => navigate('/register')}
-                >
-                  Start Free Trial
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
+                {isPaidUser 
+                ? null 
+                : <Button 
+                    size="lg" 
+                    className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold"
+                    onClick={() => navigate('/pricing')}
+                  >
+                    Start Free Trial
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                }
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-base px-6 py-3 border-2 border-white text-white hover:bg-white hover:text-indigo-600"
+                  className="text-base px-6 py-3 border-2 border-white text-white hover:bg-white hover:text-indigo-600 outline-none focus:ring-0"
                   onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   Learn More
@@ -354,7 +385,7 @@ const HomePage: React.FC = () => {
                     <h3 className="text-2xl font-bold mb-3 text-gray-900">{business.name}</h3>
                     <p className="text-gray-600 mb-6 leading-relaxed flex-1">{business.description}</p>
                     <Button 
-                      className={`book-appointment-btn-${business.id} w-full bg-transparent text-white font-semibold hover:bg-transparent`}
+                      className={`book-appointment-btn-${business.id} w-full bg-transparent text-white font-semibold hover:bg-transparent focus:ring-0 focus:outline-none`}
                       size="lg"
                     >
                       Book Appointment
@@ -376,22 +407,25 @@ const HomePage: React.FC = () => {
               Join thousands of businesses already using our platform to streamline their appointment booking process.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button 
-                size="lg" 
-                className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold border-0"
-                onClick={() => navigate('/register')}
-              >
-                Start Free Trial
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button 
+            {isPaidUser 
+            ? null 
+            : <Button 
+                  size="lg" 
+                  className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold"
+                  onClick={() => navigate('/pricing')}
+                >
+                  Start Free Trial
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              }
+              {user ? null : <Button 
                 variant="outline" 
                 size="lg" 
                 className="text-base px-6 py-3 border-2 border-white text-white hover:bg-white hover:text-indigo-600"
                 onClick={() => navigate('/login')}
               >
-                Sign In
-              </Button>
+                Register
+              </Button>}
             </div>
           </div>
         </Container>

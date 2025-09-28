@@ -2,10 +2,50 @@ import { Card, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
+import { supabase } from '../utils/supabaseClient';
+import { useNotification } from '../context/NotificationContext';
 
 function Pricing() {
+  
+  const { user } = useAuth();
+  const [paidUser, setPaidUser] = useState<{ id: string; payment: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { showNotification } = useNotification();
     
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const paidPlan: string = paidUser?.payment || 'guest';
+
+  useEffect(() => {
+      const checkAuthAndPayment = async () => {
+          setIsLoading(true);
+          const { data: authUser, error: authError } = await supabase.auth.getUser();
+          console.log('Auth check:', { authUser, authError, uid: authUser?.user?.id });
+
+          const { data: paidUserData, error } = await supabase
+              .from('users')
+              .select('id, payment')
+              .eq('id', user.id)
+              .single();
+          if (error) {
+              console.error('Error fetching payment status:', error);
+              showNotification('Failed to fetch payment status. Please try again.', 'error');
+          } else {
+              console.log('Fetched user data:', paidUserData);
+              setPaidUser(paidUserData);
+              // console.log('Current paid plan:', paidPlan);
+              // if (paidUserData?.payment !== 'guest') {
+              //     showNotification('You already have an active plan.', 'error');
+              //     navigate('/dashboard');
+              // }
+          }
+          setIsLoading(false);
+      };
+      checkAuthAndPayment();
+  }, [user, navigate, showNotification]);
+
+  {}
     
   const plans = [
     {
@@ -54,6 +94,7 @@ function Pricing() {
         'Everything in Pro',
         'Unlimited employees & services',
         // 'Role-based access control (admin, staff, viewer)',
+        'AI powererd analysis & insights',
         'SSO for dashboard',
         'Daily backups (14 days retention)',
         'Priority email support & SLA',
@@ -119,7 +160,7 @@ function Pricing() {
                 }`}
                 onClick={() => navigate(`/paymentForm-${plan.name.toLowerCase()}`)}
                 >
-                {plan.button}
+                {(['basic', 'pro', 'team'].includes(paidPlan) && paidPlan === plan.name.toLowerCase()) ? <span>Current Plan</span> : <span>{plan.button}</span>}
                 </Button>
             </div>
             </Card>

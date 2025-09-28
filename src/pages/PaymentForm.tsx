@@ -1,10 +1,11 @@
 import { Card, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 
 function PaymentForm() {
     const navigate = useNavigate();
@@ -14,57 +15,86 @@ function PaymentForm() {
     const [cvc, setCvc] = useState('');
     const [name, setName] = useState('');
     const { user } = useAuth();
+    const { showNotification } = useNotification();
     const [isLoading, setIsLoading] = useState(false);
-    const [paidUser, setPaidUser] = useState<{ payment: string } | null>(null);
+    const [paidUser, setPaidUser] = useState<{ id: string; payment: string } | null>(null);
 
     useEffect(() => {
         const checkAuthAndPayment = async () => {
-          if (!user || !user.id) {
-            navigate('/login');
-            return;
-          }
-          setIsLoading(true);
-          const { data: paidUserData, error } = await supabase
-            .from('users')
-            .select('payment')
-            .eq('id', user.id)
-            .single();
-          if (error) {
-            console.error('Error fetching payment status:', error);
-          } else {
-            setPaidUser(paidUserData);
-            // Optional: If already paid and not guest, navigate away
-            if (paidUserData.payment !== 'guest') {
-              navigate('/dashboard');
+            if (!user || !user.id) {
+                showNotification('Please log in to proceed with payment.', 'error');
+                navigate('/login');
+                return;
             }
-          }
-          setIsLoading(false);
+            setIsLoading(true);
+            const { data: authUser, error: authError } = await supabase.auth.getUser();
+            console.log('Auth check:', { authUser, authError, uid: authUser?.user?.id });
+
+            const { data: paidUserData, error } = await supabase
+                .from('users')
+                .select('id, payment')
+                .eq('id', user.id)
+                .single();
+            if (error) {
+                console.error('Error fetching payment status:', error);
+                showNotification('Failed to fetch payment status. Please try again.', 'error');
+            } else {
+                console.log('Fetched user data:', paidUserData);
+                setPaidUser(paidUserData);
+                if (paidUserData?.payment !== 'guest') {
+                    showNotification('You already have an active plan.', 'error');
+                    navigate('/dashboard');
+                }
+            }
+            setIsLoading(false);
         };
         checkAuthAndPayment();
-      }, [user, navigate]);
+    }, [user, navigate, showNotification]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle payment processing logic here (simulated)
-        console.log('Payment submitted:', { cardNumber, expiry, cvc, name, plan });
+        console.log('Payment submitted:', { cardNumber, expiry, cvc, name, plan, userId: user.id, currentPayment: paidUser?.payment });
 
         if (!plan || !['basic', 'pro', 'team'].includes(plan)) {
-            console.error('Invalid plan');
+            console.error('Invalid plan:', plan);
+            showNotification('Invalid plan selected.', 'error');
             return;
         }
 
         try {
-            const { error } = await supabase
+            const { data: userCheck, error: checkError } = await supabase
+                .from('users')
+                .select('id, payment')
+                .eq('id', user.id)
+                .single();
+
+            if (checkError || !userCheck) {
+                console.error('User not found:', checkError || 'No user data returned');
+                showNotification('User not found. Please ensure you are logged in correctly.', 'error');
+                return;
+            }
+            console.log('User exists:', userCheck);
+
+            const { data, error } = await supabase
                 .from('users')
                 .update({ payment: plan })
-                .eq('id', user.id);
+                .eq('id', user.id)
+                .select();
 
             if (error) throw error;
 
-            // Success: Navigate to dashboard or show success message
+            if (!data || data.length === 0) {
+                console.error('No rows updated. Check RLS policies or user ID:', user.id);
+                showNotification('Failed to update payment plan. Please try again.', 'error');
+                return;
+            }
+
+            console.log('Update successful:', data);
+            showNotification('Payment plan updated successfully!', 'success');
             navigate('/dashboard');
         } catch (error) {
             console.error('Error updating payment:', error);
+            showNotification('Error updating payment plan. Please try again.', 'error');
         }
     };
 

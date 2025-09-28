@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, Users, Settings, LogOut, User } from 'lucide-react';
+import { Menu, X, Users, Settings, LogOut, User, Wallet } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -93,11 +93,23 @@ const Header: React.FC = () => {
                   <>
                     <button
                       onClick={() => {
+                        navigate('/pricing');
+                        setDropdownOpen(false);
+                      }}
+                      className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
+                      style={{ animationDelay: '300ms' }}
+                    >
+                      <Wallet className="h-5 w-5 text-indigo-600" />
+                      <span className="font-medium">Pricing</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
                         navigate('/dashboard');
                         setDropdownOpen(false);
                       }}
                       className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
-                      style={{ animationDelay: '800ms' }}
+                      style={{ animationDelay: '200ms' }}
                     >
                       <Users className="h-5 w-5 text-indigo-600" />
                       <span className="font-medium">Dashboard</span>
@@ -109,7 +121,7 @@ const Header: React.FC = () => {
                         setDropdownOpen(false);
                       }}
                       className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
-                      style={{ animationDelay: '400ms' }}
+                      style={{ animationDelay: '100ms' }}
                     >
                       <User className="h-5 w-5 text-indigo-600" />
                       <span className="font-medium">Business Profile</span>
@@ -153,7 +165,7 @@ const Header: React.FC = () => {
                   onClick={() => navigate('/register')}
                   className="ml-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0"
                 >
-                  Register as a business
+                  Register
                 </Button>
               </>
             ) : (
@@ -185,19 +197,16 @@ const Header: React.FC = () => {
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
             {user ? (
-              <div className="flex flex-col space-y-2">
-                <Button 
-                  variant="ghost" 
-                  fullWidth
-                  onClick={() => {
-                    navigate('/dashboard');
-                    setMenuOpen(false);
-                  }}
-                  className="text-lg font-semibold"
-                >
-                  Dashboard
-                </Button>
+              <div className="flex flex-col space-y-2 justify-space-between items-center">
                 <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => navigate('/pricing')}
+                    className="text-lg font-semibold"
+                  >
+                    Pricing
+                  </Button>
+
                   <Button 
                     variant="ghost" 
                     onClick={() => navigate('/dashboard')}
@@ -205,7 +214,7 @@ const Header: React.FC = () => {
                   >
                     Dashboard
                   </Button>
-                  <div onClick={() => navigate('/profile')} style={{cursor: 'pointer'}}>
+                  {/* <div onClick={() => navigate('/profile')} style={{cursor: 'pointer'}}>
                     {user.logo ? (
                       <img
                         src={user.logo}
@@ -215,10 +224,11 @@ const Header: React.FC = () => {
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-lg">
                         {user.name?.charAt(0).toUpperCase()}
+                        Profile
                       </div>
                     )}
-                  </div>
-                  <span className="font-medium">{user.name}</span>
+                  </div> */}
+                  <span className="font-medium">{/*{user.name}*/}Profile</span>
                   <button
                     onClick={() => logout(() => navigate('/'))}
                     title="Sign Out"

@@ -202,12 +202,12 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col">
+        <div className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border-none flex flex-col">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-t-lg flex justify-between items-center">
+          <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-t-2xl flex justify-between items-center">
             <div>
-              <h3 className="font-semibold">AI Booking Assistant</h3>
-              <p className="text-sm opacity-90">Appointly</p>
+              <h3 className="font-bold">Chattly</h3>
+              <p className="text-sm opacity-90">Your AI Chat Assistant</p>
             </div>
             <button
               onClick={handleClose}
@@ -255,20 +255,21 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
 
           {/* Input */}
           <div className="border-t border-gray-200 p-4">
-            <div className="flex space-x-2">
+            <div className="flex justify-between">
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent max-w-[85%]"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputValue.trim()}
-                className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-2 rounded-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-2 rounded-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300 disabled:opacity-50 disabled:cursor-default min-w-[13%] m-0"
+                style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}
               >
                 <Send size={18} />
               </button>

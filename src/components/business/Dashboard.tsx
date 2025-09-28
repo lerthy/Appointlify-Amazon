@@ -22,6 +22,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const isPaidUser = ['basic', 'pro', 'team'].includes(paidUser?.payment || '');
+  const isPremiumUser = ['pro', 'team'].includes(paidUser?.payment || '');
 
   useEffect(() => {
     const checkAuthAndPayment = async () => {
@@ -98,7 +99,7 @@ const Dashboard: React.FC = () => {
     { id: 'appointments', label: 'Appointments', icon: <Calendar size={18} />, content: <AppointmentManagement /> },
     { id: 'employees', label: 'Employees', icon: <Users size={18} />, content: <EmployeeManagement /> },
     { id: 'services', label: 'Services', icon: <Briefcase size={18} />, content: <ServiceManagement /> },
-    { id: 'analytics', label: 'Analytics', icon: <BarChart2 size={18} />, content: <Analytics /> },
+    ...(isPremiumUser ? [{ id: 'analytics', label: 'Analytics', icon: <BarChart2 size={18} />, content: <Analytics /> }] : []),
     { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} />, content: <Settings /> },
   ];
 

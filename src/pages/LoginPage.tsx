@@ -28,6 +28,7 @@ const LoginPage: React.FC = () => {
       setIsSubmitting(false);
       return;
     }
+    
     const { data, error: queryError } = await supabase
       .from('users')
       .select('*')
@@ -55,7 +56,7 @@ const LoginPage: React.FC = () => {
     }
     login(data);
     setIsSubmitting(false);
-    navigate('/dashboard');
+    navigate('/');
   };
 
   return (
