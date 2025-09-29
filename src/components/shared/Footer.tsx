@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { MapPin, Phone, Mail, Clock, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Link } from 'react-router-dom'; 
 
 const Footer: React.FC = () => {
   const { businessSettings } = useApp();
@@ -66,10 +67,10 @@ const Footer: React.FC = () => {
                 <Mail size={18} className="text-gray-400 mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <a href="mailto:support@appointly.com" className="text-gray-400 hover:text-white transition-colors block">
-                    support@appointed-ks.com
+                    support@appointly-ks.com
                   </a>
                   <a href="mailto:sales@appointly.com" className="text-gray-400 hover:text-white transition-colors block">
-                    sales@appointed-ks.com
+                    sales@appointly-ks.com
                   </a>
                 </div>
               </li>
@@ -87,7 +88,9 @@ const Footer: React.FC = () => {
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">Services</a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a>
+                  <Link to="/pricing" className="text-gray-400 hover:text-white transition-colors">
+                    Pricing
+                  </Link>
               </li>
               <li>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a>
