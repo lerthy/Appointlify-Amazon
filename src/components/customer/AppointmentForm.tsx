@@ -648,57 +648,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             />
           </div>
 
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <User className="inline w-4 h-4 mr-1" />
-              Full Name
-            </label>
-            <Input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your full name"
-              error={errors.name}
-              required
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Phone className="inline w-4 h-4 mr-1" />
-              Phone Number
-            </label>
-            <Input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="+383 44 123 456"
-              error={errors.phone}
-              required
-            />
-          </div>
-
-          {/* Email */}
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Mail className="inline w-4 h-4 mr-1" />
-                Email Address
-              </label>
-              <Input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="your.email@example.com"
-                error={errors.email}
-                required
-              />
-            </div>
-
           {/* Date & Time (only show when both Service and Employee are chosen) */}
           {formData.service_id && formData.employee_id && (
             <>
@@ -758,6 +707,57 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               </div>
             </>
           )}
+
+          {/* Full Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <User className="inline w-4 h-4 mr-1" />
+              Full Name
+            </label>
+            <Input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              error={errors.name}
+              required
+            />
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Phone className="inline w-4 h-4 mr-1" />
+              Phone Number
+            </label>
+            <Input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="+383 44 123 456"
+              error={errors.phone}
+              required
+            />
+          </div>
+
+          {/* Email */}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Mail className="inline w-4 h-4 mr-1" />
+                Email Address
+              </label>
+              <Input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="your.email@example.com"
+                error={errors.email}
+                required
+              />
+            </div>
 
           {/* Notes (full width) */}
           <div className="col-span-2">
