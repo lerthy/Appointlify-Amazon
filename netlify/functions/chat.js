@@ -61,12 +61,16 @@ async function queryMCPKnowledge(question, matchCount = 3) {
 async function getEnhancedContext(chatContext, messages = []) {
   let dbContext = { businesses: [], services: [], knowledge: [] };
   
-  // If we have business context from the frontend, use it exclusively
+  // Note: We no longer restrict to frontend business context exclusively
+  // This allows the AI to see all businesses when asked about available businesses
+  let currentBusinessContext = null;
   if (chatContext?.businessName && chatContext?.services) {
-    console.log('chat.js: Using frontend business context exclusively:', chatContext.businessName);
-    dbContext.businesses = [{ name: chatContext.businessName, id: chatContext.businessId }];
-    dbContext.services = chatContext.services || [];
-    return dbContext;
+    console.log('chat.js: Found frontend business context for:', chatContext.businessName);
+    currentBusinessContext = {
+      name: chatContext.businessName,
+      id: chatContext.businessId,
+      services: chatContext.services || []
+    };
   }
   
   // If no frontend context, try to detect business from user message using MCP

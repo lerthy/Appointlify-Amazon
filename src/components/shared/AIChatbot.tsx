@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { mockAiService } from '../../utils/mockAiService';
-import { useLocation } from 'react-router-dom';
-import { supabase } from '../../utils/supabaseClient';
 
 interface Message {
   id: string;
@@ -19,7 +17,6 @@ interface AIChatbotProps {
 }
 
 const AIChatbot: React.FC<AIChatbotProps> = () => {
-  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -31,8 +28,6 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentBusiness, setCurrentBusiness] = useState<any>(null);
-  const [currentServices, setCurrentServices] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sessionId = useRef<string>(`session_${Date.now()}`);
 
@@ -44,46 +39,6 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Detect current business from URL and fetch its services
-  useEffect(() => {
-    const detectCurrentBusiness = async () => {
-      // Check if we're on a booking page (/book/:businessId)
-      const bookMatch = location.pathname.match(/^\/book\/(.+)$/);
-      if (bookMatch) {
-        const businessId = bookMatch[1];
-        try {
-          // Fetch business info
-          const { data: business, error: bizError } = await supabase
-            .from('users')
-            .select('id, name, description')
-            .eq('id', businessId)
-            .single();
-          
-          if (!bizError && business) {
-            setCurrentBusiness(business);
-            
-            // Fetch services for this business directly (same as AppointmentForm)
-            const { data: services, error: servicesError } = await supabase
-              .from('services')
-              .select('id, name, price, duration, description')
-              .eq('business_id', businessId);
-            
-            if (!servicesError && services) {
-              setCurrentServices(services);
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching business context:', error);
-        }
-      } else {
-        // Not on a booking page, clear business context
-        setCurrentBusiness(null);
-        setCurrentServices([]);
-      }
-    };
-
-    detectCurrentBusiness();
-  }, [location.pathname]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -108,9 +63,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
           { role: 'user', content: inputValue }
         ],
         context: {
-          businessName: currentBusiness?.name,
-          businessId: currentBusiness?.id,
-          services: currentServices,
+          // Removed specific business context to allow AI to respond about all businesses
           availableTimes: undefined
         }
       };
