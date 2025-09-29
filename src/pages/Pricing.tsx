@@ -1,7 +1,7 @@
 import { Card, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
@@ -48,7 +48,7 @@ function Pricing() {
       `You are about to change your plan to ${planName}. Do you wish to continue?`
     );
     if (proceed) {
-      navigate(`/paymentForm-${planName.toLowerCase()}`);
+      navigate(`/paymentForm-${planName.toLowerCase()}`, { replace: true });
     }
   };
 
@@ -113,7 +113,10 @@ function Pricing() {
         <div className="absolute left-10 top-10">
           <Button
             className="flex items-center gap-2 !rounded-3xl bg-gray-200 hover:bg-gray-500 dark:bg-gray-800 dark:hover:bg-gray-700 px-4 py-2 hover:scale-105 transition-transform"
-            onClick={() => window.history.back()}
+            onClick={() => {
+              const lastPath = sessionStorage.getItem('lastNonPaymentPath');
+              navigate(lastPath || '/');
+            }}
           >
             <ArrowLeft /> Go Back
           </Button>

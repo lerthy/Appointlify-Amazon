@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -37,6 +37,17 @@ function AppContent() {
   const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard', '/pricing'].includes(location.pathname);
   // Get plan from URL for payment form
   const plan = location.pathname.startsWith('/paymentForm-') ? location.pathname.split('-')[1] : null;
+
+  // Track last non-pricing, non-payment route for Pricing's back button
+  useEffect(() => {
+    const currentPath = location.pathname;
+    if (
+      currentPath !== '/pricing' &&
+      !currentPath.startsWith('/paymentForm-')
+    ) {
+      sessionStorage.setItem('lastNonPaymentPath', currentPath);
+    }
+  }, [location.pathname]);
 
   return (
     <>

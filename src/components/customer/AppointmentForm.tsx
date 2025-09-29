@@ -579,16 +579,18 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   return (
     <Card className="w-full max-w-lg shadow-none mx-auto">
-      {/* <CardHeader>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="flex-1"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button> */}
-      {/* </CardHeader> */}
+      <CardHeader>
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+          type="button"
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
+        </button>
+      </CardHeader>
             
       <form onSubmit={handleSubmit}>
         <CardContent className="grid grid-cols-2 gap-4">
