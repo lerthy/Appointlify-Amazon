@@ -1,9 +1,9 @@
-// Format time in 12-hour format (e.g., 2:30 PM)
+// Format time in 24-hour format (e.g., 14:30)
 export const formatTime = (date: Date): string => {
-  return date.toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit', 
-    hour12: true 
+  return date.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
   });
 };
 
@@ -19,10 +19,10 @@ export const formatDate = (date: Date): string => {
 
 // Format date and time together (e.g., Mon, Jan 1 at 2:30 PM)
 export const formatDatetime = (date: Date): string => {
-  return `${date.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
-    day: 'numeric' 
+  return `${date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
   })} at ${formatTime(date)}`;
 };
 

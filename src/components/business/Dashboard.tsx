@@ -13,7 +13,7 @@ import { useAuth } from '../../context/AuthContext';
 import { fixBusinessSettings } from '../../utils/fixBusinessSettings';
 
 const Dashboard: React.FC = () => {
-  const { appointments, analytics, employees, services } = useApp();
+  const { appointments, analytics, employees, services, refreshAppointments } = useApp();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('appointments');
   const [isFixing, setIsFixing] = useState(false);
@@ -45,6 +45,13 @@ const Dashboard: React.FC = () => {
     };
     checkAuthAndPayment();
   }, [user, navigate]);
+
+  // Refresh appointments when dashboard loads or tab changes
+  useEffect(() => {
+    if (refreshAppointments) {
+      refreshAppointments();
+    }
+  }, [activeTab, refreshAppointments]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -90,10 +97,25 @@ const Dashboard: React.FC = () => {
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  const now = new Date();
+
+  // Only count scheduled and confirmed appointments that are in the future or today but not yet passed
+  const activeStatuses = ['scheduled', 'confirmed'];
+  
   const todayAppointments = appointments.filter(a => {
     const appointmentDate = new Date(a.date);
-    return appointmentDate >= today && appointmentDate < tomorrow;
+    const isToday = appointmentDate >= today && appointmentDate < tomorrow;
+    const isFuture = appointmentDate >= now;
+    const isActive = activeStatuses.includes(a.status);
+    
+    return isToday && isFuture && isActive;
   });
+
+  // Calculate total appointments - only scheduled and confirmed, and in the future
+  const totalAppointments = appointments.filter(a => {
+    const appointmentDate = new Date(a.date);
+    return activeStatuses.includes(a.status) && appointmentDate >= now;
+  }).length;
 
   const dashboardTabs = [
     { id: 'appointments', label: 'Appointments', icon: <Calendar size={18} />, content: <AppointmentManagement /> },
@@ -148,7 +170,7 @@ const Dashboard: React.FC = () => {
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Total Appointments</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-2xl sm:text-3xl font-bold text-gray-900">{appointments.length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-gray-900">{totalAppointments}</div>
                     </dd>
                   </dl>
                 </div>

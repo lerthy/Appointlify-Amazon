@@ -6,6 +6,14 @@ import { useApp } from '../../context/AppContext';
 const Analytics: React.FC = () => {
   const { analytics, customers, appointments, services } = useApp();
   
+  // Only count active (scheduled/confirmed) and future appointments
+  const activeStatuses = ['scheduled', 'confirmed'];
+  const now = new Date();
+  const activeAppointments = appointments.filter(a => {
+    const appointmentDate = new Date(a.date);
+    return activeStatuses.includes(a.status) && appointmentDate >= now;
+  });
+  
   // Calculate service distribution
   const calculateServiceDistribution = () => {
     const serviceCount: Record<string, number> = {};
@@ -21,8 +29,8 @@ const Analytics: React.FC = () => {
       serviceNames[service.id] = service.name;
     });
     
-    // Count appointments by service
-    appointments.forEach(appointment => {
+    // Count active appointments by service
+    activeAppointments.forEach(appointment => {
       if (serviceCount[appointment.service_id] !== undefined) {
         serviceCount[appointment.service_id]++;
       }
@@ -46,8 +54,8 @@ const Analytics: React.FC = () => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dayCounts = Array(7).fill(0);
     
-    // Count appointments by day of week
-    appointments.forEach(appointment => {
+    // Count active appointments by day of week
+    activeAppointments.forEach(appointment => {
       const date = new Date(appointment.date);
       const dayIndex = date.getDay();
       dayCounts[dayIndex]++;
@@ -66,29 +74,32 @@ const Analytics: React.FC = () => {
     // Create hourly buckets
     const hourCounts = Array(24).fill(0);
     
-    // Count appointments by hour
-    appointments.forEach(appointment => {
+    // Count active appointments by hour
+    activeAppointments.forEach(appointment => {
       const date = new Date(appointment.date);
       const hour = date.getHours();
       hourCounts[hour]++;
     });
     
-    // Format hours with AM/PM
+    // Format hours in 24h
     return hourCounts.map((count, hour) => ({
       hour,
-      hourFormatted: new Date(2000, 0, 1, hour).toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        hour12: true
+      hourFormatted: new Date(2000, 0, 1, hour).toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        hour12: false
       }),
       count
     })).sort((a, b) => b.count - a.count);
   };
   
-  // Calculate completion rate
+  // Calculate completion rate (for all appointments, not just active ones)
   const calculateCompletionRate = () => {
     const completedAppointments = appointments.filter(a => a.status === 'completed').length;
-    const totalAppointments = appointments.length;
-    return totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0;
+    const totalPastAppointments = appointments.filter(a => {
+      const appointmentDate = new Date(a.date);
+      return appointmentDate < now && a.status !== 'cancelled';
+    }).length;
+    return totalPastAppointments > 0 ? Math.round((completedAppointments / totalPastAppointments) * 100) : 0;
   };
 
   const serviceDistribution = calculateServiceDistribution();
@@ -139,9 +150,9 @@ const Analytics: React.FC = () => {
                   {analytics.peakHours.slice(0, 5).map((hour, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="text-sm">
-                        {new Date(2000, 0, 1, hour.hour).toLocaleTimeString('en-US', {
-                          hour: 'numeric',
-                          hour12: true
+                        {new Date(2000, 0, 1, hour.hour).toLocaleTimeString('en-GB', {
+                          hour: '2-digit',
+                          hour12: false
                         })}
                       </span>
                       <div className="w-2/3 bg-gray-200 rounded-full h-2.5">

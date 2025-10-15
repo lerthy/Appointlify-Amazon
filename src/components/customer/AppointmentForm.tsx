@@ -26,6 +26,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Helper: parse a YYYY-MM-DD string into a local Date at midnight
+  const parseLocalDate = (yyyyMmDd: string): Date => {
+    const [y, m, d] = yyyyMmDd.split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
+  };
 
   // Get available dates (next 14 days, excluding closed days and blocked dates)
   const getAvailableDates = () => {
@@ -58,7 +65,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   const isBusinessClosedToday = () => {
     if (!formData.date || !businessSettings) return false;
     
-    const selectedDate = new Date(formData.date);
+    const selectedDate = parseLocalDate(formData.date);
     const now = new Date();
     const isToday = selectedDate.toDateString() === now.toDateString();
     
@@ -142,16 +149,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     
     const fetchBookedSlots = async () => {
       try {
-        const startOfDay = new Date(formData.date);
+        const startOfDay = parseLocalDate(formData.date);
         startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(formData.date);
+        const endOfDay = parseLocalDate(formData.date);
         endOfDay.setHours(23, 59, 59, 999);
         
         const { data, error } = await supabase
           .from('appointments')
-          .select('date, duration, employee_id')
+          .select('date, duration, employee_id, status')
           .eq('business_id', businessId)
           .eq('employee_id', formData.employee_id) // Only get appointments for the selected employee
+          .neq('status', 'cancelled') // Exclude cancelled appointments
           .gte('date', startOfDay.toISOString())
           .lte('date', endOfDay.toISOString());
           
@@ -192,7 +200,22 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     };
     
     fetchBookedSlots();
-  }, [formData.date, businessId, formData.employee_id, businessSettings]);
+  }, [formData.date, businessId, formData.employee_id, businessSettings, refreshTrigger]);
+
+  // Add a function to trigger refresh (can be called from parent components)
+  const triggerRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Listen for focus events to refresh data when returning to the form
+  useEffect(() => {
+    const handleFocus = () => {
+      triggerRefresh();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
 
   // Use duration from selected service or businessSettings.appointment_duration
   const selectedService = businessServices.find(s => s.id === formData.service_id);
@@ -206,7 +229,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     }
 
     try {
-      const slots = getAvailableTimeSlots(new Date(formData.date), serviceDuration);
+      const slots = getAvailableTimeSlots(parseLocalDate(formData.date), serviceDuration);
       setAvailableTimeSlots(slots);
     } catch (error) {
       console.error('Error generating time slots:', error);
@@ -240,9 +263,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
     
-    // Add 15 minutes buffer to current time to allow reasonable booking window
-    const currentTimeWithBuffer = new Date(now);
-    currentTimeWithBuffer.setMinutes(currentTimeWithBuffer.getMinutes() + 15);
+    // No buffer: show the next available slot strictly after the current time
+    const currentTimeWithBuffer = now;
     
     while (currentTime < closeTime) {
       const timeString = currentTime.toTimeString().slice(0, 5);
@@ -363,7 +385,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     try {
       // Create appointment date object
       const [hours, minutes] = formData.time.split(':').map(Number);
-      const appointmentDate = new Date(formData.date);
+      const appointmentDate = parseLocalDate(formData.date);
       appointmentDate.setHours(hours, minutes, 0, 0);
       appointmentDate.setSeconds(0, 0);
 

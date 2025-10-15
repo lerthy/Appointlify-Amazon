@@ -5,6 +5,7 @@ import Badge from '../ui/Badge';
 import { Card, CardContent } from '../ui/Card';
 import { useApp } from '../../context/AppContext';
 import { formatDate, formatTime, formatPhoneNumber } from '../../utils/formatters';
+import { sendAppointmentCancellation } from '../../utils/emailService';
 import AlertDialog from '../ui/AlertDialog';
 
 // Badge variants for appointment statuses
@@ -22,6 +23,7 @@ const AppointmentManagement: React.FC = () => {
     customers, 
     services, 
     employees,
+    businessId,
     updateAppointmentStatus, 
     getServiceById, 
     getCustomerById,
@@ -129,15 +131,33 @@ const AppointmentManagement: React.FC = () => {
     
     await updateAppointmentStatus(selectedAppointment, 'cancelled');
     
-    // Send cancellation SMS
+    // Send cancellation email and SMS
     const appointment = appointments.find(a => a.id === selectedAppointment);
     if (appointment) {
       const customer = getCustomerById(appointment.customer_id);
+      const service = getServiceById(appointment.service_id);
       
-      if (customer) {
+      if (customer && businessId) {
+        // Generate reschedule link to book a new appointment with the same business
+        const rescheduleLink = `${window.location.origin}/book/${businessId}`;
+        
+        // Send cancellation email
+        const emailSent = await sendAppointmentCancellation({
+          to_name: customer.name,
+          to_email: customer.email,
+          appointment_date: formatDate(new Date(appointment.date)),
+          appointment_time: formatTime(new Date(appointment.date)),
+          business_name: 'Our Business', // You might want to get this from business settings
+          service_name: service?.name || 'Service',
+          business_id: businessId,
+          reschedule_link: rescheduleLink
+        });
+
+        // Send cancellation SMS
         const message = `Hi ${customer.name}, we're sorry to inform you that your appointment on ${formatDate(new Date(appointment.date))} at ${formatTime(new Date(appointment.date))} has been cancelled. Please contact us to reschedule.`;
         // Note: SMS functionality would need to be implemented
         console.log('SMS would be sent:', message);
+        console.log('Cancellation email sent:', emailSent);
       }
     }
     
@@ -176,6 +196,8 @@ const AppointmentManagement: React.FC = () => {
     const service = getServiceById(appointment.service_id);
     const employee = getEmployeeById(appointment.employee_id);
     const appointmentTime = new Date(appointment.date);
+    const now = new Date();
+    const isPastDue = appointmentTime < now && (appointment.status === 'scheduled' || appointment.status === 'confirmed');
 
     // Fallbacks for customer info
     const customerName = customer ? customer.name : appointment.name;
@@ -201,9 +223,16 @@ const AppointmentManagement: React.FC = () => {
                     {formatTime(appointmentTime)} • {formatDate(appointmentTime)}
                   </p>
                 </div>
-                <Badge variant={statusVariants[appointment.status]?.variant as any}>
-                  {statusVariants[appointment.status]?.label}
-                </Badge>
+                <div className="flex gap-2 items-center">
+                  {isPastDue && (
+                    <Badge variant="warning">
+                      Past Due
+                    </Badge>
+                  )}
+                  <Badge variant={statusVariants[appointment.status]?.variant as any}>
+                    {statusVariants[appointment.status]?.label}
+                  </Badge>
+                </div>
               </div>
               
               <div className="space-y-2 text-sm text-gray-600">
@@ -431,43 +460,59 @@ const AppointmentManagement: React.FC = () => {
                     {date.getDate()}
                   </div>
                   
-                  {/* Appointment Indicators */}
-                  <div className="space-y-1">
-                    {dayAppointments.slice(0, 2).map((appointment) => {
-                      const status = appointment.status;
-                      const statusColors = isSelected ? {
-                        'scheduled': 'bg-yellow-100 text-yellow-800 border border-yellow-300',
-                        'confirmed': 'bg-blue-100 text-blue-800 border border-blue-300',
-                        'completed': 'bg-green-100 text-green-800 border border-green-300',
-                        'cancelled': 'bg-red-100 text-red-800 border border-red-300',
-                        'no-show': 'bg-orange-100 text-orange-800 border border-orange-300'
-                      } : {
-                        'scheduled': 'bg-yellow-100 text-yellow-800',
-                        'confirmed': 'bg-blue-100 text-blue-800',
-                        'completed': 'bg-green-100 text-green-800',
-                        'cancelled': 'bg-red-100 text-red-800',
-                        'no-show': 'bg-orange-100 text-orange-800'
-                      };
-                      
-                      return (
-                        <div
-                          key={appointment.id}
-                          className={`
-                            text-xs px-1 py-0.5 rounded truncate font-medium
-                            ${statusColors[status] || (isSelected ? 'bg-white text-gray-800 border border-gray-200' : 'bg-gray-100 text-gray-800')}
-                          `}
-                          title={`${appointment.status} appointment`}
-                        >
-                          {appointment.status}
-                        </div>
-                      );
-                    })}
-                    
-                                         {dayAppointments.length > 2 && (
-                       <div className={`text-xs ${isSelected ? 'text-gray-700 font-medium' : 'text-gray-500'}`}>
-                         +{dayAppointments.length - 2} more
-                       </div>
-                     )}
+                  {/* Appointment Indicators: compact circles with counts by status (top-right) */}
+                  <div className="absolute top-1 right-1 z-10 flex flex-wrap gap-1 justify-end">
+                    {(() => {
+                      const counts: Record<string, number> = dayAppointments.reduce((acc: Record<string, number>, a) => {
+                        acc[a.status] = (acc[a.status] || 0) + 1;
+                        return acc;
+                      }, {});
+
+                      const badges: { key: string; count: number; className: string; title: string }[] = [
+                        {
+                          key: 'scheduled',
+                          count: counts['scheduled'] || 0,
+                          className: `${isSelected ? 'border border-yellow-300' : ''} bg-yellow-100 text-yellow-800`,
+                          title: 'Scheduled appointments'
+                        },
+                        {
+                          key: 'confirmed',
+                          count: counts['confirmed'] || 0,
+                          className: `${isSelected ? 'border border-blue-300' : ''} bg-blue-100 text-blue-800`,
+                          title: 'Confirmed appointments'
+                        },
+                        {
+                          key: 'completed',
+                          count: counts['completed'] || 0,
+                          className: `${isSelected ? 'border border-green-300' : ''} bg-green-100 text-green-800`,
+                          title: 'Completed appointments'
+                        },
+                        {
+                          key: 'cancelled',
+                          count: counts['cancelled'] || 0,
+                          className: `${isSelected ? 'border border-red-300' : ''} bg-red-100 text-red-800`,
+                          title: 'Cancelled appointments'
+                        },
+                        {
+                          key: 'no-show',
+                          count: counts['no-show'] || 0,
+                          className: `${isSelected ? 'border border-orange-300' : ''} bg-orange-100 text-orange-800`,
+                          title: 'No-show appointments'
+                        }
+                      ];
+
+                      return badges
+                        .filter(b => b.count > 0)
+                        .map(b => (
+                          <span
+                            key={b.key}
+                            title={b.title}
+                            className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-semibold ${b.className}`}
+                          >
+                            {b.count}
+                          </span>
+                        ));
+                    })()}
                   </div>
                 </div>
               );

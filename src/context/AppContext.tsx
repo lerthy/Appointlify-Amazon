@@ -38,6 +38,7 @@ interface AppContextType {
   }) => Promise<string>;
   updateAppointmentStatus: (id: string, status: Appointment['status']) => Promise<void>;
   getAppointmentById: (id: string) => Appointment | undefined;
+  refreshAppointments: () => Promise<void>;
   
   // Customer functions
   addCustomer: (customer: Omit<Customer, 'id' | 'created_at'>) => Promise<string>;
@@ -366,6 +367,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
           appointment.id === id ? { ...appointment, status } : appointment
         )
       );
+      // Trigger a refresh of appointments data
+      await refreshAppointments();
+    }
+  };
+
+  // Add refresh function for appointments
+  const refreshAppointments = async () => {
+    if (!businessId) return;
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('date', { ascending: true });
+      
+      if (!error && data) {
+        setAppointments(data);
+      }
+    } catch (err) {
+      console.error('Error refreshing appointments:', err);
     }
   };
 
@@ -625,6 +646,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
       businessId,
       addAppointment,
       updateAppointmentStatus,
+      refreshAppointments,
       addCustomer,
       addService,
       updateService,
