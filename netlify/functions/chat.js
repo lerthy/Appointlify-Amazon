@@ -603,13 +603,37 @@ async function getBusinessId(businessName) {
     const result = await response.json();
     if (result.result?.content?.[0]?.json) {
       const businesses = result.result.content[0].json;
-      const business = businesses.find(b => 
-        b.name.toLowerCase() === businessName.toLowerCase()
+      // 1) Exact match
+      let matched = businesses.find(b => 
+        (b.name || '').toLowerCase() === (businessName || '').toLowerCase()
       );
+      // 2) Case-insensitive partial match
+      if (!matched) {
+        matched = businesses.find(b => 
+          (b.name || '').toLowerCase().includes((businessName || '').toLowerCase())
+        );
+      }
+      // 3) Fallback heuristics for known demo labels
+      if (!matched) {
+        const normalized = (businessName || '').toLowerCase();
+        if (normalized.includes('home') && normalized.includes('service')) {
+          matched = businesses.find(b => (b.name || '').toLowerCase().includes('home')) || null;
+        } else if (normalized.includes('fitness')) {
+          matched = businesses.find(b => (b.name || '').toLowerCase().includes('fitness')) || null;
+        } else if (normalized.includes('tutor') || normalized.includes('education')) {
+          matched = businesses.find(b => (b.name || '').toLowerCase().includes('tutor')) || null;
+        } else if (normalized.includes('beauty') || normalized.includes('salon') || normalized.includes('spa')) {
+          matched = businesses.find(b => (b.name || '').toLowerCase().includes('salon') || (b.name || '').toLowerCase().includes('spa')) || null;
+        } else if (normalized.includes('clinic') || normalized.includes('medical') || normalized.includes('dental')) {
+          matched = businesses.find(b => (b.name || '').toLowerCase().includes('clinic') || (b.name || '').toLowerCase().includes('dental')) || null;
+        } else if (normalized.includes('consult')) {
+          matched = businesses.find(b => (b.name || '').toLowerCase().includes('consult')) || null;
+        }
+      }
       
-      if (business) {
-        console.log(`Found business ID for "${businessName}": ${business.id}`);
-        return business.id;
+      if (matched) {
+        console.log(`Found business ID for "${businessName}" -> matched "${matched.name}": ${matched.id}`);
+        return matched.id;
       }
     }
     
