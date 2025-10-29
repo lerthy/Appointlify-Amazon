@@ -308,7 +308,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Available Businesses Section */}
-      <section className="py-20 bg-white">
+      <section id="business" className="py-20 bg-white">
         <Container maxWidth="full">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Book Your Appointment</h2>

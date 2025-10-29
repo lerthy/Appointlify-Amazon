@@ -142,6 +142,20 @@ const Header: React.FC = () => {
                 <Button
                   variant="outline"
                   size="md"
+                  onClick={() => {
+                    if (window.location.pathname === '/') {
+                      document.getElementById('business')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/#business');
+                    }
+                  }}
+                  className="ml-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
+                >
+                  Business
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
                   onClick={() => navigate('/login')}
                   className="ml-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
                 >
@@ -220,6 +234,22 @@ const Header: React.FC = () => {
               </div>
             ) : currentView === 'customer' ? (
               <>
+                <Button
+                  variant="outline"
+                  size="md"
+                  fullWidth
+                  onClick={() => {
+                    if (window.location.pathname === '/') {
+                      document.getElementById('business')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/#business');
+                    }
+                    setMenuOpen(false);
+                  }}
+                  className="mt-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
+                >
+                  Business
+                </Button>
                 <Button
                   variant="outline"
                   size="md"
