@@ -210,7 +210,7 @@ const ServiceManagement: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Services</h2>
-          <p className="text-gray-600">Manage your business services and pricing</p>
+          <p className="text-gray-600">Manage your business services</p>
         </div>
         <Button
           onClick={() => setIsAddingService(true)}

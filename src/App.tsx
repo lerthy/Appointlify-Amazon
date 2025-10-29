@@ -12,8 +12,6 @@ import AppointmentPage from './pages/AppointmentPage';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import Pricing from './pages/Pricing';
-import PaymentForm from './pages/PaymentForm';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import CancelAppointment from './components/customer/CancelAppointment';
@@ -33,21 +31,8 @@ function Providers({ children }: { children: React.ReactNode }) {
 function AppContent() {
   const location = useLocation();
 
-  // Hide AI chat on login and signup, dashboard, pricing pages
-  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard', '/pricing'].includes(location.pathname);
-  // Get plan from URL for payment form
-  const plan = location.pathname.startsWith('/paymentForm-') ? location.pathname.split('-')[1] : null;
-
-  // Track last non-pricing, non-payment route for Pricing's back button
-  useEffect(() => {
-    const currentPath = location.pathname;
-    if (
-      currentPath !== '/pricing' &&
-      !currentPath.startsWith('/paymentForm-')
-    ) {
-      sessionStorage.setItem('lastNonPaymentPath', currentPath);
-    }
-  }, [location.pathname]);
+  // Hide AI chat on login and signup, and dashboard pages
+  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard'].includes(location.pathname);
 
   return (
     <>
@@ -58,8 +43,6 @@ function AppContent() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path={`/paymentForm-${plan}`} element={<PaymentForm />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 

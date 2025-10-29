@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, Users, Settings, LogOut, User, Wallet } from 'lucide-react';
+import { Menu, X, Users, Settings, LogOut, User } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -91,18 +91,6 @@ const Header: React.FC = () => {
                 {/* Animated Tabs */}
                 {dropdownOpen && (
                   <>
-                    <button
-                      onClick={() => {
-                        navigate('/pricing');
-                        setDropdownOpen(false);
-                      }}
-                      className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
-                      style={{ animationDelay: '300ms' }}
-                    >
-                      <Wallet className="h-5 w-5 text-indigo-600" />
-                      <span className="font-medium">Pricing</span>
-                    </button>
-
                     <button
                       onClick={() => {
                         navigate('/dashboard');
@@ -199,14 +187,6 @@ const Header: React.FC = () => {
             {user ? (
               <div className="flex flex-col space-y-2 justify-space-between items-center">
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => navigate('/pricing')}
-                    className="text-lg font-semibold"
-                  >
-                    Pricing
-                  </Button>
-
                   <Button 
                     variant="ghost" 
                     onClick={() => navigate('/dashboard')}

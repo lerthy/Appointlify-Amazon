@@ -1,50 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Users, Calendar, BarChart2, Settings as SettingsIcon, Wrench, Briefcase, Lock } from 'lucide-react';
+import { Users, Calendar, BarChart2, Settings as SettingsIcon, Briefcase } from 'lucide-react';
 import Tabs from '../ui/Tabs';
 import AppointmentManagement from './AppointmentManagement';
 import Analytics from './Analytics';
 import Settings from './Settings';
-import { supabase } from '../../utils/supabaseClient';
 import EmployeeManagement from './EmployeeManagement';
 import ServiceManagement from './ServiceManagement';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { fixBusinessSettings } from '../../utils/fixBusinessSettings';
 
 const Dashboard: React.FC = () => {
   const { appointments, analytics, employees, services, refreshAppointments } = useApp();
-  const { user } = useAuth();
+  const { } = useAuth();
   const [activeTab, setActiveTab] = useState('appointments');
-  const [isFixing, setIsFixing] = useState(false);
-  const [paidUser, setPaidUser] = useState<{ payment: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-
-  const isPaidUser = ['basic', 'pro', 'team'].includes(paidUser?.payment || '');
-  const isPremiumUser = ['pro', 'team'].includes(paidUser?.payment || '');
-
-  useEffect(() => {
-    const checkAuthAndPayment = async () => {
-      if (!user || !user.id) {
-        navigate('/login');
-        return;
-      }
-      setIsLoading(true);
-      const { data: paidUserData, error } = await supabase
-        .from('users')
-        .select('payment')
-        .eq('id', user.id)
-        .single();
-      if (error) {
-        console.error('Error fetching payment status:', error);
-      } else {
-        setPaidUser(paidUserData);
-      }
-      setIsLoading(false);
-    };
-    checkAuthAndPayment();
-  }, [user, navigate]);
+  
 
   // Refresh appointments when dashboard loads or tab changes
   useEffect(() => {
@@ -53,45 +22,7 @@ const Dashboard: React.FC = () => {
     }
   }, [activeTab, refreshAppointments]);
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  if (!isPaidUser) {
-    return (
-      <div className="relative min-h-screen flex overflow-hidden z-1000">
-        <div className="flex-1 bg-gradient-to-br from-indigo-900 via-gray-900 to-purple-900 flex items-center justify-center relative">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 animate-pulse"></div>
-          <div className="relative flex flex-col items-center">
-            <Lock className="h-48 w-48 text-indigo-300 animate-pulse-slow drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 20px rgba(99, 102, 241, 0.5))' }} />
-            <p className="mt-4 text-indigo-200 text-lg font-medium animate-fade-in">Unlock Premium Features</p>
-          </div>
-        </div>
-        <div className="flex-1 bg-white flex items-center justify-center relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-50 to-transparent opacity-80"></div>
-          <div className="relative text-center max-w-lg p-8">
-            <h2 className="text-5xl font-extrabold text-gray-900 mb-6 tracking-tight animate-slide-up">Unlock the Full Experience</h2>
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed animate-slide-up delay-100">Upgrade to a premium plan to access exclusive features, advanced tools, and a seamless dashboard experience tailored just for you.</p>
-            <button onClick={() => navigate('/pricing')} className="group relative px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
-              <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity rounded-lg"></span>
-              Explore Premium Plans
-            </button>
-            <p className="mt-6 text-sm text-gray-500 animate-slide-up delay-200">Not sure yet? <a href="/features" className="text-indigo-600 hover:text-indigo-800 font-medium underline transition">Learn more about premium features</a></p>
-          </div>
-        </div>
-        <style>{`
-          @keyframes pulse-slow { 0%, 100% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
-          .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
-          @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-          .animate-fade-in { animation: fade-in 1s ease-in-out; }
-          @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-          .animate-slide-up { animation: slide-up 0.8s ease-out; }
-          .delay-100 { animation-delay: 0.1s; }
-          .delay-200 { animation-delay: 0.2s; }
-        `}</style>
-      </div>
-    );
-  }
+  // Always render the dashboard for all users
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -121,22 +52,11 @@ const Dashboard: React.FC = () => {
     { id: 'appointments', label: 'Appointments', icon: <Calendar size={18} />, content: <AppointmentManagement /> },
     { id: 'employees', label: 'Employees', icon: <Users size={18} />, content: <EmployeeManagement /> },
     { id: 'services', label: 'Services', icon: <Briefcase size={18} />, content: <ServiceManagement /> },
-    ...(isPremiumUser ? [{ id: 'analytics', label: 'Analytics', icon: <BarChart2 size={18} />, content: <Analytics /> }] : []),
+    { id: 'analytics', label: 'Analytics', icon: <BarChart2 size={18} />, content: <Analytics /> },
     { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} />, content: <Settings /> },
   ];
 
-  const handleFixSetupData = async () => {
-    setIsFixing(true);
-    try {
-      await fixBusinessSettings();
-      alert('Setup data fix completed! Business settings, services, and employees have been created. Please refresh the page.');
-    } catch (error) {
-      console.error('Error fixing setup data:', error);
-      alert('Error fixing setup data. Check console for details.');
-    } finally {
-      setIsFixing(false);
-    }
-  };
+  
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -257,6 +177,7 @@ const Dashboard: React.FC = () => {
       </main>
     </div>
   );
-};
+
+}
 
 export default Dashboard;

@@ -108,7 +108,7 @@ function PaymentForm() {
                 <div className="absolute left-10 top-10">
                     <Button 
                         className="flex items-center gap-2 !rounded-3xl bg-gray-200 hover:bg-gray-500 dark:bg-gray-800 dark:hover:bg-gray-700 px-4 py-2 hover:scale-105 transition-transform" 
-                        onClick={() => navigate('/pricing')}
+                        onClick={() => navigate(-1)}
                     >
                         <ArrowLeft /> Go Back
                     </Button>

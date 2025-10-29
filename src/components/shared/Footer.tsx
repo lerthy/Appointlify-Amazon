@@ -87,11 +87,7 @@ const Footer: React.FC = () => {
               <li>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">Services</a>
               </li>
-              <li>
-                  <Link to="/pricing" className="text-gray-400 hover:text-white transition-colors">
-                    Pricing
-                  </Link>
-              </li>
+              
               <li>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a>
               </li>

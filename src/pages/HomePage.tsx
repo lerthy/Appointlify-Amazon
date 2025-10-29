@@ -49,12 +49,9 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [paidUser, setPaidUser] = useState<{ payment: string } | null>(null);
   
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
-  const isPaidUser = ['basic', 'pro', 'team'].includes(paidUser?.payment || '');
-  
   useEffect(() => {
     const fetchBusinesses = async () => {
       setLoading(true);
@@ -69,27 +66,7 @@ const HomePage: React.FC = () => {
     fetchBusinesses();
   }, []);
 
-  useEffect(() => {
-      const checkAuthAndPayment = async () => {
-        // if (!user || !user.id) {
-        //   navigate('/login');
-        //   return;
-        // }
-        setLoading(true);
-        const { data: paidUserData, error } = await supabase
-          .from('users')
-          .select('payment')
-          .eq('id', user.id)
-          .single();
-        if (error) {
-          console.error('Error fetching payment status:', error);
-        } else {
-          setPaidUser(paidUserData);
-        }
-        setLoading(false);
-      };
-      checkAuthAndPayment();
-    }, [user, navigate]);
+  
 
   // Auto-rotate background images
   useEffect(() => {
@@ -177,17 +154,14 @@ const HomePage: React.FC = () => {
                 Book, manage, and grow your business with ease.
               </p>
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                {isPaidUser 
-                ? null 
-                : <Button 
-                    size="lg" 
-                    className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold"
-                    onClick={() => navigate('/pricing')}
-                  >
-                    Start Free Trial
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                }
+                <Button 
+                  size="lg" 
+                  className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold"
+                  onClick={() => navigate('/register')}
+                >
+                  Get Started
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
@@ -399,9 +373,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      {(isPaidUser && user) 
-      ? null 
-      : <section className="py-20 bg-gradient-to-r from-slate-800 to-indigo-800 text-white">
+      <section className="py-20 bg-gradient-to-r from-slate-800 to-indigo-800 text-white">
         <Container maxWidth="full">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
@@ -409,17 +381,14 @@ const HomePage: React.FC = () => {
               Join thousands of businesses already using our platform to streamline their appointment booking process.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            {isPaidUser 
-            ? null 
-            : <Button 
-                  size="lg" 
-                  className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold"
-                  onClick={() => navigate('/pricing')}
-                >
-                  Start Free Trial
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              }
+              <Button 
+                size="lg" 
+                className="text-lg px-8 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 font-semibold"
+                onClick={() => navigate('/register')}
+              >
+                Get Started
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
               {user ? null : <Button 
                 variant="outline" 
                 size="lg" 
@@ -432,7 +401,6 @@ const HomePage: React.FC = () => {
           </div>
         </Container>
       </section>
-      }
 
       <Footer />
       
