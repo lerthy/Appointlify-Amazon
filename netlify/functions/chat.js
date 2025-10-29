@@ -319,16 +319,7 @@ async function handleBookingReady(assistantMessage, headers) {
     console.log('Booking data extracted:', bookingData);
 
     // Ask for confirmation
-    const confirmationMessage = `I have all the details for your appointment:
-
-**Appointment Details:**
-• **Business:** ${bookingData.business || 'Selected Business'}
-• **Service:** ${bookingData.service}
-• **Date:** ${bookingData.date}
-• **Time:** ${bookingData.time}
-• **Name:** ${bookingData.name}
-• **Email:** ${bookingData.email}
-• **Phone:** ${bookingData.phone}
+    const confirmationMessage = `I have all the details for your appointment. 
 
 **Please confirm:** Would you like me to book this appointment? Type "yes" to confirm or "no" to make changes.`;
 
@@ -379,15 +370,9 @@ async function handleBookingConfirmation(messages, bookingData, headers) {
         
         const successMessage = `✅ **Appointment Confirmed!**
 
-**Your booking details:**
-• **Booking ID:** ${appointmentId}
-• **Business:** ${bookingData.business || 'Selected Business'}
-• **Service:** ${bookingData.service}
-• **Date:** ${bookingData.date}
-• **Time:** ${bookingData.time}
-• **Name:** ${bookingData.name}
+Your appointment has been successfully booked. You will receive a confirmation email and SMS with all the details shortly.
 
-You will receive a confirmation email and SMS shortly. If you need to make any changes, please contact us.
+If you need to make any changes, please contact us.
 
 Thank you for choosing Appointly! 🎉`;
 
