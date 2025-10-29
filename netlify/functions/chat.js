@@ -321,6 +321,15 @@ async function handleBookingReady(assistantMessage, headers) {
     // Ask for confirmation
     const confirmationMessage = `I have all the details for your appointment. 
 
+**Appointment Details:**
+**Business:** ${bookingData.business}
+**Service:** ${bookingData.service}
+**Date:** ${bookingData.date}
+**Time:** ${bookingData.time}
+**Name:** ${bookingData.name}
+**Email:** ${bookingData.email}
+**Phone:** ${bookingData.phone}
+
 **Please confirm:** Would you like me to book this appointment? Type "yes" to confirm or "no" to make changes.`;
 
     return {
