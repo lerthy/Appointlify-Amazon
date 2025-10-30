@@ -104,15 +104,26 @@ function computePeakHours(appointments) {
       return;
     }
     
-    // Server runs in UTC, frontend runs in user's local timezone
-    // Need to convert UTC hour to local hour to match frontend
-    const d = new Date(appointment.date);
-    const utcHour = d.getUTCHours();
+    // Parse hour directly from date string to avoid timezone issues
+    // Appointment dates are likely in format "2024-10-30T10:30:00" or similar
+    let hour;
     
-    // Based on the pattern: AI shows 8am, frontend shows 10am = +2 hour offset
-    const localHour = (utcHour + 2) % 24;
+    if (typeof appointment.date === 'string' && appointment.date.includes('T')) {
+      // Extract hour from ISO string format: "2024-10-30T10:30:00"
+      const timePart = appointment.date.split('T')[1];
+      hour = parseInt(timePart.split(':')[0], 10);
+    } else {
+      // Fallback to Date parsing with timezone adjustment
+      const d = new Date(appointment.date);
+      const utcHour = d.getUTCHours();
+      hour = (utcHour + 2) % 24; // Adjust for timezone
+    }
     
-    hourCounts[localHour]++;
+    if (processedCount < 3) {
+      console.log(`DEBUG appointment ${processedCount}: date="${appointment.date}", extracted hour=${hour}`);
+    }
+    
+    hourCounts[hour]++;
     processedCount++;
   });
   
