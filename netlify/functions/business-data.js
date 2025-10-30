@@ -96,18 +96,8 @@ function computePeakHours(appointments) {
   // Match frontend analytics.peakHours calculation exactly - use ALL appointments
   const counts = Array(24).fill(0);
   
-  console.log('DEBUG: First 3 appointments with timezone analysis:');
-  for (const a of appointments.slice(0, 3)) {
-    if (!a?.date) continue;
-    const d = new Date(a.date);
-    const utcHour = d.getUTCHours();
-    const localHour = d.getHours();
-    console.log(`  Raw: ${a.date}`);
-    console.log(`  UTC hour: ${utcHour}, Local hour: ${localHour}`);
-    console.log(`  Full UTC: ${d.toISOString()}`);
-    console.log(`  Full Local: ${d.toString()}`);
-    console.log('  ---');
-  }
+  // Debug: log total appointments being processed
+  console.log(`DEBUG: Processing ${appointments.length} appointments for peak hours`);
   
   for (const a of appointments) {
     if (!a?.date) continue;
@@ -125,7 +115,8 @@ function computePeakHours(appointments) {
     counts[estimatedLocalHour] += 1;
   }
   
-  console.log('DEBUG: Hour counts:', counts.map((count, hour) => count > 0 ? `${hour}:${count}` : null).filter(Boolean));
+  const hourCounts = counts.map((count, hour) => count > 0 ? `${hour}:${count}` : null).filter(Boolean);
+  console.log('DEBUG: Hour counts:', hourCounts);
   return counts
     .map((count, hour) => ({ hour, count }))
     .filter(h => h.count > 0)
