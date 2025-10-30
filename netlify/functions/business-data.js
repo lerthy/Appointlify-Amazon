@@ -102,6 +102,8 @@ function computePeakHours(appointments) {
   
   const hourCounts = Array(24).fill(0);
   
+  console.log(`DEBUG: Processing ${appointments.length} appointments for peak hours`);
+  
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
     
@@ -111,7 +113,15 @@ function computePeakHours(appointments) {
     // Apply timezone offset to match frontend
     const adjustedHour = (utcHour + 2) % 24;
     hourCounts[adjustedHour]++;
+    
+    // Debug first few appointments
+    if (hourCounts.reduce((sum, c) => sum + c, 0) <= 5) {
+      console.log(`DEBUG: ${appointment.date} -> UTC: ${utcHour}, Adjusted: ${adjustedHour}`);
+    }
   });
+  
+  const nonZeroHours = hourCounts.map((count, hour) => count > 0 ? `${hour}:${count}` : null).filter(Boolean);
+  console.log('DEBUG: Final hour counts:', nonZeroHours);
   
   return hourCounts
     .map((count, hour) => ({ hour, count }))
