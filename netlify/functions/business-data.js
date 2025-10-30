@@ -95,38 +95,27 @@ function computePopularDays(appointments) {
 
 function computePeakHours(appointments) {
   const hourCounts = Array(24).fill(0);
-  let totalProcessed = 0;
-  const hourDetails = {}; // Track which appointments go to which hour
   
-  appointments.forEach((appointment, idx) => {
+  // Log ALL appointment dates first
+  console.log(`[computePeakHours] ALL ${appointments.length} appointment dates:`);
+  appointments.forEach((apt, i) => {
+    if (apt?.date) {
+      const d = new Date(apt.date);
+      console.log(`  [${i}] ${apt.date} → UTC hour: ${d.getUTCHours()}, Local (+2): ${(d.getUTCHours() + 2) % 24}`);
+    }
+  });
+  
+  appointments.forEach(appointment => {
     if (!appointment?.date) return;
     
     const d = new Date(appointment.date);
     const utcHour = d.getUTCHours();
     const localHour = (utcHour + 2) % 24;
     
-    // Track details for debugging
-    if (!hourDetails[localHour]) hourDetails[localHour] = [];
-    hourDetails[localHour].push({
-      idx,
-      date: appointment.date,
-      utcHour,
-      localHour
-    });
-    
     hourCounts[localHour]++;
-    totalProcessed++;
   });
   
-  console.log(`[computePeakHours] Total: ${appointments.length}, Processed: ${totalProcessed}`);
-  console.log(`[computePeakHours] Distribution:`, Object.entries(hourCounts).filter(([h, c]) => c > 0).map(([h, c]) => `${h}:${c}`).join(', '));
-  
-  // Show detailed breakdown for hours 9, 10, 11
-  [9, 10, 11].forEach(h => {
-    if (hourDetails[h]) {
-      console.log(`[computePeakHours] Hour ${h} (${hourDetails[h].length} appts):`, hourDetails[h].map(a => a.date).join(', '));
-    }
-  });
+  console.log(`[computePeakHours] Final distribution:`, Object.entries(hourCounts).filter(([h, c]) => c > 0).map(([h, c]) => `hour ${h}: ${c}`).join(', '));
   
   return hourCounts
     .map((count, hour) => ({ hour, count }))
