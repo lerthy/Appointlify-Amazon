@@ -96,26 +96,37 @@ function computePopularDays(appointments) {
 function computePeakHours(appointments) {
   const hourCounts = Array(24).fill(0);
   let totalProcessed = 0;
+  const hourDetails = {}; // Track which appointments go to which hour
   
-  appointments.forEach(appointment => {
+  appointments.forEach((appointment, idx) => {
     if (!appointment?.date) return;
-    
-    // INSIGHT: Supabase stores dates with timezone info
-    // Frontend browser converts UTC → local time automatically
-    // Backend server stays in UTC
-    // Solution: Add timezone offset (+2 hours for UTC+2)
     
     const d = new Date(appointment.date);
     const utcHour = d.getUTCHours();
-    const localHour = (utcHour + 2) % 24; // Convert UTC to local time (UTC+2)
+    const localHour = (utcHour + 2) % 24;
+    
+    // Track details for debugging
+    if (!hourDetails[localHour]) hourDetails[localHour] = [];
+    hourDetails[localHour].push({
+      idx,
+      date: appointment.date,
+      utcHour,
+      localHour
+    });
     
     hourCounts[localHour]++;
     totalProcessed++;
   });
   
-  console.log(`[computePeakHours] Total appointments: ${appointments.length}, Processed: ${totalProcessed}`);
-  console.log(`[computePeakHours] Hour distribution:`, Object.entries(hourCounts).filter(([h, c]) => c > 0).map(([h, c]) => `${h}:${c}`).join(', '));
-  console.log(`[computePeakHours] Hour 10 count: ${hourCounts[10]}, Hour 9 count: ${hourCounts[9]}`);
+  console.log(`[computePeakHours] Total: ${appointments.length}, Processed: ${totalProcessed}`);
+  console.log(`[computePeakHours] Distribution:`, Object.entries(hourCounts).filter(([h, c]) => c > 0).map(([h, c]) => `${h}:${c}`).join(', '));
+  
+  // Show detailed breakdown for hours 9, 10, 11
+  [9, 10, 11].forEach(h => {
+    if (hourDetails[h]) {
+      console.log(`[computePeakHours] Hour ${h} (${hourDetails[h].length} appts):`, hourDetails[h].map(a => a.date).join(', '));
+    }
+  });
   
   return hourCounts
     .map((count, hour) => ({ hour, count }))
@@ -215,6 +226,8 @@ exports.handler = async (event, context) => {
       default:
         data = { note: "No specific metric detected; provide general insight using available data." };
     }
+
+    console.log(`[business-data] Returning data for intent "${intent}":`, JSON.stringify(data));
 
     return {
       statusCode: 200,
