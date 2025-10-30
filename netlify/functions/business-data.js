@@ -106,12 +106,20 @@ function computePeakHours(appointments) {
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
     
+    // Try to exactly match frontend behavior: new Date(appointment.date).getHours()
+    // But account for server timezone difference
     const d = new Date(appointment.date);
-    const utcHour = d.getUTCHours();
     
-    // Apply timezone offset to match frontend
-    const adjustedHour = (utcHour + 2) % 24;
-    hourCounts[adjustedHour]++;
+    // Frontend runs in user's timezone, server runs in UTC
+    // Try different approaches to match the frontend exactly
+    let hour;
+    
+    // Method 1: Try to simulate user's timezone (assuming UTC+2 based on data)
+    const utcTime = d.getTime();
+    const offsetTime = new Date(utcTime + (2 * 60 * 60 * 1000)); // Add 2 hours
+    hour = offsetTime.getUTCHours();
+    
+    hourCounts[hour]++;
   });
   
   return hourCounts
