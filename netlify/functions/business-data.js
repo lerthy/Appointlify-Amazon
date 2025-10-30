@@ -106,6 +106,14 @@ function computePeakHours(appointments) {
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
     
+    // Debug: Log the first few appointments to see the date format
+    if (hourCounts.reduce((a, b) => a + b, 0) < 3) {
+      console.log('DEBUG appointment.date:', appointment.date);
+      console.log('DEBUG new Date(appointment.date):', new Date(appointment.date));
+      console.log('DEBUG .getHours():', new Date(appointment.date).getHours());
+      console.log('DEBUG .getUTCHours():', new Date(appointment.date).getUTCHours());
+    }
+    
     // Match frontend logic exactly: new Date(appointment.date).getHours()
     // Frontend treats appointment.date as local time and gets local hour
     const d = new Date(appointment.date);
