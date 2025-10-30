@@ -107,13 +107,17 @@ function computePeakHours(appointments) {
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
     
-    // Exactly match frontend: new Date(appointment.date).getHours()
-    const hour = new Date(appointment.date).getHours();
-    hourCounts[hour]++;
+    const d = new Date(appointment.date);
+    const utcHour = d.getUTCHours();
+    
+    // Apply timezone offset to match frontend
+    // Charts show 10,09,13 but AI shows 8,7,11 -> need +2 offset
+    const adjustedHour = (utcHour + 2) % 24;
+    hourCounts[adjustedHour]++;
     
     // Debug first few
     if (hourCounts.reduce((sum, c) => sum + c, 0) <= 3) {
-      console.log(`DEBUG: ${appointment.date} -> hour ${hour}`);
+      console.log(`DEBUG: ${appointment.date} -> UTC: ${utcHour}, Adjusted: ${adjustedHour}`);
     }
   });
   
