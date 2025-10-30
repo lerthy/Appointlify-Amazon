@@ -115,6 +115,11 @@ function computePeakHours(appointments) {
     const adjustedHour = (utcHour + 2) % 24;
     hourCounts[adjustedHour]++;
     
+    // Debug appointments that map to hour 10 specifically
+    if (adjustedHour === 10) {
+      console.log(`DEBUG HOUR 10: ${appointment.date} -> UTC: ${utcHour}, Adjusted: ${adjustedHour}`);
+    }
+    
     // Debug first few
     if (hourCounts.reduce((sum, c) => sum + c, 0) <= 3) {
       console.log(`DEBUG: ${appointment.date} -> UTC: ${utcHour}, Adjusted: ${adjustedHour}`);
