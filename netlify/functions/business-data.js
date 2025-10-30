@@ -51,10 +51,7 @@ async function getAppointments(businessId) {
     limit: 2000,
     eq: businessId ? { business_id: String(businessId) } : undefined,
   });
-  if (viaMcp) {
-    console.log(`DEBUG: Got ${viaMcp.length} appointments via MCP`);
-    return viaMcp;
-  }
+  if (viaMcp) return viaMcp;
   
   // Fallback to direct Supabase - get ALL appointments
   const sb = supabaseServer();
@@ -62,7 +59,6 @@ async function getAppointments(businessId) {
   if (businessId) query = query.eq("business_id", businessId);
   const { data, error } = await query;
   if (error) throw error;
-  console.log(`DEBUG: Got ${data?.length || 0} appointments via Supabase`);
   return data || [];
 }
 
@@ -107,8 +103,6 @@ function computePeakHours(appointments) {
   
   const hourCounts = Array(24).fill(0);
   
-  console.log(`DEBUG: Processing ${appointments.length} appointments for peak hours`);
-  
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
     
@@ -118,15 +112,7 @@ function computePeakHours(appointments) {
     // Apply timezone offset to match frontend
     const adjustedHour = (utcHour + 2) % 24;
     hourCounts[adjustedHour]++;
-    
-    // Debug first few appointments
-    if (hourCounts.reduce((sum, c) => sum + c, 0) <= 5) {
-      console.log(`DEBUG: ${appointment.date} -> UTC: ${utcHour}, Adjusted: ${adjustedHour}`);
-    }
   });
-  
-  const nonZeroHours = hourCounts.map((count, hour) => count > 0 ? `${hour}:${count}` : null).filter(Boolean);
-  console.log('DEBUG: Final hour counts:', nonZeroHours);
   
   return hourCounts
     .map((count, hour) => ({ hour, count }))
