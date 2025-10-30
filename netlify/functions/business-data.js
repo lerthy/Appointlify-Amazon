@@ -93,31 +93,39 @@ function computePopularDays(appointments) {
 }
 
 function computePeakHours(appointments) {
-  // Match frontend analytics.peakHours calculation exactly - use ALL appointments
-  const counts = Array(24).fill(0);
+  // Exactly replicate frontend AppContext updateAnalytics() logic:
+  // const hourCounts = Array(24).fill(0);
+  // appointments.forEach(appointment => {
+  //   const hour = new Date(appointment.date).getHours();
+  //   hourCounts[hour]++;
+  // });
   
-  // Debug: log total appointments being processed
-  console.log(`DEBUG: Processing ${appointments.length} appointments for peak hours`);
+  const hourCounts = Array(24).fill(0);
   
-  for (const a of appointments) {
-    if (!a?.date) continue;
-    const d = new Date(a.date);
-    
-    // Netlify functions run in UTC, but frontend runs in user's timezone
-    // Based on the discrepancy (charts show 10,09,13 vs AI shows 8,7,11)
-    // There's roughly a +2 hour offset needed
-    // Let's try to match the frontend by adding timezone offset
-    
-    // Get UTC hour and add estimated timezone offset
-    const utcHour = d.getUTCHours();
-    const estimatedLocalHour = (utcHour + 2) % 24; // +2 hours offset (adjust as needed)
-    
-    counts[estimatedLocalHour] += 1;
-  }
+  console.log(`DEBUG: Processing ${appointments.length} appointments`);
   
-  const hourCounts = counts.map((count, hour) => count > 0 ? `${hour}:${count}` : null).filter(Boolean);
-  console.log('DEBUG: Hour counts:', hourCounts);
-  return counts
+  appointments.forEach(appointment => {
+    if (!appointment?.date) return;
+    
+    // Exactly match frontend: new Date(appointment.date).getHours()
+    const hour = new Date(appointment.date).getHours();
+    hourCounts[hour]++;
+    
+    // Debug first few
+    if (hourCounts.reduce((sum, c) => sum + c, 0) <= 3) {
+      console.log(`DEBUG: ${appointment.date} -> hour ${hour}`);
+    }
+  });
+  
+  // Convert to same format as frontend
+  const peakHours = hourCounts
+    .map((count, hour) => ({ hour, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+  
+  console.log('DEBUG: Peak hours result:', peakHours.map(h => `${h.hour}:${h.count}`));
+  
+  return hourCounts
     .map((count, hour) => ({ hour, count }))
     .filter(h => h.count > 0)
     .sort((a, b) => b.count - a.count)
