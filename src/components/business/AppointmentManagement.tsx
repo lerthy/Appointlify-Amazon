@@ -107,23 +107,22 @@ const AppointmentManagement: React.FC = () => {
 
   const handleConfirmAppointment = async () => {
     if (!selectedAppointment) return;
-    
-    await updateAppointmentStatus(selectedAppointment, 'confirmed');
-    
-    // Send confirmation SMS
-    const appointment = appointments.find(a => a.id === selectedAppointment);
-    if (appointment) {
-      const customer = getCustomerById(appointment.customer_id);
-      const service = getServiceById(appointment.service_id);
-      
-      if (customer) {
-        const message = `Hi ${customer.name}, your appointment for ${service?.name || 'our service'} on ${formatDate(new Date(appointment.date))} at ${formatTime(new Date(appointment.date))} has been confirmed. We look forward to seeing you!`;
-        // Note: SMS functionality would need to be implemented
-        console.log('SMS would be sent:', message);
+    try {
+      await updateAppointmentStatus(selectedAppointment, 'confirmed');
+      // Send confirmation SMS (placeholder)
+      const appointment = appointments.find(a => a.id === selectedAppointment);
+      if (appointment) {
+        const customer = getCustomerById(appointment.customer_id);
+        const service = getServiceById(appointment.service_id);
+        if (customer) {
+          const message = `Hi ${customer.name}, your appointment for ${service?.name || 'our service'} on ${formatDate(new Date(appointment.date))} at ${formatTime(new Date(appointment.date))} has been confirmed. We look forward to seeing you!`;
+          console.log('SMS would be sent:', message);
+        }
       }
+    } finally {
+      setConfirmDialog(false);
+      setSelectedAppointment(null);
     }
-    
-    setConfirmDialog(false);
   };
 
   const handleCancelAppointment = async () => {

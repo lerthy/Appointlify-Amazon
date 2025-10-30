@@ -80,7 +80,7 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
           <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
             <Button
               variant={variant === 'danger' ? 'danger' : variant === 'warning' ? 'secondary' : 'primary'}
-              onClick={onConfirm}
+              onClick={() => { try { onConfirm(); } finally { onCancel(); } }}
               className="sm:ml-3"
             >
               {confirmLabel}

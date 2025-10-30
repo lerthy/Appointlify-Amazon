@@ -19,6 +19,8 @@ import ProfilePage from './pages/ProfilePage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
 import AIChatbot from './components/shared/AIChatbot';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import VerificationPage from './pages/VerificationPage';
 
 // Components
 
@@ -32,7 +34,7 @@ function AppContent() {
   const location = useLocation();
 
   // Hide AI chat on login and signup, and dashboard pages
-  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard'].includes(location.pathname);
+  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard', '/admin', '/verification'].includes(location.pathname);
 
   return (
     <>
@@ -41,6 +43,8 @@ function AppContent() {
         <Route path="/book" element={<AppointmentPage />} />
         <Route path="/book/:businessId" element={<AppointmentPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route path="/verification" element={<VerificationPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

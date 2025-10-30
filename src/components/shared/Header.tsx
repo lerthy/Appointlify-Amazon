@@ -4,13 +4,14 @@ import { Menu, X, Users, Settings, LogOut, User } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../utils/supabaseClient';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { businessSettings, currentView, setCurrentView } = useApp();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, login, logout } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const toggleMenu = () => {
@@ -41,6 +42,22 @@ const Header: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownOpen]);
+
+  // Refresh verification status from backend so banner hides after admin approval
+  useEffect(() => {
+    const fetchVerification = async () => {
+      if (!user || !user.id) return;
+      const { data } = await supabase
+        .from('users')
+        .select('verification_status')
+        .eq('id', user.id)
+        .single();
+      if (data && data.verification_status && data.verification_status !== user.verification_status) {
+        login({ ...user, verification_status: data.verification_status });
+      }
+    };
+    fetchVerification();
+  }, [user?.id]);
   
   return (
     <>
@@ -180,6 +197,15 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* Verification banner for non-verified businesses */}
+      {user && user.role !== 'admin' && user.verification_status !== 'verified' && (
+        <div className="bg-amber-50 border-t border-amber-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between">
+            <span className="text-xs text-amber-800">Your business is not verified yet. Please complete verification.</span>
+            <Button size="sm" variant="outline" onClick={() => navigate('/verification')}>Verify now</Button>
+          </div>
+        </div>
+      )}
       {/* Mobile menu, show/hide based on menu state */}
       {menuOpen && (
         <div className="sm:hidden">
