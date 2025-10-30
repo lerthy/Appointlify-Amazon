@@ -78,15 +78,11 @@ async function getServices(businessId) {
 }
 
 function computePopularDays(appointments) {
-  const activeStatuses = new Set(["scheduled", "confirmed"]);
-  const now = new Date();
+  // Match frontend logic - use ALL appointments for historical analysis
   const counts = Array(7).fill(0);
   for (const a of appointments) {
     if (!a?.date) continue;
-    if (!activeStatuses.has(a.status)) continue;
     const d = new Date(a.date);
-    // Only count future appointments (like frontend)
-    if (d < now) continue;
     const idx = d.getDay();
     counts[idx] += 1;
   }
@@ -97,15 +93,12 @@ function computePopularDays(appointments) {
 }
 
 function computePeakHours(appointments) {
-  const activeStatuses = new Set(["scheduled", "confirmed"]);
-  const now = new Date();
+  // Match frontend analytics.peakHours calculation exactly - use ALL appointments
   const counts = Array(24).fill(0);
+  
   for (const a of appointments) {
     if (!a?.date) continue;
-    if (!activeStatuses.has(a.status)) continue;
     const d = new Date(a.date);
-    // Only count future appointments (like frontend)
-    if (d < now) continue;
     counts[d.getHours()] += 1;
   }
   return counts
