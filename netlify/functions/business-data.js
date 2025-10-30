@@ -104,23 +104,26 @@ function computePeakHours(appointments) {
       return;
     }
     
-    // Parse hour directly from date string to avoid timezone issues
-    // Appointment dates are likely in format "2024-10-30T10:30:00" or similar
+    // Multiple approaches to extract hour and match frontend exactly
+    const d = new Date(appointment.date);
     let hour;
     
+    // Method 1: Try direct string parsing first
     if (typeof appointment.date === 'string' && appointment.date.includes('T')) {
-      // Extract hour from ISO string format: "2024-10-30T10:30:00"
       const timePart = appointment.date.split('T')[1];
-      hour = parseInt(timePart.split(':')[0], 10);
-    } else {
-      // Fallback to Date parsing with timezone adjustment
-      const d = new Date(appointment.date);
+      if (timePart && timePart.includes(':')) {
+        hour = parseInt(timePart.split(':')[0], 10);
+      }
+    }
+    
+    // Method 2: If string parsing failed, use timezone-adjusted approach
+    if (hour === undefined || isNaN(hour)) {
       const utcHour = d.getUTCHours();
-      hour = (utcHour + 2) % 24; // Adjust for timezone
+      hour = (utcHour + 2) % 24; // Add 2 hours for timezone
     }
     
     if (processedCount < 3) {
-      console.log(`DEBUG appointment ${processedCount}: date="${appointment.date}", extracted hour=${hour}`);
+      console.log(`DEBUG appointment ${processedCount}: date="${appointment.date}", getHours()=${d.getHours()}, getUTCHours()=${d.getUTCHours()}, final hour=${hour}`);
     }
     
     hourCounts[hour]++;
