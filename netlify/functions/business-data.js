@@ -94,17 +94,15 @@ function computePopularDays(appointments) {
 }
 
 function computePeakHours(appointments) {
-  // Exactly replicate frontend AppContext updateAnalytics() logic:
-  // const hourCounts = Array(24).fill(0);
-  // appointments.forEach(appointment => {
-  //   const hour = new Date(appointment.date).getHours();
-  //   hourCounts[hour]++;
-  // });
-  
   const hourCounts = Array(24).fill(0);
+  let processedCount = 0;
+  let skippedCount = 0;
   
   appointments.forEach(appointment => {
-    if (!appointment?.date) return;
+    if (!appointment?.date) {
+      skippedCount++;
+      return;
+    }
     
     // Server runs in UTC, frontend runs in user's local timezone
     // Need to convert UTC hour to local hour to match frontend
@@ -115,7 +113,11 @@ function computePeakHours(appointments) {
     const localHour = (utcHour + 2) % 24;
     
     hourCounts[localHour]++;
+    processedCount++;
   });
+  
+  console.log(`DEBUG: Total appointments: ${appointments.length}, Processed: ${processedCount}, Skipped: ${skippedCount}`);
+  console.log(`DEBUG: Hour 10 count: ${hourCounts[10]}`);
   
   return hourCounts
     .map((count, hour) => ({ hour, count }))
