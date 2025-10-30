@@ -96,26 +96,34 @@ function computePopularDays(appointments) {
 function computePeakHours(appointments) {
   const hourCounts = Array(24).fill(0);
   
-  // Log ALL appointment dates first
-  console.log(`[computePeakHours] ALL ${appointments.length} appointment dates:`);
-  appointments.forEach((apt, i) => {
-    if (apt?.date) {
-      const d = new Date(apt.date);
-      console.log(`  [${i}] ${apt.date} → UTC hour: ${d.getUTCHours()}, Local (+2): ${(d.getUTCHours() + 2) % 24}`);
-    }
-  });
-  
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
     
-    const d = new Date(appointment.date);
-    const utcHour = d.getUTCHours();
-    const localHour = (utcHour + 2) % 24;
+    // KEY INSIGHT: The frontend uses new Date(appointment.date).getHours()
+    // When a date string has "+00:00" timezone, JavaScript converts it:
+    // - Frontend (user's browser in UTC+2/UTC+3): converts to local time
+    // - Backend (Netlify server in UTC): stays in UTC
+    // 
+    // Solution: Parse the date string WITHOUT timezone to match frontend behavior
+    // If date is "2025-10-15T08:00:00+00:00", extract "2025-10-15T08:00:00"
+    let dateStr = appointment.date;
+    if (typeof dateStr === 'string') {
+      // Remove timezone suffix (+00:00, Z, etc.) to force local interpretation
+      dateStr = dateStr.replace(/(\+00:00|Z)$/, '');
+    }
+    
+    const d = new Date(dateStr);
+    const hour = d.getHours(); // This will now interpret in server's "local" time
+    
+    // But server is still in UTC, so we need to add offset
+    // October dates in Europe are UTC+3 (DST), November+ are UTC+2
+    const month = d.getMonth();
+    const isDST = month >= 2 && month <= 9; // March to October is DST
+    const offset = isDST ? 3 : 2;
+    const localHour = (hour + offset) % 24;
     
     hourCounts[localHour]++;
   });
-  
-  console.log(`[computePeakHours] Final distribution:`, Object.entries(hourCounts).filter(([h, c]) => c > 0).map(([h, c]) => `hour ${h}: ${c}`).join(', '));
   
   return hourCounts
     .map((count, hour) => ({ hour, count }))
