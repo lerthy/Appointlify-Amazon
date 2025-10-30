@@ -1,10 +1,16 @@
-import React from 'react';
-import { Clock, Users, Calendar, Activity, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Calendar, CheckCircle, MessageCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { useApp } from '../../context/AppContext';
 
 const Analytics: React.FC = () => {
-  const { analytics, customers, appointments, services } = useApp();
+  const { analytics, appointments, services } = useApp();
+  
+  // AI Chat state
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>("");
   
   // Only count active (scheduled/confirmed) and future appointments
   const activeStatuses = ['scheduled', 'confirmed'];
@@ -105,6 +111,35 @@ const Analytics: React.FC = () => {
   const serviceDistribution = calculateServiceDistribution();
   const dailyDistribution = calculateDailyDistribution();
   const hourlyDistribution = calculateHourlyDistribution().filter(h => h.count > 0).slice(0, 5);
+
+  // AI Chat handler
+  const handleAIChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setAnswer("");
+
+    try {
+      const res = await fetch("/.netlify/functions/groq-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        throw new Error(text || "Non-JSON response");
+      }
+      if (!res.ok) throw new Error(data?.error || "Request failed");
+      setAnswer(data?.answer || "");
+    } catch (err: any) {
+      setError(err?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-4">
@@ -218,6 +253,42 @@ const Analytics: React.FC = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* AI Business Chat Section */}
+      <div className="mt-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center">
+              <MessageCircle className="h-5 w-5 text-blue-500 mr-2" />
+              <h3 className="text-lg font-medium">AI Business Insights</h3>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAIChat} className="flex gap-2 mb-4">
+              <input
+                className="flex-1 border rounded px-3 py-2"
+                placeholder="Ask something like: What are my popular days?"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+              />
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-60"
+                disabled={loading || !question.trim()}
+              >
+                {loading ? 'Asking…' : 'Ask'}
+              </button>
+            </form>
+
+            {error && (
+              <div className="text-red-600 mb-2 text-sm">{error}</div>
+            )}
+
+            <div className="border rounded p-3 min-h-[120px] whitespace-pre-wrap bg-gray-50">
+              {answer || (loading ? 'Thinking…' : 'Ask a question about your business data and get AI-powered insights.')}
             </div>
           </CardContent>
         </Card>

@@ -19,7 +19,6 @@ import ProfilePage from './pages/ProfilePage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
 import AIChatbot from './components/shared/AIChatbot';
-import BusinessAIChatPage from './pages/BusinessAIChatPage';
 
 // Components
 
@@ -51,7 +50,6 @@ function AppContent() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
         <Route path="/ai-demo" element={<AIChatbotDemoPage />} />
-        <Route path="/ai-business-chat" element={<BusinessAIChatPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       

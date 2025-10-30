@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+const { createClient } = require("@supabase/supabase-js");
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 
@@ -9,10 +9,20 @@ function supabaseServer() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+function detectIntent(question) {
+  const q = question.toLowerCase();
+  if (q.includes("popular day") || q.includes("best day") || q.includes("busiest day") || q.includes("popular days")) return "popular_days";
+  if (q.includes("peak hour") || q.includes("popular hour") || q.includes("busiest hour")) return "peak_hours";
+  if (q.includes("service distribution") || q.includes("popular services") || q.includes("top services")) return "service_distribution";
+  return "unknown";
+}
+
 async function fetchViaMCP(toolName, args) {
+  // Call local MCP Netlify function if API key configured
   const mcpKey = process.env.MCP_API_KEY;
   if (!mcpKey) return null;
   try {
+    // Use a relative URL to hit the same site
     const res = await fetch("/.netlify/functions/mcp", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": mcpKey },
@@ -25,23 +35,16 @@ async function fetchViaMCP(toolName, args) {
     });
     if (!res.ok) return null;
     const json = await res.json();
-    const content = json && json.result && json.result.content && json.result.content[0];
-    if (content && content.type === "json") return content.json;
+    const content = json?.result?.content?.[0];
+    if (content?.type === "json") return content.json;
     return null;
   } catch {
     return null;
   }
 }
 
-function detectIntent(question) {
-  const q = String(question || "").toLowerCase();
-  if (q.includes("popular day") || q.includes("best day") || q.includes("busiest day") || q.includes("popular days")) return "popular_days";
-  if (q.includes("peak hour") || q.includes("popular hour") || q.includes("busiest hour")) return "peak_hours";
-  if (q.includes("service distribution") || q.includes("popular services") || q.includes("top services")) return "service_distribution";
-  return "unknown";
-}
-
 async function getAppointments(businessId) {
+  // Try MCP tool first
   const viaMcp = await fetchViaMCP("fetch-table", {
     table: "appointments",
     select: "id, date, status, service_id, business_id",
@@ -49,6 +52,7 @@ async function getAppointments(businessId) {
     eq: businessId ? { business_id: String(businessId) } : undefined,
   });
   if (viaMcp) return viaMcp;
+  // Fallback to direct Supabase
   const sb = supabaseServer();
   let query = sb.from("appointments").select("id, date, status, service_id, business_id").limit(2000);
   if (businessId) query = query.eq("business_id", businessId);
@@ -76,40 +80,42 @@ async function getServices(businessId) {
 function computePopularDays(appointments) {
   const activeStatuses = new Set(["scheduled", "confirmed", "completed"]);
   const counts = Array(7).fill(0);
-  for (const a of appointments || []) {
-    if (!a || !a.date) continue;
+  for (const a of appointments) {
+    if (!a?.date) continue;
     if (!activeStatuses.has(a.status)) continue;
     const d = new Date(a.date);
-    counts[d.getDay()] += 1;
+    const idx = d.getDay();
+    counts[idx] += 1;
   }
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  return days.map((day, i) => ({ day, count: counts[i], dayIndex: i })).sort((a, b) => b.count - a.count);
+  return days
+    .map((day, i) => ({ day, count: counts[i], dayIndex: i }))
+    .sort((a, b) => b.count - a.count);
 }
 
 function computePeakHours(appointments) {
   const activeStatuses = new Set(["scheduled", "confirmed", "completed"]);
   const counts = Array(24).fill(0);
-  for (const a of appointments || []) {
-    if (!a || !a.date) continue;
+  for (const a of appointments) {
+    if (!a?.date) continue;
     if (!activeStatuses.has(a.status)) continue;
     const d = new Date(a.date);
     counts[d.getHours()] += 1;
   }
   return counts
     .map((count, hour) => ({ hour, count }))
-    .filter((h) => h.count > 0)
+    .filter(h => h.count > 0)
     .sort((a, b) => b.count - a.count)
     .slice(0, 8);
 }
 
 function computeServiceDistribution(appointments, services) {
   const nameById = new Map();
-  for (const s of services || []) nameById.set(String(s.id), s.name);
+  for (const s of services) nameById.set(String(s.id), s.name);
   const counter = new Map();
-  for (const a of appointments || []) {
-    if (!a || !a.service_id) continue;
-    const k = String(a.service_id);
-    counter.set(k, (counter.get(k) || 0) + 1);
+  for (const a of appointments) {
+    if (!a?.service_id) continue;
+    counter.set(String(a.service_id), (counter.get(String(a.service_id)) || 0) + 1);
   }
   const total = Array.from(counter.values()).reduce((s, v) => s + v, 0) || 1;
   const rows = Array.from(counter.entries()).map(([serviceId, count]) => ({
@@ -121,7 +127,14 @@ function computeServiceDistribution(appointments, services) {
   return rows.sort((a, b) => b.count - a.count).slice(0, 10);
 }
 
-export default async (req) => {
+exports.handler = async (event, context) => {
+  const req = {
+    method: event.httpMethod,
+    headers: new Map(Object.entries(event.headers)),
+    json: async () => JSON.parse(event.body || "{}"),
+    url: `https://${event.headers.host}${event.path}`
+  };
+  
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -130,11 +143,27 @@ export default async (req) => {
   };
 
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers });
+    return { statusCode: 200, headers, body: "" };
+  }
+
+  if (req.method === "GET") {
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ 
+        status: "business-data function is running",
+        method: "POST",
+        expectedBody: { question: "string", businessId: "optional" },
+        envCheck: {
+          supabase: !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+          mcp: !!process.env.MCP_API_KEY
+        }
+      })
+    };
   }
 
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers });
+    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed. Use POST with JSON body or GET for status." }) };
   }
 
   try {
@@ -142,22 +171,22 @@ export default async (req) => {
     try {
       body = await req.json();
     } catch {
-      return new Response(JSON.stringify({ error: "Invalid or empty JSON body" }), { status: 400, headers });
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or empty JSON body" }) };
     }
     const { question, businessId } = body;
-
     if (!question || typeof question !== "string") {
-      return new Response(JSON.stringify({ error: "Missing 'question'" }), { status: 400, headers });
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing 'question'" }) };
     }
 
     const intent = detectIntent(question);
 
+    // Fetch core tables
     const [appointments, services] = await Promise.all([
       getAppointments(businessId),
       getServices(businessId),
     ]);
 
-    let data = null;
+    let data: any = null;
     switch (intent) {
       case "popular_days":
         data = computePopularDays(appointments);
@@ -172,16 +201,15 @@ export default async (req) => {
         data = { note: "No specific metric detected; provide general insight using available data." };
     }
 
-    return new Response(
-      JSON.stringify({ intent, data }),
-      { status: 200, headers }
-    );
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ intent, data })
+    };
   } catch (err) {
     console.error("business-data error", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500, headers });
+    return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
   }
 };
-
-export const config = { path: "/business-data" };
 
 

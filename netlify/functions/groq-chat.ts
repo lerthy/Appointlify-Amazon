@@ -1,19 +1,15 @@
-import Groq from "groq-sdk";
-
-type ChatRequestBody = {
-  question?: string;
-  businessId?: string | number;
-};
-
-type BusinessDataResponse = {
-  intent: string;
-  data: any;
-};
+const Groq = require("groq-sdk");
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 
-export default async (req: Request): Promise<Response> => {
-  const securityHeaders: Record<string, string> = {
+exports.handler = async (event, context) => {
+  const req = {
+    method: event.httpMethod,
+    headers: new Map(Object.entries(event.headers)),
+    json: async () => JSON.parse(event.body || "{}"),
+    url: `https://${event.headers.host}${event.path}`
+  };
+  const securityHeaders = {
     "Content-Type": "application/json",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
@@ -25,40 +21,44 @@ export default async (req: Request): Promise<Response> => {
   };
 
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers: securityHeaders });
+    return { statusCode: 200, headers: securityHeaders, body: "" };
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: securityHeaders }
-    );
+    return {
+      statusCode: 405,
+      headers: securityHeaders,
+      body: JSON.stringify({ error: "Method not allowed" })
+    };
   }
 
   try {
-    let body: ChatRequestBody = {};
+    let body = {};
     try {
       body = await req.json();
     } catch {
-      return new Response(
-        JSON.stringify({ error: "Invalid or empty JSON body" }),
-        { status: 400, headers: securityHeaders }
-      );
+      return {
+        statusCode: 400,
+        headers: securityHeaders,
+        body: JSON.stringify({ error: "Invalid or empty JSON body" })
+      };
     }
     const { question, businessId } = body;
     if (!question || typeof question !== "string") {
-      return new Response(
-        JSON.stringify({ error: "Missing 'question' in body" }),
-        { status: 400, headers: securityHeaders }
-      );
+      return {
+        statusCode: 400,
+        headers: securityHeaders,
+        body: JSON.stringify({ error: "Missing 'question' in body" })
+      };
     }
 
     const groqApiKey = process.env.GROQ_API_KEY_BUSINESS || process.env.GROQ_CHAT_API_KEY || process.env.GROQ_API_KEY;
     if (!groqApiKey) {
-      return new Response(
-        JSON.stringify({ error: "GROQ_API_KEY not configured" }),
-        { status: 500, headers: securityHeaders }
-      );
+      return {
+        statusCode: 500,
+        headers: securityHeaders,
+        body: JSON.stringify({ error: "GROQ_API_KEY not configured" })
+      };
     }
 
     // Ask the data function for structured info relevant to the question
@@ -69,9 +69,9 @@ export default async (req: Request): Promise<Response> => {
       body: JSON.stringify({ question, businessId }),
     });
 
-    let dataPayload: BusinessDataResponse | null = null;
+    let dataPayload = null;
     if (dataRes.ok) {
-      dataPayload = (await dataRes.json()) as BusinessDataResponse;
+      dataPayload = await dataRes.json();
     }
 
     const systemPrompt = `You are a helpful business analytics assistant. 
@@ -80,7 +80,7 @@ If needed, summarize trends and provide a short takeaway. If there is no relevan
 
     const groq = new Groq({ apiKey: groqApiKey });
 
-    const messages: any = [
+    const messages = [
       { role: "system", content: systemPrompt },
       {
         role: "user",
@@ -100,19 +100,19 @@ If needed, summarize trends and provide a short takeaway. If there is no relevan
 
     const text = completion.choices?.[0]?.message?.content ?? "I couldn't generate a response.";
 
-    return new Response(
-      JSON.stringify({ answer: text, data: dataPayload }),
-      { status: 200, headers: securityHeaders }
-    );
-  } catch (err: any) {
+    return {
+      statusCode: 200,
+      headers: securityHeaders,
+      body: JSON.stringify({ answer: text, data: dataPayload })
+    };
+  } catch (err) {
     console.error("groq-chat error", err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: securityHeaders }
-    );
+    return {
+      statusCode: 500,
+      headers: securityHeaders,
+      body: JSON.stringify({ error: "Internal server error" })
+    };
   }
 };
-
-export const config = { path: "/groq-chat" };
 
 

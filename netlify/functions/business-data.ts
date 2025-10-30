@@ -1,9 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-type DataRequestBody = {
-  question?: string;
-  businessId?: string | number;
-};
+const { createClient } = require("@supabase/supabase-js");
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 
@@ -14,7 +9,7 @@ function supabaseServer() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-function detectIntent(question: string): "popular_days" | "peak_hours" | "service_distribution" | "unknown" {
+function detectIntent(question) {
   const q = question.toLowerCase();
   if (q.includes("popular day") || q.includes("best day") || q.includes("busiest day") || q.includes("popular days")) return "popular_days";
   if (q.includes("peak hour") || q.includes("popular hour") || q.includes("busiest hour")) return "peak_hours";
@@ -22,7 +17,7 @@ function detectIntent(question: string): "popular_days" | "peak_hours" | "servic
   return "unknown";
 }
 
-async function fetchViaMCP<T = any>(toolName: string, args: Record<string, any>): Promise<T | null> {
+async function fetchViaMCP(toolName, args) {
   // Call local MCP Netlify function if API key configured
   const mcpKey = process.env.MCP_API_KEY;
   if (!mcpKey) return null;
@@ -41,16 +36,16 @@ async function fetchViaMCP<T = any>(toolName: string, args: Record<string, any>)
     if (!res.ok) return null;
     const json = await res.json();
     const content = json?.result?.content?.[0];
-    if (content?.type === "json") return content.json as T;
+    if (content?.type === "json") return content.json;
     return null;
   } catch {
     return null;
   }
 }
 
-async function getAppointments(businessId?: string | number) {
+async function getAppointments(businessId) {
   // Try MCP tool first
-  const viaMcp = await fetchViaMCP<any[]>("fetch-table", {
+  const viaMcp = await fetchViaMCP("fetch-table", {
     table: "appointments",
     select: "id, date, status, service_id, business_id",
     limit: 2000,
@@ -66,8 +61,8 @@ async function getAppointments(businessId?: string | number) {
   return data || [];
 }
 
-async function getServices(businessId?: string | number) {
-  const viaMcp = await fetchViaMCP<any[]>("fetch-table", {
+async function getServices(businessId) {
+  const viaMcp = await fetchViaMCP("fetch-table", {
     table: "services",
     select: "id, name, business_id",
     limit: 1000,
@@ -82,7 +77,7 @@ async function getServices(businessId?: string | number) {
   return data || [];
 }
 
-function computePopularDays(appointments: Array<any>) {
+function computePopularDays(appointments) {
   const activeStatuses = new Set(["scheduled", "confirmed", "completed"]);
   const counts = Array(7).fill(0);
   for (const a of appointments) {
@@ -98,7 +93,7 @@ function computePopularDays(appointments: Array<any>) {
     .sort((a, b) => b.count - a.count);
 }
 
-function computePeakHours(appointments: Array<any>) {
+function computePeakHours(appointments) {
   const activeStatuses = new Set(["scheduled", "confirmed", "completed"]);
   const counts = Array(24).fill(0);
   for (const a of appointments) {
@@ -114,10 +109,10 @@ function computePeakHours(appointments: Array<any>) {
     .slice(0, 8);
 }
 
-function computeServiceDistribution(appointments: Array<any>, services: Array<any>) {
-  const nameById = new Map<string, string>();
+function computeServiceDistribution(appointments, services) {
+  const nameById = new Map();
   for (const s of services) nameById.set(String(s.id), s.name);
-  const counter = new Map<string, number>();
+  const counter = new Map();
   for (const a of appointments) {
     if (!a?.service_id) continue;
     counter.set(String(a.service_id), (counter.get(String(a.service_id)) || 0) + 1);
@@ -132,8 +127,15 @@ function computeServiceDistribution(appointments: Array<any>, services: Array<an
   return rows.sort((a, b) => b.count - a.count).slice(0, 10);
 }
 
-export default async (req: Request): Promise<Response> => {
-  const headers: Record<string, string> = {
+exports.handler = async (event, context) => {
+  const req = {
+    method: event.httpMethod,
+    headers: new Map(Object.entries(event.headers)),
+    json: async () => JSON.parse(event.body || "{}"),
+    url: `https://${event.headers.host}${event.path}`
+  };
+  
+  const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -141,23 +143,23 @@ export default async (req: Request): Promise<Response> => {
   };
 
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers });
+    return { statusCode: 200, headers, body: "" };
   }
 
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers });
+    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
   try {
-    let body: DataRequestBody = {};
+    let body = {};
     try {
       body = await req.json();
     } catch {
-      return new Response(JSON.stringify({ error: "Invalid or empty JSON body" }), { status: 400, headers });
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or empty JSON body" }) };
     }
     const { question, businessId } = body;
     if (!question || typeof question !== "string") {
-      return new Response(JSON.stringify({ error: "Missing 'question'" }), { status: 400, headers });
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing 'question'" }) };
     }
 
     const intent = detectIntent(question);
@@ -183,16 +185,15 @@ export default async (req: Request): Promise<Response> => {
         data = { note: "No specific metric detected; provide general insight using available data." };
     }
 
-    return new Response(
-      JSON.stringify({ intent, data }),
-      { status: 200, headers }
-    );
-  } catch (err: any) {
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ intent, data })
+    };
+  } catch (err) {
     console.error("business-data error", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500, headers });
+    return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
   }
 };
-
-export const config = { path: "/business-data" };
 
 

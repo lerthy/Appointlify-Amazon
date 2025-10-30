@@ -1,8 +1,14 @@
-import Groq from "groq-sdk";
+const Groq = require("groq-sdk");
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 
-export default async (req) => {
+exports.handler = async (event, context) => {
+  const req = {
+    method: event.httpMethod,
+    headers: new Map(Object.entries(event.headers)),
+    json: async () => JSON.parse(event.body || "{}"),
+    url: `https://${event.headers.host}${event.path}`
+  };
   const securityHeaders = {
     "Content-Type": "application/json",
     "X-Content-Type-Options": "nosniff",
@@ -15,14 +21,31 @@ export default async (req) => {
   };
 
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers: securityHeaders });
+    return { statusCode: 200, headers: securityHeaders, body: "" };
+  }
+
+  if (req.method === "GET") {
+    return {
+      statusCode: 200,
+      headers: securityHeaders,
+      body: JSON.stringify({ 
+        status: "groq-chat function is running",
+        method: "POST",
+        expectedBody: { question: "string", businessId: "optional" },
+        envCheck: {
+          groqKey: !!process.env.GROQ_API_KEY_BUSINESS || !!process.env.GROQ_CHAT_API_KEY || !!process.env.GROQ_API_KEY,
+          supabase: !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY
+        }
+      })
+    };
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: securityHeaders }
-    );
+    return {
+      statusCode: 405,
+      headers: securityHeaders,
+      body: JSON.stringify({ error: "Method not allowed. Use POST with JSON body or GET for status." })
+    };
   }
 
   try {
@@ -30,28 +53,31 @@ export default async (req) => {
     try {
       body = await req.json();
     } catch {
-      return new Response(
-        JSON.stringify({ error: "Invalid or empty JSON body" }),
-        { status: 400, headers: securityHeaders }
-      );
+      return {
+        statusCode: 400,
+        headers: securityHeaders,
+        body: JSON.stringify({ error: "Invalid or empty JSON body" })
+      };
     }
     const { question, businessId } = body;
-
     if (!question || typeof question !== "string") {
-      return new Response(
-        JSON.stringify({ error: "Missing 'question' in body" }),
-        { status: 400, headers: securityHeaders }
-      );
+      return {
+        statusCode: 400,
+        headers: securityHeaders,
+        body: JSON.stringify({ error: "Missing 'question' in body" })
+      };
     }
 
     const groqApiKey = process.env.GROQ_API_KEY_BUSINESS || process.env.GROQ_CHAT_API_KEY || process.env.GROQ_API_KEY;
     if (!groqApiKey) {
-      return new Response(
-        JSON.stringify({ error: "GROQ_API_KEY not configured" }),
-        { status: 500, headers: securityHeaders }
-      );
+      return {
+        statusCode: 500,
+        headers: securityHeaders,
+        body: JSON.stringify({ error: "GROQ_API_KEY not configured" })
+      };
     }
 
+    // Ask the data function for structured info relevant to the question
     const dataFnUrl = new URL("/.netlify/functions/business-data", req.url);
     const dataRes = await fetch(dataFnUrl.toString(), {
       method: "POST",
@@ -74,7 +100,10 @@ If needed, summarize trends and provide a short takeaway. If there is no relevan
       { role: "system", content: systemPrompt },
       {
         role: "user",
-        content: JSON.stringify({ question, structuredData: dataPayload }),
+        content: JSON.stringify({
+          question,
+          structuredData: dataPayload,
+        }),
       },
     ];
 
@@ -85,21 +114,21 @@ If needed, summarize trends and provide a short takeaway. If there is no relevan
       max_tokens: 400,
     });
 
-    const text = (completion.choices && completion.choices[0] && completion.choices[0].message && completion.choices[0].message.content) || "I couldn't generate a response.";
+    const text = completion.choices?.[0]?.message?.content ?? "I couldn't generate a response.";
 
-    return new Response(
-      JSON.stringify({ answer: text, data: dataPayload }),
-      { status: 200, headers: securityHeaders }
-    );
+    return {
+      statusCode: 200,
+      headers: securityHeaders,
+      body: JSON.stringify({ answer: text, data: dataPayload })
+    };
   } catch (err) {
     console.error("groq-chat error", err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: securityHeaders }
-    );
+    return {
+      statusCode: 500,
+      headers: securityHeaders,
+      body: JSON.stringify({ error: "Internal server error" })
+    };
   }
 };
-
-export const config = { path: "/groq-chat" };
 
 
