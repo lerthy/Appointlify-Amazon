@@ -44,20 +44,25 @@ async function fetchViaMCP(toolName, args) {
 }
 
 async function getAppointments(businessId) {
-  // Try MCP tool first
+  // Try MCP tool first - get ALL appointments regardless of status/date
   const viaMcp = await fetchViaMCP("fetch-table", {
     table: "appointments",
-    select: "id, date, status, service_id, business_id",
+    select: "*", // Get all fields to match frontend
     limit: 2000,
     eq: businessId ? { business_id: String(businessId) } : undefined,
   });
-  if (viaMcp) return viaMcp;
-  // Fallback to direct Supabase
+  if (viaMcp) {
+    console.log(`DEBUG: Got ${viaMcp.length} appointments via MCP`);
+    return viaMcp;
+  }
+  
+  // Fallback to direct Supabase - get ALL appointments
   const sb = supabaseServer();
-  let query = sb.from("appointments").select("id, date, status, service_id, business_id").limit(2000);
+  let query = sb.from("appointments").select("*").limit(2000);
   if (businessId) query = query.eq("business_id", businessId);
   const { data, error } = await query;
   if (error) throw error;
+  console.log(`DEBUG: Got ${data?.length || 0} appointments via Supabase`);
   return data || [];
 }
 
