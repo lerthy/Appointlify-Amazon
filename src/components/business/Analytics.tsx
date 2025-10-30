@@ -75,26 +75,16 @@ const Analytics: React.FC = () => {
     })).sort((a, b) => b.count - a.count);
   };
   
-  // Calculate hourly distribution
+  // Calculate hourly distribution - USE SAME DATA AS PEAK HOURS for consistency
   const calculateHourlyDistribution = () => {
-    // Create hourly buckets
-    const hourCounts = Array(24).fill(0);
-    
-    // Count active appointments by hour
-    activeAppointments.forEach(appointment => {
-      const date = new Date(appointment.date);
-      const hour = date.getHours();
-      hourCounts[hour]++;
-    });
-    
-    // Format hours in 24h
-    return hourCounts.map((count, hour) => ({
-      hour,
-      hourFormatted: new Date(2000, 0, 1, hour).toLocaleTimeString('en-GB', {
+    // Use analytics.peakHours data (same as Peak Hours chart) instead of activeAppointments
+    return analytics.peakHours.map(hour => ({
+      hour: hour.hour,
+      hourFormatted: new Date(2000, 0, 1, hour.hour).toLocaleTimeString('en-GB', {
         hour: '2-digit',
         hour12: false
       }),
-      count
+      count: hour.count
     })).sort((a, b) => b.count - a.count);
   };
   
