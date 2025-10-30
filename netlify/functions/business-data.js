@@ -102,8 +102,6 @@ function computePeakHours(appointments) {
   
   const hourCounts = Array(24).fill(0);
   
-  console.log(`DEBUG: Processing ${appointments.length} appointments`);
-  
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
     
@@ -111,28 +109,9 @@ function computePeakHours(appointments) {
     const utcHour = d.getUTCHours();
     
     // Apply timezone offset to match frontend
-    // Charts show 10,09,13 but AI shows 8,7,11 -> need +2 offset
     const adjustedHour = (utcHour + 2) % 24;
     hourCounts[adjustedHour]++;
-    
-    // Debug appointments that map to hour 10 specifically
-    if (adjustedHour === 10) {
-      console.log(`DEBUG HOUR 10: ${appointment.date} -> UTC: ${utcHour}, Adjusted: ${adjustedHour}`);
-    }
-    
-    // Debug first few
-    if (hourCounts.reduce((sum, c) => sum + c, 0) <= 3) {
-      console.log(`DEBUG: ${appointment.date} -> UTC: ${utcHour}, Adjusted: ${adjustedHour}`);
-    }
   });
-  
-  // Convert to same format as frontend
-  const peakHours = hourCounts
-    .map((count, hour) => ({ hour, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-  
-  console.log('DEBUG: Peak hours result:', peakHours.map(h => `${h.hour}:${h.count}`));
   
   return hourCounts
     .map((count, hour) => ({ hour, count }))
