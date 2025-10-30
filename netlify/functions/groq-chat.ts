@@ -36,7 +36,16 @@ export default async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { question, businessId }: ChatRequestBody = await req.json();
+    let body: ChatRequestBody = {};
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid or empty JSON body" }),
+        { status: 400, headers: securityHeaders }
+      );
+    }
+    const { question, businessId } = body;
     if (!question || typeof question !== "string") {
       return new Response(
         JSON.stringify({ error: "Missing 'question' in body" }),

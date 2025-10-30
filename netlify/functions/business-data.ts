@@ -149,7 +149,13 @@ export default async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { question, businessId }: DataRequestBody = await req.json();
+    let body: DataRequestBody = {};
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid or empty JSON body" }), { status: 400, headers });
+    }
+    const { question, businessId } = body;
     if (!question || typeof question !== "string") {
       return new Response(JSON.stringify({ error: "Missing 'question'" }), { status: 400, headers });
     }

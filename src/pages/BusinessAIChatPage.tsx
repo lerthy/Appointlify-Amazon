@@ -18,7 +18,13 @@ const BusinessAIChatPage: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        throw new Error(text || "Non-JSON response");
+      }
       if (!res.ok) throw new Error(data?.error || "Request failed");
       setAnswer(data?.answer || "");
     } catch (err: any) {
