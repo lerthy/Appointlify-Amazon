@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent } from '../ui/Card';
 import { useApp } from '../../context/AppContext';
 
 const Analytics: React.FC = () => {
-  const { analytics, appointments, services } = useApp();
+  const { analytics, appointments, services, businessId } = useApp();
   
   // AI Chat state
   const [question, setQuestion] = useState("");
@@ -112,6 +112,89 @@ const Analytics: React.FC = () => {
   const dailyDistribution = calculateDailyDistribution();
   const hourlyDistribution = calculateHourlyDistribution().filter(h => h.count > 0).slice(0, 5);
 
+  // Add sample appointments for testing
+  const addSampleAppointments = async () => {
+    if (!businessId) {
+      setError("No business ID found");
+      return;
+    }
+
+    try {
+      const { supabase } = await import('../../utils/supabaseClient');
+      
+      // Get a service ID
+      const { data: serviceData } = await supabase
+        .from('services')
+        .select('id')
+        .eq('business_id', businessId)
+        .limit(1);
+      
+      if (!serviceData || serviceData.length === 0) {
+        setError("No services found. Please add services first.");
+        return;
+      }
+
+      const serviceId = serviceData[0].id;
+      
+      // Create sample appointments
+      const sampleAppointments = [
+        {
+          customer_id: 'sample-customer-1',
+          service_id: serviceId,
+          business_id: businessId,
+          employee_id: businessId, // Use business_id as employee_id for simplicity
+          name: 'John Doe',
+          phone: '555-0123',
+          email: 'john@example.com',
+          date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+          duration: 60,
+          status: 'scheduled',
+          reminder_sent: false,
+          notes: 'Sample appointment'
+        },
+        {
+          customer_id: 'sample-customer-2',
+          service_id: serviceId,
+          business_id: businessId,
+          employee_id: businessId,
+          name: 'Jane Smith',
+          phone: '555-0124',
+          email: 'jane@example.com',
+          date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // Day after tomorrow
+          duration: 45,
+          status: 'confirmed',
+          reminder_sent: true,
+          notes: 'Sample appointment 2'
+        },
+        {
+          customer_id: 'sample-customer-3',
+          service_id: serviceId,
+          business_id: businessId,
+          employee_id: businessId,
+          name: 'Bob Johnson',
+          phone: '555-0125',
+          email: 'bob@example.com',
+          date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+          duration: 30,
+          status: 'completed',
+          reminder_sent: true,
+          notes: 'Sample completed appointment'
+        }
+      ];
+
+      const { error } = await supabase
+        .from('appointments')
+        .insert(sampleAppointments);
+
+      if (error) throw error;
+      
+      // Refresh the page data
+      window.location.reload();
+    } catch (err: any) {
+      setError(`Failed to add sample appointments: ${err.message}`);
+    }
+  };
+
   // AI Chat handler
   const handleAIChat = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +206,7 @@ const Analytics: React.FC = () => {
       const res = await fetch("/.netlify/functions/groq-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, businessId }),
       });
       const text = await res.text();
       let data: any = null;
@@ -289,6 +372,21 @@ const Analytics: React.FC = () => {
 
             <div className="border rounded p-3 min-h-[120px] whitespace-pre-wrap bg-gray-50">
               {answer || (loading ? 'Thinking…' : 'Ask a question about your business data and get AI-powered insights.')}
+            </div>
+            
+            {/* Debug info and sample data button */}
+            <div className="mt-2 flex items-center justify-between">
+              <div className="text-xs text-gray-500">
+                Debug: {appointments.length} appointments, {services.length} services, Business ID: {businessId || 'none'}
+              </div>
+              {appointments.length === 0 && (
+                <button
+                  onClick={addSampleAppointments}
+                  className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded"
+                >
+                  Add Sample Data
+                </button>
+              )}
             </div>
           </CardContent>
         </Card>
