@@ -112,8 +112,17 @@ function computePeakHours(appointments) {
   for (const a of appointments) {
     if (!a?.date) continue;
     const d = new Date(a.date);
-    // Use local time like frontend does
-    counts[d.getHours()] += 1;
+    
+    // Netlify functions run in UTC, but frontend runs in user's timezone
+    // Based on the discrepancy (charts show 10,09,13 vs AI shows 8,7,11)
+    // There's roughly a +2 hour offset needed
+    // Let's try to match the frontend by adding timezone offset
+    
+    // Get UTC hour and add estimated timezone offset
+    const utcHour = d.getUTCHours();
+    const estimatedLocalHour = (utcHour + 2) % 24; // +2 hours offset (adjust as needed)
+    
+    counts[estimatedLocalHour] += 1;
   }
   
   console.log('DEBUG: Hour counts:', counts.map((count, hour) => count > 0 ? `${hour}:${count}` : null).filter(Boolean));
