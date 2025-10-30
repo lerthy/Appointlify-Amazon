@@ -186,7 +186,7 @@ exports.handler = async (event, context) => {
       getServices(businessId),
     ]);
 
-    let data: any = null;
+    let data = null;
     switch (intent) {
       case "popular_days":
         data = computePopularDays(appointments);
