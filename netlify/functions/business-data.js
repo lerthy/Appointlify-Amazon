@@ -95,43 +95,27 @@ function computePopularDays(appointments) {
 
 function computePeakHours(appointments) {
   const hourCounts = Array(24).fill(0);
-  let processedCount = 0;
-  let skippedCount = 0;
+  let totalProcessed = 0;
   
   appointments.forEach(appointment => {
-    if (!appointment?.date) {
-      skippedCount++;
-      return;
-    }
+    if (!appointment?.date) return;
     
-    // Multiple approaches to extract hour and match frontend exactly
+    // INSIGHT: Supabase stores dates with timezone info
+    // Frontend browser converts UTC → local time automatically
+    // Backend server stays in UTC
+    // Solution: Add timezone offset (+2 hours for UTC+2)
+    
     const d = new Date(appointment.date);
-    let hour;
+    const utcHour = d.getUTCHours();
+    const localHour = (utcHour + 2) % 24; // Convert UTC to local time (UTC+2)
     
-    // Method 1: Try direct string parsing first
-    if (typeof appointment.date === 'string' && appointment.date.includes('T')) {
-      const timePart = appointment.date.split('T')[1];
-      if (timePart && timePart.includes(':')) {
-        hour = parseInt(timePart.split(':')[0], 10);
-      }
-    }
-    
-    // Method 2: If string parsing failed, use timezone-adjusted approach
-    if (hour === undefined || isNaN(hour)) {
-      const utcHour = d.getUTCHours();
-      hour = (utcHour + 2) % 24; // Add 2 hours for timezone
-    }
-    
-    if (processedCount < 3) {
-      console.log(`DEBUG appointment ${processedCount}: date="${appointment.date}", getHours()=${d.getHours()}, getUTCHours()=${d.getUTCHours()}, final hour=${hour}`);
-    }
-    
-    hourCounts[hour]++;
-    processedCount++;
+    hourCounts[localHour]++;
+    totalProcessed++;
   });
   
-  console.log(`DEBUG: Total appointments: ${appointments.length}, Processed: ${processedCount}, Skipped: ${skippedCount}`);
-  console.log(`DEBUG: Hour 10 count: ${hourCounts[10]}`);
+  console.log(`[computePeakHours] Total appointments: ${appointments.length}, Processed: ${totalProcessed}`);
+  console.log(`[computePeakHours] Hour distribution:`, Object.entries(hourCounts).filter(([h, c]) => c > 0).map(([h, c]) => `${h}:${c}`).join(', '));
+  console.log(`[computePeakHours] Hour 10 count: ${hourCounts[10]}, Hour 9 count: ${hourCounts[9]}`);
   
   return hourCounts
     .map((count, hour) => ({ hour, count }))
