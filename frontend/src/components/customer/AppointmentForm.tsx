@@ -10,7 +10,6 @@ import { useNotification } from '../../context/NotificationContext';
 import { formatDate } from '../../utils/formatters';
 import { sendAppointmentConfirmation } from '../../utils/emailService';
 import { sendSMS } from '../../utils/smsService';
-import { supabase } from '../../utils/supabaseClient';
 
 interface AppointmentFormProps {
   businessId?: string;
@@ -122,15 +121,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     if (!businessId) return;
     const fetchBusiness = async () => {
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, name, description, logo')
-          .eq('id', businessId)
-          .single();
-        if (error) throw error;
-        if (data) {
-          setBusiness(data);
-        }
+        const res = await fetch(`/api/business/${businessId}/info`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json?.info) setBusiness(json.info);
       } catch (err) {
         console.error('Error fetching business:', err);
         showNotification('Failed to load business information. Please try again.', 'error');
@@ -149,49 +143,24 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     
     const fetchBookedSlots = async () => {
       try {
-        const startOfDay = parseLocalDate(formData.date);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = parseLocalDate(formData.date);
-        endOfDay.setHours(23, 59, 59, 999);
-        
-        const { data, error } = await supabase
-          .from('appointments')
-          .select('date, duration, employee_id, status')
-          .eq('business_id', businessId)
-          .eq('employee_id', formData.employee_id) // Only get appointments for the selected employee
-          .neq('status', 'cancelled') // Exclude cancelled appointments
-          .gte('date', startOfDay.toISOString())
-          .lte('date', endOfDay.toISOString());
-          
-        if (error) {
-          console.error('Supabase error fetching booked slots:', error);
-          // Don't show error notification for missing data, just set empty slots
-          setBookedSlots([]);
-          return;
-        }
-        
-        if (data) {
-          const bookedSlots = new Set<string>();
-          
-          data.forEach((appt: any) => {
-            const appointmentTime = new Date(appt.date);
-            const duration = appt.duration || 30; // Default to 30 minutes if no duration
-            
-            // Add all time slots that are occupied by this appointment for this specific employee
-            for (let i = 0; i < duration; i += 30) {
-              const slotTime = new Date(appointmentTime);
-              slotTime.setMinutes(slotTime.getMinutes() + i);
-              bookedSlots.add(slotTime.toTimeString().slice(0, 5));
-            }
-          });
-          
-          setBookedSlots(Array.from(bookedSlots));
-        } else {
-          setBookedSlots([]);
-        }
+        const params = new URLSearchParams({ date: formData.date, employeeId: formData.employee_id });
+        const res = await fetch(`/api/business/${businessId}/appointmentsByDay?${params.toString()}`);
+        if (!res.ok) { setBookedSlots([]); return; }
+        const json = await res.json();
+        const data = json?.appointments || [];
+        const booked = new Set<string>();
+        data.forEach((appt: any) => {
+          const appointmentTime = new Date(appt.date);
+          const duration = appt.duration || 30;
+          for (let i = 0; i < duration; i += 30) {
+            const slotTime = new Date(appointmentTime);
+            slotTime.setMinutes(slotTime.getMinutes() + i);
+            booked.add(slotTime.toTimeString().slice(0, 5));
+          }
+        });
+        setBookedSlots(Array.from(booked));
       } catch (err) {
         console.error('Error fetching booked slots:', err);
-        // Only show error for actual errors, not initialization issues
         if (formData.employee_id && formData.date && businessId) {
           showNotification('Failed to load available time slots. Please try again.', 'error');
         }

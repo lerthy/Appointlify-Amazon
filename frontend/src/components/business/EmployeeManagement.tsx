@@ -25,7 +25,7 @@ interface EmployeeFormData {
 }
 
 const EmployeeManagement: React.FC = () => {
-  const { employees, addEmployee, updateEmployee, deleteEmployee } = useApp();
+  const { employees, addEmployee, updateEmployee, deleteEmployee, businessId } = useApp();
   const { user } = useAuth();
   const { showNotification } = useNotification();
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
@@ -107,7 +107,7 @@ const EmployeeManagement: React.FC = () => {
         
         // Add new employee
         await addEmployee({
-          business_id: user?.id || '',
+          business_id: businessId || user?.id || '',
           name: formData.name,
           email: formData.email,
           phone: formData.phone,

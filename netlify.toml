@@ -1,13 +1,13 @@
 [build]
   command = "npm run build"
-  publish = "dist"
-  functions = "netlify/functions"
+  publish = "frontend/dist"
+  functions = "backend/netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
 
 [functions]
-  directory = "netlify/functions"
+  directory = "backend/netlify/functions"
 
 [[redirects]]
   from = "/*"

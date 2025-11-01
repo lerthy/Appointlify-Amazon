@@ -19,7 +19,7 @@ export const sendSMS = async (params: SMSParams): Promise<boolean> => {
         endpoint = '/.netlify/functions/send-sms';
       } else {
         // Try local server first, fallback to simulation
-        endpoint = 'http://localhost:3001/api/send-sms';
+        endpoint = 'http://localhost:5000/api/send-sms';
       }
     } else {
       // Production - use Netlify function
@@ -81,3 +81,5 @@ export const sendSMS = async (params: SMSParams): Promise<boolean> => {
     return false;
   }
 }; // Notifications
+
+
