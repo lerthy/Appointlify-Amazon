@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import express from 'express';
 import twilio from 'twilio';
 import cors from 'cors';
@@ -6,7 +7,20 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import fs from 'fs';
 import OpenAI from 'openai';
-import { supabase } from './supabaseClient.js';
+import { validateDto } from './middleware/validation.js';
+import { ChatDto } from './dtos/ChatDto.js';
+import { BookAppointmentDto } from './dtos/BookAppointmentDto.js';
+import { SendSmsDto } from './dtos/SendSmsDto.js';
+import { SendEmailDto } from './dtos/SendEmailDto.js';
+import { UpdateBusinessSettingsDto } from './dtos/UpdateBusinessSettingsDto.js';
+import { CreateAppointmentDto } from './dtos/CreateAppointmentDto.js';
+import { UpdateAppointmentDto } from './dtos/UpdateAppointmentDto.js';
+import { CreateCustomerDto } from './dtos/CreateCustomerDto.js';
+import { CreateServiceDto } from './dtos/CreateServiceDto.js';
+import { UpdateServiceDto } from './dtos/UpdateServiceDto.js';
+import { CreateEmployeeDto } from './dtos/CreateEmployeeDto.js';
+import { UpdateEmployeeDto } from './dtos/UpdateEmployeeDto.js';
+import { CreateReviewDto } from './dtos/CreateReviewDto.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,6 +29,8 @@ const __dirname = dirname(__filename);
 const localEnvPath = resolve(__dirname, '.env');
 const rootEnvPath = resolve(__dirname, '../.env');
 dotenv.config({ path: fs.existsSync(localEnvPath) ? localEnvPath : rootEnvPath });
+
+import { supabase } from './supabaseClient.js';
 
 const app = express();
 app.use(cors());
@@ -165,7 +181,7 @@ async function getMockAIResponse(messages, context) {
 }
 
 // OpenAI Chat endpoint for AI Chatbot
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', validateDto(ChatDto), async (req, res) => {
   try {
     const { messages, context } = req.body;
     
@@ -265,7 +281,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 });
 
 // Mock booking endpoint (replace with your actual booking logic)
-app.post('/api/book-appointment', async (req, res) => {
+app.post('/api/book-appointment', validateDto(BookAppointmentDto), async (req, res) => {
   try {
     const { name, service, date, time, email, phone } = req.body;
     
@@ -291,7 +307,7 @@ app.post('/api/book-appointment', async (req, res) => {
 });
 
 // SMS endpoint
-app.post('/api/send-sms', async (req, res) => {
+app.post('/api/send-sms', validateDto(SendSmsDto), async (req, res) => {
   try {
     if (!client) {
       return res.status(503).json({ 
@@ -332,12 +348,9 @@ app.post('/api/send-sms', async (req, res) => {
 });
 
 // Email endpoint (simulated; replace with real provider like SES/SendGrid)
-app.post('/api/send-email', async (req, res) => {
+app.post('/api/send-email', validateDto(SendEmailDto), async (req, res) => {
   try {
-    const { to, subject, html, text } = req.body || {};
-    if (!to || !subject || (!html && !text)) {
-      return res.status(400).json({ success: false, error: 'Missing to, subject, and html or text' });
-    }
+    const { to, subject, html, text } = req.body;
     console.log('Email would be sent:', { to, subject, hasHtml: !!html, hasText: !!text });
     const emailId = `email_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     return res.json({ success: true, messageId: emailId, message: 'Email sent successfully (simulated)' });
@@ -396,7 +409,7 @@ app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
   }
 });
 
-app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
+app.patch('/api/business/:businessId/settings', requireDb, validateDto(UpdateBusinessSettingsDto, true), async (req, res) => {
   try {
     const { businessId } = req.params;
     const updates = req.body || {};
@@ -498,12 +511,9 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
 });
 
 // Create appointment (and customer if needed), then send notifications
-app.post('/api/appointments', requireDb, async (req, res) => {
+app.post('/api/appointments', requireDb, validateDto(CreateAppointmentDto), async (req, res) => {
   try {
-    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration } = req.body || {};
-    if (!business_id || !service_id || !employee_id || !name || !phone || !email || !date) {
-      return res.status(400).json({ success: false, error: 'Missing required fields' });
-    }
+    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration } = req.body;
 
     const appointmentDate = new Date(date);
 
@@ -576,11 +586,10 @@ app.post('/api/appointments', requireDb, async (req, res) => {
   }
 });
 
-app.patch('/api/appointments/:id', requireDb, async (req, res) => {
+app.patch('/api/appointments/:id', requireDb, validateDto(UpdateAppointmentDto), async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body || {};
-    if (!status) return res.status(400).json({ success: false, error: 'Missing status' });
+    const { status } = req.body;
     const { error } = await supabase
       .from('appointments')
       .update({ status })
@@ -614,10 +623,9 @@ app.get('/api/customers', async (req, res) => {
   }
 });
 
-app.post('/api/customers', requireDb, async (req, res) => {
+app.post('/api/customers', requireDb, validateDto(CreateCustomerDto), async (req, res) => {
   try {
-    const { name, email, phone } = req.body || {};
-    if (!name || !email) return res.status(400).json({ success: false, error: 'Missing name or email' });
+    const { name, email, phone } = req.body;
     const { data, error } = await supabase
       .from('customers')
       .insert([{ name, email, phone }])
@@ -632,12 +640,9 @@ app.post('/api/customers', requireDb, async (req, res) => {
 });
 
 // Services CRUD
-app.post('/api/services', requireDb, async (req, res) => {
+app.post('/api/services', requireDb, validateDto(CreateServiceDto), async (req, res) => {
   try {
-    const service = req.body || {};
-    if (!service.business_id || !service.name || typeof service.duration !== 'number' || typeof service.price !== 'number') {
-      return res.status(400).json({ success: false, error: 'Missing required service fields (business_id, name, duration, price)' });
-    }
+    const service = req.body;
     const { data, error } = await supabase
       .from('services')
       .insert([service])
@@ -651,7 +656,7 @@ app.post('/api/services', requireDb, async (req, res) => {
   }
 });
 
-app.patch('/api/services/:id', requireDb, async (req, res) => {
+app.patch('/api/services/:id', requireDb, validateDto(UpdateServiceDto, true), async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body || {};
@@ -705,12 +710,9 @@ app.get('/api/employees', async (req, res) => {
 });
 
 // Create employee
-app.post('/api/employees', async (req, res) => {
+app.post('/api/employees', validateDto(CreateEmployeeDto), async (req, res) => {
   try {
-    const employee = req.body || {};
-    if (!employee.business_id || !employee.name || !employee.role || !employee.email) {
-      return res.status(400).json({ success: false, error: 'Missing required employee fields (business_id, name, role, email)' });
-    }
+    const employee = req.body;
 
     if (!supabase) {
       // In-memory fallback for dev
@@ -733,7 +735,7 @@ app.post('/api/employees', async (req, res) => {
 });
 
 // Update employee
-app.patch('/api/employees/:id', async (req, res) => {
+app.patch('/api/employees/:id', validateDto(UpdateEmployeeDto, true), async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body || {};
@@ -784,7 +786,7 @@ app.delete('/api/employees/:id', async (req, res) => {
 });
 
 // Reviews create
-app.post('/api/reviews', requireDb, async (req, res) => {
+app.post('/api/reviews', requireDb, validateDto(CreateReviewDto), async (req, res) => {
   try {
     const review = req.body || {};
     const { data, error } = await supabase
