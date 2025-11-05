@@ -13,10 +13,13 @@ const BusinessAIChatPage: React.FC = () => {
     setAnswer("");
 
     try {
-      const res = await fetch("/.netlify/functions/groq-chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: question }],
+          context: {},
+        }),
       });
       const text = await res.text();
       let data: any = null;
@@ -26,7 +29,7 @@ const BusinessAIChatPage: React.FC = () => {
         throw new Error(text || "Non-JSON response");
       }
       if (!res.ok) throw new Error(data?.error || "Request failed");
-      setAnswer(data?.answer || "");
+      setAnswer(data?.message || "");
     } catch (err: any) {
       setError(err?.message || "Something went wrong");
     } finally {

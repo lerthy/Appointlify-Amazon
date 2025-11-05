@@ -18,8 +18,8 @@ export const sendSMS = async (params: SMSParams): Promise<boolean> => {
         // Netlify dev server
         endpoint = '/.netlify/functions/send-sms';
       } else {
-        // Try local server first, fallback to simulation
-        endpoint = 'http://localhost:5000/api/send-sms';
+        // Use Vite proxy for local dev
+        endpoint = '/api/send-sms';
       }
     } else {
       // Production - use Netlify function
@@ -81,5 +81,7 @@ export const sendSMS = async (params: SMSParams): Promise<boolean> => {
     return false;
   }
 }; // Notifications
+
+
 
 

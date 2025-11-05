@@ -1,11 +1,8 @@
 import 'reflect-metadata';
+import './loadEnv.js';
 import express from 'express';
 import twilio from 'twilio';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import fs from 'fs';
 import OpenAI from 'openai';
 import { validateDto } from './middleware/validation.js';
 import { ChatDto } from './dtos/ChatDto.js';
@@ -22,18 +19,27 @@ import { CreateEmployeeDto } from './dtos/CreateEmployeeDto.js';
 import { UpdateEmployeeDto } from './dtos/UpdateEmployeeDto.js';
 import { CreateReviewDto } from './dtos/CreateReviewDto.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Prefer a local backend/.env so backend can run independently; fallback to root .env
-const localEnvPath = resolve(__dirname, '.env');
-const rootEnvPath = resolve(__dirname, '../.env');
-dotenv.config({ path: fs.existsSync(localEnvPath) ? localEnvPath : rootEnvPath });
-
 import { supabase } from './supabaseClient.js';
 
+console.log('Supabase available at startup:', !!supabase);
+
+// Configure CORS allowlist for production
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+const corsOptions = {
+  origin: (origin, cb) => {
+    // Allow non-browser requests or when no allowlist configured
+    if (!origin || allowedOrigins.length === 0) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+};
+
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Lightweight in-memory store for dev when Supabase is not configured
@@ -48,6 +54,11 @@ function generateId(prefix) {
 // Basic status routes so visiting the root doesn't 404
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// API health for frontend reachability checks
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true });
 });
 
 // Handle Chrome DevTools probe to avoid noisy 404s
@@ -80,6 +91,7 @@ app.get('/', (req, res) => {
 // Middleware: guard DB-backed routes if Supabase isn't configured
 function requireDb(req, res, next) {
   if (!supabase) {
+    console.warn('requireDb blocked request (DB not configured):', req.method, req.originalUrl);
     return res.status(503).json({
       success: false,
       error: 'Database not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in backend/.env.'
@@ -285,7 +297,9 @@ app.post('/api/book-appointment', validateDto(BookAppointmentDto), async (req, r
   try {
     const { name, service, date, time, email, phone } = req.body;
     
-    console.log('Booking request received:', { name, service, date, time, email, phone });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Booking request received:', { name, service, date, time, email, phone });
+    }
     
     // Here you would integrate with your actual booking system
     // For now, we'll just simulate a successful booking
@@ -351,7 +365,9 @@ app.post('/api/send-sms', validateDto(SendSmsDto), async (req, res) => {
 app.post('/api/send-email', validateDto(SendEmailDto), async (req, res) => {
   try {
     const { to, subject, html, text } = req.body;
-    console.log('Email would be sent:', { to, subject, hasHtml: !!html, hasText: !!text });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Email would be sent:', { to, subject, hasHtml: !!html, hasText: !!text });
+    }
     const emailId = `email_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     return res.json({ success: true, messageId: emailId, message: 'Email sent successfully (simulated)' });
   } catch (error) {
@@ -364,15 +380,19 @@ app.post('/api/send-email', validateDto(SendEmailDto), async (req, res) => {
 app.get('/api/business/:businessId/services', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
+    console.log('[services] Query start', { businessId, hasSupabase: !!supabase });
     const { data, error } = await supabase
       .from('services')
       .select('*')
       .eq('business_id', businessId)
       .order('name');
-    if (error) throw error;
+    if (error) {
+      console.error('[services] Supabase error:', error.message, error);
+      throw error;
+    }
     return res.json({ success: true, services: data || [] });
   } catch (error) {
-    console.error('Error fetching services:', error);
+    console.error('[services] Handler error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch services' });
   }
 });
@@ -380,15 +400,19 @@ app.get('/api/business/:businessId/services', requireDb, async (req, res) => {
 app.get('/api/business/:businessId/employees', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
+    console.log('[employees] Query start', { businessId, hasSupabase: !!supabase });
     const { data, error } = await supabase
       .from('employees')
       .select('*')
       .eq('business_id', businessId)
       .order('name');
-    if (error) throw error;
+    if (error) {
+      console.error('[employees] Supabase error:', error.message, error);
+      throw error;
+    }
     return res.json({ success: true, employees: data || [] });
   } catch (error) {
-    console.error('Error fetching employees:', error);
+    console.error('[employees] Handler error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch employees' });
   }
 });
@@ -472,15 +496,19 @@ app.get('/api/users/by-email', async (req, res) => {
 app.get('/api/business/:businessId/appointments', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
+    console.log('[appointments] Query start', { businessId, hasSupabase: !!supabase });
     const { data, error } = await supabase
       .from('appointments')
       .select('*')
       .eq('business_id', businessId)
       .order('date', { ascending: true });
-    if (error) throw error;
+    if (error) {
+      console.error('[appointments] Supabase error:', error.message, error);
+      throw error;
+    }
     return res.json({ success: true, appointments: data || [] });
   } catch (error) {
-    console.error('Error fetching appointments:', error);
+    console.error('[appointments] Handler error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch appointments' });
   }
 });

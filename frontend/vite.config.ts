@@ -11,6 +11,10 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true,
       },
+      '/.well-known/appspecific/com.chrome.devtools.json': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
       '/.netlify/functions/chat': {
         target: 'http://localhost:5000',
         changeOrigin: true,
@@ -44,5 +48,9 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
 });
+
+
+
+
 
 

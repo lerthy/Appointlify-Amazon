@@ -103,11 +103,14 @@ const EmployeeManagement: React.FC = () => {
         showNotification('Employee updated successfully!', 'success');
         setEditingEmployee(null);
       } else {
-
-        
-        // Add new employee
+        // Ensure business is resolved before creating employee
+        if (!businessId) {
+          showNotification('Business is still loading. Please try again in a moment.', 'error');
+          return;
+        }
+        // Add new employee (payload filtered in context to match DTO)
         await addEmployee({
-          business_id: businessId || user?.id || '',
+          business_id: businessId,
           name: formData.name,
           email: formData.email,
           phone: formData.phone,

@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { 
   Appointment, 
   Service, 
@@ -91,48 +90,92 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
   const [currentView, setCurrentView] = useState<'customer' | 'business'>('customer');
   const [skipBackend, setSkipBackend] = useState<boolean>(false);
 
-  // Fetch actual business ID from users table based on auth user
+  // Fetch actual business ID from backend; fall back to local user.id if unavailable
   useEffect(() => {
     const fetchBusinessId = async () => {
+      if (!user?.email && user?.id) {
+        setActualBusinessId(user.id);
+        return;
+      }
       if (!user?.email) return;
       try {
         const res = await fetch(`/api/users/by-email?email=${encodeURIComponent(user.email)}`);
-        if (!res.ok) return;
-        const json = await res.json();
-        if (json?.user?.id) setActualBusinessId(json.user.id);
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.user?.id) {
+            setActualBusinessId(json.user.id);
+            return;
+          }
+        }
       } catch (_) {}
+      // Fallback: use auth user id for dev when backend DB is unavailable
+      if (user?.id) setActualBusinessId(user.id);
     };
     fetchBusinessId();
-  }, [user?.email]);
+  }, [user?.email, user?.id]);
 
-  // Fetch business settings from backend
+  // Fetch business settings (DB route first, then Supabase fallback); stop retrying after DB is unavailable
   useEffect(() => {
     const fetchSettings = async () => {
       if (!businessId) return;
+      if (!skipBackend) {
+        try {
+          const res = await fetch(`/api/business/${businessId}/settings`);
+          if (res.ok) {
+            const json = await res.json();
+            const data = json?.settings;
+            if (data) setBusinessSettings(data);
+            return;
+          }
+          setSkipBackend(true);
+        } catch (_) {
+          setSkipBackend(true);
+        }
+      }
+
+      // Fallback: direct Supabase read when backend DB routes are unavailable
       try {
-        const res = await fetch(`/api/business/${businessId}/settings`);
-        if (!res.ok) return;
-        const json = await res.json();
-        const data = json?.settings;
-        if (data) setBusinessSettings(data);
+        const { data } = await supabase
+          .from('business_settings')
+          .select('*')
+          .eq('business_id', businessId)
+          .single();
+        if (data) setBusinessSettings(data as unknown as BusinessSettings);
       } catch (_) {}
     };
     fetchSettings();
-  }, [businessId]);
+  }, [businessId, skipBackend]);
 
-  // Fetch appointments from backend
+  // Fetch appointments (DB route first; on failure, mark skip and use Supabase fallback)
   useEffect(() => {
     const fetchAppointments = async () => {
       if (!businessId) return;
+      if (!skipBackend) {
+        try {
+          const res = await fetch(`/api/business/${businessId}/appointments`);
+          if (res.ok) {
+            const json = await res.json();
+            setAppointments(json?.appointments || []);
+            return;
+          }
+          setSkipBackend(true);
+        } catch (_) {
+          setSkipBackend(true);
+        }
+      }
+
+      // Fallback: direct Supabase
       try {
-        const res = await fetch(`/api/business/${businessId}/appointments`);
-        if (!res.ok) return;
-        const json = await res.json();
-        setAppointments(json?.appointments || []);
+        const { data } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('business_id', businessId)
+          .order('date', { ascending: true });
+        setAppointments((data as unknown as Appointment[]) || []);
       } catch (_) {}
     };
     fetchAppointments();
-  }, [businessId]);
+  }, [businessId, skipBackend]);
 
   // Fetch customers from backend
   useEffect(() => {
@@ -157,44 +200,103 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
           const res = await fetch(`/api/business/${effectiveBusinessId}/employees`);
           if (res.ok) {
             const json = await res.json();
-            setEmployees(json?.employees || []);
+            const list = (json?.employees || []) as Employee[];
+            const byEmail = new Map<string, Employee>();
+            list.forEach(e => byEmail.set(e.email, e));
+            setEmployees(Array.from(byEmail.values()));
             return;
           }
+          // Fallback to dev in-memory list when DB route is unavailable (e.g., 503)
+          try {
+            const devRes = await fetch('/api/employees');
+            if (devRes.ok) {
+              const json = await devRes.json();
+              const list = (json?.employees || []) as Employee[];
+              const byEmail = new Map<string, Employee>();
+              list.forEach(e => byEmail.set(e.email, e));
+              setEmployees(Array.from(byEmail.values()));
+              return;
+            }
+          } catch {}
           // Mark backend as unavailable to avoid repeated 503s
+          setSkipBackend(true);
+        } catch (_) {
+          // Try dev fallback once on network/route error
+          try {
+            const devRes = await fetch('/api/employees');
+            if (devRes.ok) {
+              const json = await devRes.json();
+              const list = (json?.employees || []) as Employee[];
+              const byEmail = new Map<string, Employee>();
+              list.forEach(e => byEmail.set(e.email, e));
+              setEmployees(Array.from(byEmail.values()));
+              return;
+            }
+          } catch {}
+          setSkipBackend(true);
+        }
+      } else {
+        // When backend DB routes are unavailable, prefer dev in-memory endpoint first
+        try {
+          const devRes = await fetch('/api/employees');
+          if (devRes.ok) {
+            const json = await devRes.json();
+            const list = (json?.employees || []) as Employee[];
+            const byEmail = new Map<string, Employee>();
+            list.forEach(e => byEmail.set(e.email, e));
+            setEmployees(Array.from(byEmail.values()));
+            return;
+          }
+        } catch {}
+        // Secondary fallback: direct Supabase query if frontend is configured
+        try {
+          const { data, error } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('business_id', effectiveBusinessId)
+            .order('created_at', { ascending: false });
+          if (!error) {
+            const list = (data || []) as Employee[];
+            const byEmail = new Map<string, Employee>();
+            list.forEach(e => byEmail.set(e.email, e));
+            setEmployees(Array.from(byEmail.values()));
+          }
+        } catch (_) {}
+      }
+    };
+    fetchEmployees();
+  }, [businessId, user?.id, skipBackend]);
+
+  // Fetch services (DB route first; on failure, mark skip and use Supabase fallback)
+  useEffect(() => {
+    const fetchServices = async () => {
+      if (!businessId) return;
+      if (!skipBackend) {
+        try {
+          const res = await fetch(`/api/business/${businessId}/services`);
+          if (res.ok) {
+            const json = await res.json();
+            setServices(json?.services || []);
+            return;
+          }
           setSkipBackend(true);
         } catch (_) {
           setSkipBackend(true);
         }
       }
 
-      // Fallback: fetch directly from Supabase if backend route is unavailable
+      // Fallback: direct Supabase
       try {
-        const { data, error } = await supabase
-          .from('employees')
+        const { data } = await supabase
+          .from('services')
           .select('*')
-          .eq('business_id', effectiveBusinessId)
-          .order('created_at', { ascending: false });
-        if (!error) {
-          setEmployees(data || []);
-        }
-      } catch (_) {}
-    };
-    fetchEmployees();
-  }, [businessId, user?.id, skipBackend]);
-
-  // Fetch services from backend
-  useEffect(() => {
-    const fetchServices = async () => {
-      if (!businessId) return;
-      try {
-        const res = await fetch(`/api/business/${businessId}/services`);
-        if (!res.ok) return;
-        const json = await res.json();
-        setServices(json?.services || []);
+          .eq('business_id', businessId)
+          .order('name');
+        setServices((data as unknown as Service[]) || []);
       } catch (_) {}
     };
     fetchServices();
-  }, [businessId]);
+  }, [businessId, skipBackend]);
 
   // Fetch reviews from backend
   const fetchReviews = async () => {
@@ -307,10 +409,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
   };
 
   const addService = async (service: Omit<Service, 'id' | 'created_at'>): Promise<string> => {
+    // Conform to backend DTO: only send allowed fields
+    const payload: {
+      business_id: string;
+      name: string;
+      description?: string;
+      duration: number;
+      price: number;
+    } = {
+      business_id: service.business_id,
+      name: service.name,
+      description: service.description,
+      duration: service.duration,
+      price: service.price,
+    };
     const res = await fetch('/api/services', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(service),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('Failed to create service');
     const json = await res.json();
@@ -319,10 +435,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
   };
 
   const addEmployee = async (employee: Omit<Employee, 'id' | 'created_at'>): Promise<string> => {
+    // Enforce required backend DTO fields and avoid sending extra fields (e.g., image_url)
+    const payload: {
+      business_id: string;
+      name: string;
+      role: string;
+      email: string;
+      phone?: string;
+    } = {
+      business_id: employee.business_id,
+      name: employee.name,
+      role: employee.role,
+      email: employee.email,
+    };
+    if (employee.phone) payload.phone = employee.phone;
+
+    if (!payload.business_id) {
+      throw new Error('Missing business_id for new employee');
+    }
+
     const res = await fetch('/api/employees', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(employee),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('Failed to create employee');
     const json = await res.json();
