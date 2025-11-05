@@ -13,7 +13,6 @@ if (supabaseUrl && supabaseServiceRoleKey) {
 } else {
 	console.warn('Supabase backend env missing: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (server will run with limited DB features)');
 }
-
 export { supabase };
 
 

@@ -1,10 +1,34 @@
 const { createClient } = require("@supabase/supabase-js");
 
+// Log env at function init (masked)
+(() => {
+  try {
+    const mask = (v) => {
+      if (!v) return 'missing';
+      const s = String(v);
+      if (s.length <= 8) return `${s[0]}***${s[s.length - 1]} (len ${s.length})`;
+      return `${s.slice(0, 4)}***${s.slice(-4)} (len ${s.length})`;
+    };
+    const safeOrigin = (u) => {
+      try { return new URL(u).origin; } catch { return 'invalid-url'; }
+    };
+    console.log('[business-data:init] Env summary', {
+      SUPABASE_URL: process.env.SUPABASE_URL ? safeOrigin(process.env.SUPABASE_URL) : 'missing',
+      SUPABASE_SERVICE_ROLE_KEY: mask(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      MCP_API_KEY: mask(process.env.MCP_API_KEY),
+      FRONTEND_URL: "http://localhost:3000" || process.env.FRONTEND_URL || '*',
+      NODE_ENV: process.env.NODE_ENV || 'development',
+    });
+  } catch {}
+})();
+
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 
 function supabaseServer() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  console.log('[business-data] Using SUPABASE_URL:', url ? (new URL(url).origin) : 'missing');
+  console.log('[business-data] Using SERVICE_ROLE_KEY:', key ? `${String(key).slice(0,4)}***${String(key).slice(-4)} (len ${String(key).length})` : 'missing');
   if (!url || !key) throw new Error("Supabase env not configured");
   return createClient(url, key, { auth: { persistSession: false } });
 }

@@ -13,6 +13,7 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationMap": true,

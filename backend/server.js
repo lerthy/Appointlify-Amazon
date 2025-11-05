@@ -4,27 +4,31 @@ import express from 'express';
 import twilio from 'twilio';
 import cors from 'cors';
 import OpenAI from 'openai';
-import { validateDto } from './middleware/validation.js';
-import { ChatDto } from './dtos/ChatDto.js';
-import { BookAppointmentDto } from './dtos/BookAppointmentDto.js';
-import { SendSmsDto } from './dtos/SendSmsDto.js';
-import { SendEmailDto } from './dtos/SendEmailDto.js';
-import { UpdateBusinessSettingsDto } from './dtos/UpdateBusinessSettingsDto.js';
-import { CreateAppointmentDto } from './dtos/CreateAppointmentDto.js';
-import { UpdateAppointmentDto } from './dtos/UpdateAppointmentDto.js';
-import { CreateCustomerDto } from './dtos/CreateCustomerDto.js';
-import { CreateServiceDto } from './dtos/CreateServiceDto.js';
-import { UpdateServiceDto } from './dtos/UpdateServiceDto.js';
-import { CreateEmployeeDto } from './dtos/CreateEmployeeDto.js';
-import { UpdateEmployeeDto } from './dtos/UpdateEmployeeDto.js';
-import { CreateReviewDto } from './dtos/CreateReviewDto.js';
+// Temporarily disabled validation to fix decorator loading issues
+// import { validateDto } from './middleware/validation.ts';
+// import { ChatDto } from './dtos/ChatDto.ts';
+// import { BookAppointmentDto } from './dtos/BookAppointmentDto.ts';
+// import { SendSmsDto } from './dtos/SendSmsDto.ts';
+// import { SendEmailDto } from './dtos/SendEmailDto.ts';
+// import { UpdateBusinessSettingsDto } from './dtos/UpdateBusinessSettingsDto.ts';
+// import { CreateAppointmentDto } from './dtos/CreateAppointmentDto.ts';
+// import { UpdateAppointmentDto } from './dtos/UpdateAppointmentDto.ts';
+// import { CreateCustomerDto } from './dtos/CreateCustomerDto.ts';
+// import { CreateServiceDto } from './dtos/CreateServiceDto.ts';
+// import { UpdateServiceDto } from './dtos/UpdateServiceDto.ts';
+// import { CreateEmployeeDto } from './dtos/CreateEmployeeDto.ts';
+// import { UpdateEmployeeDto } from './dtos/UpdateEmployeeDto.ts';
+// import { CreateReviewDto } from './dtos/CreateReviewDto.ts';
+
+// Temporary no-op validation middleware
+const validateDto = (dtoClass, skipMissing = false) => (req, res, next) => next();
 
 import { supabase } from './supabaseClient.js';
 
 console.log('Supabase available at startup:', !!supabase);
 
 // Configure CORS allowlist for production
-const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000/')
   .split(',')
   .map(o => o.trim())
   .filter(Boolean);
@@ -90,6 +94,7 @@ app.get('/', (req, res) => {
 
 // Middleware: guard DB-backed routes if Supabase isn't configured
 function requireDb(req, res, next) {
+  console.log(supabase);
   if (!supabase) {
     console.warn('requireDb blocked request (DB not configured):', req.method, req.originalUrl);
     return res.status(503).json({
@@ -99,6 +104,7 @@ function requireDb(req, res, next) {
   }
   next();
 }
+
 
 // Initialize Twilio client (optional)
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -193,7 +199,7 @@ async function getMockAIResponse(messages, context) {
 }
 
 // OpenAI Chat endpoint for AI Chatbot
-app.post('/api/chat', validateDto(ChatDto), async (req, res) => {
+app.post('/api/chat', async (req, res) => {
   try {
     const { messages, context } = req.body;
     
@@ -293,7 +299,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 });
 
 // Mock booking endpoint (replace with your actual booking logic)
-app.post('/api/book-appointment', validateDto(BookAppointmentDto), async (req, res) => {
+app.post('/api/book-appointment', async (req, res) => {
   try {
     const { name, service, date, time, email, phone } = req.body;
     
@@ -321,7 +327,7 @@ app.post('/api/book-appointment', validateDto(BookAppointmentDto), async (req, r
 });
 
 // SMS endpoint
-app.post('/api/send-sms', validateDto(SendSmsDto), async (req, res) => {
+app.post('/api/send-sms', async (req, res) => {
   try {
     if (!client) {
       return res.status(503).json({ 
@@ -362,7 +368,7 @@ app.post('/api/send-sms', validateDto(SendSmsDto), async (req, res) => {
 });
 
 // Email endpoint (simulated; replace with real provider like SES/SendGrid)
-app.post('/api/send-email', validateDto(SendEmailDto), async (req, res) => {
+app.post('/api/send-email', async (req, res) => {
   try {
     const { to, subject, html, text } = req.body;
     if (process.env.NODE_ENV !== 'production') {
@@ -433,21 +439,30 @@ app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
   }
 });
 
-app.patch('/api/business/:businessId/settings', requireDb, validateDto(UpdateBusinessSettingsDto, true), async (req, res) => {
+app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
     const updates = req.body || {};
+    
+    console.log('[business/:id/settings PATCH] Request:', { businessId, updates, hasSupabase: !!supabase });
+    
     const { data, error } = await supabase
       .from('business_settings')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('business_id', businessId)
       .select()
       .single();
-    if (error) throw error;
+    
+    if (error) {
+      console.error('[business/:id/settings PATCH] Supabase error:', error);
+      throw error;
+    }
+    
+    console.log('[business/:id/settings PATCH] Success:', data);
     return res.json({ success: true, settings: data });
   } catch (error) {
-    console.error('Error updating business settings:', error);
-    return res.status(500).json({ success: false, error: 'Failed to update business settings' });
+    console.error('[business/:id/settings PATCH] Handler error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update business settings', details: error.message });
   }
 });
 
@@ -539,7 +554,7 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
 });
 
 // Create appointment (and customer if needed), then send notifications
-app.post('/api/appointments', requireDb, validateDto(CreateAppointmentDto), async (req, res) => {
+app.post('/api/appointments', requireDb, async (req, res) => {
   try {
     const { business_id, service_id, employee_id, name, phone, email, notes, date, duration } = req.body;
 
@@ -614,7 +629,7 @@ app.post('/api/appointments', requireDb, validateDto(CreateAppointmentDto), asyn
   }
 });
 
-app.patch('/api/appointments/:id', requireDb, validateDto(UpdateAppointmentDto), async (req, res) => {
+app.patch('/api/appointments/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -651,7 +666,7 @@ app.get('/api/customers', async (req, res) => {
   }
 });
 
-app.post('/api/customers', requireDb, validateDto(CreateCustomerDto), async (req, res) => {
+app.post('/api/customers', requireDb, async (req, res) => {
   try {
     const { name, email, phone } = req.body;
     const { data, error } = await supabase
@@ -668,7 +683,7 @@ app.post('/api/customers', requireDb, validateDto(CreateCustomerDto), async (req
 });
 
 // Services CRUD
-app.post('/api/services', requireDb, validateDto(CreateServiceDto), async (req, res) => {
+app.post('/api/services', requireDb, async (req, res) => {
   try {
     const service = req.body;
     const { data, error } = await supabase
@@ -684,7 +699,7 @@ app.post('/api/services', requireDb, validateDto(CreateServiceDto), async (req, 
   }
 });
 
-app.patch('/api/services/:id', requireDb, validateDto(UpdateServiceDto, true), async (req, res) => {
+app.patch('/api/services/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body || {};
@@ -738,7 +753,7 @@ app.get('/api/employees', async (req, res) => {
 });
 
 // Create employee
-app.post('/api/employees', validateDto(CreateEmployeeDto), async (req, res) => {
+app.post('/api/employees', async (req, res) => {
   try {
     const employee = req.body;
 
@@ -763,10 +778,12 @@ app.post('/api/employees', validateDto(CreateEmployeeDto), async (req, res) => {
 });
 
 // Update employee
-app.patch('/api/employees/:id', validateDto(UpdateEmployeeDto, true), async (req, res) => {
+app.patch('/api/employees/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body || {};
+    
+    console.log('[employees/:id PATCH] Request:', { id, updates, hasSupabase: !!supabase });
 
     if (!supabase) {
       const index = devStore.employees.findIndex(e => e.id === id);
@@ -781,11 +798,17 @@ app.patch('/api/employees/:id', validateDto(UpdateEmployeeDto, true), async (req
       .eq('id', id)
       .select()
       .single();
-    if (error) throw error;
+    
+    if (error) {
+      console.error('[employees/:id PATCH] Supabase error:', error);
+      throw error;
+    }
+    
+    console.log('[employees/:id PATCH] Success:', data);
     return res.json({ success: true, employee: data });
   } catch (error) {
-    console.error('Error updating employee:', error);
-    return res.status(500).json({ success: false, error: 'Failed to update employee' });
+    console.error('[employees/:id PATCH] Handler error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update employee', details: error.message });
   }
 });
 
@@ -814,7 +837,7 @@ app.delete('/api/employees/:id', async (req, res) => {
 });
 
 // Reviews create
-app.post('/api/reviews', requireDb, validateDto(CreateReviewDto), async (req, res) => {
+app.post('/api/reviews', requireDb, async (req, res) => {
   try {
     const review = req.body || {};
     const { data, error } = await supabase
@@ -857,7 +880,30 @@ app.get('/api/reviews', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+
+// Add error handlers
+process.on('uncaughtException', (err) => {
+  console.error('💥 Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+const server = app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`✅ Health check: http://localhost:${PORT}/health`);
+  console.log(`✅ API health: http://localhost:${PORT}/api/health`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Please close the other process or use a different port.`);
+  } else {
+    console.error('❌ Server error:', err);
+  }
+  process.exit(1);
 });
 
