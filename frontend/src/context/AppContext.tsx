@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
   Appointment, 
   Service, 
@@ -383,8 +383,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     await refreshAppointments();
   };
 
-  // Add refresh function for appointments
-  const refreshAppointments = async () => {
+  // Add refresh function for appointments (memoized to prevent infinite loops)
+  const refreshAppointments = useCallback(async () => {
     if (!businessId) return;
     try {
       const res = await fetch(`/api/business/${businessId}/appointments`);
@@ -394,7 +394,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     } catch (err) {
       console.error('Error refreshing appointments:', err);
     }
-  };
+  }, [businessId]);
 
   const addCustomer = async (customer: Omit<Customer, 'id' | 'created_at'>): Promise<string> => {
     const res = await fetch('/api/customers', {

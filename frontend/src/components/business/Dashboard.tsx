@@ -15,11 +15,21 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('appointments');
   
 
-  // Refresh appointments when dashboard loads or tab changes
+  // Refresh appointments on tab change and set up polling for live updates
   useEffect(() => {
-    if (refreshAppointments) {
+    // Always refresh when tab changes
+    refreshAppointments();
+
+    // Only poll when on appointments tab for live updates
+    if (activeTab !== 'appointments') return;
+
+    // Poll every 30 seconds for live updates
+    const intervalId = setInterval(() => {
       refreshAppointments();
-    }
+    }, 3000); // 3 seconds
+
+    // Cleanup interval on unmount or tab change
+    return () => clearInterval(intervalId);
   }, [activeTab, refreshAppointments]);
 
   // Always render the dashboard for all users
