@@ -113,7 +113,7 @@ const HomePage: React.FC = () => {
       <Header />
       
       {/* HERO SECTION - Shared for Both Audiences */}
-      <section className="relative py-14 overflow-hidden">
+      <section className="relative py-20 overflow-hidden">
         {/* Background Images */}
         <div className="absolute inset-0 z-0">
           {heroImages.map((image, index) => (
@@ -160,26 +160,7 @@ const HomePage: React.FC = () => {
               </div> */}
               {/* <p></p> */}
               {/* Dual CTAs */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button 
-                  size="md" 
-                  className="text-base px-6 py-2.5 !rounded-3xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-xl hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 font-semibold border-2 border-white/20"
-                  onClick={() => navigate('/register')}
-                >
-                  <Users className="mr-2 w-5 h-5" />
-                  For Businesses
-                  {/* <ArrowRight className="ml-2 w-4 h-4" /> */}
-                </Button>
-                <Button 
-                  size="md" 
-                  className="text-base px-6 py-2.5 !rounded-3xl bg-white !text-purple-700 hover:!text-white hover:bg-gray-100 shadow-xl hover:shadow-white/50 transform hover:scale-105 transition-all duration-300 font-semibold"
-                  onClick={() => document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  <Calendar className="mr-2 w-5 h-5" />
-                  For Clients
-                  {/* <ArrowRight className="ml-2 w-4 h-4" /> */}
-                </Button>
-              </div>
+              
             </div>
           </Container>
         </div>

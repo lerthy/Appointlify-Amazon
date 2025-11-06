@@ -196,10 +196,10 @@ const ProfilePage: React.FC = () => {
             {success && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{success}</div>}
 
             <div className="flex gap-2">
-              <button type="submit" className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={isSubmitting}>
+              <button type="submit" className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-violet-600 hover:to-indigo-600 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
-              <button type="button" className="flex-1 bg-gray-100 hover:bg-indigo-100 text-indigo-700 font-semibold py-2 rounded-lg text-base transition-all duration-200 border border-indigo-200" onClick={() => setShowPasswordModal(true)}>
+              <button type="button" className="flex-1 bg-gray-100 hover:bg-indigo-100 text-violet-700 font-semibold py-2 rounded-lg text-base transition-all duration-200 border border-indigo-200 hover:border-violet-600" onClick={() => setShowPasswordModal(true)}>
                 Change Password
               </button>
             </div>
