@@ -85,7 +85,7 @@ const Header: React.FC = () => {
             </button>
           </div>
           {/* Desktop Navigation */}
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-3">
             {user ? (
               <div className="flex items-center space-x-4" ref={dropdownRef}>
                 {/* Animated Tabs */}
@@ -137,27 +137,53 @@ const Header: React.FC = () => {
                   <Menu className="h-8 w-8 text-gray-600" />
                 </button>
               </div>
-            ) : currentView === 'customer' ? (
+            ) : (
               <>
+                {/* Clear Navigation for Both User Types */}
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="md"
                   onClick={() => {
                     if (window.location.pathname === '/') {
-                      document.getElementById('business')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
                     } else {
-                      navigate('/#business');
+                      navigate('/');
+                      setTimeout(() => {
+                        document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
                     }
                   }}
-                  className="ml-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
+                  className="text-gray-700 hover:text-purple-600 font-semibold"
                 >
-                  Business
+                  <Users className="h-5 w-5 mr-1" />
+                  For Businesses
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  onClick={() => {
+                    if (window.location.pathname === '/') {
+                      document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/');
+                      setTimeout(() => {
+                        document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }
+                  }}
+                  className="text-gray-700 hover:text-blue-600 font-semibold"
+                >
+                  <Menu className="h-5 w-5 mr-1" />
+                  For Clients
+                </Button>
+                
+                <div className="border-l border-gray-300 h-8 mx-2"></div>
+                
                 <Button
                   variant="outline"
                   size="md"
                   onClick={() => navigate('/login')}
-                  className="ml-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
+                  className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400"
                 >
                   Login
                 </Button>
@@ -165,18 +191,9 @@ const Header: React.FC = () => {
                   variant="primary"
                   size="md"
                   onClick={() => navigate('/register')}
-                  className="ml-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 font-semibold shadow-lg"
                 >
-                  Register
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => navigate('/dashboard')}
-                >
-                  Dashboard
+                  Get Started Free
                 </Button>
               </>
             )}
@@ -232,7 +249,7 @@ const Header: React.FC = () => {
                   </button>
                 </div>
               </div>
-            ) : currentView === 'customer' ? (
+            ) : (
               <>
                 <Button
                   variant="outline"
@@ -240,15 +257,39 @@ const Header: React.FC = () => {
                   fullWidth
                   onClick={() => {
                     if (window.location.pathname === '/') {
-                      document.getElementById('business')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
                     } else {
-                      navigate('/#business');
+                      navigate('/');
+                      setTimeout(() => {
+                        document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
                     }
                     setMenuOpen(false);
                   }}
-                  className="mt-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
+                  className="mt-2 border-2 border-purple-600 text-purple-700 hover:bg-purple-600 hover:text-white font-semibold"
                 >
-                  Business
+                  <Users className="h-5 w-5 mr-2" />
+                  For Businesses
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  fullWidth
+                  onClick={() => {
+                    if (window.location.pathname === '/') {
+                      document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/');
+                      setTimeout(() => {
+                        document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }
+                    setMenuOpen(false);
+                  }}
+                  className="mt-2 border-2 border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white font-semibold"
+                >
+                  <Menu className="h-5 w-5 mr-2" />
+                  For Clients
                 </Button>
                 <Button
                   variant="outline"
@@ -258,7 +299,7 @@ const Header: React.FC = () => {
                     navigate('/login');
                     setMenuOpen(false);
                   }}
-                  className="mt-2 border-2 border-slate-600 text-slate-700 hover:bg-slate-600 hover:text-white"
+                  className="mt-2 border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400"
                 >
                   Login
                 </Button>
@@ -270,23 +311,11 @@ const Header: React.FC = () => {
                     navigate('/register');
                     setMenuOpen(false);
                   }}
-                  className="mt-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0"
+                  className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 font-semibold"
                 >
-                  Register
+                  Get Started Free
                 </Button>
               </>
-            ) : (
-                <Button 
-                  variant="ghost" 
-                  fullWidth
-                  onClick={() => {
-                    navigate('/dashboard');
-                    setMenuOpen(false);
-                  }}
-                  className="text-lg font-semibold"
-                >
-                  Dashboard
-                </Button>
             )}
           </div>
         </div>

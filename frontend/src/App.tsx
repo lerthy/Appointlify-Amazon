@@ -20,6 +20,9 @@ import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
 import AIChatbot from './components/shared/AIChatbot';
 import BusinessAIChatPage from './pages/BusinessAIChatPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import CookiePolicy from './pages/CookiePolicy';
 
 // Components
 
@@ -52,6 +55,9 @@ function AppContent() {
         <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
         <Route path="/ai-demo" element={<AIChatbotDemoPage />} />
         <Route path="/ai-business-chat" element={<BusinessAIChatPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       
