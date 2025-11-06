@@ -150,19 +150,20 @@ const HomePage: React.FC = () => {
                   Manage Better.
                 </span>
               </h1>
-              <div className='flex flex-row justify-space-between width-full'>
+              {/* <div className='flex flex-row justify-space-between width-full'>
                 <p className="text-lg md:text-xl text-slate-200 mb-3 leading-relaxed max-w-3xl mx-auto">
                   <span className="font-semibold text-white">For Businesses:</span> Streamline operations, reduce no-shows, and grow revenue.
                 </p>
                 <p className="text-lg md:text-xl text-slate-200 mb-8 leading-relaxed max-w-3xl mx-auto">
                   <span className="font-semibold text-white">For Clients:</span> Find and book appointments instantly, anytime, anywhere.
                 </p>
-              </div>
+              </div> */}
+              {/* <p></p> */}
               {/* Dual CTAs */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Button 
                   size="md" 
-                  className="text-base px-6 py-2.5 rounded-3xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-xl hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 font-semibold border-2 border-white/20"
+                  className="text-base px-6 py-2.5 !rounded-3xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-xl hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 font-semibold border-2 border-white/20"
                   onClick={() => navigate('/register')}
                 >
                   <Users className="mr-2 w-5 h-5" />
@@ -171,7 +172,7 @@ const HomePage: React.FC = () => {
                 </Button>
                 <Button 
                   size="md" 
-                  className="text-base px-6 py-2.5 rounded-3xl bg-white text-purple-700 hover:text-white hover:bg-gray-100 shadow-xl hover:shadow-white/50 transform hover:scale-105 transition-all duration-300 font-semibold"
+                  className="text-base px-6 py-2.5 !rounded-3xl bg-white !text-purple-700 hover:!text-white hover:bg-gray-100 shadow-xl hover:shadow-white/50 transform hover:scale-105 transition-all duration-300 font-semibold"
                   onClick={() => document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   <Calendar className="mr-2 w-5 h-5" />
@@ -437,7 +438,7 @@ const HomePage: React.FC = () => {
                         <span className="ml-2 text-sm text-gray-600">(4.9)</span>
                       </div>
                       <Button 
-                        className="w-full bg-transparent !text-black border-2 border-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold hover:bg-black hover:!text-white"
+                        className="w-full bg-transparent !text-black border-2 border-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold hover:!bg-black hover:!text-white"
                         size="md"
                       >
                         <Calendar className="mr-2 w-5 h-5" />
