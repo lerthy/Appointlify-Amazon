@@ -466,6 +466,30 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
   }
 });
 
+// Get all businesses
+app.get('/api/businesses', requireDb, async (req, res) => {
+  try {
+    console.log('[GET /api/businesses] Fetching all businesses...'); // qita me hek
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
+    
+    if (error) {
+      console.error('[GET /api/businesses] Error:', error);
+      throw error;
+    }
+    
+    // Filter for businesses (role='business' or null, since default is business)
+    const businesses = data || []; // qita e kqyrum a me filter a jo
+    
+    console.log(`[GET /api/businesses] Success: Found ${businesses.length} businesses (from ${data?.length || 0} total users)`); //qita me hek
+    return res.json({ success: true, businesses });
+  } catch (error) {
+    console.error('[GET /api/businesses] Handler error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch businesses', details: error.message });
+  }
+});
+
 app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;

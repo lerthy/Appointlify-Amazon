@@ -11,6 +11,7 @@ import { AppProvider } from '../context/AppContext';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 import { motion } from 'framer-motion';
 import Button from '../components/ui/Button';
+import { CardHeader } from '../components/ui/Card';
 
 const iconMap: Record<string, React.ReactNode> = {
   default: <List size={32} />, // fallback icon
@@ -118,6 +119,16 @@ const AppointmentPage: React.FC = () => {
                 initial="initial"
                 animate="animate"
               >
+                <CardHeader className="absolute self-start mb-4 border-none">
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="mb-4 flex items-center text-gradient-to-r from-indigo-600 to-violet-600 hover:text-indigo-700 transition-colors duration-200"
+                      type="button"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Back
+                    </button>
+                  </CardHeader>
                 {business.logo && (
                   <motion.img
                     src={business.logo}

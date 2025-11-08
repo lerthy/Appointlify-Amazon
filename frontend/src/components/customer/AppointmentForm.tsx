@@ -10,6 +10,7 @@ import { useNotification } from '../../context/NotificationContext';
 import { formatDate } from '../../utils/formatters';
 import { sendAppointmentConfirmation } from '../../utils/emailService';
 import { sendSMS } from '../../utils/smsService';
+import { supabase } from '../../utils/supabaseClient';
 
 interface AppointmentFormProps {
   businessId?: string;
@@ -570,18 +571,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   return (
     <Card className="w-full max-w-lg shadow-none mx-auto">
-      <CardHeader>
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
-          type="button"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back
-        </button>
-      </CardHeader>
             
       <form onSubmit={handleSubmit}>
         <CardContent className="grid grid-cols-2 gap-4">
@@ -763,7 +752,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               value={formData.notes}
               onChange={handleChange}
               placeholder="Any special requests or notes..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none outline-none focus:border-blue-500"
               rows={3}
             />
           </div>

@@ -1,10 +1,8 @@
 import React from 'react';
-import { useApp } from '../../context/AppContext';
-import { MapPin, Phone, Mail, Clock, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { MapPin, Phone, Mail, Instagram, Linkedin } from 'lucide-react';
 import { Link } from 'react-router-dom'; 
 
 const Footer: React.FC = () => {
-  const { businessSettings } = useApp();
   
   return (
     <footer className="bg-gray-900 text-white">
@@ -27,16 +25,21 @@ const Footer: React.FC = () => {
               Making appointment booking simple and convenient for both businesses and customers.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              {/* <a href="#" className="text-gray-400 hover:text-white transition-colors">
                 <Facebook size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              </a> */}
+              {/* <a href="#" className="text-gray-400 hover:text-white transition-colors">
                 <Twitter size={20} />
+              </a> */}
+              <a href="https://www.tiktok.com/@appointlykosova" className="text-gray-400 hover:text-white transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                </svg>
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://www.instagram.com/appointlyks/" className="text-gray-400 hover:text-white transition-colors">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://linkedin.com/company/appointly-ks" className="text-gray-400 hover:text-white transition-colors">
                 <Linkedin size={20} />
               </a>
             </div>
@@ -50,27 +53,27 @@ const Footer: React.FC = () => {
                 <MapPin size={18} className="text-gray-400 mr-3 mt-1 flex-shrink-0" />
                 <div>
                   <span className="text-gray-400 block">Prishtina</span>
-                  <span className="text-gray-400 block">501601</span>
+                  <span className="text-gray-400 block">10000</span>
                   <span className="text-gray-400 block">Prishtina, Kosovo</span>
                 </div>
               </li>
               <li className="flex items-start">
                 <Phone size={18} className="text-gray-400 mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <a href="tel:+1-555-123-4567" className="text-gray-400 hover:text-white transition-colors block">
-                    +1 (555) 123-4567
+                  <a href="tel:+383 45 378 957" className="text-gray-400 hover:text-white transition-colors block">
+                    +383 45 378 957
                   </a>
-                  <span className="text-gray-400 text-sm block">Mon-Fri, 9am-6pm EST</span>
+                  <span className="text-gray-400 text-sm block">Mon-Fri, 9am-6pm CET</span>
                 </div>
               </li>
               <li className="flex items-start">
                 <Mail size={18} className="text-gray-400 mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <a href="mailto:support@appointly.com" className="text-gray-400 hover:text-white transition-colors block">
-                    support@appointly-ks.com
+                  <a href="mailto:etrithasolli5@gmail.com" className="text-gray-400 hover:text-white transition-colors block">
+                    Etrit Hasolli
                   </a>
-                  <a href="mailto:sales@appointly.com" className="text-gray-400 hover:text-white transition-colors block">
-                    sales@appointly-ks.com
+                  <a href="mailto:lerdi890@gmail.com" className="text-gray-400 hover:text-white transition-colors block">
+                  Lerdi Salihi
                   </a>
                 </div>
               </li>
@@ -82,14 +85,14 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a>
+                <Link to="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Services</a>
+                <Link to="/services" className="text-gray-400 hover:text-white transition-colors">Services</Link>
               </li>
               
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a>
+                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link>
               </li>
             </ul>
           </div>

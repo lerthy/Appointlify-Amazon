@@ -201,23 +201,22 @@ const BookingConfirmationPage: React.FC = () => {
                 <span className="font-mono text-sm text-gray-500">{bookingData.appointmentId}</span>
               </div>
             </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button
-              onClick={() => navigate('/')}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Back to Home
-            </Button>
-            <Button
-              onClick={() => window.open(bookingData.cancelLink, '_blank')}
-              variant="outline"
-              className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
-            >
-              Cancel Booking
-            </Button>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+              <Button
+                onClick={() => navigate('/')}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Back to Home
+              </Button>
+              <Button
+                onClick={() => window.open(bookingData.cancelLink, '_blank')}
+                variant="outline"
+                className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+              >
+                Cancel Booking
+              </Button>
+            </div>
           </div>
 
           {/* Additional Information */}

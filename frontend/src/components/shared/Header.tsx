@@ -74,7 +74,7 @@ const Header: React.FC = () => {
               type="button"
             >
               <img
-                className="h-14 w-auto mr-4"
+                className="h-12 mr-4"
                 src="https://dvbgblopuepbisvdgyci.supabase.co/storage/v1/object/public/logos/Appointly%20Logo.png"
                 alt="Appointly-ks logo"
                 
@@ -183,7 +183,7 @@ const Header: React.FC = () => {
                   variant="outline"
                   size="md"
                   onClick={() => navigate('/login')}
-                  className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400"
+                  className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400 focus:!ring-0 focus:!ring-offset-0 focus:!outline-none"
                 >
                   Login
                 </Button>
@@ -191,7 +191,7 @@ const Header: React.FC = () => {
                   variant="primary"
                   size="md"
                   onClick={() => navigate('/register')}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 font-semibold shadow-lg"
+                  className="ml-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 outline-none focus:!ring-0 focus:!ring-offset-0 focus:!outline-none"
                 >
                   Get Started Free
                 </Button>

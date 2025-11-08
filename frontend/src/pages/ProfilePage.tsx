@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabaseClient';
 import { createServiceClient } from '../utils/supabaseServiceClient';
 import { hashPassword, verifyPassword } from '../utils/password';
 import Header from '../components/shared/Header';
+import { MapPin, Phone, Globe, Briefcase, User } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
   const { user, login } = useAuth();
-  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
     description: user?.description || '',
+    phone: user?.phone || '',
+    businessAddress: user?.business_address || '',
+    website: user?.website || '',
+    category: user?.category || '',
+    ownerName: user?.owner_name || '',
   });
+  
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -24,11 +29,26 @@ const ProfilePage: React.FC = () => {
   const [pwSuccess, setPwSuccess] = useState('');
   const [pwSubmitting, setPwSubmitting] = useState(false);
 
+  const categories = [
+    'Health & Wellness',
+    'Beauty & Spa',
+    'Fitness',
+    'Education',
+    'Professional Services',
+    'Medical',
+    'Legal',
+    'Consulting',
+    'Automotive',
+    'Home Services',
+    'Entertainment',
+    'Other'
+  ];
+
   if (!user) {
     return <div className="p-8 text-center text-red-600 font-bold">Please log in to edit your profile.</div>;
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
     setSuccess('');
@@ -74,6 +94,11 @@ const ProfilePage: React.FC = () => {
         email: form.email,
         description: form.description,
         logo: logoUrl,
+        phone: form.phone,
+        business_address: form.businessAddress,
+        website: form.website,
+        category: form.category,
+        owner_name: form.ownerName,
       })
       .eq('id', user.id)
       .select('*');
@@ -160,49 +185,151 @@ const ProfilePage: React.FC = () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-8">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 relative">
-          <h2 className="text-2xl font-extrabold text-center text-gray-900 mb-2 tracking-tight">Edit Profile</h2>
-          <div className="flex justify-center mb-6">
-            <label htmlFor="logo-upload" className="relative cursor-pointer group">
-              {logoFile ? (
-                <img src={URL.createObjectURL(logoFile)} alt="New logo preview" className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 group-hover:opacity-80 transition-opacity duration-200" />
-              ) : user.logo ? (
-                <img src={user.logo} alt="Current logo" className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 shadow group-hover:opacity-80 transition-opacity duration-200" />
-              ) : (
-                <div className="h-24 w-24 rounded-full bg-indigo-100 flex items-center justify-center text-4xl text-indigo-700 font-bold border-4 border-indigo-200 shadow">
-                  {user.name?.charAt(0).toUpperCase()}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Profile Information */}
+              <div className="bg-white rounded-2xl shadow-2xl p-8">
+                <h2 className="text-2xl font-extrabold text-center text-gray-900 mb-2 tracking-tight">Edit Profile</h2>
+                <div className="flex justify-center mb-6">
+                  <label htmlFor="logo-upload" className="relative cursor-pointer group">
+                    {logoFile ? (
+                      <img src={URL.createObjectURL(logoFile)} alt="New logo preview" className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 group-hover:opacity-80 transition-opacity duration-200" />
+                    ) : user.logo ? (
+                      <img src={user.logo} alt="Current logo" className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 shadow group-hover:opacity-80 transition-opacity duration-200" />
+                    ) : (
+                      <div className="h-24 w-24 rounded-full bg-indigo-100 flex items-center justify-center text-4xl text-indigo-700 font-bold border-4 border-indigo-200 shadow">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200">Change</span>
+                  </label>
                 </div>
-              )}
-              <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200">Change</span>
-            </label>
-          </div>
-          <hr className="mb-6 border-indigo-100" />
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
-              <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
-              <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
-              <textarea name="description" value={form.description} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100 resize-none" rows={5} />
-            </div>
-            {error && <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">{error}</div>}
-            {success && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{success}</div>}
+                <hr className="mb-6 border-indigo-100" />
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
+                    <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
+                    <textarea name="description" value={form.description} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100 resize-none" rows={5} />
+                  </div>
 
-            <div className="flex gap-2">
-              <button type="submit" className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-violet-600 hover:to-indigo-600 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button type="button" className="flex-1 bg-gray-100 hover:bg-indigo-100 text-violet-700 font-semibold py-2 rounded-lg text-base transition-all duration-200 border border-indigo-200 hover:border-violet-600" onClick={() => setShowPasswordModal(true)}>
-                Change Password
-              </button>
+                  <div className="flex gap-2">
+                    <button type="submit" className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-violet-600 hover:to-indigo-600 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={isSubmitting}>
+                      {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button type="button" className="flex-1 bg-gray-100 hover:bg-indigo-100 text-violet-700 font-semibold py-2 rounded-lg text-base transition-all duration-200 border border-indigo-200 hover:border-violet-600" onClick={() => setShowPasswordModal(true)}>
+                      Change Password
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Business Information */}
+              <div className="bg-white rounded-2xl shadow-2xl p-8">
+                <h2 className="text-2xl font-extrabold text-gray-900 mb-6 tracking-tight flex items-center">
+                  <Briefcase className="mr-2" size={24} />
+                  Business Information
+                </h2>
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <User className="w-4 h-4 mr-1" />
+                      Owner Name
+                    </label>
+                    <input
+                      type="text"
+                      name="ownerName"
+                      value={form.ownerName}
+                      onChange={handleChange}
+                      placeholder="Enter owner name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <Phone className="w-4 h-4 mr-1" />
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="+383 XX XXX XXX"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      Address
+                    </label>
+                    <input
+                      type="text"
+                      name="businessAddress"
+                      value={form.businessAddress}
+                      onChange={handleChange}
+                      placeholder="Enter business address"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <Globe className="w-4 h-4 mr-1" />
+                      Website
+                    </label>
+                    <input
+                      type="url"
+                      name="website"
+                      value={form.website}
+                      onChange={handleChange}
+                      placeholder="https://example.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <Briefcase className="w-4 h-4 mr-1" />
+                      Category
+                    </label>
+                    <select
+                      name="category"
+                      value={form.category}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* Error & Success Messages */}
+            {(error || success) && (
+              <div className="mt-6 bg-white rounded-2xl shadow-2xl p-6">
+                {error && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded p-3 text-center">{error}</div>}
+                {success && <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded p-3 text-center">{success}</div>}
+              </div>
+            )}
           </form>
         </div>
       </div>

@@ -7,15 +7,13 @@ import {
   Star, 
   ArrowRight,
   Users,
-  Shield,
   TrendingUp,
   DollarSign,
   Eye,
   Search,
   Sparkles,
   Zap,
-  Award,
-  BarChart3
+  Award
 } from 'lucide-react';
 import Container from '../components/ui/Container';
 import Button from '../components/ui/Button';
@@ -23,8 +21,6 @@ import { useApp } from '../context/AppContext';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import ReviewModal from '../components/shared/ReviewModal';
-import { supabase } from '../utils/supabaseClient';
-import { useAuth } from '../context/AuthContext';
 
 // Background images for the hero section
 const heroImages = [
@@ -50,21 +46,29 @@ const HomePage: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const { user } = useAuth();
 
   useEffect(() => {
     const fetchBusinesses = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, name, description, logo')
-        .limit(6);
-      if (!error && data) {
-        setBusinesses(data);
-        setFilteredBusinesses(data);
+      try {
+        // Fetch businesses from backend API
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        console.log('🔍 Fetching businesses from:', `${API_URL}/api/businesses`);
+        const response = await fetch(`${API_URL}/api/businesses`);
+        const result = await response.json();
+        
+        if (result.success && result.businesses) {
+          console.log(`✅ Loaded ${result.businesses.length} businesses from backend`);
+          setBusinesses(result.businesses);
+          setFilteredBusinesses(result.businesses);
+        } else {
+          console.error('Failed to fetch businesses:', result.error);
+        }
+      } catch (error) {
+        console.error('Error fetching businesses:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchBusinesses();
   }, []);
@@ -74,10 +78,18 @@ const HomePage: React.FC = () => {
     if (searchQuery.trim() === '') {
       setFilteredBusinesses(businesses);
     } else {
-      const filtered = businesses.filter(business => 
-        business.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        business.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const query = searchQuery.toLowerCase();
+      const filtered = businesses.filter(business => {
+        const nameMatch = business.name?.toLowerCase().includes(query);
+        const descriptionMatch = business.description?.toLowerCase().includes(query);
+        const categoryMatch = business.category?.toLowerCase().includes(query);
+        const addressMatch = business.business_address?.toLowerCase().includes(query);
+        const ownerMatch = business.owner_name?.toLowerCase().includes(query);
+        const phoneMatch = business.phone?.toLowerCase().includes(query);
+        const websiteMatch = business.website?.toLowerCase().includes(query);
+        
+        return nameMatch || descriptionMatch || categoryMatch || addressMatch || ownerMatch || phoneMatch || websiteMatch;
+      });
       setFilteredBusinesses(filtered);
     }
   }, [searchQuery, businesses]);
@@ -94,13 +106,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   // Fetch top reviews from context
-  const { getTopReviews, refreshReviews } = useApp();
-  const testimonials = getTopReviews(6).map(review => ({
-    name: review.customer_name,
-    role: review.business_id,
-    content: review.content,
-    rating: review.rating
-  }));
+  const { refreshReviews } = useApp();
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -146,7 +152,7 @@ const HomePage: React.FC = () => {
               <h1 className="text-4xl md:text-6xl font-extrabold mb-5 text-white leading-tight">
                 Book Smarter.
                 <br />
-                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
                   Manage Better.
                 </span>
               </h1>
@@ -182,12 +188,12 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* SECTION 1: FOR BUSINESSES */}
-      <section id="businesses-section" className="py-24 bg-gradient-to-br from-purple-50 to-pink-50">
+      <section id="businesses-section" className="py-24 bg-gradient-to-br from-indigo-50 to-violet-50">
         <Container maxWidth="full">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center bg-purple-100 px-4 py-2 rounded-full mb-4">
-              <Users className="w-5 h-5 text-purple-600 mr-2" />
-              <span className="text-purple-800 font-semibold">For Businesses</span>
+            <div className="inline-flex items-center bg-indigo-100 px-4 py-2 rounded-full mb-4">
+              <Users className="w-5 h-5 text-indigo-600 mr-2" />
+              <span className="text-indigo-800 font-semibold">For Businesses</span>
             </div>
             <h2 className="text-5xl font-extrabold mb-6 text-gray-900">
               Grow Your Business on Autopilot
@@ -200,15 +206,15 @@ const HomePage: React.FC = () => {
           {/* Three Benefit Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
             {/* Card 1: Time Saving */}
-            <div className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-purple-500">
-              <div className="bg-purple-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-                <Clock className="w-8 h-8 text-purple-600" />
-              </div>
+            <div className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-indigo-500">
+              {/* <div className="bg-indigo-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+                <Clock className="w-8 h-8 text-indigo-600" />
+              </div> */}
               <h3 className="text-2xl font-bold mb-4 text-gray-900">Save 10+ Hours Weekly</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
                 Automate appointment scheduling, reminders, and confirmations. Focus on what matters—serving your customers.
               </p>
-              <div className="flex items-center text-purple-600 font-semibold">
+              <div className="flex items-center text-indigo-600 font-semibold">
                 <Zap className="w-5 h-5 mr-2" />
                 <span>Automated workflows</span>
               </div>
@@ -216,9 +222,9 @@ const HomePage: React.FC = () => {
 
             {/* Card 2: Increased Revenue */}
             <div className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-green-500">
-              <div className="bg-green-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+              {/* <div className="bg-green-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
                 <TrendingUp className="w-8 h-8 text-green-600" />
-              </div>
+              </div> */}
               <h3 className="text-2xl font-bold mb-4 text-gray-900">Boost Revenue by 40%</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
                 Reduce no-shows with smart reminders. Fill gaps with intelligent rebooking. Maximize every appointment slot.
@@ -231,9 +237,9 @@ const HomePage: React.FC = () => {
 
             {/* Card 3: More Visibility */}
             <div className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-blue-500">
-              <div className="bg-blue-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+              {/* <div className="bg-blue-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
                 <Eye className="w-8 h-8 text-blue-600" />
-              </div>
+              </div> */}
               <h3 className="text-2xl font-bold mb-4 text-gray-900">10x Your Visibility</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
                 Get discovered by thousands of clients actively searching for your services. Stand out with ratings and reviews.
@@ -245,25 +251,6 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Stats for Businesses */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto mb-12">
-            <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-purple-600 mb-2">92%</div>
-              <div className="text-gray-600 font-medium">Client Retention</div>
-            </div>
-            <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-green-600 mb-2">40%</div>
-              <div className="text-gray-600 font-medium">Fewer No-Shows</div>
-            </div>
-            <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-blue-600 mb-2">24/7</div>
-              <div className="text-gray-600 font-medium">Online Booking</div>
-            </div>
-            <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-orange-600 mb-2">500+</div>
-              <div className="text-gray-600 font-medium">Active Businesses</div>
-            </div>
-          </div>
 
           {/* Testimonials for Businesses */}
           <div className="max-w-6xl mx-auto mb-12">
@@ -289,7 +276,7 @@ const HomePage: React.FC = () => {
                   rating: 5
                 }
               ].map((testimonial, index) => (
-                <div key={index} className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
+                <div key={index} className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500">
                   <div className="flex mb-4">
                     {renderStars(testimonial.rating)}
                   </div>
@@ -303,11 +290,31 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
+          {/* Stats for Businesses */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto mb-12">
+            <div className="bg-white p-6 rounded-xl text-center shadow-lg">
+              <div className="text-4xl font-extrabold text-indigo-600 mb-2">92%</div>
+              <div className="text-gray-600 font-medium">Client Retention</div>
+            </div>
+            <div className="bg-white p-6 rounded-xl text-center shadow-lg">
+              <div className="text-4xl font-extrabold text-green-600 mb-2">40%</div>
+              <div className="text-gray-600 font-medium">Fewer No-Shows</div>
+            </div>
+            <div className="bg-white p-6 rounded-xl text-center shadow-lg">
+              <div className="text-4xl font-extrabold text-blue-600 mb-2">24/7</div>
+              <div className="text-gray-600 font-medium">Online Booking</div>
+            </div>
+            <div className="bg-white p-6 rounded-xl text-center shadow-lg">
+              <div className="text-4xl font-extrabold text-orange-600 mb-2">500+</div>
+              <div className="text-gray-600 font-medium">Active Businesses</div>
+            </div>
+          </div>
+
           {/* CTA for Businesses */}
           <div className="text-center">
             <Button 
               size="md" 
-              className="text-base px-8 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-xl hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300 font-semibold"
+              className="text-base px-8 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-indigo-500/50 transform hover:scale-105 transition-all duration-300 font-semibold"
               onClick={() => navigate('/register')}
             >
               <Users className="mr-2 w-5 h-5" />
@@ -366,17 +373,22 @@ const HomePage: React.FC = () => {
               <p className="text-gray-600">Never miss an appointment with automated notifications.</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-              <div className="bg-purple-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-7 h-7 text-purple-600" />
+              <div className="bg-indigo-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-7 h-7 text-indigo-600" />
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900">Verified Reviews</h3>
               <p className="text-gray-600">Read real reviews from verified customers before booking.</p>
             </div>
           </div>
 
-          {/* Featured Businesses */}
+          {/* All Businesses */}
           <div className="mb-12">
-            <h3 className="text-3xl font-bold text-center mb-10 text-gray-900">Featured Businesses</h3>
+            <h3 className="text-3xl font-bold text-center mb-4 text-gray-900">
+              {searchQuery ? 'Search Results' : 'All Businesses'}
+            </h3>
+            <p className="text-center text-gray-600 mb-10">
+              {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'business' : 'businesses'} found
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {loading ? (
                 <div className="col-span-3 text-center text-gray-500 py-12">
@@ -390,13 +402,13 @@ const HomePage: React.FC = () => {
                   <p className="text-sm">Try a different search term!</p>
                 </div>
               ) : (
-                filteredBusinesses.slice(0, 6).map((business) => (
+                filteredBusinesses.map((business) => (
                   <div
                     key={business.id}
                     onClick={() => navigate(`/book/${business.id}`)}
-                    className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-2 border border-gray-100 group"
+                    className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-2 border border-gray-100 group flex flex-col"
                   >
-                    <div className="p-6 text-center">
+                    <div className="p-6 text-center flex flex-col flex-grow">
                       <div className="mb-4 flex items-center justify-center">
                         {business.logo ? (
                           <img
@@ -413,13 +425,18 @@ const HomePage: React.FC = () => {
                         )}
                       </div>
                       <h3 className="text-xl font-bold mb-2 text-gray-900">{business.name}</h3>
+                      <div className="flex justify-center mb-2">
+                        <span className="bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full">
+                          {business.category || 'Other'}
+                        </span>
+                      </div>
                       <p className="text-gray-600 mb-4 text-sm line-clamp-2">{business.description}</p>
                       <div className="flex justify-center mb-4">
                         {renderStars(5)}
                         <span className="ml-2 text-sm text-gray-600">(4.9)</span>
                       </div>
                       <Button 
-                        className="w-full bg-transparent !text-black border-2 border-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold hover:!bg-black hover:!text-white"
+                        className="w-full bg-transparent !text-black border-2 border-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold hover:!bg-black hover:!text-white focus:outline-none focus:ring-0 mt-auto"
                         size="md"
                       >
                         <Calendar className="mr-2 w-5 h-5" />
@@ -436,9 +453,9 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* STATISTICS SECTION - Updated with Benefit-Focused Metrics */}
-      <section className="py-12 bg-gradient-to-r from-slate-800 via-purple-900 to-indigo-900 text-white relative overflow-hidden">
+      {/* <section className="py-12 bg-gradient-to-r from-slate-800 via-purple-900 to-indigo-900 text-white relative overflow-hidden"> */}
         {/* Decorative Elements */}
-        <div className="absolute inset-0 opacity-10">
+        {/* <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-64 h-64 bg-purple-500 rounded-full blur-3xl"></div>
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
         </div>
@@ -478,7 +495,7 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </Container>
-      </section>
+      </section> */}
 
       <Footer />
       
