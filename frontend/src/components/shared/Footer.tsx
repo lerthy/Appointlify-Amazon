@@ -46,8 +46,8 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Contact Us</h3>
+          <div className="space-y-4 flex flex-col justify-center items-center">
+            <h3 className="text-lg font-semibold text-start">Contact Us</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
                 <MapPin size={18} className="text-gray-400 mr-3 mt-1 flex-shrink-0" />

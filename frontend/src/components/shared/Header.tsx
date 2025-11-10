@@ -193,7 +193,7 @@ const Header: React.FC = () => {
                   onClick={() => navigate('/register')}
                   className="ml-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 outline-none focus:!ring-0 focus:!ring-offset-0 focus:!outline-none"
                 >
-                  Get Started Free
+                  Register
                 </Button>
               </>
             )}
@@ -313,7 +313,7 @@ const Header: React.FC = () => {
                   }}
                   className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 font-semibold"
                 >
-                  Get Started Free
+                  Register
                 </Button>
               </>
             )}
