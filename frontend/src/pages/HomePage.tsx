@@ -150,10 +150,10 @@ const HomePage: React.FC = () => {
               </div>
               
               <h1 className="text-4xl md:text-6xl font-extrabold mb-5 text-white leading-tight">
-                Time's Ticking,
+                Book Smarter.
                 <br />
                 <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                  Start Clicking.
+                  Manage Better.
                 </span>
               </h1>
               {/* <div className='flex flex-row justify-space-between width-full'>
@@ -165,9 +165,7 @@ const HomePage: React.FC = () => {
                 </p>
               </div> */}
               {/* <p></p> */}
-              <p className="text-lg md:text-xl text-slate-200 mb-3 leading-relaxed max-w-3xl mx-auto">
-                Because every second spared gives you space to build what truly matters.
-              </p>
+              {/* Dual CTAs */}
               
             </div>
           </Container>
@@ -427,11 +425,9 @@ const HomePage: React.FC = () => {
                         )}
                       </div>
                       <h3 className="text-xl font-bold mb-2 text-gray-900">{business.name}</h3>
-                      <div className="flex justify-center mb-2">
-                        <span className="bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full">
-                          {business.category || 'Other'}
-                        </span>
-                      </div>
+                      <span className="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full mb-2">
+                        {business.category || 'Other'}
+                      </span>
                       <p className="text-gray-600 mb-4 text-sm line-clamp-2">{business.description}</p>
                       <div className="flex justify-center mb-4">
                         {renderStars(5)}

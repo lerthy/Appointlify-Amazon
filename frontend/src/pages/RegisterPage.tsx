@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../utils/supabaseClient';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
+import { hashPassword } from '../utils/password';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,95 +28,119 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError('');
-
     if (!form.name || !form.email || !form.password || !form.confirm || !form.description) {
       setError('Please fill in all fields.');
       setIsSubmitting(false);
       return;
     }
-
     if (form.password !== form.confirm) {
       setError('Passwords do not match.');
       setIsSubmitting(false);
       return;
     }
-
-    try {
-      let logoUrl = '';
-
-      // Upload logo if provided
-      if (logoFile) {
-        const fileExt = logoFile.name.split('.').pop();
-        const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
-        
-        // Convert file to base64
-        const reader = new FileReader();
-        const fileContent = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => {
-            const base64 = (reader.result as string).split(',')[1];
-            resolve(base64);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(logoFile);
-        });
-
-        // Upload logo to backend
-        const uploadResponse = await fetch(`${API_URL}/api/auth/upload-logo`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fileName,
-            fileContent,
-            contentType: logoFile.type,
-          }),
-        });
-
-        const uploadData = await uploadResponse.json();
-
-        if (!uploadResponse.ok || !uploadData.success) {
-          setError('Failed to upload logo: ' + (uploadData.error || 'Unknown error'));
-          setIsSubmitting(false);
-          return;
-        }
-
-        logoUrl = uploadData.logoUrl;
-      }
-
-      // Register user
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          confirm: form.confirm,
-          description: form.description,
-          logo: logoUrl,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        setError(data.error || 'Registration failed.');
+    let logoUrl = '';
+    if (logoFile) {
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
+      if (uploadError) {
+        setError('Failed to upload logo: ' + uploadError.message);
         setIsSubmitting(false);
         return;
       }
-
-      setIsSubmitting(false);
-      alert('Registered! You can now log in.');
-      navigate('/login');
-    } catch (error) {
-      console.error('Registration error:', error);
-      setError('An error occurred during registration.');
-      setIsSubmitting(false);
+      logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
     }
+    // Hash password before saving
+    const passwordHash = await hashPassword(form.password);
+    const { data: userData, error: insertError } = await supabase.from('users').insert([
+      {
+        name: form.name,
+        email: form.email,
+        password_hash: passwordHash,
+        description: form.description,
+        logo: logoUrl,
+      }
+    ]).select().single();
+    
+    if (insertError) {
+      setError(insertError.message);
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Create default business settings for the new user
+    if (userData) {
+      const defaultWorkingHours = [
+        { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+        { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
+      ];
+
+      const { error: settingsError } = await supabase.from('business_settings').insert([
+        {
+          business_id: userData.id,
+          name: form.name,
+          working_hours: defaultWorkingHours,
+          blocked_dates: [],
+          breaks: [],
+          appointment_duration: 30
+        }
+      ]);
+
+      if (settingsError) {
+        console.error('Failed to create business settings:', settingsError);
+        // Don't fail the registration, just log the error
+      }
+
+      // Create default services for the new business
+      const defaultServices = [
+        {
+          business_id: userData.id,
+          name: 'Consultation',
+          description: 'Initial consultation and assessment',
+          duration: 30,
+          price: 25.00
+        },
+        {
+          business_id: userData.id,
+          name: 'Basic Service',
+          description: 'Standard service offering',
+          duration: 60,
+          price: 50.00
+        }
+      ];
+
+      const { error: servicesError } = await supabase.from('services').insert(defaultServices);
+
+      if (servicesError) {
+        console.error('Failed to create default services:', servicesError);
+        // Don't fail the registration, just log the error
+      }
+
+      // Create a default employee for the business
+      const { error: employeeError } = await supabase.from('employees').insert([
+        {
+          business_id: userData.id,
+          name: 'Main Staff',
+          email: form.email,
+          phone: '+1234567890',
+          role: 'Service Provider'
+        }
+      ]);
+
+      if (employeeError) {
+        console.error('Failed to create default employee:', employeeError);
+        // Don't fail the registration, just log the error
+      }
+    }
+
+    setIsSubmitting(false);
+    alert('Registered! You can now log in.');
+    navigate('/login');
   };
 
   return (
