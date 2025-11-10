@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../utils/supabaseClient';
-import { createServiceClient } from '../utils/supabaseServiceClient';
-import { hashPassword, verifyPassword } from '../utils/password';
 import Header from '../components/shared/Header';
 import { MapPin, Phone, Globe, Briefcase, User } from 'lucide-react';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const ProfilePage: React.FC = () => {
   const { user, login } = useAuth();
@@ -63,67 +62,87 @@ const ProfilePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    let logoUrl = user.logo || '';
-    if (logoFile) {
-      const fileExt = logoFile.name.split('.').pop();
-      const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile, { upsert: true });
-      if (uploadError) {
-        setError('Failed to upload logo: ' + uploadError.message);
+    setError('');
+    setSuccess('');
+
+    try {
+      let logoUrl = user.logo || '';
+
+      // Upload logo if changed
+      if (logoFile) {
+        const fileExt = logoFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
+        
+        // Convert file to base64
+        const reader = new FileReader();
+        const fileContent = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => {
+            const base64 = (reader.result as string).split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(logoFile);
+        });
+
+        // Upload logo to backend
+        const uploadResponse = await fetch(`${API_URL}/api/auth/upload-logo`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileName,
+            fileContent,
+            contentType: logoFile.type,
+          }),
+        });
+
+        const uploadData = await uploadResponse.json();
+
+        if (!uploadResponse.ok || !uploadData.success) {
+          setError('Failed to upload logo: ' + (uploadData.error || 'Unknown error'));
+          setIsSubmitting(false);
+          return;
+        }
+
+        logoUrl = uploadData.logoUrl;
+      }
+
+      // Update profile
+      const response = await fetch(`${API_URL}/api/auth/profile/${user.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          description: form.description,
+          logo: logoUrl,
+          phone: form.phone,
+          business_address: form.businessAddress,
+          website: form.website,
+          category: form.category,
+          owner_name: form.ownerName,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || 'Failed to update profile.');
         setIsSubmitting(false);
         return;
       }
-      logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
-    }
-    // Use service client to bypass RLS for profile updates
-    let serviceClient;
-    try {
-      serviceClient = createServiceClient();
-      console.log('✅ Service client created successfully');
+
+      login(data.user); // update context/localStorage
+      setSuccess('Profile updated!');
+      setIsSubmitting(false);
     } catch (error) {
-      console.error('❌ Failed to create service client:', error);
-      setError('Configuration error. Please contact support.');
+      console.error('Profile update error:', error);
+      setError('An error occurred while updating profile.');
       setIsSubmitting(false);
-      return;
     }
-    
-    const { data, error: updateError } = await serviceClient
-      .from('users')
-      .update({
-        name: form.name,
-        email: form.email,
-        description: form.description,
-        logo: logoUrl,
-        phone: form.phone,
-        business_address: form.businessAddress,
-        website: form.website,
-        category: form.category,
-        owner_name: form.ownerName,
-      })
-      .eq('id', user.id)
-      .select('*');
-      
-    if (updateError) {
-      setError(updateError.message);
-      setIsSubmitting(false);
-      return;
-    }
-    
-    if (!data || data.length === 0) {
-      setError('User not found or no changes were made');
-      setIsSubmitting(false);
-      return;
-    }
-    
-    if (data.length > 1) {
-      setError('Multiple user records found. Please contact support.');
-      setIsSubmitting(false);
-      return;
-    }
-    
-    login(data[0]); // update context/localStorage
-    setSuccess('Profile updated!');
-    setIsSubmitting(false);
   };
 
   const handlePwChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,49 +156,52 @@ const ProfilePage: React.FC = () => {
     setPwSubmitting(true);
     setPwError('');
     setPwSuccess('');
+
     if (!pwForm.current || !pwForm.new || !pwForm.confirm) {
       setPwError('Please fill in all fields.');
       setPwSubmitting(false);
       return;
     }
+
     if (pwForm.new !== pwForm.confirm) {
       setPwError('New passwords do not match.');
       setPwSubmitting(false);
       return;
     }
-    // Fetch current password hash using service client
-    const serviceClient = createServiceClient();
-    const { data: userRow, error: fetchError } = await serviceClient
-      .from('users')
-      .select('id, password_hash')
-      .eq('id', user.id)
-      .single();
-    if (fetchError || !userRow) {
-      setPwError('Unable to verify current password.');
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          currentPassword: pwForm.current,
+          newPassword: pwForm.new,
+          confirmPassword: pwForm.confirm,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setPwError(data.error || 'Failed to change password.');
+        setPwSubmitting(false);
+        return;
+      }
+
+      setPwSuccess('Password changed successfully!');
+      setPwForm({ current: '', new: '', confirm: '' });
       setPwSubmitting(false);
-      return;
-    }
-    const matches = await verifyPassword(pwForm.current, userRow.password_hash);
-    if (!matches) {
-      setPwError('Current password is incorrect.');
+      setTimeout(() => {
+        setShowPasswordModal(false);
+      }, 1500);
+    } catch (error) {
+      console.error('Password change error:', error);
+      setPwError('An error occurred while changing password.');
       setPwSubmitting(false);
-      return;
     }
-    // Update password with hash using service client
-    const newHash = await hashPassword(pwForm.new);
-    const { error: updateError } = await serviceClient
-      .from('users')
-      .update({ password_hash: newHash })
-      .eq('id', user.id);
-    if (updateError) {
-      setPwError(updateError.message);
-      setPwSubmitting(false);
-      return;
-    }
-    setPwSuccess('Password changed successfully!');
-    setPwForm({ current: '', new: '', confirm: '' });
-    setPwSubmitting(false);
-    setShowPasswordModal(false);
   };
 
   return (
@@ -210,7 +232,7 @@ const ProfilePage: React.FC = () => {
                 <hr className="mb-6 border-indigo-100" />
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Name</label>
                     <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
                   </div>
                   <div>

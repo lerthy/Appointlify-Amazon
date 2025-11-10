@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, Users, Settings, LogOut, User } from 'lucide-react';
+import { Menu, X, Users, Settings, LogOut, User, UserCheck, HeartHandshake, Briefcase } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -155,7 +155,7 @@ const Header: React.FC = () => {
                   }}
                   className="text-gray-700 hover:text-purple-600 font-semibold"
                 >
-                  <Users className="h-5 w-5 mr-1" />
+                  <Briefcase className="h-5 w-5 mr-1" />
                   For Businesses
                 </Button>
                 <Button
@@ -173,7 +173,7 @@ const Header: React.FC = () => {
                   }}
                   className="text-gray-700 hover:text-blue-600 font-semibold"
                 >
-                  <Menu className="h-5 w-5 mr-1" />
+                  <HeartHandshake className="h-5 w-5 mr-1" />
                   For Clients
                 </Button>
                 
@@ -288,7 +288,7 @@ const Header: React.FC = () => {
                   }}
                   className="mt-2 border-2 border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white font-semibold"
                 >
-                  <Menu className="h-5 w-5 mr-2" />
+                  <UserCheck className="h-5 w-5 mr-2" />
                   For Clients
                 </Button>
                 <Button

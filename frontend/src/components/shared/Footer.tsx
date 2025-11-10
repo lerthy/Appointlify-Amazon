@@ -8,9 +8,9 @@ const Footer: React.FC = () => {
     <footer className="bg-gray-900 text-white">
       <div className="w-full px-4 py-12 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16">
           {/* Company Info */}
-          <div className="space-y-4">
+          <div className="space-y-4 md:pr-4">
             <div className="flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                 <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-4">
+          <div className="space-y-4 md:px-4">
             <h3 className="text-lg font-semibold">Contact Us</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
@@ -80,9 +80,9 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Quick Links</h3>
+          {/* More Information */}
+          <div className="space-y-4 md:pl-4">
+            <h3 className="text-lg font-semibold">More Information</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link>

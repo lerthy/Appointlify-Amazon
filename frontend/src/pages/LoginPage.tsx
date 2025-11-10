@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../utils/supabaseClient';
-import { verifyPassword, hashPassword } from '../utils/password';
 import { useAuth } from '../context/AuthContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,40 +22,42 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
+
     if (!form.email || !form.password) {
       setError('Please enter both email and password.');
       setIsSubmitting(false);
       return;
     }
     
-    const { data, error: queryError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', form.email)
-      .single();
-    if (queryError || !data) {
-      setError('Invalid email or password.');
-      setIsSubmitting(false);
-      return;
-    }
-    let isValid = await verifyPassword(form.password, data.password_hash);
-    if (!isValid) {
-      // Seamless migration for legacy plaintext passwords
-      if (data.password_hash === form.password) {
-        const newHash = await hashPassword(form.password);
-        await supabase.from('users').update({ password_hash: newHash }).eq('id', data.id);
-        isValid = true;
-        data.password_hash = newHash;
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || 'Invalid email or password.');
+        setIsSubmitting(false);
+        return;
       }
-    }
-    if (!isValid) {
-      setError('Invalid email or password.');
+
+      login(data.user);
       setIsSubmitting(false);
-      return;
+      navigate('/');
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('An error occurred. Please try again.');
+      setIsSubmitting(false);
     }
-    login(data);
-    setIsSubmitting(false);
-    navigate('/');
   };
 
   return (

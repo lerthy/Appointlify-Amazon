@@ -24,6 +24,7 @@ import OpenAI from 'openai';
 const validateDto = (dtoClass, skipMissing = false) => (req, res, next) => next();
 
 import { supabase } from './supabaseClient.js';
+import * as authRoutes from './routes/auth.js';
 
 console.log('Supabase available at startup:', !!supabase);
 
@@ -104,6 +105,15 @@ function requireDb(req, res, next) {
   }
   next();
 }
+
+// ============================================
+// Authentication Routes
+// ============================================
+app.post('/api/auth/login', requireDb, authRoutes.login);
+app.post('/api/auth/register', requireDb, authRoutes.register);
+app.post('/api/auth/upload-logo', requireDb, authRoutes.uploadLogo);
+app.patch('/api/auth/profile/:userId', requireDb, authRoutes.updateProfile);
+app.post('/api/auth/change-password', requireDb, authRoutes.changePassword);
 
 
 // Initialize Twilio client (optional)
