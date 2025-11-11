@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Menu, X, Users, Settings, LogOut, User, UserCheck, HeartHandshake, Briefcase } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, Users, LogOut, User, HeartHandshake, Briefcase } from 'lucide-react';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { businessSettings, currentView, setCurrentView } = useApp();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isScrollingUp, setIsScrollingUp] = useState(true);
   const lastScrollYRef = useRef<number>(0);
+  const location = useLocation();
+  const isHome = location.pathname === '/';
   
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -21,10 +21,6 @@ const Header: React.FC = () => {
   
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
-  };
-  
-  const toggleView = () => {
-    setCurrentView(currentView === 'customer' ? 'business' : 'customer');
   };
   
   // Close dropdown when clicking outside
@@ -107,6 +103,47 @@ const Header: React.FC = () => {
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-3">
             {user ? (
               <div className="flex items-center space-x-4" ref={dropdownRef}>
+                {isHome && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="md"
+                      onClick={() => {
+                        if (window.location.pathname === '/') {
+                          document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          navigate('/');
+                          setTimeout(() => {
+                            document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
+                        }
+                      }}
+                      className="text-gray-700 hover:text-purple-600 font-semibold"
+                    >
+                      <Briefcase className="h-5 w-5 mr-1" />
+                      For Businesses
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="md"
+                      onClick={() => {
+                        if (window.location.pathname === '/') {
+                          document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          navigate('/');
+                          setTimeout(() => {
+                            document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
+                        }
+                      }}
+                      className="text-gray-700 hover:text-blue-600 font-semibold"
+                    >
+                      <HeartHandshake className="h-5 w-5 mr-1" />
+                      For Clients
+                    </Button>
+                    <div className="border-l border-gray-300 h-8 mx-2"></div>
+                  </>
+                )}
                 {/* Animated Tabs */}
                 {dropdownOpen && (
                   <>
@@ -217,8 +254,48 @@ const Header: React.FC = () => {
               </>
             )}
           </div>
-          {/* Mobile menu button */}
-          <div className="flex items-center sm:hidden">
+          {/* Mobile quick actions + menu button */}
+          <div className="flex items-center space-x-2 sm:hidden">
+            {isHome && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (window.location.pathname === '/') {
+                      document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/');
+                      setTimeout(() => {
+                        document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }
+                  }}
+                  className="flex items-center space-x-1 text-xs font-semibold text-indigo-600 px-3 py-1 rounded-full bg-white focus:outline-none"
+                >
+                  <Briefcase className="h-3.5 w-3.5" />
+                  <span>For Businesses</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (window.location.pathname === '/') {
+                      document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/');
+                      setTimeout(() => {
+                        document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }
+                  }}
+                  className="flex items-center space-x-1 text-xs font-semibold text-blue-600 px-3 py-1 rounded-full bg-white focus:outline-none"
+                >
+                  <HeartHandshake className="h-3.5 w-3.5" />
+                  <span>For Clients</span>
+                </Button>
+              </>
+            )}
             <button
               type="button"
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
@@ -247,9 +324,9 @@ const Header: React.FC = () => {
                     navigate('/');
                     setMenuOpen(false);
                   }}
-                  className="text-base font-semibold justify-start hover:bg-transparent hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:to-violet-600"
+                  className="flex items-center space-x-2 justify-start px-4 py-2 text-black font-semibold bg-white hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:text-white transition-all duration-200"
                 >
-                  Home
+                  <span>Home</span>
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -294,49 +371,9 @@ const Header: React.FC = () => {
                     navigate('/');
                     setMenuOpen(false);
                   }}
-                  className="text-base font-semibold justify-start hover:bg-transparent hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:to-violet-600"
+                  className="flex items-center space-x-2 justify-start px-4 py-2 border-2 border-gray-300 text-gray-700 font-semibold bg-white hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:text-white transition-all duration-200 shadow-sm"
                 >
-                  Home
-                </Button>
-                <Button
-                  variant="outline"
-                  size="md"
-                  fullWidth
-                  onClick={() => {
-                    if (window.location.pathname === '/') {
-                      document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                      navigate('/');
-                      setTimeout(() => {
-                        document.getElementById('businesses-section')?.scrollIntoView({ behavior: 'smooth' });
-                      }, 100);
-                    }
-                    setMenuOpen(false);
-                  }}
-                  className="mt-2 border-2 border-purple-600 text-purple-700 hover:bg-purple-600 hover:text-white font-semibold"
-                >
-                  <Users className="h-5 w-5 mr-2" />
-                  For Businesses
-                </Button>
-                <Button
-                  variant="outline"
-                  size="md"
-                  fullWidth
-                  onClick={() => {
-                    if (window.location.pathname === '/') {
-                      document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                      navigate('/');
-                      setTimeout(() => {
-                        document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' });
-                      }, 100);
-                    }
-                    setMenuOpen(false);
-                  }}
-                  className="mt-2 border-2 border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white font-semibold"
-                >
-                  <UserCheck className="h-5 w-5 mr-2" />
-                  For Clients
+                  <span>Home</span>
                 </Button>
                 <Button
                   variant="outline"

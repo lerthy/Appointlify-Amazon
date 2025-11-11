@@ -12,9 +12,9 @@ interface SplitAuthLayoutProps {
 // Office/appointment/collaboration Unsplash image
 const APPOINTMENT_BG = 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=900&q=80';
 
-const SplitAuthLayout: React.FC<SplitAuthLayoutProps> = ({ logoUrl, title, subtitle, quote, children, reverse }) => {
+const SplitAuthLayout: React.FC<SplitAuthLayoutProps> = ({ title, subtitle, quote, children, reverse }) => {
   return (
-    <div className={`min-h-screen flex ${reverse ? 'flex-row-reverse' : ''}`}>
+    <div className={`min-h-screen flex  md:flex-row ${reverse ? 'md:flex-row-reverse' : ''} bg-gradient-to-br from-slate-50 via-white to-indigo-100`}>
       {/* Left or Right Side (text only) */}
       <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-slate-600 via-purple-600 to-indigo-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${APPOINTMENT_BG})` }} />
@@ -34,8 +34,20 @@ const SplitAuthLayout: React.FC<SplitAuthLayoutProps> = ({ logoUrl, title, subti
         </div>
       </div>
       {/* Form Side */}
-      <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="w-full max-w-lg p-8 bg-white rounded-xl shadow-xl mx-4">{children}</div>
+      <div className="flex flex-col justify-center items-center w-full md:w-1/2 px-4 py-10 md:py-16">
+        <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg px-6 py-7 sm:px-8 sm:py-10 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl ring-1 ring-indigo-100/70 mx-auto relative overflow-hidden">
+          <div className="absolute -top-16 -right-10 h-40 w-40 bg-gradient-to-br from-indigo-200/60 to-purple-200/60 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-12 -left-12 h-32 w-32 bg-gradient-to-br from-purple-100/70 to-pink-100/60 rounded-full blur-3xl"></div>
+          <div className="relative z-10">
+            <div className="md:hidden flex flex-col items-center text-center mb-6 space-y-3">
+              <div className="space-y-1 px-4">
+                <h1 className="text-xl font-extrabold text-slate-900">{title}</h1>
+                <p className="text-sm text-slate-500 leading-relaxed">{subtitle}</p>
+              </div>
+            </div>
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );
