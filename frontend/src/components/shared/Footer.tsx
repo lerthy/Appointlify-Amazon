@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Info */}
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col items-center text-center md:items-start md:text-left">
             <div className="flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                 <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -46,8 +46,8 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-4 flex flex-col justify-center items-center">
-            <h3 className="text-lg font-semibold text-start">Contact Us</h3>
+          <div className="space-y-4 flex flex-col items-center text-center md:items-start md:text-left justify-start">
+            <h3 className="text-lg font-semibold">Contact Us</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
                 <MapPin size={18} className="text-gray-400 mr-3 mt-1 flex-shrink-0" />
@@ -81,7 +81,7 @@ const Footer: React.FC = () => {
           </div>
 
           {/* More Information */}
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col items-center text-center md:items-start md:text-left">
             <h3 className="text-lg font-semibold">More Information</h3>
             <ul className="space-y-2">
               <li>
@@ -99,7 +99,7 @@ const Footer: React.FC = () => {
           </div>
 
           <div className="mt-12 pt-8 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-center text-center">
             <p className="text-gray-400 text-sm">
               &copy; {new Date().getFullYear()} Appointly-ks. All rights reserved.
             </p>

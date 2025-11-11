@@ -141,11 +141,12 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
       {/* Chat Bubble */}
       {!isOpen && (
         <div
-          className="fixed bottom-6 right-6 z-50 cursor-pointer transform transition-transform hover:scale-110"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 cursor-pointer transform transition-transform hover:scale-110"
           onClick={() => setIsOpen(true)}
         >
-          <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-full shadow-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300">
-            <MessageCircle size={24} />
+          <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-3 sm:p-4 rounded-full shadow-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300">
+            <MessageCircle size={20} className="sm:hidden" />
+            <MessageCircle size={24} className="hidden sm:block" />
           </div>
           {/* <div className="absolute -top-2 -right-2 bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
             AI
@@ -155,7 +156,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border-none flex flex-col">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-6 sm:bottom-6 z-50 w-[90vw] max-w-sm h-[65vh] sm:w-96 sm:h-[500px] bg-white rounded-2xl shadow-2xl border-none flex flex-col">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-t-2xl flex justify-between items-center">
             <div>

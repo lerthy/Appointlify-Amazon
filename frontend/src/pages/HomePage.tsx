@@ -357,7 +357,7 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Benefits for Clients */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
             <div className="bg-white p-6 rounded-xl shadow-lg text-center">
               <div className="bg-blue-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-7 h-7 text-blue-600" />
