@@ -15,6 +15,7 @@
     "node-fetch": "^2.7.0",
     "nodemailer": "^7.0.6",
     "openai": "^5.15.0",
+    "serverless-http": "^3.2.0",
     "twilio": "^5.7.0",
     "zod": "^3.23.8"
   },

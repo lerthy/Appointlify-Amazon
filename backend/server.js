@@ -904,30 +904,46 @@ app.get('/api/reviews', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
+const isServerlessEnv = Boolean(
+  process.env.LAMBDA_TASK_ROOT ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.NETLIFY ||
+  process.env.SERVERLESS
+);
 
 // Add error handlers
 process.on('uncaughtException', (err) => {
   console.error('💥 Uncaught Exception:', err);
-  process.exit(1);
+  if (!isServerlessEnv) {
+    process.exit(1);
+  }
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
-});
-
-const server = app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`✅ Health check: http://localhost:${PORT}/health`);
-  console.log(`✅ API health: http://localhost:${PORT}/api/health`);
-});
-
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use. Please close the other process or use a different port.`);
-  } else {
-    console.error('❌ Server error:', err);
+  if (!isServerlessEnv) {
+    process.exit(1);
   }
-  process.exit(1);
 });
+
+if (!isServerlessEnv) {
+  const server = app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`✅ Health check: http://localhost:${PORT}/health`);
+    console.log(`✅ API health: http://localhost:${PORT}/api/health`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use. Please close the other process or use a different port.`);
+    } else {
+      console.error('❌ Server error:', err);
+    }
+    process.exit(1);
+  });
+} else {
+  console.log('⚙️ Serverless environment detected; Express app exported without starting HTTP listener.');
+}
+
+export default app;
 
