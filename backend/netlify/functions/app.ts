@@ -20,15 +20,19 @@ if (supabaseUrl && supabaseServiceRoleKey) {
 }
 
 // Configure CORS allowlist for production
-const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000/')
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
   .split(',')
-  .map(o => o.trim())
+  .map(o => o.trim().replace(/\/$/, '')) // Remove trailing slashes
   .filter(Boolean);
 const corsOptions = {
   origin: (origin, cb) => {
     // Allow non-browser requests or when no allowlist configured
     if (!origin || allowedOrigins.length === 0) return cb(null, true);
-    if (allowedOrigins.includes(origin)) return cb(null, true);
+    // Normalize origin by removing trailing slash for comparison
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    if (allowedOrigins.includes(normalizedOrigin) || allowedOrigins.includes('*')) {
+      return cb(null, true);
+    }
     return cb(new Error('Not allowed by CORS'));
   },
   credentials: true,

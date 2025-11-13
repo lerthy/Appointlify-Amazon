@@ -9,13 +9,21 @@
 [functions]
   directory = "backend/netlify/functions"
 
+# API requests are handled by Netlify function (configured in api.ts with path: '/api/{proxy+}')
+# Put API redirects BEFORE the catch-all to ensure they're processed first
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
   status = 200
 
 # Specific redirect for booking confirmation
 [[redirects]]
   from = "/booking-confirmation"
+  to = "/index.html"
+  status = 200
+
+# Catch-all for SPA routing (must be last)
+[[redirects]]
+  from = "/*"
   to = "/index.html"
   status = 200
