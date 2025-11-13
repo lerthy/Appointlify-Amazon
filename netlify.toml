@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = "frontend/dist"
+  functions = "backend/netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[functions]
+  directory = "backend/netlify/functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Specific redirect for booking confirmation
+[[redirects]]
+  from = "/booking-confirmation"
+  to = "/index.html"
+  status = 200
