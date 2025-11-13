@@ -4,7 +4,11 @@ import app from './app.js';
 const serverlessHandler = serverless(app);
 
 export const handler = async (event: any, context: any) => {
-  const response = await serverlessHandler(event, context);
+  const response = await serverlessHandler(event, context) as {
+    statusCode?: number;
+    headers?: Record<string, string>;
+    body?: string;
+  };
 
   const headers = response.headers || {};
   if (!headers['Access-Control-Allow-Origin']) {
@@ -21,4 +25,5 @@ export const handler = async (event: any, context: any) => {
 };
 
 export const config = { path: '/api/{proxy+}' };
+
 
