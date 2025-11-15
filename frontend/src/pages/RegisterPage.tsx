@@ -157,14 +157,15 @@ const RegisterPage: React.FC = () => {
         >
           <button
             onClick={() => navigate('/')}
-            className="absolute left-4 top-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200 z-20"
+            className="absolute -left-2 -top-2 md:left-4 md:top-4 flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-white hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 rounded-full shadow-lg hover:shadow-xl border border-indigo-100 hover:border-indigo-200 transition-all duration-200 z-30 group"
+            aria-label="Go back"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <svg className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
           {/* <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">Create your account</h2> */}
-          <form onSubmit={handleSubmit} className="space-y-3 pt-8">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Name</label>
               <input
