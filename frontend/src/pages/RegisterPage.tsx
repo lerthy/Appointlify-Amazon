@@ -5,6 +5,8 @@ import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import { hashPassword } from '../utils/password';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
+// RegisterPage component for user registration
+
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
 
 const RegisterPage: React.FC = () => {
