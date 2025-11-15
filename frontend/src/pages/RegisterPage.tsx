@@ -163,7 +163,7 @@ const RegisterPage: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-3 mt-6">
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Name</label>
               <input
