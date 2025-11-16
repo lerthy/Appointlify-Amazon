@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
       
       <main className="max-w-7xl mx-auto px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-5 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
             <div className="px-4 py-4 sm:px-6 sm:py-6">
               <div className="flex items-center">
@@ -152,23 +152,6 @@ const Dashboard: React.FC = () => {
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Services</dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{services.length}</div>
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl p-3 sm:p-4 shadow-sm">
-                  <BarChart2 className="h-6 w-6 sm:h-7 sm:w-7 text-amber-600" />
-                </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Avg. Wait Time</dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl sm:text-3xl font-bold text-gray-900">{analytics.averageWaitTime} min</div>
                     </dd>
                   </dl>
                 </div>
