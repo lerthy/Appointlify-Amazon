@@ -1354,7 +1354,13 @@ export async function handler(event, context) {
 
     // Try Groq first
     if (useGroq) {
-      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+      const groqApiKey = process.env.GROQ_API_KEY;
+      if (!groqApiKey) {
+        console.error('chat.js: GROQ_API_KEY is not set');
+        throw new Error('GROQ_API_KEY environment variable is not configured');
+      }
+      
+      const groq = new Groq({ apiKey: groqApiKey });
       const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
       // Debug Groq context
@@ -1362,6 +1368,8 @@ export async function handler(event, context) {
         count: dbContext.businesses.length,
         names: dbContext.businesses.map(b => b.name)
       });
+      console.log('chat.js: Groq API key present:', !!groqApiKey);
+      console.log('chat.js: Groq model:', model);
 
       // Create system prompt with booking context and MCP knowledge
       // Group services by business to show proper associations
@@ -1469,12 +1477,16 @@ IMPORTANT: When you have ALL the required information (name, business, service, 
 
 Required fields: name, business, service, date, time, email, phone.`;
 
+      // Validate and prepare messages
       const chatMessages = [
         { role: 'system', content: systemPrompt },
-        ...messages
+        ...messages.filter(msg => msg && msg.role && msg.content)
       ];
 
       console.log('chat.js using provider: groq');
+      console.log('chat.js: Groq messages count:', chatMessages.length);
+      console.log('chat.js: Groq system prompt length:', systemPrompt.length);
+      
       try {
         const completion = await groq.chat.completions.create({
           model,
@@ -1483,7 +1495,12 @@ Required fields: name, business, service, date, time, email, phone.`;
           temperature: 0.7,
         });
 
+        console.log('chat.js: Groq API call successful');
         const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+        
+        if (!assistantMessage || assistantMessage.trim() === '') {
+          throw new Error('Groq returned empty response');
+        }
         
         // Check if this is a booking ready response
         if (assistantMessage.includes('BOOKING_READY:')) {
@@ -1497,6 +1514,7 @@ Required fields: name, business, service, date, time, email, phone.`;
             success: true, 
             message: assistantMessage,
             provider: 'groq',
+            model: model,
             mcpKnowledgeUsed: dbContext.knowledge.length,
             context: {
               businesses: dbContext.businesses.length,
@@ -1506,9 +1524,26 @@ Required fields: name, business, service, date, time, email, phone.`;
           })
         };
       } catch (groqError) {
-        console.error('chat.js: Groq API error:', groqError);
-        // Fall through to mock AI fallback
-        throw groqError;
+        console.error('chat.js: Groq API error details:', {
+          message: groqError.message,
+          status: groqError.status,
+          statusText: groqError.statusText,
+          error: groqError.error,
+          stack: groqError.stack
+        });
+        
+        // If it's an API key error, throw it so we get a clear message
+        if (groqError.message?.includes('API key') || groqError.status === 401) {
+          throw new Error(`Groq API key error: ${groqError.message || 'Invalid API key'}`);
+        }
+        
+        // If it's a rate limit, throw it
+        if (groqError.status === 429) {
+          throw new Error(`Groq rate limit exceeded: ${groqError.message || 'Too many requests'}`);
+        }
+        
+        // For other errors, log and throw
+        throw new Error(`Groq API error: ${groqError.message || 'Unknown error'}`);
       }
     }
 
