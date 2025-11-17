@@ -1149,6 +1149,13 @@ What service are you interested in?`;
 }
 
 export async function handler(event, context) {
+  // Log function invocation immediately
+  console.log('=== CHAT FUNCTION CALLED ===');
+  console.log('chat.js: Function invoked at:', new Date().toISOString());
+  console.log('chat.js: HTTP Method:', event.httpMethod);
+  console.log('chat.js: Request ID:', context?.requestId || 'N/A');
+  console.log('chat.js: Event body exists:', !!event.body);
+  
   // Security headers with proper CORS
   const requestOrigin = event.headers?.origin || event.headers?.Origin || '';
   const allowedOrigins = [
@@ -1158,6 +1165,8 @@ export async function handler(event, context) {
     'http://localhost:3000'
   ];
   const origin = allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0];
+  console.log('chat.js: Request origin:', requestOrigin);
+  console.log('chat.js: Allowed origin:', origin);
   
   const headers = {
     'Access-Control-Allow-Origin': origin,
@@ -1507,7 +1516,8 @@ Required fields: name, business, service, date, time, email, phone.`;
           return await handleBookingReady(assistantMessage, headers);
         }
         
-        return {
+        console.log('chat.js: Groq response successful, returning 200');
+        const response = {
           statusCode: 200,
           headers,
           body: JSON.stringify({ 
@@ -1523,6 +1533,8 @@ Required fields: name, business, service, date, time, email, phone.`;
             }
           })
         };
+        console.log('chat.js: Returning Groq response, message length:', assistantMessage.length);
+        return response;
       } catch (groqError) {
         console.error('chat.js: Groq API error details:', {
           message: groqError.message,
