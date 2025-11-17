@@ -54,7 +54,32 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+// Use express.raw() first to capture body as Buffer, then parse it
+app.use(express.raw({ type: 'application/json' }));
+
+// Custom body parser to handle Buffer objects from serverless-http
+app.use((req, res, next) => {
+  // If body is a Buffer (from serverless-http or express.raw), convert it to string and parse
+  if (req.body && Buffer.isBuffer(req.body)) {
+    try {
+      const bodyString = req.body.toString('utf8');
+      if (bodyString) {
+        req.body = JSON.parse(bodyString);
+        console.log('app.ts: Converted Buffer to parsed JSON');
+      } else {
+        req.body = {};
+      }
+    } catch (parseError: any) {
+      console.error('app.ts: Failed to parse Buffer body:', parseError?.message);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid JSON in request body',
+        details: parseError?.message
+      });
+    }
+  }
+  next();
+});
 
 // Add post-parsing logging
 app.use((req, res, next) => {

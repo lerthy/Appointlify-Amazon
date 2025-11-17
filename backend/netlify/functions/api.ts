@@ -18,6 +18,19 @@ export const handler = async (event: any, context: any) => {
     console.log('api.ts: Body sample:', typeof event.body === 'string' ? event.body.substring(0, 200) : JSON.stringify(event.body).substring(0, 200));
   }
   
+  // Parse body if it's a string (Netlify passes body as string, but serverless-http might need it as-is)
+  // Actually, serverless-http handles string bodies correctly, but we need to ensure Content-Type is set
+  if (event.body && typeof event.body === 'string' && event.httpMethod !== 'GET' && event.httpMethod !== 'OPTIONS') {
+    // Ensure Content-Type header is set for JSON parsing
+    if (!event.headers) {
+      event.headers = {};
+    }
+    if (!event.headers['Content-Type'] && !event.headers['content-type']) {
+      event.headers['Content-Type'] = 'application/json';
+      event.headers['content-type'] = 'application/json';
+    }
+  }
+  
   // Handle CORS preflight (OPTIONS) requests
   if (event.httpMethod === 'OPTIONS') {
     const requestOrigin = event.headers?.origin || event.headers?.Origin || '';
