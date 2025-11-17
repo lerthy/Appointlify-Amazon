@@ -1383,7 +1383,13 @@ export async function handler(event, context) {
         `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
       
       // Get available times for businesses mentioned in recent messages
-      const availableTimesContext = await getAvailableTimesForContext(messages, dbContext);
+      let availableTimesContext = '';
+      try {
+        availableTimesContext = await getAvailableTimesForContext(messages, dbContext);
+      } catch (timesError) {
+        console.error('chat.js: Error getting available times:', timesError);
+        availableTimesContext = 'Checking availability...';
+      }
       
       const systemPrompt = `You are a professional booking assistant for Appointly. You help customers book appointments with a friendly, structured approach.
 
@@ -1453,36 +1459,41 @@ Required fields: name, business, service, date, time, email, phone.`;
       ];
 
       console.log('chat.js using provider: groq');
-      const completion = await groq.chat.completions.create({
-        model,
-        messages: chatMessages,
-        max_tokens: 500,
-        temperature: 0.7,
-      });
+      try {
+        const completion = await groq.chat.completions.create({
+          model,
+          messages: chatMessages,
+          max_tokens: 500,
+          temperature: 0.7,
+        });
 
-      const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
-      
-      // Check if this is a booking ready response
-      if (assistantMessage.includes('BOOKING_READY:')) {
-        return await handleBookingReady(assistantMessage, headers);
+        const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+        
+        // Check if this is a booking ready response
+        if (assistantMessage.includes('BOOKING_READY:')) {
+          return await handleBookingReady(assistantMessage, headers);
+        }
+        
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ 
+            success: true, 
+            message: assistantMessage,
+            provider: 'groq',
+            mcpKnowledgeUsed: dbContext.knowledge.length,
+            context: {
+              businesses: dbContext.businesses.length,
+              services: dbContext.services.length,
+              knowledge: dbContext.knowledge.length
+            }
+          })
+        };
+      } catch (groqError) {
+        console.error('chat.js: Groq API error:', groqError);
+        // Fall through to mock AI fallback
+        throw groqError;
       }
-      
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ 
-          success: true, 
-          message: assistantMessage,
-          provider: 'groq',
-          mcpKnowledgeUsed: dbContext.knowledge.length,
-          context: {
-            businesses: dbContext.businesses.length,
-            services: dbContext.services.length,
-            knowledge: dbContext.knowledge.length
-          }
-        })
-      };
     }
 
     // Initialize OpenAI client
@@ -1503,7 +1514,13 @@ Required fields: name, business, service, date, time, email, phone.`;
       `\nRELEVANT KNOWLEDGE BASE INFORMATION:\n${dbContext.knowledge.map(k => `- ${k.content} (Source: ${k.source})`).join('\n')}\n\n` : '';
     
     // Get available times for businesses mentioned in recent messages
-    const availableTimesContext = await getAvailableTimesForContext(messages, dbContext);
+    let availableTimesContext = '';
+    try {
+      availableTimesContext = await getAvailableTimesForContext(messages, dbContext);
+    } catch (timesError) {
+      console.error('chat.js: Error getting available times:', timesError);
+      availableTimesContext = 'Checking availability...';
+    }
     
     const systemPrompt = `You are a professional booking assistant for Appointly. You help customers book appointments with a friendly, structured approach.
 
@@ -1564,29 +1581,29 @@ Required fields: name, business, service, date, time, email, phone.`;
       ...messages
     ];
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: chatMessages,
-      max_tokens: 500,
-      temperature: 0.7,
-    });
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: chatMessages,
+        max_tokens: 500,
+        temperature: 0.7,
+      });
 
-    const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
-    
-    // Check if this is a booking ready response
-    if (assistantMessage.includes('BOOKING_READY:')) {
-      return await handleBookingReady(assistantMessage, headers);
-    }
-    
-    
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ 
-        success: true, 
-        message: assistantMessage,
-        provider: 'openai',
-        usage: completion.usage,
+      const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+      
+      // Check if this is a booking ready response
+      if (assistantMessage.includes('BOOKING_READY:')) {
+        return await handleBookingReady(assistantMessage, headers);
+      }
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ 
+          success: true, 
+          message: assistantMessage,
+          provider: 'openai',
+          usage: completion.usage,
         mcpKnowledgeUsed: dbContext.knowledge.length,
         context: {
           businesses: dbContext.businesses.length,
@@ -1595,6 +1612,11 @@ Required fields: name, business, service, date, time, email, phone.`;
         }
       })
     };
+    } catch (openaiError) {
+      console.error('chat.js: OpenAI API error:', openaiError);
+      // Fall through to mock AI fallback
+      throw openaiError;
+    }
   } catch (error) {
     console.error('chat.js: Error in chat handler:', error);
     console.error('chat.js: Error stack:', error.stack);
