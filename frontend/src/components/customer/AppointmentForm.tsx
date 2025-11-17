@@ -573,17 +573,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     <Card className="w-full max-w-lg shadow-none mx-auto">
             
       <form onSubmit={handleSubmit}>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 px-4 sm:px-6">
           {errors.form && (
-            <div className="col-span-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="col-span-1 sm:col-span-2 p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs sm:text-sm">
               {errors.form}
             </div>
           )}
 
           {/* Service */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Briefcase className="inline w-4 h-4 mr-1" />
+          <div className="col-span-1 sm:col-span-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <Briefcase className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
               Service
             </label>
             <Select
@@ -606,9 +606,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           </div>
 
           {/* Employee */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Users className="inline w-4 h-4 mr-1" />
+          <div className="col-span-1 sm:col-span-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <Users className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
               Employee
             </label>
             <Select
@@ -634,9 +634,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           {formData.service_id && formData.employee_id && (
             <>
               {/* Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Calendar className="inline w-4 h-4 mr-1" />
+              <div className="col-span-1 sm:col-span-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                  <Calendar className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
                   Date
                 </label>
                 <Select
@@ -664,9 +664,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               </div>
 
               {/* Time */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Clock className="inline w-4 h-4 mr-1" />
+              <div className="col-span-1 sm:col-span-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                  <Clock className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
                   Time
                 </label>
                 <Select
@@ -691,9 +691,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           )}
 
           {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <User className="inline w-4 h-4 mr-1" />
+          <div className="col-span-1 sm:col-span-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <User className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
               Full Name
             </label>
             <Input
@@ -708,9 +708,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           </div>
 
           {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Phone className="inline w-4 h-4 mr-1" />
+          <div className="col-span-1 sm:col-span-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <Phone className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
               Phone Number
             </label>
             <Input
@@ -725,26 +725,26 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           </div>
 
           {/* Email */}
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Mail className="inline w-4 h-4 mr-1" />
-                Email Address
-              </label>
-              <Input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="your.email@example.com"
-                error={errors.email}
-                required
-              />
-            </div>
+          <div className="col-span-1 sm:col-span-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <Mail className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+              Email Address
+            </label>
+            <Input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="your.email@example.com"
+              error={errors.email}
+              required
+            />
+          </div>
 
           {/* Notes (full width) */}
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <FileText className="inline w-4 h-4 mr-1" />
+          <div className="col-span-1 sm:col-span-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <FileText className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
               Notes (Optional)
             </label>
             <textarea
@@ -752,17 +752,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               value={formData.notes}
               onChange={handleChange}
               placeholder="Any special requests or notes..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none outline-none focus:border-blue-500 text-sm sm:text-base"
               rows={3}
             />
           </div>
         </CardContent>
 
-        <CardFooter className="col-span-2 flex gap-3 bg-white">
+        <CardFooter className="col-span-1 sm:col-span-2 flex gap-3 bg-white px-4 sm:px-6">
           <Button
             type="submit"
             disabled={isSubmitting || isBusinessClosedToday()}
-            className="flex-1"
+            className="flex-1 text-sm sm:text-base"
           >
             {isSubmitting
               ? 'Booking Appointment...'

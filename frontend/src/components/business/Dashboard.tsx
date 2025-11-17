@@ -89,17 +89,17 @@ const Dashboard: React.FC = () => {
       
       <main className="max-w-7xl mx-auto px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-3 sm:p-4 shadow-sm">
+            <div className="px-3 py-4 sm:px-6 sm:py-6">
+              <div className="flex items-center sm:flex-row flex-col sm:items-center">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
                 </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
+                <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Total Appointments</dt>
-                    <dd className="flex items-baseline">
+                    <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{totalAppointments}</div>
                     </dd>
                   </dl>
@@ -108,15 +108,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 sm:p-4 shadow-sm">
+            <div className="px-3 py-4 sm:px-6 sm:py-6">
+              <div className="flex items-center sm:flex-row flex-col sm:items-center">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
                 </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
+                <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Today's Appointments</dt>
-                    <dd className="flex items-baseline">
+                    <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{todayAppointments.length}</div>
                     </dd>
                   </dl>
@@ -125,15 +125,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-3 sm:p-4 shadow-sm">
+            <div className="px-3 py-4 sm:px-6 sm:py-6">
+              <div className="flex items-center sm:flex-row flex-col sm:items-center">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Users className="h-6 w-6 sm:h-7 sm:w-7 text-green-600" />
                 </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
+                <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Employees</dt>
-                    <dd className="flex items-baseline">
+                    <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{employees.length}</div>
                     </dd>
                   </dl>
@@ -142,15 +142,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 sm:p-4 shadow-sm">
+            <div className="px-3 py-4 sm:px-6 sm:py-6">
+              <div className="flex items-center sm:flex-row flex-col sm:items-center">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Briefcase className="h-6 w-6 sm:h-7 sm:w-7 text-purple-600" />
                 </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
+                <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Services</dt>
-                    <dd className="flex items-baseline">
+                    <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{services.length}</div>
                     </dd>
                   </dl>

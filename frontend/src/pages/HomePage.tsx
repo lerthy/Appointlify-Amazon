@@ -55,12 +55,12 @@ const HomePage: React.FC = () => {
         // Use relative path in production (Netlify), or VITE_API_URL for local dev
         const API_URL = import.meta.env.VITE_API_URL || '';
         const apiPath = API_URL ? `${API_URL}/api/businesses` : '/api/businesses';
-        console.log('🔍 Fetching businesses from:', apiPath);
+        // console.log('🔍 Fetching businesses from:', apiPath);
         const response = await fetch(apiPath);
         const result = await response.json();
         
         if (result.success && result.businesses) {
-          console.log(`✅ Loaded ${result.businesses.length} businesses from backend`);
+          // console.log(`✅ Loaded ${result.businesses.length} businesses from backend`);
           setBusinesses(result.businesses);
           setFilteredBusinesses(result.businesses);
         } else {

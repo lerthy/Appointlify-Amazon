@@ -214,10 +214,13 @@ const ServiceManagement: React.FC = () => {
         </div>
         <Button
           onClick={() => setIsAddingService(true)}
-          className="flex items-center"
+          className="flex items-center justify-center w-10 h-10 rounded-full sm:w-auto sm:h-auto sm:rounded-lg"
+          aria-label="Add service"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Service
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline ml-2">
+            Add Service
+          </span>
         </Button>
       </div>
 
@@ -273,7 +276,7 @@ const ServiceManagement: React.FC = () => {
 
       {/* Add Service Modal */}
       {isAddingService && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-[80] p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border-0 shadow-2xl relative">
             <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200">
               <div className="flex justify-between items-start">
@@ -336,7 +339,7 @@ const ServiceManagement: React.FC = () => {
                   <label className="block text-sm font-semibold text-gray-700">
                     Service Icon *
                   </label>
-                  <div className="grid grid-cols-8 gap-2 p-4 border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-gray-50">
+                  <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 p-3 sm:p-4 border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-gray-50">
                     {iconOptions.map((option) => (
                       <button
                         key={option.name}

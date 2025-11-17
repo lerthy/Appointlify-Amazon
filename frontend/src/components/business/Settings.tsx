@@ -113,163 +113,175 @@ const Settings: React.FC = () => {
   };
 
   return (
-         <div className="max-w-4xl mx-auto p-6">
-       <div className="space-y-8">
-            {/* Weekend Availability */}
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Calendar className="mr-2" size={20} />
-                Weekend Availability
-              </h3>
-              <div className="flex gap-6">
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300"
-                    checked={weekend.saturday}
-                    onChange={e => setWeekend(w => ({ ...w, saturday: e.target.checked }))}
-                  />
-                  <span className="text-gray-700">Saturday</span>
-                </label>
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300"
-                    checked={weekend.sunday}
-                    onChange={e => setWeekend(w => ({ ...w, sunday: e.target.checked }))}
-                  />
-                  <span className="text-gray-700">Sunday</span>
-                </label>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Enable appointment booking on weekends.
-              </p>
+    <div className="max-w-4xl mx-auto p-4 md:p-6">
+      <div className="space-y-6 md:space-y-8">
+        {/* Weekend Availability */}
+        <Card className="border border-gray-200">
+          <CardHeader>
+            <h3 className="text-base md:text-lg font-semibold flex items-center">
+              <Calendar className="mr-2" size={18} />
+              Weekend Availability
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300"
+                  checked={weekend.saturday}
+                  onChange={e => setWeekend(w => ({ ...w, saturday: e.target.checked }))}
+                />
+                <span className="text-sm md:text-base text-gray-700">Saturday</span>
+              </label>
+              <label className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300"
+                  checked={weekend.sunday}
+                  onChange={e => setWeekend(w => ({ ...w, sunday: e.target.checked }))}
+                />
+                <span className="text-sm md:text-base text-gray-700">Sunday</span>
+              </label>
             </div>
+            <p className="text-xs md:text-sm text-gray-500 mt-3">
+              Enable appointment booking on weekends.
+            </p>
+          </CardContent>
+        </Card>
 
-            {/* Business Hours */}
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Clock className="mr-2" size={20} />
-                Business Hours
-              </h3>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Opening Time
-                  </label>
-                  <Input
-                    type="time"
-                    value={opening}
-                    onChange={e => setOpening(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Closing Time
-                  </label>
-                  <Input
-                    type="time"
-                    value={closing}
-                    onChange={e => setClosing(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
+        {/* Business Hours */}
+        <Card className="border border-gray-200">
+          <CardHeader>
+            <h3 className="text-base md:text-lg font-semibold flex items-center">
+              <Clock className="mr-2" size={18} />
+              Business Hours
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5">
+                  Opening Time
+                </label>
+                <Input
+                  type="time"
+                  value={opening}
+                  onChange={e => setOpening(e.target.value)}
+                  className="w-full text-sm md:text-base"
+                />
               </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Set your regular business hours.
-              </p>
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5">
+                  Closing Time
+                </label>
+                <Input
+                  type="time"
+                  value={closing}
+                  onChange={e => setClosing(e.target.value)}
+                  className="w-full text-sm md:text-base"
+                />
+              </div>
             </div>
+            <p className="text-xs md:text-sm text-gray-500 mt-3">
+              Set your regular business hours.
+            </p>
+          </CardContent>
+        </Card>
 
-            {/* Break Times */}
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <AlertCircle className="mr-2" size={20} />
-                Break Times
-              </h3>
-              <div className="grid grid-cols-2 gap-6 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Break Start
-                  </label>
-                  <Input
-                    type="time"
-                    value={breakStart}
-                    onChange={e => setBreakStart(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Break End
-                  </label>
-                  <Input
-                    type="time"
-                    value={breakEnd}
-                    onChange={e => setBreakEnd(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
+        {/* Break Times */}
+        <Card className="border border-gray-200">
+          <CardHeader>
+            <h3 className="text-base md:text-lg font-semibold flex items-center">
+              <AlertCircle className="mr-2" size={18} />
+              Break Times
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-4">
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5">
+                  Break Start
+                </label>
+                <Input
+                  type="time"
+                  value={breakStart}
+                  onChange={e => setBreakStart(e.target.value)}
+                  className="w-full text-sm md:text-base"
+                />
               </div>
-              
-              <Button
-                onClick={handleAddBreak}
-                className="mb-4"
-                variant="outline"
-              >
-                Add Break
-              </Button>
+              <div>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5">
+                  Break End
+                </label>
+                <Input
+                  type="time"
+                  value={breakEnd}
+                  onChange={e => setBreakEnd(e.target.value)}
+                  className="w-full text-sm md:text-base"
+                />
+              </div>
+            </div>
+            
+            <Button
+              onClick={handleAddBreak}
+              className="mb-4 w-full sm:w-auto text-sm md:text-base"
+              variant="outline"
+            >
+              Add Break
+            </Button>
 
-              {breaks.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
-                    Scheduled Breaks:
-                  </h4>
-                  <div className="space-y-2">
-                    {breaks.map((breakTime, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between bg-gray-50 p-3 rounded-md"
+            {breaks.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-xs md:text-sm font-medium text-gray-700 mb-2">
+                  Scheduled Breaks:
+                </h4>
+                <div className="space-y-2">
+                  {breaks.map((breakTime, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-gray-50 p-3 rounded-md"
+                    >
+                      <span className="text-xs md:text-sm text-gray-600">
+                        {breakTime.start} - {breakTime.end}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveBreak(index)}
+                        className="text-red-600 hover:text-red-700 text-xs md:text-sm w-full sm:w-auto"
                       >
-                        <span className="text-sm text-gray-600">
-                          {breakTime.start} - {breakTime.end}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveBreak(index)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              )}
-              
-              <p className="text-sm text-gray-500 mt-2">
-                Add break times when you're not available for appointments.
-              </p>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-                {error}
               </div>
             )}
+            
+            <p className="text-xs md:text-sm text-gray-500 mt-3">
+              Add break times when you're not available for appointments.
+            </p>
+          </CardContent>
+        </Card>
 
-            <div className="flex justify-end">
-              <Button
-                onClick={handleSave}
-                className="min-w-[120px]"
-                disabled={saved}
-              >
-                {saved ? 'Saved!' : 'Save Changes'}
-              </Button>
-                         </div>
-           </div>
-         </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-3 md:px-4 py-2.5 md:py-3 rounded-md text-xs md:text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="flex justify-end">
+          <Button
+            onClick={handleSave}
+            className="min-w-[120px] w-full sm:w-auto text-sm md:text-base"
+            disabled={saved}
+          >
+            {saved ? 'Saved!' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
