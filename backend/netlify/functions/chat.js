@@ -1179,9 +1179,49 @@ export async function handler(event, context) {
     };
   }
 
-  try {
-    const { messages, context: chatContext } = JSON.parse(event.body);
+  // Validate request body
+  if (!event.body) {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ 
+        success: false, 
+        error: 'Request body is required' 
+      })
+    };
+  }
 
+  let parsedBody;
+  try {
+    parsedBody = JSON.parse(event.body);
+  } catch (parseError) {
+    console.error('chat.js: Failed to parse request body:', parseError);
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ 
+        success: false, 
+        error: 'Invalid JSON in request body',
+        details: parseError.message
+      })
+    };
+  }
+
+  const { messages, context: chatContext } = parsedBody;
+
+  // Validate messages
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({ 
+        success: false, 
+        error: 'Messages must be a non-empty array' 
+      })
+    };
+  }
+
+  try {
     // Get enhanced context with MCP integration
     console.log('chat.js: Received context:', JSON.stringify(chatContext, null, 2));
     const dbContext = await getEnhancedContext(chatContext, messages);
@@ -1189,8 +1229,13 @@ export async function handler(event, context) {
     
     // Query MCP knowledge base for relevant information
     const userMessage = messages[messages.length - 1]?.content || '';
-    const knowledge = await queryMCPKnowledge(userMessage, 3);
-    dbContext.knowledge = knowledge;
+    try {
+      const knowledge = await queryMCPKnowledge(userMessage, 3);
+      dbContext.knowledge = knowledge || [];
+    } catch (knowledgeError) {
+      console.error('chat.js: Error querying MCP knowledge:', knowledgeError);
+      dbContext.knowledge = []; // Continue without knowledge if query fails
+    }
     
     // First check if this is a confirmation response (user said yes/no to booking)
     const userMessageLower = userMessage.toLowerCase();
@@ -1551,13 +1596,13 @@ Required fields: name, business, service, date, time, email, phone.`;
       })
     };
   } catch (error) {
-    console.error('Error calling OpenAI:', error);
+    console.error('chat.js: Error in chat handler:', error);
+    console.error('chat.js: Error stack:', error.stack);
     
-    // Fall back to mock AI service on OpenAI errors
+    // Fall back to mock AI service on errors
     try {
-      console.log('Falling back to mock AI service...');
-      const { messages, context: chatContext } = JSON.parse(event.body);
-      const mockResponse = await getMockAIResponse(messages, chatContext);
+      console.log('chat.js: Falling back to mock AI service...');
+      const mockResponse = await getMockAIResponse(messages, chatContext || {});
       return {
         statusCode: 200,
         headers,
@@ -1565,17 +1610,20 @@ Required fields: name, business, service, date, time, email, phone.`;
           success: true, 
           message: mockResponse,
           provider: 'mock-fallback',
-          note: 'OpenAI unavailable, using mock AI service as fallback.'
+          note: 'Service unavailable, using mock AI service as fallback.',
+          error: error.message
         })
       };
     } catch (fallbackError) {
-      console.error('Fallback error:', fallbackError);
+      console.error('chat.js: Fallback error:', fallbackError);
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
           success: false, 
-          error: 'Both OpenAI and fallback services are unavailable'
+          error: 'Chat service unavailable',
+          details: error.message || 'Unknown error occurred',
+          fallbackError: fallbackError.message
         })
       };
     }
