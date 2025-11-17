@@ -41,7 +41,35 @@ const corsOptions = {
 
 const app = express();
 app.use(cors(corsOptions));
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  if (req.path === '/api/chat' || req.path === '/chat') {
+    console.log('app.ts: Incoming request');
+    console.log('app.ts: Path:', req.path);
+    console.log('app.ts: Original URL:', req.originalUrl);
+    console.log('app.ts: Method:', req.method);
+    console.log('app.ts: Body exists before parsing:', !!req.body);
+  }
+  next();
+});
+
 app.use(express.json());
+
+// Add post-parsing logging
+app.use((req, res, next) => {
+  if (req.path === '/api/chat' || req.path === '/chat') {
+    console.log('app.ts: After JSON parsing');
+    console.log('app.ts: Path:', req.path);
+    console.log('app.ts: Body exists:', !!req.body);
+    console.log('app.ts: Body type:', typeof req.body);
+    if (req.body) {
+      console.log('app.ts: Body keys:', Object.keys(req.body));
+      console.log('app.ts: Body sample:', JSON.stringify(req.body).substring(0, 300));
+    }
+  }
+  next();
+});
 
 // Lightweight in-memory store for dev when Supabase is not configured
 const hasSupabase = !!supabase;
@@ -195,30 +223,83 @@ async function getMockAIResponse(messages: any[], context: any) {
 }
 
 // AI Chatbot endpoint - supports Groq (preferred), OpenAI, and Mock fallback
-app.post('/api/chat', async (req, res) => {
+// Handle both /api/chat and /chat paths for compatibility
+const handleChat = async (req: any, res: any) => {
   // Log function invocation immediately
   console.log('=== CHAT API CALLED ===');
   console.log('app.ts: Chat endpoint invoked at:', new Date().toISOString());
   console.log('app.ts: Request body exists:', !!req.body);
+  console.log('app.ts: Request body type:', typeof req.body);
   
   try {
+    // Handle case where body might be a string (shouldn't happen with express.json() but just in case)
+    let body = req.body;
+    if (typeof body === 'string') {
+      console.log('app.ts: Body is string, parsing JSON');
+      try {
+        body = JSON.parse(body);
+      } catch (parseError) {
+        console.error('app.ts: Failed to parse body as JSON:', parseError);
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Invalid JSON in request body',
+          details: 'Request body must be valid JSON'
+        });
+      }
+    }
+    
     // Validate request body
-    if (!req.body) {
+    if (!body) {
       console.error('app.ts: No request body provided');
+      console.error('app.ts: Request headers:', JSON.stringify(req.headers));
       return res.status(400).json({ 
         success: false, 
-        error: 'Request body is required' 
+        error: 'Request body is required',
+        details: 'No request body found'
       });
     }
 
-    const { messages, context } = req.body;
+    console.log('app.ts: Request body keys:', Object.keys(body || {}));
+    console.log('app.ts: Request body sample:', JSON.stringify(body).substring(0, 200));
+
+    const { messages, context } = body;
     
     // Validate messages
-    if (!Array.isArray(messages) || messages.length === 0) {
-      console.error('app.ts: Invalid messages array');
+    if (!messages) {
+      console.error('app.ts: Messages field is missing');
       return res.status(400).json({ 
         success: false, 
-        error: 'Messages must be a non-empty array' 
+        error: 'Messages field is required',
+        details: 'Request body does not contain messages field'
+      });
+    }
+    
+    if (!Array.isArray(messages)) {
+      console.error('app.ts: Messages is not an array, type:', typeof messages);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Messages must be an array',
+        details: `Received type: ${typeof messages}`
+      });
+    }
+    
+    if (messages.length === 0) {
+      console.error('app.ts: Messages array is empty');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Messages array cannot be empty',
+        details: 'At least one message is required'
+      });
+    }
+    
+    // Validate message structure
+    const invalidMessages = messages.filter((msg: any) => !msg || !msg.role || !msg.content);
+    if (invalidMessages.length > 0) {
+      console.error('app.ts: Invalid message structure found:', invalidMessages.length, 'invalid messages');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid message structure',
+        details: 'All messages must have role and content fields'
       });
     }
 
@@ -401,7 +482,11 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
       });
     }
   }
-});
+};
+
+// Register the chat handler for both paths
+app.post('/api/chat', handleChat);
+app.post('/chat', handleChat);
 
 // Mock booking endpoint (replace with your actual booking logic)
 app.post('/api/book-appointment', async (req, res) => {
