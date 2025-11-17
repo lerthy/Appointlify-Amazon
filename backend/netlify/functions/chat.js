@@ -1149,12 +1149,19 @@ What service are you interested in?`;
 }
 
 export async function handler(event, context) {
-  // Log function invocation immediately
-  console.log('=== CHAT FUNCTION CALLED ===');
-  console.log('chat.js: Function invoked at:', new Date().toISOString());
-  console.log('chat.js: HTTP Method:', event.httpMethod);
-  console.log('chat.js: Request ID:', context?.requestId || 'N/A');
-  console.log('chat.js: Event body exists:', !!event.body);
+  // Log function invocation immediately - this should always run
+  try {
+    console.log('=== CHAT FUNCTION CALLED ===');
+    console.log('chat.js: Function invoked at:', new Date().toISOString());
+    console.log('chat.js: HTTP Method:', event?.httpMethod || 'UNKNOWN');
+    console.log('chat.js: Request ID:', context?.requestId || 'N/A');
+    console.log('chat.js: Event body exists:', !!event?.body);
+    console.log('chat.js: Event keys:', Object.keys(event || {}));
+    console.log('chat.js: Context keys:', Object.keys(context || {}));
+  } catch (logError) {
+    // Even logging can fail, but we continue
+    console.error('Failed to log initial info:', logError);
+  }
   
   // Security headers with proper CORS
   const requestOrigin = event.headers?.origin || event.headers?.Origin || '';
