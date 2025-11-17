@@ -10,6 +10,7 @@ const Analytics: React.FC = () => {
   const { analytics, appointments, services, employees } = useApp();
   const [serviceChartMode, setServiceChartMode] = useState<ChartMode>('pie');
   const [dayChartMode, setDayChartMode] = useState<ChartMode>('pie');
+  const [employeeChartMode, setEmployeeChartMode] = useState<ChartMode>('pie');
   
   // Only count active (scheduled/confirmed) and future appointments
   const activeStatuses = ['scheduled', 'confirmed'];
@@ -290,9 +291,9 @@ const Analytics: React.FC = () => {
               <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-2 text-xs">
                 <button
                   type="button"
-                  onClick={() => setDayChartMode('pie')}
+                  onClick={() => setEmployeeChartMode('pie')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
-                    dayChartMode === 'pie'
+                    employeeChartMode === 'pie'
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
@@ -302,9 +303,9 @@ const Analytics: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDayChartMode('bar')}
+                  onClick={() => setEmployeeChartMode('bar')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
-                    dayChartMode === 'bar'
+                    employeeChartMode === 'bar'
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
@@ -331,7 +332,7 @@ const Analytics: React.FC = () => {
                 <h4 className="text-sm font-medium text-gray-500 mb-3">
                   Appointments per Employee
                 </h4>
-                {dayChartMode === 'pie' ? (
+                {employeeChartMode === 'pie' ? (
                   appointmentsPerEmployee.length > 0 &&
                   appointmentsPerEmployee.some((e) => e.count > 0) ? (
                     <ResponsiveContainer width="100%" height={300}>
