@@ -872,15 +872,48 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const { error } = await supabase!
+    
+    console.log('[PATCH /api/appointments/:id] Request:', { 
+      id, 
+      status, 
+      body: req.body,
+      hasSupabase: !!supabase 
+    });
+    
+    if (!status) {
+      console.error('[PATCH /api/appointments/:id] Missing status in request body');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Status is required' 
+      });
+    }
+    
+    const { data, error } = await supabase!
       .from('appointments')
-      .update({ status })
-      .eq('id', id);
-    if (error) throw error;
-    return res.json({ success: true });
-  } catch (error) {
-    console.error('Error updating appointment:', error);
-    return res.status(500).json({ success: false, error: 'Failed to update appointment' });
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error('[PATCH /api/appointments/:id] Supabase error:', error);
+      throw error;
+    }
+    
+    console.log('[PATCH /api/appointments/:id] Success:', { id, status, data });
+    return res.json({ success: true, appointment: data });
+  } catch (error: any) {
+    console.error('[PATCH /api/appointments/:id] Error:', {
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code
+    });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to update appointment',
+      details: error?.message || 'Unknown error'
+    });
   }
 });
 

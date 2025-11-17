@@ -581,7 +581,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           )}
 
           {/* Service */}
-          <div className="col-span-1 sm:col-span-2">
+          <div className="col-span-1 sm:col-span-1">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
               <Briefcase className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
               Service
@@ -606,7 +606,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           </div>
 
           {/* Employee */}
-          <div className="col-span-1 sm:col-span-2">
+          <div className="col-span-1 sm:col-span-1">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
               <Users className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
               Employee

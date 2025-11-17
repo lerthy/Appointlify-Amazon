@@ -177,6 +177,67 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     fetchAppointments();
   }, [businessId, skipBackend]);
 
+  // Real-time subscription for appointments
+  useEffect(() => {
+    if (!businessId) return;
+    
+    console.log('[Realtime] Setting up appointment subscription for business:', businessId);
+    
+    // Subscribe to all changes in appointments table for this business
+    const channel = supabase
+      .channel(`appointments_${businessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'appointments',
+          filter: `business_id=eq.${businessId}`
+        },
+        (payload) => {
+          console.log('[Realtime] Appointment change detected:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            const newAppointment = payload.new as unknown as Appointment;
+            console.log('[Realtime] New appointment:', newAppointment);
+            setAppointments(prev => {
+              // Check if appointment already exists to avoid duplicates
+              if (prev.some(apt => apt.id === newAppointment.id)) {
+                return prev;
+              }
+              // Add new appointment and sort by date
+              return [...prev, newAppointment].sort((a, b) => 
+                new Date(a.date).getTime() - new Date(b.date).getTime()
+              );
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedAppointment = payload.new as unknown as Appointment;
+            console.log('[Realtime] Updated appointment:', updatedAppointment);
+            setAppointments(prev =>
+              prev.map(apt =>
+                apt.id === updatedAppointment.id ? updatedAppointment : apt
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as any).id;
+            console.log('[Realtime] Deleted appointment:', deletedId);
+            setAppointments(prev =>
+              prev.filter(apt => apt.id !== deletedId)
+            );
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Realtime] Subscription status:', status);
+      });
+
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('[Realtime] Cleaning up appointment subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [businessId]);
+
   // Fetch customers from backend
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -374,13 +435,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
   };
 
   const updateAppointmentStatus = async (id: string, status: Appointment['status']) => {
-    const res = await fetch(`/api/appointments/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    if (!res.ok) return;
-    await refreshAppointments();
+    try {
+      console.log('[updateAppointmentStatus] Updating:', { id, status });
+      const res = await fetch(`/api/appointments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[updateAppointmentStatus] Error response:', {
+          status: res.status,
+          statusText: res.statusText,
+          error: errorData
+        });
+        throw new Error(errorData.error || `Failed to update appointment: ${res.statusText}`);
+      }
+      
+      const data = await res.json();
+      console.log('[updateAppointmentStatus] Success:', data);
+      await refreshAppointments();
+    } catch (error) {
+      console.error('[updateAppointmentStatus] Exception:', error);
+      throw error;
+    }
   };
 
   // Add refresh function for appointments (memoized to prevent infinite loops)

@@ -7,6 +7,7 @@ import { useApp } from '../../context/AppContext';
 import { formatDate, formatTime, formatPhoneNumber } from '../../utils/formatters';
 import { sendAppointmentCancellation } from '../../utils/emailService';
 import AlertDialog from '../ui/AlertDialog';
+import RealtimeStatus from '../shared/RealtimeStatus';
 
 // Badge variants for appointment statuses
 const statusVariants: Record<string, { variant: string; label: string }> = {
@@ -327,13 +328,13 @@ const AppointmentManagement: React.FC = () => {
             </div>
             
             {/* Actions column: stacked on mobile, column on desktop */}
-            <div className="md:ml-4 flex flex-col md:items-end space-y-2 w-full md:w-auto">
+            <div className="md:ml-4 flex flex-col md:items-end w-full md:w-auto">
               {appointment.status === 'scheduled' && (
-                <div className="flex flex-col sm:flex-row md:flex-col w-full md:w-auto gap-2">
+                <div className="flex flex-col gap-2 w-full md:w-auto">
                   <Button
                     variant="primary"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => openConfirmDialog(appointment.id)}
                   >
                     Confirm
@@ -341,7 +342,7 @@ const AppointmentManagement: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => openMessageDialog(appointment.id)}
                     icon={<MessageSquare size={16} />}
                   >
@@ -350,7 +351,7 @@ const AppointmentManagement: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => openCancelDialog(appointment.id)}
                     icon={<XCircle size={16} />}
                   >
@@ -360,11 +361,11 @@ const AppointmentManagement: React.FC = () => {
               )}
               
               {appointment.status === 'confirmed' && (
-                <div className="flex flex-col sm:flex-row md:flex-col w-full md:w-auto gap-2">
+                <div className="flex flex-col gap-2 w-full md:w-auto">
                   <Button
                     variant="success"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => handleMarkCompleted(appointment.id)}
                     icon={<CheckCircle size={16} />}
                   >
@@ -373,7 +374,7 @@ const AppointmentManagement: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => openMessageDialog(appointment.id)}
                     icon={<MessageSquare size={16} />}
                   >
@@ -382,7 +383,7 @@ const AppointmentManagement: React.FC = () => {
                   <Button
                     variant="danger"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => handleMarkNoShow(appointment.id)}
                     icon={<XCircle size={16} />}
                   >
@@ -417,6 +418,9 @@ const AppointmentManagement: React.FC = () => {
 
   return (
     <div className="mb-8">
+      {/* Real-time connection status indicator */}
+      <RealtimeStatus businessId={businessId} />
+      
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left rail: filters / context (desktop) */}
         <div className="hidden lg:block lg:col-span-3 space-y-4">

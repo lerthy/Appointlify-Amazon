@@ -180,7 +180,7 @@ const Analytics: React.FC = () => {
     return (
       <div className="w-full overflow-x-auto">
         <div
-          className="flex items-end gap-0"
+          className="flex items-end gap-0.5"
           style={{ height: maxHeight }}
         >
           {data.map((d) => {
