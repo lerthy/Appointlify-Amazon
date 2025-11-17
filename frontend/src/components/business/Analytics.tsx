@@ -180,7 +180,7 @@ const Analytics: React.FC = () => {
     return (
       <div className="w-full overflow-x-auto">
         <div
-          className="flex items-end gap-3"
+          className="flex items-end gap-0"
           style={{ height: maxHeight }}
         >
           {data.map((d) => {
@@ -188,25 +188,23 @@ const Analytics: React.FC = () => {
             return (
               <div
                 key={d.label}
-                className="flex flex-col items-center flex-1 h-full min-w-[2.2rem]"
+                className="flex flex-col items-center flex-1 h-full min-w-[2rem]"
               >
                 {showValue && (
                   <span className="text-[10px] text-gray-600 mb-1">
                     {d.value}
                   </span>
                 )}
-                {/* munesh me bo rounded t full qita */}
-                <div className="w-full max-w-[22px] flex-1 bg-gray-100 overflow-hidden flex items-end">
+                <div className="w-full max-w-[28px] flex-1 bg-gray-100 rounded-t-lg overflow-hidden flex items-end">
                   <div
-                  // edhe qitu munesh me bo rounded t full
-                    className="w-full"
+                    className="w-full rounded-t-lg"
                     style={{
                       height: `${heightPercent}%`,
                       backgroundColor: d.color || '#3B82F6',
                     }}
                   />
                 </div>
-                <span className="mt-1 text-[10px] text-gray-600 truncate text-center">
+                <span className="mt-1 text-[10px] text-gray-600 truncate text-center w-full">
                   {d.label}
                 </span>
               </div>
