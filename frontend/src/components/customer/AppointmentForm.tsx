@@ -453,7 +453,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       } else if (!smsSent) {
         showNotification('Appointment booked but SMS confirmation failed. Please check your email for confirmation.', 'error');
       } else {
-        showNotification('Appointment booked successfully! Check your email and phone for confirmation. 🎉', 'success');
+        showNotification('Check your email and phone for confirmation.', 'success');
       }
       
       // Prepare booking confirmation data

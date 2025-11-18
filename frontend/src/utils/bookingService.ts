@@ -78,10 +78,15 @@ export class BookingService {
         .from('business_settings')
         .select('*')
         .eq('business_id', this.businessId)
-        .single();
+        .order('updated_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching business settings:', error);
+        return null;
+      }
+
+      const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+      return (row as BusinessSettings) || null;
     } catch (error) {
       console.error('Error fetching business settings:', error);
       return null;

@@ -4,7 +4,6 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { useApp } from '../../context/AppContext';
-import { supabase } from '../../utils/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 
 const Settings: React.FC = () => {
@@ -129,7 +128,8 @@ const Settings: React.FC = () => {
       console.log('=== SAVE SUCCESSFUL ===');
     } catch (err) {
       console.error('=== SAVE ERROR ===', err);
-      setError('Failed to save settings. Please try again.');
+      const message = err instanceof Error ? err.message : 'Failed to save settings. Please try again.';
+      setError(message);
     }
   };
 

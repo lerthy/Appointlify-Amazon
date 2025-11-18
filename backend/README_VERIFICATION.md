@@ -41,7 +41,7 @@ Ensure these environment variables are set in your `.env` files:
 ```env
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-FRONTEND_URL=http://localhost:3000  # or your production URL
+FRONTEND_URL=http://localhost:5000  # or your production URL
 BACKEND_URL=http://localhost:8888   # or your production URL
 ```
 

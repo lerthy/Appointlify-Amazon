@@ -18,13 +18,13 @@ const Notification: React.FC<NotificationProps> = ({ message, type, onClose, dur
   }, [duration, onClose]);
 
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] w-[calc(100%-2rem)] sm:w-auto max-w-md px-4">
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] w-[calc(100%-2rem)] sm:w-auto max-w-2xl px-4">
       <div 
         className={`${
           type === 'success' 
             ? 'bg-green-50 border-green-200 text-green-700' 
             : 'bg-red-50 border-red-200 text-red-700'
-        } border-2 px-4 py-3 sm:px-6 sm:py-4 rounded-xl shadow-2xl flex items-start gap-3 animate-fade-in-down backdrop-blur-sm`}
+        } border-2 px-6 py-4 sm:px-8 sm:py-5 rounded-xl shadow-2xl flex items-start gap-4 animate-fade-in-down backdrop-blur-sm`}
       >
         <div className="flex-shrink-0 mt-0.5">
           {type === 'success' ? (

@@ -702,9 +702,16 @@ const AppointmentManagement: React.FC = () => {
                         {/* Centered date number for all viewports */}
                         <div className="flex flex-1 items-center justify-center">
                           {isSelected ? (
-                            <span className="inline-flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full bg-blue-600 text-white text-xs md:text-sm font-semibold">
-                              {date.getDate()}
-                            </span>
+                            <>
+                              {/* Mobile: just show text without circle */}
+                              <span className="md:hidden text-xs font-bold text-gray-900">
+                                {date.getDate()}
+                              </span>
+                              {/* Desktop: show circle with white text */}
+                              <span className="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-semibold">
+                                {date.getDate()}
+                              </span>
+                            </>
                           ) : (
                             <span
                               className={`text-xs md:text-sm font-semibold

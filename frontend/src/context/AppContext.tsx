@@ -139,13 +139,22 @@ export const AppProvider: React.FC<{
 
       // Fallback: direct Supabase read when backend DB routes are unavailable
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('business_settings')
           .select('*')
           .eq('business_id', businessId)
-          .single();
-        if (data) setBusinessSettings(data as unknown as BusinessSettings);
-      } catch (_) {}
+          .order('updated_at', { ascending: false });
+
+        if (error) {
+          console.error('[AppContext] Error loading business_settings via Supabase fallback:', error);
+          return;
+        }
+
+        const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+        setBusinessSettings(row ? (row as unknown as BusinessSettings) : null);
+      } catch (err) {
+        console.error('[AppContext] Exception in Supabase fallback for business_settings:', err);
+      }
     };
     fetchSettings();
   }, [businessId, skipBackend]);
@@ -607,14 +616,36 @@ export const AppProvider: React.FC<{
 
   const updateBusinessSettings = async (settings: Partial<BusinessSettings>) => {
     if (!businessId) return;
+    console.log('[updateBusinessSettings] Sending settings payload:', {
+      businessId,
+      settings,
+    });
     const res = await fetch(`/api/business/${businessId}/settings`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings),
     });
-    if (!res.ok) return;
-    const json = await res.json();
-    if (json?.settings) setBusinessSettings(json.settings);
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch (e) {
+      console.error('[updateBusinessSettings] Failed to parse JSON response:', e, {
+        raw: text,
+      });
+    }
+
+    if (!res.ok) {
+      console.error('[updateBusinessSettings] Backend error:', {
+        status: res.status,
+        statusText: res.statusText,
+        body: json ?? text,
+      });
+      throw new Error(json?.error || 'Failed to update business settings');
+    }
+
+    console.log('[updateBusinessSettings] Success response:', json);
+    if (json?.settings) setBusinessSettings(json.settings as BusinessSettings);
   };
 
   const getAppointmentById = (id: string) => {

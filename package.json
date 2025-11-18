@@ -15,5 +15,8 @@
     "preview": "npm --prefix frontend run preview",
     "lint": "npm --prefix frontend run lint",
     "mcp:supabase": "npx -y @supabase/mcp-server-supabase@latest"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17"
   }
 }

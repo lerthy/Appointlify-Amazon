@@ -123,8 +123,8 @@ const BookingConfirmationPage: React.FC = () => {
           </div>
 
           {/* Booking Details Card */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-            <div className="flex items-center mb-6">
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 mb-6">
+            <div className="flex flex-row sm:flex-col items-center justify-center mb-6">
               {bookingData.businessLogo ? (
                 <img
                   src={bookingData.businessLogo}
@@ -136,7 +136,7 @@ const BookingConfirmationPage: React.FC = () => {
                   {bookingData.businessName.charAt(0).toUpperCase()}
                 </div>
               )}
-              <div className="ml-4">
+              <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-900">{bookingData.businessName}</h2>
                 <p className="text-gray-600">{bookingData.serviceName}</p>
               </div>

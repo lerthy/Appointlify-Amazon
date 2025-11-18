@@ -1169,7 +1169,7 @@ export async function handler(event, context) {
     'https://appointly-ks.netlify.app',
     'https://appointly-qa.netlify.app',
     'http://localhost:5173',
-    'http://localhost:3000'
+    'http://localhost:5000'
   ];
   const origin = allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0];
   console.log('chat.js: Request origin:', requestOrigin);

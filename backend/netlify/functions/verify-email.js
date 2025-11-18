@@ -192,7 +192,7 @@ export async function handler(event, context) {
       }
 
       // Send verification email (this will be handled by the email service)
-      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
+      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/verify-email?token=${token}`;
       
       // Call email sending function
       try {

@@ -1,15 +1,15 @@
 import 'reflect-metadata';
 import express from 'express';
 import twilio from 'twilio';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-let supabase = null;
+let supabase: SupabaseClient<any, "public", "public", any, any> | null = null;
 
 if (supabaseUrl && supabaseServiceRoleKey) {
   supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -21,12 +21,15 @@ if (supabaseUrl && supabaseServiceRoleKey) {
 }
 
 // Configure CORS allowlist for production
-const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:5000')
   .split(',')
   .map(o => o.trim().replace(/\/$/, '')) // Remove trailing slashes
   .filter(Boolean);
-const corsOptions = {
-  origin: (origin, cb) => {
+
+type CorsOriginCallback = (err: Error | null, allow?: boolean) => void;
+
+const corsOptions: CorsOptions = {
+  origin: (origin: string | undefined, cb: CorsOriginCallback) => {
     // Allow non-browser requests or when no allowlist configured
     if (!origin || allowedOrigins.length === 0) return cb(null, true);
     // Normalize origin by removing trailing slash for comparison
@@ -98,7 +101,14 @@ app.use((req, res, next) => {
 
 // Lightweight in-memory store for dev when Supabase is not configured
 const hasSupabase = !!supabase;
-const devStore = {
+
+type DevEmployee = {
+  id: string;
+  created_at: string;
+  [key: string]: any;
+};
+
+const devStore: { employees: DevEmployee[] } = {
   employees: [],
 };
 function generateId(prefix: string) {
@@ -638,15 +648,65 @@ app.get('/api/business/:businessId/employees', requireDb, async (req, res) => {
   }
 });
 
+function buildDefaultWorkingHours() {
+  return [
+    { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+    { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
+  ];
+}
+
+async function ensureBusinessSettings(businessId: string) {
+  // Attempt to load existing settings
+  const { data, error } = await supabase!
+    .from('business_settings')
+    .select('*')
+    .eq('business_id', businessId)
+    .single();
+
+  if (!error && data) {
+    return { data, created: false };
+  }
+
+  if (error && error.code !== 'PGRST116') {
+    // Unexpected error (not "No rows found")
+    throw error;
+  }
+
+  const defaultSettings = {
+    business_id: businessId,
+    working_hours: buildDefaultWorkingHours(),
+    blocked_dates: [],
+    breaks: [],
+    appointment_duration: 30,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  const { data: inserted, error: insertError } = await supabase!
+    .from('business_settings')
+    .insert([defaultSettings])
+    .select()
+    .single();
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return { data: inserted, created: true };
+}
+
 app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    const { data, error } = await supabase!
-      .from('business_settings')
-      .select('*')
-      .eq('business_id', businessId)
-      .single();
-    if (error) throw error;
+    const { data, created } = await ensureBusinessSettings(businessId);
+    if (created) {
+      console.log(`[business/:id/settings GET] Created default settings for business ${businessId}`);
+    }
     return res.json({ success: true, settings: data || null });
   } catch (error) {
     console.error('Error fetching business settings:', error);
@@ -660,11 +720,26 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
     const updates = req.body || {};
     
     console.log('[business/:id/settings PATCH] Request:', { businessId, updates, hasSupabase: !!supabase });
+
+    // Ensure a row exists so upsert succeeds
+    await ensureBusinessSettings(businessId);
+
+    const normalizedUpdates = {
+      working_hours: updates.working_hours ?? buildDefaultWorkingHours(),
+      blocked_dates: Array.isArray(updates.blocked_dates) ? updates.blocked_dates : [],
+      breaks: Array.isArray(updates.breaks) ? updates.breaks : [],
+      appointment_duration: updates.appointment_duration ?? 30
+    };
+    
+    const payload = {
+      business_id: businessId,
+      ...normalizedUpdates,
+      updated_at: new Date().toISOString()
+    };
     
     const { data, error } = await supabase!
       .from('business_settings')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('business_id', businessId)
+      .upsert(payload, { onConflict: 'business_id' })
       .select()
       .single();
     
