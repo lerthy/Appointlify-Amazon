@@ -750,12 +750,25 @@ app.get('/api/users/by-email', async (req, res) => {
 app.get('/api/business/:businessId/appointments', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    console.log('[appointments] Query start', { businessId, hasSupabase: !!supabase });
-    const { data, error } = await supabase!
+    const { includeUnconfirmed } = req.query;
+    
+    console.log('[appointments] Query start', { businessId, includeUnconfirmed, hasSupabase: !!supabase });
+    
+    let query = supabase!
       .from('appointments')
       .select('*')
-      .eq('business_id', businessId)
-      .order('date', { ascending: true });
+      .eq('business_id', businessId);
+    
+    // By default, only show confirmed appointments in business dashboard
+    // Unless explicitly requested to include unconfirmed
+    if (includeUnconfirmed !== 'true') {
+      query = query.eq('confirmation_status', 'confirmed');
+    }
+    
+    query = query.order('date', { ascending: true });
+    
+    const { data, error } = await query;
+    
     if (error) {
       console.error('[appointments] Supabase error:', error.message, error);
       throw error;
@@ -801,7 +814,7 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
 // Create appointment (and customer if needed), then send notifications
 app.post('/api/appointments', requireDb, async (req, res) => {
   try {
-    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration } = req.body;
+    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration, confirmation_token, confirmation_token_expires } = req.body;
 
     const appointmentDate = new Date(date);
 
@@ -922,6 +935,9 @@ app.post('/api/appointments', requireDb, async (req, res) => {
         date: appointmentDate.toISOString(),
         duration: finalDuration,
         status: 'scheduled',
+        confirmation_status: 'pending', // Mark as pending until customer confirms
+        confirmation_token: confirmation_token || null,
+        confirmation_token_expires: confirmation_token_expires || null,
         reminder_sent: false
       }])
       .select('id')

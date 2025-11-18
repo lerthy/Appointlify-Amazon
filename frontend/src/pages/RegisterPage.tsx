@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
-import { hashPassword } from '../utils/password';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
 // RegisterPage component for user registration
@@ -30,45 +29,76 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
     if (!form.name || !form.email || !form.password || !form.confirm || !form.description) {
       setError('Please fill in all fields.');
       setIsSubmitting(false);
       return;
     }
+    
     if (form.password !== form.confirm) {
       setError('Passwords do not match.');
       setIsSubmitting(false);
       return;
     }
-    let logoUrl = '';
-    if (logoFile) {
-      const fileExt = logoFile.name.split('.').pop();
-      const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
-      if (uploadError) {
-        setError('Failed to upload logo: ' + uploadError.message);
+
+    try {
+      // Upload logo first if provided
+      let logoUrl = '';
+      if (logoFile) {
+        const fileExt = logoFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
+        if (uploadError) {
+          setError('Failed to upload logo: ' + uploadError.message);
+          setIsSubmitting(false);
+          return;
+        }
+        logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
+      }
+
+      // Register user with Supabase Auth (with email confirmation required)
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            name: form.name,
+            description: form.description,
+            logo: logoUrl
+          }
+        }
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
         setIsSubmitting(false);
         return;
       }
-      logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
-    }
-    // Hash password before saving
-    const passwordHash = await hashPassword(form.password);
-    const { data: userData, error: insertError } = await supabase.from('users').insert([
-      {
-        name: form.name,
-        email: form.email,
-        password_hash: passwordHash,
-        description: form.description,
-        logo: logoUrl,
+
+      if (!authData.user) {
+        setError('Failed to create account. Please try again.');
+        setIsSubmitting(false);
+        return;
       }
-    ]).select().single();
-    
-    if (insertError) {
-      setError(insertError.message);
-      setIsSubmitting(false);
-      return;
-    }
+
+      // Create business profile in users table
+      const { data: userData, error: insertError } = await supabase.from('users').insert([
+        {
+          auth_user_id: authData.user.id,
+          name: form.name,
+          email: form.email,
+          description: form.description,
+          logo: logoUrl
+        }
+      ]).select().single();
+      
+      if (insertError) {
+        console.error('Profile creation error:', insertError);
+        // Don't fail if profile creation fails - the auth user is created
+        // We can create the profile later on first login
+      }
 
     // Create default business settings for the new user
     if (userData) {
@@ -140,9 +170,69 @@ const RegisterPage: React.FC = () => {
       }
     }
 
-    setIsSubmitting(false);
-    alert('Registered! You can now log in.');
-    navigate('/login');
+      // Create default business settings
+      if (userData) {
+        const defaultWorkingHours = [
+          { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+          { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+          { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+          { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+          { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+          { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+          { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
+        ];
+
+        await supabase.from('business_settings').insert([
+          {
+            business_id: userData.id,
+            name: form.name,
+            working_hours: defaultWorkingHours,
+            blocked_dates: [],
+            breaks: [],
+            appointment_duration: 30
+          }
+        ]);
+
+        // Create default services
+        const defaultServices = [
+          {
+            business_id: userData.id,
+            name: 'Consultation',
+            description: 'Initial consultation and assessment',
+            duration: 30,
+            price: 25.00
+          },
+          {
+            business_id: userData.id,
+            name: 'Basic Service',
+            description: 'Standard service offering',
+            duration: 60,
+            price: 50.00
+          }
+        ];
+
+        await supabase.from('services').insert(defaultServices);
+
+        // Create default employee
+        await supabase.from('employees').insert([
+          {
+            business_id: userData.id,
+            name: 'Main Staff',
+            email: form.email,
+            phone: '+1234567890',
+            role: 'Service Provider'
+          }
+        ]);
+      }
+
+      setIsSubmitting(false);
+      alert('Registration successful! Please check your email to verify your account. You must verify your email before you can log in.');
+      navigate('/login');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      setError(error.message || 'An error occurred during registration');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -171,7 +261,7 @@ const RegisterPage: React.FC = () => {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
                 placeholder="Your name"
                 autoComplete="name"
                 required
@@ -184,7 +274,7 @@ const RegisterPage: React.FC = () => {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
                 placeholder="you@example.com"
                 autoComplete="email"
                 required
@@ -197,7 +287,7 @@ const RegisterPage: React.FC = () => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
                 placeholder="Create a password"
                 autoComplete="new-password"
                 required
@@ -210,7 +300,7 @@ const RegisterPage: React.FC = () => {
                 name="confirm"
                 value={form.confirm}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
                 placeholder="Repeat your password"
                 autoComplete="new-password"
                 required
@@ -222,7 +312,7 @@ const RegisterPage: React.FC = () => {
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none text-sm"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black transition-all resize-none text-sm"
                 placeholder="Describe your company"
                 required
                 rows={2}

@@ -26,6 +26,8 @@ import CookiePolicy from './pages/CookiePolicy';
 import AboutUsPage from './pages/AboutUsPage';
 import ServicesPage from './pages/ServicesPage';
 import ContactPage from './pages/ContactPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
+import ConfirmAppointmentPage from './pages/ConfirmAppointmentPage';
 
 // Components
 
@@ -49,7 +51,7 @@ function AppContent() {
   const location = useLocation();
 
   // Hide AI chat on login and signup, and dashboard pages
-  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard'].includes(location.pathname);
+  const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard', '/verify-email', '/confirm-appointment'].includes(location.pathname);
 
   return (
     <>
@@ -62,6 +64,8 @@ function AppContent() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/confirm-appointment" element={<ConfirmAppointmentPage />} />
 
         <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
         <Route path="/profile" element={<ProfilePage />} />

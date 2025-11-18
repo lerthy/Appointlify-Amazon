@@ -247,3 +247,4 @@ WHERE status IN ('scheduled', 'confirmed', 'completed');
 ✅ Performance improved by 10-100x for busy businesses
 ✅ Maintains all existing functionality (cancelled appointments don't block, etc.)
 
+

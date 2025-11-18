@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
-import { verifyPassword, hashPassword } from '../utils/password';
 import { useAuth } from '../context/AuthContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
@@ -23,40 +22,84 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
     if (!form.email || !form.password) {
       setError('Please enter both email and password.');
       setIsSubmitting(false);
       return;
     }
-    
-    const { data, error: queryError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', form.email)
-      .single();
-    if (queryError || !data) {
-      setError('Invalid email or password.');
-      setIsSubmitting(false);
-      return;
-    }
-    let isValid = await verifyPassword(form.password, data.password_hash);
-    if (!isValid) {
-      // Seamless migration for legacy plaintext passwords
-      if (data.password_hash === form.password) {
-        const newHash = await hashPassword(form.password);
-        await supabase.from('users').update({ password_hash: newHash }).eq('id', data.id);
-        isValid = true;
-        data.password_hash = newHash;
+
+    try {
+      // Use Supabase Auth to sign in
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: form.email,
+        password: form.password
+      });
+
+      if (signInError) {
+        if (signInError.message.includes('Email not confirmed')) {
+          setError('Please verify your email address before logging in. Check your inbox for the verification link.');
+        } else if (signInError.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password.');
+        } else {
+          setError(signInError.message);
+        }
+        setIsSubmitting(false);
+        return;
       }
-    }
-    if (!isValid) {
-      setError('Invalid email or password.');
+
+      if (!authData.user) {
+        setError('Invalid email or password.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check if email is confirmed
+      if (!authData.user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        setError('Please verify your email address before logging in. Check your inbox for the verification link.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Get or create user profile
+      let { data: userData, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('auth_user_id', authData.user.id)
+        .single();
+
+      // If profile doesn't exist, create it
+      if (profileError || !userData) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('users')
+          .insert([{
+            auth_user_id: authData.user.id,
+            email: authData.user.email,
+            name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0]
+          }])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          setError('Failed to create user profile. Please contact support.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        userData = newProfile;
+      }
+
+      // Log in the user
+      login(userData);
       setIsSubmitting(false);
-      return;
+      navigate('/');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setError(error.message || 'An error occurred during login');
+      setIsSubmitting(false);
     }
-    login(data);
-    setIsSubmitting(false);
-    navigate('/');
   };
 
   return (
@@ -85,7 +128,7 @@ const LoginPage: React.FC = () => {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
                 placeholder="Email address"
                 autoComplete="email"
                 required
@@ -98,7 +141,7 @@ const LoginPage: React.FC = () => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
                 placeholder="Password"
                 autoComplete="current-password"
                 required

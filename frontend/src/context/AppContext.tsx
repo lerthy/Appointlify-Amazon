@@ -417,6 +417,13 @@ export const AppProvider: React.FC<{
     date: Date;
     duration: number;
   }): Promise<string> => {
+    // Generate confirmation token
+    const confirmationToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + 48); // 48 hour expiry
+
     const res = await fetch('/api/appointments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -430,6 +437,8 @@ export const AppProvider: React.FC<{
         notes: appointment.notes || null,
         date: appointment.date.toISOString(),
         duration: appointment.duration,
+        confirmation_token: confirmationToken,
+        confirmation_token_expires: tokenExpiry.toISOString()
       }),
     });
     
@@ -440,6 +449,48 @@ export const AppProvider: React.FC<{
     }
     
     const json = await res.json();
+    
+    // Send confirmation email to customer
+    const confirmationLink = `${window.location.origin}/confirm-appointment?token=${confirmationToken}`;
+    
+    try {
+      await fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: appointment.email,
+          subject: 'Confirm Your Appointment - Appointly',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #4F46E5; text-align: center;">Confirm Your Appointment</h1>
+              <p>Hi ${appointment.name},</p>
+              <p>Your appointment has been scheduled! Please confirm your attendance:</p>
+              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(appointment.date).toLocaleDateString()}</p>
+                <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(appointment.date).toLocaleTimeString()}</p>
+                <p style="margin: 5px 0;"><strong>Duration:</strong> ${appointment.duration} minutes</p>
+              </div>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${confirmationLink}" 
+                   style="background-color: #10B981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                  Confirm Appointment
+                </a>
+              </div>
+              <p style="color: #666; font-size: 14px;">
+                Or copy this link: <a href="${confirmationLink}" style="color: #4F46E5; word-break: break-all;">${confirmationLink}</a>
+              </p>
+              <p style="color: #999; font-size: 12px; margin-top: 30px;">
+                This link expires in 48 hours. Your appointment will show in the business dashboard once confirmed.
+              </p>
+            </div>
+          `,
+          text: `Confirm Your Appointment\n\nHi ${appointment.name},\n\nYour appointment is scheduled! Please confirm: ${confirmationLink}\n\nDate: ${new Date(appointment.date).toLocaleDateString()}\nTime: ${new Date(appointment.date).toLocaleTimeString()}\nDuration: ${appointment.duration} minutes\n\nThis link expires in 48 hours.`
+        })
+      });
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+    }
+    
     await refreshAppointments();
     return json?.appointmentId;
   };
