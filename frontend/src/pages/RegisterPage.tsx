@@ -66,7 +66,8 @@ const RegisterPage: React.FC = () => {
           data: {
             name: form.name,
             description: form.description,
-            logo: logoUrl
+            logo: logoUrl,
+            email_verified: true // Mark as verified since we handle verification separately
           }
         }
       });
