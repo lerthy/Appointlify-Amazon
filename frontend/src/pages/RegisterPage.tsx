@@ -10,7 +10,7 @@ const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/pub
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '' });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,6 +90,7 @@ const RegisterPage: React.FC = () => {
           auth_user_id: authData.user.id,
           name: form.name,
           email: form.email,
+          phone: form.phone,
           description: form.description,
           logo: logoUrl
         }
@@ -109,7 +110,7 @@ const RegisterPage: React.FC = () => {
         { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
         { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
         { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
-        { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+        { day: 'Saturday', open: '10:00', close: '15:00', isClosed: true },
         { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
       ];
 
@@ -138,13 +139,6 @@ const RegisterPage: React.FC = () => {
           duration: 30,
           price: 25.00
         },
-        {
-          business_id: userData.id,
-          name: 'Basic Service',
-          description: 'Standard service offering',
-          duration: 60,
-          price: 50.00
-        }
       ];
 
       const { error: servicesError } = await supabase.from('services').insert(defaultServices);
@@ -160,7 +154,7 @@ const RegisterPage: React.FC = () => {
           business_id: userData.id,
           name: 'Main Staff',
           email: form.email,
-          phone: '+1234567890',
+          phone: form.phone,
           role: 'Service Provider'
         }
       ]);
@@ -282,6 +276,19 @@ const RegisterPage: React.FC = () => {
               />
             </div>
             <div className="space-y-1">
+              <label className="block text-xs font-medium text-gray-700">Phone</label>
+              <input
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                placeholder="Your phone number"
+                autoComplete="tel"
+                required
+              />
+            </div>
+            <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Password</label>
               <input
                 type="password"
@@ -321,28 +328,57 @@ const RegisterPage: React.FC = () => {
             </div>
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Company Logo</label>
-              <div className="mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-gray-300 border-dashed rounded-lg hover:border-indigo-500 transition-colors">
+              <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${
+                logoFile 
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-gray-300 hover:border-indigo-500'
+              }`}>
                 <div className="space-y-1 text-center">
-                  <svg
-                    className="mx-auto h-8 w-8 text-gray-400"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  {logoFile ? (
+                    <>
+                      <svg
+                        className="mx-auto h-8 w-8 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <p className="text-xs font-medium text-green-600">{logoFile.name}</p>
+                      <p className="text-[10px] text-gray-500">
+                        {(logoFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="mx-auto h-8 w-8 text-gray-400"
+                        stroke="currentColor"
+                        fill="none"
+                        viewBox="0 0 48 48"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <p className="text-[10px] text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </>
+                  )}
                   <div className="flex text-xs text-gray-600">
                     <label
                       htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                      className="relative cursor-pointer bg-white rounded font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 px-1"
                     >
-                      <span>Upload a file</span>
+                      <span>{logoFile ? 'Change file' : 'Upload a file'}</span>
                       <input
                         id="file-upload"
                         name="file-upload"
@@ -352,9 +388,8 @@ const RegisterPage: React.FC = () => {
                         className="sr-only"
                       />
                     </label>
-                    <p className="pl-1">or drag and drop</p>
+                    {!logoFile && <p className="pl-1">or drag and drop</p>}
                   </div>
-                  <p className="text-[10px] text-gray-500">PNG, JPG, GIF up to 10MB</p>
                 </div>
               </div>
             </div>
