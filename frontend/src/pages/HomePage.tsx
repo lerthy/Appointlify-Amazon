@@ -52,17 +52,42 @@ const HomePage: React.FC = () => {
       setLoading(true);
       try {
         // Fetch businesses from backend API
-        // Use relative path in production (Netlify), or VITE_API_URL for local dev
         const API_URL = import.meta.env.VITE_API_URL || '';
         const apiPath = API_URL ? `${API_URL}/api/businesses` : '/api/businesses';
-        // console.log('🔍 Fetching businesses from:', apiPath);
         const response = await fetch(apiPath);
         const result = await response.json();
         
         if (result.success && result.businesses) {
-          // console.log(`✅ Loaded ${result.businesses.length} businesses from backend`);
-          setBusinesses(result.businesses);
-          setFilteredBusinesses(result.businesses);
+          // FILTER OUT businesses without employees AND services
+          const { createClient } = await import('../utils/supabaseClient');
+          const supabase = (await import('../utils/supabaseClient')).supabase;
+          
+          const validBusinesses = [];
+          
+          for (const business of result.businesses) {
+            // Check employees
+            const { data: employees } = await supabase
+              .from('employees')
+              .select('id')
+              .eq('business_id', business.id)
+              .limit(1);
+            
+            // Check services
+            const { data: services } = await supabase
+              .from('services')
+              .select('id')
+              .eq('business_id', business.id)
+              .limit(1);
+            
+            // Only include if they have BOTH employees AND services
+            if (employees && employees.length > 0 && services && services.length > 0) {
+              validBusinesses.push(business);
+            }
+          }
+          
+          console.log(`Filtered ${validBusinesses.length} valid businesses out of ${result.businesses.length} total`);
+          setBusinesses(validBusinesses);
+          setFilteredBusinesses(validBusinesses);
         } else {
           console.error('Failed to fetch businesses:', result.error);
         }

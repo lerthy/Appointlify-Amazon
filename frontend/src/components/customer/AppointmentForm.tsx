@@ -154,8 +154,20 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         const json = await res.json();
         const data = json?.appointments || [];
         
+        // Filter out cancelled, completed, and no-show appointments - only block scheduled/confirmed slots
+        const activeAppointments = data.filter((appt: any) => 
+          ['scheduled', 'confirmed'].includes(appt.status)
+        );
+        
+        console.log('[AppointmentForm] Booked slots:', {
+          total: data.length,
+          active: activeAppointments.length,
+          date: formData.date,
+          employee: formData.employee_id
+        });
+        
         // Store full appointment objects for overlap detection
-        setBookedAppointments(data);
+        setBookedAppointments(activeAppointments);
       } catch (err) {
         console.error('Error fetching booked slots:', err);
         if (formData.employee_id && formData.date && businessId) {

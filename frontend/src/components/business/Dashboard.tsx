@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, BarChart2, Settings as SettingsIcon, Briefcase } from 'lucide-react';
+import { Users, Calendar, BarChart2, Settings as SettingsIcon, Briefcase, AlertCircle } from 'lucide-react';
 import Tabs from '../ui/Tabs';
 import AppointmentManagement from './AppointmentManagement';
 import Analytics from './Analytics';
@@ -68,8 +68,60 @@ const Dashboard: React.FC = () => {
 
   
 
+  // Check if setup is incomplete
+  const needsEmployees = employees.length === 0;
+  const needsServices = services.length === 0;
+  const setupIncomplete = needsEmployees || needsServices;
+
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Setup Warning Banner */}
+      {setupIncomplete && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-amber-800">
+                  Complete Your Business Setup
+                </h3>
+                <div className="mt-2 text-sm text-amber-700">
+                  <p className="mb-2">
+                    To appear on the homepage and allow customers to book appointments, you need:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {needsEmployees && (
+                      <li>
+                        At least 1 employee -{' '}
+                        <button
+                          onClick={() => setActiveTab('employees')}
+                          className="font-medium underline hover:text-amber-900"
+                        >
+                          Add employee now
+                        </button>
+                      </li>
+                    )}
+                    {needsServices && (
+                      <li>
+                        At least 1 service -{' '}
+                        <button
+                          onClick={() => setActiveTab('services')}
+                          className="font-medium underline hover:text-amber-900"
+                        >
+                          Add service now
+                        </button>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Internal header commented out */}
       {/* <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6 sm:px-6 lg:px-8">

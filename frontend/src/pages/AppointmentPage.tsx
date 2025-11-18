@@ -38,14 +38,30 @@ const AppointmentPage: React.FC = () => {
     if (!businessId) return;
     const fetchBusiness = async () => {
       setLoading(true);
+      console.log('[AppointmentPage] Fetching business:', businessId);
+      
       const { data, error } = await supabase
         .from('users')
         .select('id, name, description, logo')
         .eq('id', businessId)
         .single();
-      if (!error && data) {
-        setBusiness(data);
+      
+      if (error) {
+        console.error('[AppointmentPage] Error fetching business:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
       }
+      
+      if (data) {
+        console.log('[AppointmentPage] Business found:', data);
+        setBusiness(data);
+      } else {
+        console.error('[AppointmentPage] No business data returned');
+      }
+      
       setLoading(false);
     };
     fetchBusiness();

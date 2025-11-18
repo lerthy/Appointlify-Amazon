@@ -30,7 +30,7 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    if (!form.name || !form.email || !form.password || !form.confirm || !form.description) {
+    if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
       setError('Please fill in all fields.');
       setIsSubmitting(false);
       return;
@@ -43,6 +43,19 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
+      // Check if user already exists in the users table
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', form.email)
+        .maybeSingle();
+      
+      if (existingUser) {
+        setError('An account with this email already exists. Please sign in instead.');
+        setIsSubmitting(false);
+        return;
+      }
+
       // Upload logo first if provided
       let logoUrl = '';
       if (logoFile) {
@@ -57,7 +70,8 @@ const RegisterPage: React.FC = () => {
         logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
       }
 
-      // Register user with Supabase Auth (with email confirmation required)
+      // Register user with Supabase Auth
+      // Pass all user data via metadata - the database trigger will create the profile
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -65,9 +79,10 @@ const RegisterPage: React.FC = () => {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             name: form.name,
+            phone: form.phone,
             description: form.description,
             logo: logoUrl,
-            email_verified: true // Mark as verified since we handle verification separately
+            email_verified: true
           }
         }
       });
@@ -84,141 +99,15 @@ const RegisterPage: React.FC = () => {
         return;
       }
 
-      // Create business profile in users table
-      const { data: userData, error: insertError } = await supabase.from('users').insert([
-        {
-          auth_user_id: authData.user.id,
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          description: form.description,
-          logo: logoUrl
-        }
-      ]).select().single();
+      // Success! The database trigger will automatically create the user profile
+      // User needs to verify their email before they can log in
+      console.log('[Registration] ✅ Auth account created:', {
+        userId: authData.user.id,
+        email: authData.user.email,
+        emailConfirmedAt: authData.user.email_confirmed_at
+      });
       
-      if (insertError) {
-        console.error('Profile creation error:', insertError);
-        // Don't fail if profile creation fails - the auth user is created
-        // We can create the profile later on first login
-      }
-
-    // Create default business settings for the new user
-    if (userData) {
-      const defaultWorkingHours = [
-        { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
-        { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
-        { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
-        { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
-        { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
-        { day: 'Saturday', open: '10:00', close: '15:00', isClosed: true },
-        { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
-      ];
-
-      const { error: settingsError } = await supabase.from('business_settings').insert([
-        {
-          business_id: userData.id,
-          name: form.name,
-          working_hours: defaultWorkingHours,
-          blocked_dates: [],
-          breaks: [],
-          appointment_duration: 30
-        }
-      ]);
-
-      if (settingsError) {
-        console.error('Failed to create business settings:', settingsError);
-        // Don't fail the registration, just log the error
-      }
-
-      // Create default services for the new business
-      const defaultServices = [
-        {
-          business_id: userData.id,
-          name: 'Consultation',
-          description: 'Initial consultation and assessment',
-          duration: 30,
-          price: 25.00
-        },
-      ];
-
-      const { error: servicesError } = await supabase.from('services').insert(defaultServices);
-
-      if (servicesError) {
-        console.error('Failed to create default services:', servicesError);
-        // Don't fail the registration, just log the error
-      }
-
-      // Create a default employee for the business
-      const { error: employeeError } = await supabase.from('employees').insert([
-        {
-          business_id: userData.id,
-          name: 'Main Staff',
-          email: form.email,
-          phone: form.phone,
-          role: 'Service Provider'
-        }
-      ]);
-
-      if (employeeError) {
-        console.error('Failed to create default employee:', employeeError);
-        // Don't fail the registration, just log the error
-      }
-    }
-
-      // Create default business settings
-      if (userData) {
-        const defaultWorkingHours = [
-          { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
-          { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
-        ];
-
-        await supabase.from('business_settings').insert([
-          {
-            business_id: userData.id,
-            name: form.name,
-            working_hours: defaultWorkingHours,
-            blocked_dates: [],
-            breaks: [],
-            appointment_duration: 30
-          }
-        ]);
-
-        // Create default services
-        const defaultServices = [
-          {
-            business_id: userData.id,
-            name: 'Consultation',
-            description: 'Initial consultation and assessment',
-            duration: 30,
-            price: 25.00
-          },
-          {
-            business_id: userData.id,
-            name: 'Basic Service',
-            description: 'Standard service offering',
-            duration: 60,
-            price: 50.00
-          }
-        ];
-
-        await supabase.from('services').insert(defaultServices);
-
-        // Create default employee
-        await supabase.from('employees').insert([
-          {
-            business_id: userData.id,
-            name: 'Main Staff',
-            email: form.email,
-            phone: '+1234567890',
-            role: 'Service Provider'
-          }
-        ]);
-      }
+      console.log('[Registration] ✅ User profile will be created automatically by database trigger');
 
       setIsSubmitting(false);
       alert('Registration successful! Please check your email to verify your account. You must verify your email before you can log in.');

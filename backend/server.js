@@ -259,6 +259,8 @@ app.get('/api/business/:businessId/employees', requireDb, async (req, res) => {
 app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
+    console.log('[settings GET] Fetching settings for business:', businessId);
+    
     const { data, error } = await supabase
       .from('business_settings')
       .select('*')
@@ -266,13 +268,26 @@ app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
       .order('updated_at', { ascending: false });
 
     if (error) {
-      console.error('[settings GET] error:', error);
-      return res.status(500).json({ success: false, error: 'Failed to fetch settings' });
+      console.error('[settings GET] Supabase error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      
+      // If it's a PGRST116 (no rows), return empty settings
+      if (error.code === 'PGRST116') {
+        return res.json({ success: true, settings: null });
+      }
+      
+      return res.status(500).json({ success: false, error: error.message || 'Failed to fetch settings' });
     }
 
     const settingsRow = Array.isArray(data) && data.length > 0 ? data[0] : null;
+    console.log('[settings GET] Found settings:', settingsRow ? 'yes' : 'no');
     return res.json({ success: true, settings: settingsRow });
   } catch (error) {
+    console.error('[settings GET] Unexpected error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch settings' });
   }
 });
@@ -364,13 +379,60 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 
 app.get('/api/businesses', requireDb, async (req, res) => {
   try {
-    const { data, error } = await supabase
+    console.log('[GET /api/businesses] Fetching all businesses...');
+    
+    // Get all users
+    const { data: users, error: usersError } = await supabase
       .from('users')
       .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
     
-    if (error) throw error;
-    return res.json({ success: true, businesses: data || [] });
+    if (usersError) throw usersError;
+    
+    // For each business, check if they have at least 1 employee and 1 service
+    const completedBusinesses = [];
+    
+    for (const business of users || []) {
+      // Check for employees
+      const { data: employees, error: empError } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('business_id', business.id)
+        .limit(1);
+      
+      // Check for services
+      const { data: services, error: servError } = await supabase
+        .from('services')
+        .select('id')
+        .eq('business_id', business.id)
+        .limit(1);
+      
+      const hasEmployees = !empError && employees?.length > 0;
+      const hasServices = !servError && services?.length > 0;
+      
+      console.log(`[GET /api/businesses] Business "${business.name}" (${business.id}):`, {
+        employees: hasEmployees ? employees.length : 0,
+        services: hasServices ? services.length : 0,
+        empError: empError ? empError.message : 'none',
+        servError: servError ? servError.message : 'none',
+        willInclude: hasEmployees && hasServices
+      });
+      
+      if (empError) console.error(`[GET /api/businesses] Employee check error for ${business.id}:`, empError);
+      if (servError) console.error(`[GET /api/businesses] Service check error for ${business.id}:`, servError);
+      
+      // Only include businesses with at least 1 employee AND 1 service
+      if (hasEmployees && hasServices) {
+        completedBusinesses.push(business);
+        console.log(`[GET /api/businesses] ✅ Including "${business.name}"`);
+      } else {
+        console.log(`[GET /api/businesses] ❌ Excluding "${business.name}" - employees: ${hasEmployees}, services: ${hasServices}`);
+      }
+    }
+    
+    console.log(`[GET /api/businesses] Returning ${completedBusinesses.length} completed businesses (out of ${users?.length || 0} total)`);
+    return res.json({ success: true, businesses: completedBusinesses });
   } catch (error) {
+    console.error('[GET /api/businesses] Error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch businesses' });
   }
 });
