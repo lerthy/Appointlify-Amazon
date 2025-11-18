@@ -191,8 +191,22 @@ export async function handler(event, context) {
         throw updateError;
       }
 
+      // Determine frontend URL dynamically based on origin or referer
+      const origin = event.headers.origin || event.headers.referer || '';
+      let frontendUrl = 'http://localhost:5000'; // Default for local development
+      
+      // Check which deployed frontend is making the request
+      if (origin.includes('appointly-ks.netlify.app')) {
+        frontendUrl = 'https://appointly-ks.netlify.app';
+      } else if (origin.includes('appointly-qa.netlify.app')) {
+        frontendUrl = 'https://appointly-qa.netlify.app';
+      } else if (process.env.FRONTEND_URL && !origin) {
+        // If no origin header, use first URL from env (backwards compatibility)
+        frontendUrl = process.env.FRONTEND_URL.split(',')[0].trim();
+      }
+      
       // Send verification email (this will be handled by the email service)
-      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/verify-email?token=${token}`;
+      const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
       
       // Call email sending function
       try {
