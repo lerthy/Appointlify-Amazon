@@ -31,8 +31,18 @@ import ContactPage from './pages/ContactPage';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
+  
   if (loading) return <div>Loading...</div>;
-  return <AppProvider>{children}</AppProvider>;
+  return <>{children}</>;
+}
+
+function AppProviderWrapper({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  
+  // Only enable real-time when on dashboard page
+  const enableRealtime = location.pathname === '/dashboard';
+  
+  return <AppProvider enableRealtime={enableRealtime}>{children}</AppProvider>;
 }
 
 function AppContent() {
@@ -79,7 +89,9 @@ function App() {
       <Providers>
         <NotificationProvider>
           <Router>
-            <AppContent />
+            <AppProviderWrapper>
+              <AppContent />
+            </AppProviderWrapper>
           </Router>
         </NotificationProvider>
       </Providers>

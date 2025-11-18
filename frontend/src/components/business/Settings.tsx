@@ -9,7 +9,15 @@ import { useAuth } from '../../context/AuthContext';
 
 const Settings: React.FC = () => {
   const { businessSettings, updateBusinessSettings } = useApp();
-  const [weekend, setWeekend] = useState({ saturday: false, sunday: false });
+  const [workingDays, setWorkingDays] = useState({
+    Monday: true,
+    Tuesday: true,
+    Wednesday: true,
+    Thursday: true,
+    Friday: true,
+    Saturday: false,
+    Sunday: false
+  });
   const [opening, setOpening] = useState('09:00');
   const [closing, setClosing] = useState('17:00');
   const [breakStart, setBreakStart] = useState('12:00');
@@ -23,17 +31,30 @@ const Settings: React.FC = () => {
 
   useEffect(() => {
     if (businessSettings) {
-      setWeekend({
-        saturday: businessSettings.working_hours?.find((wh: any) => wh.day === 'Saturday')?.isClosed === false,
-        sunday: businessSettings.working_hours?.find((wh: any) => wh.day === 'Sunday')?.isClosed === false
+      // Load working days from settings
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const loadedWorkingDays: any = {};
+      days.forEach(day => {
+        const daySettings = businessSettings.working_hours?.find((wh: any) => wh.day === day);
+        loadedWorkingDays[day] = daySettings?.isClosed === false;
       });
+      setWorkingDays(loadedWorkingDays);
+      
       setOpening(businessSettings.working_hours?.[0]?.open || '09:00');
       setClosing(businessSettings.working_hours?.[0]?.close || '17:00');
       setBreaks(Array.isArray(businessSettings.breaks) ? businessSettings.breaks : []);
       setBlockedDates(businessSettings.blocked_dates || []);
     } else {
       // Set default values when businessSettings is null
-      setWeekend({ saturday: false, sunday: false });
+      setWorkingDays({
+        Monday: true,
+        Tuesday: true,
+        Wednesday: true,
+        Thursday: true,
+        Friday: true,
+        Saturday: false,
+        Sunday: false
+      });
       setOpening('09:00');
       setClosing('17:00');
       setBreaks([]);
@@ -88,7 +109,7 @@ const Settings: React.FC = () => {
         day,
         open: opening,
         close: closing,
-        isClosed: (day === 'Saturday' && !weekend.saturday) || (day === 'Sunday' && !weekend.sunday)
+        isClosed: !workingDays[day as keyof typeof workingDays]
       }));
 
       const settingsToSave = {
@@ -120,32 +141,39 @@ const Settings: React.FC = () => {
           <CardHeader>
             <h3 className="text-base md:text-lg font-semibold flex items-center">
               <Calendar className="mr-2" size={18} />
-              Weekend Availability
+              Working Days
             </h3>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-              <label className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300"
-                  checked={weekend.saturday}
-                  onChange={e => setWeekend(w => ({ ...w, saturday: e.target.checked }))}
-                />
-                <span className="text-sm md:text-base text-gray-700">Saturday</span>
-              </label>
-              <label className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300"
-                  checked={weekend.sunday}
-                  onChange={e => setWeekend(w => ({ ...w, sunday: e.target.checked }))}
-                />
-                <span className="text-sm md:text-base text-gray-700">Sunday</span>
-              </label>
+            <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-7 gap-2 md:gap-3">
+              {Object.keys(workingDays).map((day) => (
+                <label 
+                  key={day}
+                  className={`flex flex-col items-center justify-center p-2 md:p-2 border-2 rounded-lg cursor-pointer transition-all ${
+                    workingDays[day as keyof typeof workingDays]
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={workingDays[day as keyof typeof workingDays]}
+                    onChange={e => setWorkingDays(prev => ({ ...prev, [day]: e.target.checked }))}
+                  />
+                  <span className="text-xs md:text-sm font-medium text-gray-700">
+                    {day.slice(0, 3)}
+                  </span>
+                  <span className={`text-xl md:text-2xl mt-1 ${
+                    workingDays[day as keyof typeof workingDays] ? 'opacity-100' : 'opacity-30'
+                  }`}>
+                    {workingDays[day as keyof typeof workingDays] ? '✓' : '○'}
+                  </span>
+                </label>
+              ))}
             </div>
-            <p className="text-xs md:text-sm text-gray-500 mt-3">
-              Enable appointment booking on weekends.
+            <p className="text-xs md:text-sm text-gray-500 mt-4">
+              Select which days your business is open for appointments.
             </p>
           </CardContent>
         </Card>

@@ -774,12 +774,18 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
     if (!date) return res.status(400).json({ success: false, error: 'date is required (YYYY-MM-DD)' });
     const startOfDay = new Date(`${date}T00:00:00`);
     const endOfDay = new Date(`${date}T23:59:59`);
+    
+    // Only include active appointments (not cancelled or no-show)
+    const activeStatuses = ['scheduled', 'confirmed', 'completed'];
+    
     let query = supabase!
       .from('appointments')
       .select('date, duration, employee_id, status')
       .eq('business_id', businessId)
       .gte('date', startOfDay.toISOString())
-      .lte('date', endOfDay.toISOString());
+      .lte('date', endOfDay.toISOString())
+      .in('status', activeStatuses); // Only active appointments
+      
     if (employeeId) {
       query = query.eq('employee_id', String(employeeId));
     }
@@ -799,17 +805,78 @@ app.post('/api/appointments', requireDb, async (req, res) => {
 
     const appointmentDate = new Date(date);
 
-    // Prevent duplicate within same minute
+    // Check for overlapping appointments - only active ones
+    // An appointment overlaps if it starts before this one ends and ends after this one starts
+    const activeStatuses = ['scheduled', 'confirmed', 'completed'];
+    const appointmentEnd = new Date(appointmentDate.getTime() + duration * 60000);
+    
+    // Optimize: only fetch appointments for the same day
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    console.log('[POST /api/appointments] Checking for overlaps:', {
+      business_id,
+      employee_id,
+      appointmentDate: appointmentDate.toISOString(),
+      appointmentEnd: appointmentEnd.toISOString(),
+      duration
+    });
+    
     const { data: existing, error: existingErr } = await supabase!
       .from('appointments')
-      .select('id')
+      .select('id, status, date, duration')
       .eq('business_id', business_id)
-      .gte('date', appointmentDate.toISOString())
-      .lt('date', new Date(appointmentDate.getTime() + 60000).toISOString());
-    if (existingErr) throw existingErr;
-    if (existing && existing.length > 0) {
-      return res.status(409).json({ success: false, error: 'Time slot already booked' });
+      .eq('employee_id', employee_id)
+      .gte('date', startOfDay.toISOString())
+      .lte('date', endOfDay.toISOString())
+      .in('status', activeStatuses); // Only check active appointments
+      
+    if (existingErr) {
+      console.error('[POST /api/appointments] Error fetching existing:', existingErr);
+      throw existingErr;
     }
+    
+    console.log('[POST /api/appointments] Found existing appointments:', existing?.length || 0);
+    
+    // Check for time slot overlaps
+    if (existing && existing.length > 0) {
+      const hasOverlap = existing.some((appt: any) => {
+        const existingStart = new Date(appt.date);
+        const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
+        
+        const overlaps = appointmentDate < existingEnd && appointmentEnd > existingStart;
+        
+        if (overlaps) {
+          console.log('[POST /api/appointments] Overlap detected:', {
+            existing: {
+              id: appt.id,
+              start: existingStart.toISOString(),
+              end: existingEnd.toISOString(),
+              duration: appt.duration,
+              status: appt.status
+            },
+            new: {
+              start: appointmentDate.toISOString(),
+              end: appointmentEnd.toISOString(),
+              duration
+            }
+          });
+        }
+        
+        return overlaps;
+      });
+      
+      if (hasOverlap) {
+        return res.status(409).json({ 
+          success: false, 
+          error: 'This time slot overlaps with an existing appointment. Please choose another time.' 
+        });
+      }
+    }
+    
+    console.log('[POST /api/appointments] No overlaps found, proceeding with booking');
 
     // Find or create customer by email
     let customerId = '';

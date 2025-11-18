@@ -70,7 +70,11 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverride?: string }> = ({ children, businessIdOverride }) => {
+export const AppProvider: React.FC<{ 
+  children: React.ReactNode, 
+  businessIdOverride?: string,
+  enableRealtime?: boolean 
+}> = ({ children, businessIdOverride, enableRealtime = false }) => {
   const { user } = useAuth();
   const [actualBusinessId, setActualBusinessId] = useState<string | null>(null);
   const businessId = businessIdOverride || actualBusinessId;
@@ -177,9 +181,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     fetchAppointments();
   }, [businessId, skipBackend]);
 
-  // Real-time subscription for appointments
+  // Real-time subscription for appointments (only when enabled)
   useEffect(() => {
-    if (!businessId) return;
+    if (!businessId || !enableRealtime) return;
     
     console.log('[Realtime] Setting up appointment subscription for business:', businessId);
     
@@ -236,7 +240,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
       console.log('[Realtime] Cleaning up appointment subscription');
       supabase.removeChannel(channel);
     };
-  }, [businessId]);
+  }, [businessId, enableRealtime]);
 
   // Fetch customers from backend
   useEffect(() => {
@@ -428,7 +432,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
         duration: appointment.duration,
       }),
     });
-    if (!res.ok) throw new Error('Failed to create appointment');
+    
+    if (!res.ok) {
+      // Get error message from backend response
+      const errorData = await res.json().catch(() => ({ error: 'Failed to create appointment' }));
+      throw new Error(errorData.error || 'Failed to create appointment');
+    }
+    
     const json = await res.json();
     await refreshAppointments();
     return json?.appointmentId;

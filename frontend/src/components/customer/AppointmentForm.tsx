@@ -21,7 +21,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   const { showNotification } = useNotification();
   const navigate = useNavigate();
   const [business, setBusiness] = useState<any>(null);
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
@@ -134,11 +133,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     fetchBusiness();
   }, [businessId]);
 
-  // Fetch booked slots for the selected date and employee
+  // Fetch booked appointments for the selected date and employee
+  const [bookedAppointments, setBookedAppointments] = useState<any[]>([]);
+  
   useEffect(() => {
     // Only fetch if we have all required data and the form has been properly initialized
     if (!formData.date || !businessId || !formData.employee_id || !businessSettings) {
-      setBookedSlots([]);
+      setBookedAppointments([]);
       return;
     }
     
@@ -146,26 +147,21 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       try {
         const params = new URLSearchParams({ date: formData.date, employeeId: formData.employee_id });
         const res = await fetch(`/api/business/${businessId}/appointmentsByDay?${params.toString()}`);
-        if (!res.ok) { setBookedSlots([]); return; }
+        if (!res.ok) { 
+          setBookedAppointments([]);
+          return; 
+        }
         const json = await res.json();
         const data = json?.appointments || [];
-        const booked = new Set<string>();
-        data.forEach((appt: any) => {
-          const appointmentTime = new Date(appt.date);
-          const duration = appt.duration || 30;
-          for (let i = 0; i < duration; i += 30) {
-            const slotTime = new Date(appointmentTime);
-            slotTime.setMinutes(slotTime.getMinutes() + i);
-            booked.add(slotTime.toTimeString().slice(0, 5));
-          }
-        });
-        setBookedSlots(Array.from(booked));
+        
+        // Store full appointment objects for overlap detection
+        setBookedAppointments(data);
       } catch (err) {
         console.error('Error fetching booked slots:', err);
         if (formData.employee_id && formData.date && businessId) {
           showNotification('Failed to load available time slots. Please try again.', 'error');
         }
-        setBookedSlots([]);
+        setBookedAppointments([]);
       }
     };
     
@@ -205,7 +201,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       console.error('Error generating time slots:', error);
       setAvailableTimeSlots([]);
     }
-  }, [formData.date, businessSettings, serviceDuration, bookedSlots, formData.employee_id, isLoadingSettings]);
+  }, [formData.date, businessSettings, serviceDuration, bookedAppointments, formData.employee_id, isLoadingSettings]);
 
 
   const getAvailableTimeSlots = (date: Date, duration: number): string[] => {
@@ -239,7 +235,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     while (currentTime < closeTime) {
       const timeString = currentTime.toTimeString().slice(0, 5);
       
-      // Skip past times if the selected date is today (with 15-minute buffer)
+      // Skip past times if the selected date is today
       if (isToday && currentTime < currentTimeWithBuffer) {
         currentTime.setMinutes(currentTime.getMinutes() + 30);
         continue;
@@ -254,20 +250,22 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         break;
       }
       
-      // Check if any part of this time slot is booked
-      let isSlotAvailable = true;
-      const checkTime = new Date(currentTime);
+      // Check if this slot overlaps with any booked appointment using proper overlap detection
+      let hasOverlap = false;
       
-      for (let i = 0; i < duration; i += 30) {
-        const checkTimeString = checkTime.toTimeString().slice(0, 5);
-        if (bookedSlots.includes(checkTimeString)) {
-          isSlotAvailable = false;
+      for (const appt of bookedAppointments) {
+        const existingStart = new Date(appt.date);
+        const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
+        
+        // Check if appointments overlap
+        // Overlap occurs if: new starts before existing ends AND new ends after existing starts
+        if (currentTime < existingEnd && slotEndTime > existingStart) {
+          hasOverlap = true;
           break;
         }
-        checkTime.setMinutes(checkTime.getMinutes() + 30);
       }
       
-      if (isSlotAvailable) {
+      if (!hasOverlap) {
         slots.push(timeString);
       }
       
@@ -359,19 +357,34 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       appointmentDate.setHours(hours, minutes, 0, 0);
       appointmentDate.setSeconds(0, 0);
 
-      // Check for existing appointments
+      // Check for overlapping appointments - only active ones
+      const activeStatuses = ['scheduled', 'confirmed', 'completed'];
+      const appointmentEnd = new Date(appointmentDate.getTime() + serviceDuration * 60000);
+      
       const { data: existingAppointments, error: checkError } = await supabase
         .from('appointments')
-        .select('id, business_id, date')
+        .select('id, business_id, date, status, employee_id, duration')
         .eq('business_id', businessId)
-        .gte('date', appointmentDate.toISOString())
-        .lt('date', new Date(appointmentDate.getTime() + 60000).toISOString());
+        .eq('employee_id', formData.employee_id)
+        .in('status', activeStatuses); // Only check active appointments
 
       if (checkError) throw checkError;
 
+      // Check for time slot overlaps
       if (existingAppointments && existingAppointments.length > 0) {
-        setErrors(prev => ({ ...prev, form: 'This time slot is already booked. Please choose another time.' }));
-        return;
+        const hasOverlap = existingAppointments.some((appt: any) => {
+          const existingStart = new Date(appt.date);
+          const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
+          
+          // Check if appointments overlap
+          // Overlap occurs if: new starts before existing ends AND new ends after existing starts
+          return appointmentDate < existingEnd && appointmentEnd > existingStart;
+        });
+        
+        if (hasOverlap) {
+          setErrors(prev => ({ ...prev, form: 'This time slot is already booked. Please choose another time.' }));
+          return;
+        }
       }
 
       // Create or find customer
@@ -469,10 +482,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           window.location.href = '/booking-confirmation';
         }
       }, 1000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error booking appointment:', error);
-      setErrors(prev => ({ ...prev, form: 'Failed to book appointment. Please try again.' }));
-      showNotification('Failed to book appointment. Please try again.', 'error');
+      const errorMessage = error?.message || 'Failed to book appointment. Please try again.';
+      setErrors(prev => ({ ...prev, form: errorMessage }));
+      showNotification(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -480,12 +494,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   if (isLoadingSettings || (businessServices.length === 0 && services.length === 0) || (businessEmployees.length === 0 && employees.length === 0)) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Appointment Booking</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Appointment Booking</h2>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-gray-600">Loading business settings...</div>
+          <div className="text-center text-gray-600 text-sm sm:text-base">Loading business settings...</div>
         </CardContent>
       </Card>
     );
@@ -493,12 +507,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   if (availableDates.length === 0) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">No Available Dates</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">No Available Dates</h2>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-gray-600">
+          <div className="text-center text-gray-600 text-sm sm:text-base">
             No available dates found for the next 14 days. Please contact the business directly.
           </div>
         </CardContent>
@@ -507,7 +521,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             type="button"
             variant="outline"
             onClick={() => navigate(-1)}
-            className="w-full"
+            className="w-full text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Back
@@ -519,12 +533,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   if (businessServices.length === 0) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">No Services Available</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">No Services Available</h2>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-gray-600">
+          <div className="text-center text-gray-600 text-sm sm:text-base">
             No services are currently available. Please contact the business directly.
           </div>
         </CardContent>
@@ -533,7 +547,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             type="button"
             variant="outline"
             onClick={() => navigate(-1)}
-            className="w-full"
+            className="w-full text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Back
@@ -545,12 +559,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   if (businessEmployees.length === 0) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">No Employees Available</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">No Employees Available</h2>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-gray-600">
+          <div className="text-center text-gray-600 text-sm sm:text-base">
             No employees are currently available. Please contact the business directly.
           </div>
         </CardContent>
@@ -559,7 +573,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             type="button"
             variant="outline"
             onClick={() => navigate(-1)}
-            className="w-full"
+            className="w-full text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go Back
@@ -570,10 +584,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   }
 
   return (
-    <Card className="w-full max-w-lg shadow-none mx-auto">
+    <Card className="w-full max-w-lg shadow-none mx-auto border-none">
             
       <form onSubmit={handleSubmit}>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 px-4 sm:px-6">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 px-2 sm:px-6 py-4">
           {errors.form && (
             <div className="col-span-1 sm:col-span-2 p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs sm:text-sm">
               {errors.form}
@@ -758,11 +772,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           </div>
         </CardContent>
 
-        <CardFooter className="col-span-1 sm:col-span-2 flex gap-3 bg-white px-4 sm:px-6">
+        <CardFooter className="col-span-1 sm:col-span-2 flex gap-3 bg-white px-2 sm:px-6 pb-2">
           <Button
             type="submit"
             disabled={isSubmitting || isBusinessClosedToday()}
-            className="flex-1 text-sm sm:text-base"
+            className="flex-1 text-sm sm:text-base outline-none focus:ring-0 focus:ring-offset-0 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
           >
             {isSubmitting
               ? 'Booking Appointment...'

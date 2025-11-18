@@ -11,6 +11,7 @@ const Analytics: React.FC = () => {
   const [serviceChartMode, setServiceChartMode] = useState<ChartMode>('pie');
   const [dayChartMode, setDayChartMode] = useState<ChartMode>('pie');
   const [employeeChartMode, setEmployeeChartMode] = useState<ChartMode>('pie');
+  const [hoursChartMode, setHoursChartMode] = useState<ChartMode>('bar');
   
   // Only count active (scheduled/confirmed) and future appointments
   const activeStatuses = ['scheduled', 'confirmed'];
@@ -568,18 +569,81 @@ const Analytics: React.FC = () => {
 
           {/* Popular Hours */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h3 className="text-lg font-medium">Popular Hours</h3>
+              <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setHoursChartMode('pie')}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
+                    hoursChartMode === 'pie'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <PieIcon className="h-3.5 w-3.5" />
+                  Pie
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHoursChartMode('bar')}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
+                    hoursChartMode === 'bar'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <BarChart2 className="h-3.5 w-3.5" />
+                  Bars
+                </button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-2">
-                {hourlyDistribution.map((hour) => (
-                  <div key={hour.hour} className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm font-medium">{hour.hourFormatted}</p>
-                    <p className="text-xl font-bold">{hour.count}</p>
+              {hoursChartMode === 'pie' ? (
+                hourlyDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={hourlyDistribution.map((h) => ({
+                          name: h.hourFormatted,
+                          value: h.count,
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`
+                        }
+                        outerRadius={90}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {hourlyDistribution.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={chartColors[index % chartColors.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[280px] text-gray-400 text-sm">
+                    No hour data available
                   </div>
-                ))}
-              </div>
+                )
+              ) : (
+                <Histogram
+                  data={hourlyDistribution.map((h, index) => ({
+                    label: h.hourFormatted,
+                    value: h.count,
+                    color: chartColors[index % chartColors.length],
+                  }))}
+                  maxHeight={150}
+                />
+              )}
             </CardContent>
           </Card>
         </div>

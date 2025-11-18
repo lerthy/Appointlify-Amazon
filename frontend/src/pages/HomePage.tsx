@@ -436,7 +436,7 @@ const HomePage: React.FC = () => {
                         <span className="ml-2 text-sm text-gray-600">(4.9)</span>
                       </div>
                       <Button 
-                        className="w-full bg-transparent !text-black border-2 border-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold hover:!bg-black hover:!text-white focus:outline-none focus:ring-0 mt-auto"
+                        className="w-full bg-transparent !text-black border-2 border-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold hover:!bg-black hover:!text-white focus-visible:outline-none focus-visible:ring-transparent focus-visible:ring-offset-0 focus:outline-none focus:ring-0 mt-auto"
                         size="md"
                       >
                         <Calendar className="mr-2 w-5 h-5" />

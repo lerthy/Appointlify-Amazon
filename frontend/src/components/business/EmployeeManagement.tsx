@@ -226,7 +226,7 @@ const EmployeeManagement: React.FC = () => {
         <div className="flex space-x-2">
           <Button
             onClick={() => setIsAddingEmployee(true)}
-            className="flex items-center justify-center w-10 h-10 rounded-full sm:w-auto sm:h-auto sm:rounded-lg"
+            className="flex items-center justify-center w-10 h-10 rounded-full sm:w-auto sm:h-auto sm:rounded-lg focus-outline-none focus:ring-0 focus:ring-offset-0"
             aria-label="Add employee"
           >
             <Plus className="h-4 w-4" />

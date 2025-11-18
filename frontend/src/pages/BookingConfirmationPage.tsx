@@ -186,19 +186,19 @@ const BookingConfirmationPage: React.FC = () => {
             </div>
 
             {/* Booking Summary */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Booking Summary</h3>
+            <div className="mt-6 p-4 sm:p-6 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Summary</h3>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Duration:</span>
-                <span className="font-semibold">{bookingData.duration} minutes</span>
+                <span className="text-sm sm:text-base text-gray-600">Duration:</span>
+                <span className="text-sm sm:text-base font-semibold">{bookingData.duration} minutes</span>
               </div>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-gray-600">Price:</span>
-                <span className="font-semibold text-green-600">${bookingData.price.toFixed(2)}</span>
+                <span className="text-sm sm:text-base text-gray-600">Price:</span>
+                <span className="text-sm sm:text-base font-semibold text-green-600">${bookingData.price.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-gray-600">Booking ID:</span>
-                <span className="font-mono text-sm text-gray-500">{bookingData.appointmentId}</span>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm sm:text-base text-gray-600 mb-2">Booking ID:</p>
+                <p className="font-mono text-xs sm:text-sm text-gray-800 bg-white px-3 py-2 rounded border border-gray-200 break-all">{bookingData.appointmentId}</p>
               </div>
             </div>
             {/* Action Buttons */}
