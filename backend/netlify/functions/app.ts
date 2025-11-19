@@ -661,19 +661,22 @@ function buildDefaultWorkingHours() {
 }
 
 async function ensureBusinessSettings(businessId: string) {
-  // Attempt to load existing settings
+  // Attempt to load latest existing settings
   const { data, error } = await supabase!
     .from('business_settings')
     .select('*')
     .eq('business_id', businessId)
-    .single();
+    .order('updated_at', { ascending: false })
+    .limit(1);
 
-  if (!error && data) {
-    return { data, created: false };
+  if (!error && Array.isArray(data) && data.length > 0) {
+    // Use the most recently updated row if multiple exist
+    return { data: data[0], created: false };
   }
 
   if (error && error.code !== 'PGRST116') {
     // Unexpected error (not "No rows found")
+    console.error('[ensureBusinessSettings] Unexpected Supabase error:', error);
     throw error;
   }
 
@@ -1166,14 +1169,25 @@ app.delete('/api/services/:id', requireDb, async (req, res) => {
 // List employees (optional; helps UI in dev)
 app.get('/api/employees', async (req, res) => {
   try {
+    const { businessId } = req.query as { businessId?: string };
+
     if (!supabase) {
       // Return in-memory list for dev
-      return res.json({ success: true, employees: devStore.employees });
+      const list = businessId
+        ? devStore.employees.filter(emp => emp.business_id === businessId)
+        : devStore.employees;
+      return res.json({ success: true, employees: list });
     }
-    const { data, error } = await supabase
+    let query = supabase
       .from('employees')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (businessId) {
+      query = query.eq('business_id', String(businessId));
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return res.json({ success: true, employees: data || [] });
   } catch (error) {

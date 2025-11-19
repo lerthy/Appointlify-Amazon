@@ -269,26 +269,31 @@ export const AppProvider: React.FC<{
     const fetchEmployees = async () => {
       const effectiveBusinessId = businessId || user?.id || null;
       if (!effectiveBusinessId) return;
+
+      // Helper to scope any employee list to the current business
+      const setScopedEmployees = (list: Employee[]) => {
+        const scoped = list.filter(e => e.business_id === effectiveBusinessId);
+        const byEmail = new Map<string, Employee>();
+        scoped.forEach(e => byEmail.set(e.email, e));
+        setEmployees(Array.from(byEmail.values()));
+      };
+
       if (!skipBackend) {
         try {
           const res = await fetch(`/api/business/${effectiveBusinessId}/employees`);
           if (res.ok) {
             const json = await res.json();
             const list = (json?.employees || []) as Employee[];
-            const byEmail = new Map<string, Employee>();
-            list.forEach(e => byEmail.set(e.email, e));
-            setEmployees(Array.from(byEmail.values()));
+            setScopedEmployees(list);
             return;
           }
           // Fallback to dev in-memory list when DB route is unavailable (e.g., 503)
           try {
-            const devRes = await fetch('/api/employees');
+            const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
             if (devRes.ok) {
               const json = await devRes.json();
               const list = (json?.employees || []) as Employee[];
-              const byEmail = new Map<string, Employee>();
-              list.forEach(e => byEmail.set(e.email, e));
-              setEmployees(Array.from(byEmail.values()));
+              setScopedEmployees(list);
               return;
             }
           } catch {}
@@ -297,13 +302,11 @@ export const AppProvider: React.FC<{
         } catch (_) {
           // Try dev fallback once on network/route error
           try {
-            const devRes = await fetch('/api/employees');
+            const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
             if (devRes.ok) {
               const json = await devRes.json();
               const list = (json?.employees || []) as Employee[];
-              const byEmail = new Map<string, Employee>();
-              list.forEach(e => byEmail.set(e.email, e));
-              setEmployees(Array.from(byEmail.values()));
+              setScopedEmployees(list);
               return;
             }
           } catch {}
@@ -312,13 +315,11 @@ export const AppProvider: React.FC<{
       } else {
         // When backend DB routes are unavailable, prefer dev in-memory endpoint first
         try {
-          const devRes = await fetch('/api/employees');
+          const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
           if (devRes.ok) {
             const json = await devRes.json();
             const list = (json?.employees || []) as Employee[];
-            const byEmail = new Map<string, Employee>();
-            list.forEach(e => byEmail.set(e.email, e));
-            setEmployees(Array.from(byEmail.values()));
+            setScopedEmployees(list);
             return;
           }
         } catch {}
@@ -331,9 +332,7 @@ export const AppProvider: React.FC<{
             .order('created_at', { ascending: false });
           if (!error) {
             const list = (data || []) as Employee[];
-            const byEmail = new Map<string, Employee>();
-            list.forEach(e => byEmail.set(e.email, e));
-            setEmployees(Array.from(byEmail.values()));
+            setScopedEmployees(list);
           }
         } catch (_) {}
       }
