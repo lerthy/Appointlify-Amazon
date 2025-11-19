@@ -9,7 +9,7 @@ async function testLocal() {
     headers: {
       'content-type': 'application/json',
       'x-forwarded-for': '127.0.0.1',
-      'origin': 'http://localhost:3000'
+      'origin': 'http://localhost:5000'
     },
     body: JSON.stringify({ email: 'test@example.com' })
   };

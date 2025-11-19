@@ -53,7 +53,7 @@ const Tabs: React.FC<TabsProps> = ({
           </div>
         </nav>
       </div>
-      <div className="mt-6 bg-white rounded-b-lg shadow-sm border border-gray-200 border-t-0">
+      <div className="bg-white rounded-b-lg">
         <div className="p-4 sm:p-6">
           {tabs.find(tab => tab.id === activeTab)?.content}
         </div>

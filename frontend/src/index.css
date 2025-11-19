@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Remove default ring color globally */
+* {
+  --tw-ring-color: transparent !important;
+}
+
+*:focus {
+  --tw-ring-color: transparent !important;
+}
+
+*:focus-visible {
+  --tw-ring-color: transparent !important;
+}
+
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;

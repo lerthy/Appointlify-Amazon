@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, BarChart2, Settings as SettingsIcon, Briefcase } from 'lucide-react';
+import { Users, Calendar, BarChart2, Settings as SettingsIcon, Briefcase, AlertCircle } from 'lucide-react';
 import Tabs from '../ui/Tabs';
 import AppointmentManagement from './AppointmentManagement';
 import Analytics from './Analytics';
@@ -68,8 +68,60 @@ const Dashboard: React.FC = () => {
 
   
 
+  // Check if setup is incomplete
+  const needsEmployees = employees.length === 0;
+  const needsServices = services.length === 0;
+  const setupIncomplete = needsEmployees || needsServices;
+
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Setup Warning Banner */}
+      {setupIncomplete && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-amber-800">
+                  Complete Your Business Setup
+                </h3>
+                <div className="mt-2 text-sm text-amber-700">
+                  <p className="mb-2">
+                    To appear on the homepage and allow customers to book appointments, you need:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {needsEmployees && (
+                      <li>
+                        At least 1 employee -{' '}
+                        <button
+                          onClick={() => setActiveTab('employees')}
+                          className="font-medium underline hover:text-amber-900"
+                        >
+                          Add employee now
+                        </button>
+                      </li>
+                    )}
+                    {needsServices && (
+                      <li>
+                        At least 1 service -{' '}
+                        <button
+                          onClick={() => setActiveTab('services')}
+                          className="font-medium underline hover:text-amber-900"
+                        >
+                          Add service now
+                        </button>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Internal header commented out */}
       {/* <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
@@ -89,17 +141,17 @@ const Dashboard: React.FC = () => {
       
       <main className="max-w-7xl mx-auto px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-3 sm:p-4 shadow-sm">
+            <div className="px-3 py-4 sm:px-6 sm:py-6">
+              <div className="flex items-center sm:flex-row flex-col sm:items-center">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
                 </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
+                <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Total Appointments</dt>
-                    <dd className="flex items-baseline">
+                    <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{totalAppointments}</div>
                     </dd>
                   </dl>
@@ -108,15 +160,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 sm:p-4 shadow-sm">
+            <div className="px-3 py-4 sm:px-6 sm:py-6">
+              <div className="flex items-center sm:flex-row flex-col sm:items-center">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
                 </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
+                <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Today's Appointments</dt>
-                    <dd className="flex items-baseline">
+                    <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{todayAppointments.length}</div>
                     </dd>
                   </dl>
@@ -125,15 +177,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-3 sm:p-4 shadow-sm">
+            <div className="px-3 py-4 sm:px-6 sm:py-6">
+              <div className="flex items-center sm:flex-row flex-col sm:items-center">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Users className="h-6 w-6 sm:h-7 sm:w-7 text-green-600" />
                 </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
+                <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Employees</dt>
-                    <dd className="flex items-baseline">
+                    <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{employees.length}</div>
                     </dd>
                   </dl>
@@ -142,15 +194,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
-            <div className="px-4 py-4 sm:px-6 sm:py-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 sm:p-4 shadow-sm">
+            <div className="px-3 py-4 sm:px-6 sm:py-6">
+              <div className="flex items-center sm:flex-row flex-col sm:items-center">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Briefcase className="h-6 w-6 sm:h-7 sm:w-7 text-purple-600" />
                 </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
+                <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Services</dt>
-                    <dd className="flex items-baseline">
+                    <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{services.length}</div>
                     </dd>
                   </dl>

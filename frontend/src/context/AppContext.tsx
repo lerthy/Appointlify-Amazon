@@ -70,7 +70,11 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverride?: string }> = ({ children, businessIdOverride }) => {
+export const AppProvider: React.FC<{ 
+  children: React.ReactNode, 
+  businessIdOverride?: string,
+  enableRealtime?: boolean 
+}> = ({ children, businessIdOverride, enableRealtime = false }) => {
   const { user } = useAuth();
   const [actualBusinessId, setActualBusinessId] = useState<string | null>(null);
   const businessId = businessIdOverride || actualBusinessId;
@@ -135,13 +139,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
 
       // Fallback: direct Supabase read when backend DB routes are unavailable
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('business_settings')
           .select('*')
           .eq('business_id', businessId)
-          .single();
-        if (data) setBusinessSettings(data as unknown as BusinessSettings);
-      } catch (_) {}
+          .order('updated_at', { ascending: false });
+
+        if (error) {
+          console.error('[AppContext] Error loading business_settings via Supabase fallback:', error);
+          return;
+        }
+
+        const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+        setBusinessSettings(row ? (row as unknown as BusinessSettings) : null);
+      } catch (err) {
+        console.error('[AppContext] Exception in Supabase fallback for business_settings:', err);
+      }
     };
     fetchSettings();
   }, [businessId, skipBackend]);
@@ -176,6 +189,67 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     };
     fetchAppointments();
   }, [businessId, skipBackend]);
+
+  // Real-time subscription for appointments (only when enabled)
+  useEffect(() => {
+    if (!businessId || !enableRealtime) return;
+    
+    console.log('[Realtime] Setting up appointment subscription for business:', businessId);
+    
+    // Subscribe to all changes in appointments table for this business
+    const channel = supabase
+      .channel(`appointments_${businessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'appointments',
+          filter: `business_id=eq.${businessId}`
+        },
+        (payload) => {
+          console.log('[Realtime] Appointment change detected:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            const newAppointment = payload.new as unknown as Appointment;
+            console.log('[Realtime] New appointment:', newAppointment);
+            setAppointments(prev => {
+              // Check if appointment already exists to avoid duplicates
+              if (prev.some(apt => apt.id === newAppointment.id)) {
+                return prev;
+              }
+              // Add new appointment and sort by date
+              return [...prev, newAppointment].sort((a, b) => 
+                new Date(a.date).getTime() - new Date(b.date).getTime()
+              );
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedAppointment = payload.new as unknown as Appointment;
+            console.log('[Realtime] Updated appointment:', updatedAppointment);
+            setAppointments(prev =>
+              prev.map(apt =>
+                apt.id === updatedAppointment.id ? updatedAppointment : apt
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as any).id;
+            console.log('[Realtime] Deleted appointment:', deletedId);
+            setAppointments(prev =>
+              prev.filter(apt => apt.id !== deletedId)
+            );
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Realtime] Subscription status:', status);
+      });
+
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('[Realtime] Cleaning up appointment subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [businessId, enableRealtime]);
 
   // Fetch customers from backend
   useEffect(() => {
@@ -352,6 +426,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
     date: Date;
     duration: number;
   }): Promise<string> => {
+    // Generate confirmation token
+    const confirmationToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + 48); // 48 hour expiry
+
     const res = await fetch('/api/appointments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -365,22 +446,90 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
         notes: appointment.notes || null,
         date: appointment.date.toISOString(),
         duration: appointment.duration,
+        confirmation_token: confirmationToken,
+        confirmation_token_expires: tokenExpiry.toISOString()
       }),
     });
-    if (!res.ok) throw new Error('Failed to create appointment');
+    
+    if (!res.ok) {
+      // Get error message from backend response
+      const errorData = await res.json().catch(() => ({ error: 'Failed to create appointment' }));
+      throw new Error(errorData.error || 'Failed to create appointment');
+    }
+    
     const json = await res.json();
+    
+    // Send confirmation email to customer
+    const confirmationLink = `${window.location.origin}/confirm-appointment?token=${confirmationToken}`;
+    
+    try {
+      await fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: appointment.email,
+          subject: 'Confirm Your Appointment - Appointly',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #4F46E5; text-align: center;">Confirm Your Appointment</h1>
+              <p>Hi ${appointment.name},</p>
+              <p>Your appointment has been scheduled! Please confirm your attendance:</p>
+              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(appointment.date).toLocaleDateString()}</p>
+                <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(appointment.date).toLocaleTimeString()}</p>
+                <p style="margin: 5px 0;"><strong>Duration:</strong> ${appointment.duration} minutes</p>
+              </div>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${confirmationLink}" 
+                   style="background-color: #10B981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+                  Confirm Appointment
+                </a>
+              </div>
+              <p style="color: #666; font-size: 14px;">
+                Or copy this link: <a href="${confirmationLink}" style="color: #4F46E5; word-break: break-all;">${confirmationLink}</a>
+              </p>
+              <p style="color: #999; font-size: 12px; margin-top: 30px;">
+                This link expires in 48 hours. Your appointment will show in the business dashboard once confirmed.
+              </p>
+            </div>
+          `,
+          text: `Confirm Your Appointment\n\nHi ${appointment.name},\n\nYour appointment is scheduled! Please confirm: ${confirmationLink}\n\nDate: ${new Date(appointment.date).toLocaleDateString()}\nTime: ${new Date(appointment.date).toLocaleTimeString()}\nDuration: ${appointment.duration} minutes\n\nThis link expires in 48 hours.`
+        })
+      });
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+    }
+    
     await refreshAppointments();
     return json?.appointmentId;
   };
 
   const updateAppointmentStatus = async (id: string, status: Appointment['status']) => {
-    const res = await fetch(`/api/appointments/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    if (!res.ok) return;
-    await refreshAppointments();
+    try {
+      console.log('[updateAppointmentStatus] Updating:', { id, status });
+      const res = await fetch(`/api/appointments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[updateAppointmentStatus] Error response:', {
+          status: res.status,
+          statusText: res.statusText,
+          error: errorData
+        });
+        throw new Error(errorData.error || `Failed to update appointment: ${res.statusText}`);
+      }
+      
+      const data = await res.json();
+      console.log('[updateAppointmentStatus] Success:', data);
+      await refreshAppointments();
+    } catch (error) {
+      console.error('[updateAppointmentStatus] Exception:', error);
+      throw error;
+    }
   };
 
   // Add refresh function for appointments (memoized to prevent infinite loops)
@@ -467,14 +616,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode, businessIdOverri
 
   const updateBusinessSettings = async (settings: Partial<BusinessSettings>) => {
     if (!businessId) return;
+    console.log('[updateBusinessSettings] Sending settings payload:', {
+      businessId,
+      settings,
+    });
     const res = await fetch(`/api/business/${businessId}/settings`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings),
     });
-    if (!res.ok) return;
-    const json = await res.json();
-    if (json?.settings) setBusinessSettings(json.settings);
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch (e) {
+      console.error('[updateBusinessSettings] Failed to parse JSON response:', e, {
+        raw: text,
+      });
+    }
+
+    if (!res.ok) {
+      console.error('[updateBusinessSettings] Backend error:', {
+        status: res.status,
+        statusText: res.statusText,
+        body: json ?? text,
+      });
+      throw new Error(json?.error || 'Failed to update business settings');
+    }
+
+    console.log('[updateBusinessSettings] Success response:', json);
+    if (json?.settings) setBusinessSettings(json.settings as BusinessSettings);
   };
 
   const getAppointmentById = (id: string) => {

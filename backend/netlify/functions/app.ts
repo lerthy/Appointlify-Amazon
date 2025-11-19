@@ -1,15 +1,15 @@
 import 'reflect-metadata';
 import express from 'express';
 import twilio from 'twilio';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-let supabase = null;
+let supabase: SupabaseClient<any, "public", "public", any, any> | null = null;
 
 if (supabaseUrl && supabaseServiceRoleKey) {
   supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -21,12 +21,15 @@ if (supabaseUrl && supabaseServiceRoleKey) {
 }
 
 // Configure CORS allowlist for production
-const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:5000')
   .split(',')
   .map(o => o.trim().replace(/\/$/, '')) // Remove trailing slashes
   .filter(Boolean);
-const corsOptions = {
-  origin: (origin, cb) => {
+
+type CorsOriginCallback = (err: Error | null, allow?: boolean) => void;
+
+const corsOptions: CorsOptions = {
+  origin: (origin: string | undefined, cb: CorsOriginCallback) => {
     // Allow non-browser requests or when no allowlist configured
     if (!origin || allowedOrigins.length === 0) return cb(null, true);
     // Normalize origin by removing trailing slash for comparison
@@ -98,7 +101,14 @@ app.use((req, res, next) => {
 
 // Lightweight in-memory store for dev when Supabase is not configured
 const hasSupabase = !!supabase;
-const devStore = {
+
+type DevEmployee = {
+  id: string;
+  created_at: string;
+  [key: string]: any;
+};
+
+const devStore: { employees: DevEmployee[] } = {
   employees: [],
 };
 function generateId(prefix: string) {
@@ -638,15 +648,65 @@ app.get('/api/business/:businessId/employees', requireDb, async (req, res) => {
   }
 });
 
+function buildDefaultWorkingHours() {
+  return [
+    { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+    { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
+  ];
+}
+
+async function ensureBusinessSettings(businessId: string) {
+  // Attempt to load existing settings
+  const { data, error } = await supabase!
+    .from('business_settings')
+    .select('*')
+    .eq('business_id', businessId)
+    .single();
+
+  if (!error && data) {
+    return { data, created: false };
+  }
+
+  if (error && error.code !== 'PGRST116') {
+    // Unexpected error (not "No rows found")
+    throw error;
+  }
+
+  const defaultSettings = {
+    business_id: businessId,
+    working_hours: buildDefaultWorkingHours(),
+    blocked_dates: [],
+    breaks: [],
+    appointment_duration: 30,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  const { data: inserted, error: insertError } = await supabase!
+    .from('business_settings')
+    .insert([defaultSettings])
+    .select()
+    .single();
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return { data: inserted, created: true };
+}
+
 app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    const { data, error } = await supabase!
-      .from('business_settings')
-      .select('*')
-      .eq('business_id', businessId)
-      .single();
-    if (error) throw error;
+    const { data, created } = await ensureBusinessSettings(businessId);
+    if (created) {
+      console.log(`[business/:id/settings GET] Created default settings for business ${businessId}`);
+    }
     return res.json({ success: true, settings: data || null });
   } catch (error) {
     console.error('Error fetching business settings:', error);
@@ -660,11 +720,26 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
     const updates = req.body || {};
     
     console.log('[business/:id/settings PATCH] Request:', { businessId, updates, hasSupabase: !!supabase });
+
+    // Ensure a row exists so upsert succeeds
+    await ensureBusinessSettings(businessId);
+
+    const normalizedUpdates = {
+      working_hours: updates.working_hours ?? buildDefaultWorkingHours(),
+      blocked_dates: Array.isArray(updates.blocked_dates) ? updates.blocked_dates : [],
+      breaks: Array.isArray(updates.breaks) ? updates.breaks : [],
+      appointment_duration: updates.appointment_duration ?? 30
+    };
+    
+    const payload = {
+      business_id: businessId,
+      ...normalizedUpdates,
+      updated_at: new Date().toISOString()
+    };
     
     const { data, error } = await supabase!
       .from('business_settings')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('business_id', businessId)
+      .upsert(payload, { onConflict: 'business_id' })
       .select()
       .single();
     
@@ -750,12 +825,25 @@ app.get('/api/users/by-email', async (req, res) => {
 app.get('/api/business/:businessId/appointments', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    console.log('[appointments] Query start', { businessId, hasSupabase: !!supabase });
-    const { data, error } = await supabase!
+    const { includeUnconfirmed } = req.query;
+    
+    console.log('[appointments] Query start', { businessId, includeUnconfirmed, hasSupabase: !!supabase });
+    
+    let query = supabase!
       .from('appointments')
       .select('*')
-      .eq('business_id', businessId)
-      .order('date', { ascending: true });
+      .eq('business_id', businessId);
+    
+    // By default, only show confirmed appointments in business dashboard
+    // Unless explicitly requested to include unconfirmed
+    if (includeUnconfirmed !== 'true') {
+      query = query.eq('confirmation_status', 'confirmed');
+    }
+    
+    query = query.order('date', { ascending: true });
+    
+    const { data, error } = await query;
+    
     if (error) {
       console.error('[appointments] Supabase error:', error.message, error);
       throw error;
@@ -774,12 +862,18 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
     if (!date) return res.status(400).json({ success: false, error: 'date is required (YYYY-MM-DD)' });
     const startOfDay = new Date(`${date}T00:00:00`);
     const endOfDay = new Date(`${date}T23:59:59`);
+    
+    // Only include active appointments (not cancelled or no-show)
+    const activeStatuses = ['scheduled', 'confirmed', 'completed'];
+    
     let query = supabase!
       .from('appointments')
       .select('date, duration, employee_id, status')
       .eq('business_id', businessId)
       .gte('date', startOfDay.toISOString())
-      .lte('date', endOfDay.toISOString());
+      .lte('date', endOfDay.toISOString())
+      .in('status', activeStatuses); // Only active appointments
+      
     if (employeeId) {
       query = query.eq('employee_id', String(employeeId));
     }
@@ -795,21 +889,82 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
 // Create appointment (and customer if needed), then send notifications
 app.post('/api/appointments', requireDb, async (req, res) => {
   try {
-    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration } = req.body;
+    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration, confirmation_token, confirmation_token_expires } = req.body;
 
     const appointmentDate = new Date(date);
 
-    // Prevent duplicate within same minute
+    // Check for overlapping appointments - only active ones
+    // An appointment overlaps if it starts before this one ends and ends after this one starts
+    const activeStatuses = ['scheduled', 'confirmed', 'completed'];
+    const appointmentEnd = new Date(appointmentDate.getTime() + duration * 60000);
+    
+    // Optimize: only fetch appointments for the same day
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    console.log('[POST /api/appointments] Checking for overlaps:', {
+      business_id,
+      employee_id,
+      appointmentDate: appointmentDate.toISOString(),
+      appointmentEnd: appointmentEnd.toISOString(),
+      duration
+    });
+    
     const { data: existing, error: existingErr } = await supabase!
       .from('appointments')
-      .select('id')
+      .select('id, status, date, duration')
       .eq('business_id', business_id)
-      .gte('date', appointmentDate.toISOString())
-      .lt('date', new Date(appointmentDate.getTime() + 60000).toISOString());
-    if (existingErr) throw existingErr;
-    if (existing && existing.length > 0) {
-      return res.status(409).json({ success: false, error: 'Time slot already booked' });
+      .eq('employee_id', employee_id)
+      .gte('date', startOfDay.toISOString())
+      .lte('date', endOfDay.toISOString())
+      .in('status', activeStatuses); // Only check active appointments
+      
+    if (existingErr) {
+      console.error('[POST /api/appointments] Error fetching existing:', existingErr);
+      throw existingErr;
     }
+    
+    console.log('[POST /api/appointments] Found existing appointments:', existing?.length || 0);
+    
+    // Check for time slot overlaps
+    if (existing && existing.length > 0) {
+      const hasOverlap = existing.some((appt: any) => {
+        const existingStart = new Date(appt.date);
+        const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
+        
+        const overlaps = appointmentDate < existingEnd && appointmentEnd > existingStart;
+        
+        if (overlaps) {
+          console.log('[POST /api/appointments] Overlap detected:', {
+            existing: {
+              id: appt.id,
+              start: existingStart.toISOString(),
+              end: existingEnd.toISOString(),
+              duration: appt.duration,
+              status: appt.status
+            },
+            new: {
+              start: appointmentDate.toISOString(),
+              end: appointmentEnd.toISOString(),
+              duration
+            }
+          });
+        }
+        
+        return overlaps;
+      });
+      
+      if (hasOverlap) {
+        return res.status(409).json({ 
+          success: false, 
+          error: 'This time slot overlaps with an existing appointment. Please choose another time.' 
+        });
+      }
+    }
+    
+    console.log('[POST /api/appointments] No overlaps found, proceeding with booking');
 
     // Find or create customer by email
     let customerId = '';
@@ -855,6 +1010,9 @@ app.post('/api/appointments', requireDb, async (req, res) => {
         date: appointmentDate.toISOString(),
         duration: finalDuration,
         status: 'scheduled',
+        confirmation_status: 'pending', // Mark as pending until customer confirms
+        confirmation_token: confirmation_token || null,
+        confirmation_token_expires: confirmation_token_expires || null,
         reminder_sent: false
       }])
       .select('id')
@@ -872,15 +1030,48 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const { error } = await supabase!
+    
+    console.log('[PATCH /api/appointments/:id] Request:', { 
+      id, 
+      status, 
+      body: req.body,
+      hasSupabase: !!supabase 
+    });
+    
+    if (!status) {
+      console.error('[PATCH /api/appointments/:id] Missing status in request body');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Status is required' 
+      });
+    }
+    
+    const { data, error } = await supabase!
       .from('appointments')
-      .update({ status })
-      .eq('id', id);
-    if (error) throw error;
-    return res.json({ success: true });
-  } catch (error) {
-    console.error('Error updating appointment:', error);
-    return res.status(500).json({ success: false, error: 'Failed to update appointment' });
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error('[PATCH /api/appointments/:id] Supabase error:', error);
+      throw error;
+    }
+    
+    console.log('[PATCH /api/appointments/:id] Success:', { id, status, data });
+    return res.json({ success: true, appointment: data });
+  } catch (error: any) {
+    console.error('[PATCH /api/appointments/:id] Error:', {
+      message: error?.message,
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code
+    });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to update appointment',
+      details: error?.message || 'Unknown error'
+    });
   }
 });
 

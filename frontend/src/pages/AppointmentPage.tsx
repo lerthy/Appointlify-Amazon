@@ -38,14 +38,30 @@ const AppointmentPage: React.FC = () => {
     if (!businessId) return;
     const fetchBusiness = async () => {
       setLoading(true);
+      console.log('[AppointmentPage] Fetching business:', businessId);
+      
       const { data, error } = await supabase
         .from('users')
         .select('id, name, description, logo')
         .eq('id', businessId)
         .single();
-      if (!error && data) {
-        setBusiness(data);
+      
+      if (error) {
+        console.error('[AppointmentPage] Error fetching business:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
       }
+      
+      if (data) {
+        console.log('[AppointmentPage] Business found:', data);
+        setBusiness(data);
+      } else {
+        console.error('[AppointmentPage] No business data returned');
+      }
+      
       setLoading(false);
     };
     fetchBusiness();
@@ -98,9 +114,9 @@ const AppointmentPage: React.FC = () => {
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
         <Header />
         <AuthPageTransition>
-          <main className="flex-grow py-8 flex items-center justify-center">
+          <main className="flex-grow py-4 sm:py-8 flex items-center justify-center px-4">
             <motion.div
-              className="w-full max-w-xl bg-white rounded-xl shadow-xl p-6 md:p-8 flex flex-col items-center"
+              className="w-full max-w-xl bg-white rounded-xl shadow-xl p-4 sm:p-6 md:p-8 flex flex-col items-center"
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }}
               exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.3, ease: 'easeIn' } }}
@@ -119,14 +135,14 @@ const AppointmentPage: React.FC = () => {
                 initial="initial"
                 animate="animate"
               >
-                <CardHeader className="absolute self-start mb-4 border-none">
+                <CardHeader className="!p-0 absolute self-start mb-4 border-none">
                   <button
                     onClick={() => navigate(-1)}
                     className="mb-4 flex items-center text-gradient-to-r from-indigo-600 to-violet-600 hover:text-indigo-700 transition-colors duration-200"
                       type="button"
                     >
-                      <ArrowLeft className="w-4 h-4" />
-                      Back
+                      <ArrowLeft className="w-5 h-5" />
+                      {/* Back */}
                     </button>
                   </CardHeader>
                 {business.logo && (

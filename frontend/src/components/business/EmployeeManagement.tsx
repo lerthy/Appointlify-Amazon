@@ -226,10 +226,13 @@ const EmployeeManagement: React.FC = () => {
         <div className="flex space-x-2">
           <Button
             onClick={() => setIsAddingEmployee(true)}
-            className="flex items-center"
+            className="flex items-center justify-center w-10 h-10 rounded-full sm:w-auto sm:h-auto sm:rounded-lg focus-outline-none focus:ring-0 focus:ring-offset-0"
+            aria-label="Add employee"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Employee
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline ml-2">
+              Add Employee
+            </span>
           </Button>
         </div>
       </div>
@@ -293,7 +296,7 @@ const EmployeeManagement: React.FC = () => {
 
       {/* Add Employee Modal */}
       {isAddingEmployee && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-[80] p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border-0 shadow-2xl relative">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
               <div className="flex justify-between items-start">
@@ -400,38 +403,63 @@ const EmployeeManagement: React.FC = () => {
                     <Clock className="inline h-4 w-4 mr-2" />
                     Working Hours
                   </label>
-                  <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-                    {formData.working_hours.map((hours, index) => (
-                      <div key={hours.day} className="flex items-center space-x-4 p-4 bg-white rounded-lg border border-gray-200">
-                        <div className="w-24 text-sm font-semibold text-gray-700 px-2">{hours.day}</div>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={!hours.isClosed}
-                            onChange={(e) => handleWorkingHoursChange(hours.day, 'isClosed', !e.target.checked)}
-                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <span className="text-sm font-medium">Open</span>
-                        </label>
-                        {!hours.isClosed && (
-                          <>
-                            <Input
-                              type="time"
-                              value={hours.open}
-                              onChange={(e) => handleWorkingHoursChange(hours.day, 'open', e.target.value)}
-                              className="w-28 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            />
-                            <span className="text-sm font-medium text-gray-500">to</span>
-                            <Input
-                              type="time"
-                              value={hours.close}
-                              onChange={(e) => handleWorkingHoursChange(hours.day, 'close', e.target.value)}
-                              className="w-28 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            />
-                          </>
-                        )}
-                      </div>
-                    ))}
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {formData.working_hours.map((hours) => (
+                        <div
+                          key={hours.day}
+                          className="flex flex-col gap-3 p-3 bg-white rounded-lg border border-gray-200"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-semibold text-gray-800">
+                              {hours.day}
+                            </span>
+                            <label className="flex items-center text-xs font-medium text-gray-600">
+                              <input
+                                type="checkbox"
+                                checked={!hours.isClosed}
+                                onChange={(e) =>
+                                  handleWorkingHoursChange(hours.day, 'isClosed', !e.target.checked)
+                                }
+                                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              {hours.isClosed ? 'Closed' : 'Open'}
+                            </label>
+                          </div>
+
+                          {!hours.isClosed && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[11px] font-medium text-gray-500">
+                                  Opens
+                                </span>
+                                <Input
+                                  type="time"
+                                  value={hours.open}
+                                  onChange={(e) =>
+                                    handleWorkingHoursChange(hours.day, 'open', e.target.value)
+                                  }
+                                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-xs"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[11px] font-medium text-gray-500">
+                                  Closes
+                                </span>
+                                <Input
+                                  type="time"
+                                  value={hours.close}
+                                  onChange={(e) =>
+                                    handleWorkingHoursChange(hours.day, 'close', e.target.value)
+                                  }
+                                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-xs"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

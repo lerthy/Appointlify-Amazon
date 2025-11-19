@@ -19,7 +19,7 @@ export const Card: React.FC<CardProps> = ({
   
   return (
     <div 
-      className={`bg-white rounded-lg shadow-md overflow-hidden ${hoverClasses} ${className}`}
+      className={`bg-white rounded-lg shadow-md ${hoverClasses} ${className}`}
       onClick={onClick}
     >
       {children}

@@ -7,6 +7,7 @@ import { useApp } from '../../context/AppContext';
 import { formatDate, formatTime, formatPhoneNumber } from '../../utils/formatters';
 import { sendAppointmentCancellation } from '../../utils/emailService';
 import AlertDialog from '../ui/AlertDialog';
+import RealtimeStatus from '../shared/RealtimeStatus';
 
 // Badge variants for appointment statuses
 const statusVariants: Record<string, { variant: string; label: string }> = {
@@ -327,13 +328,13 @@ const AppointmentManagement: React.FC = () => {
             </div>
             
             {/* Actions column: stacked on mobile, column on desktop */}
-            <div className="md:ml-4 flex flex-col md:items-end space-y-2 w-full md:w-auto">
+            <div className="md:ml-4 flex flex-col md:items-end w-full md:w-auto">
               {appointment.status === 'scheduled' && (
-                <div className="flex flex-col sm:flex-row md:flex-col w-full md:w-auto gap-2">
+                <div className="flex flex-col gap-2 w-full md:w-auto">
                   <Button
                     variant="primary"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => openConfirmDialog(appointment.id)}
                   >
                     Confirm
@@ -341,7 +342,7 @@ const AppointmentManagement: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => openMessageDialog(appointment.id)}
                     icon={<MessageSquare size={16} />}
                   >
@@ -350,7 +351,7 @@ const AppointmentManagement: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => openCancelDialog(appointment.id)}
                     icon={<XCircle size={16} />}
                   >
@@ -360,11 +361,11 @@ const AppointmentManagement: React.FC = () => {
               )}
               
               {appointment.status === 'confirmed' && (
-                <div className="flex flex-col sm:flex-row md:flex-col w-full md:w-auto gap-2">
+                <div className="flex flex-col gap-2 w-full md:w-auto">
                   <Button
                     variant="success"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => handleMarkCompleted(appointment.id)}
                     icon={<CheckCircle size={16} />}
                   >
@@ -373,7 +374,7 @@ const AppointmentManagement: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => openMessageDialog(appointment.id)}
                     icon={<MessageSquare size={16} />}
                   >
@@ -382,7 +383,7 @@ const AppointmentManagement: React.FC = () => {
                   <Button
                     variant="danger"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full md:w-auto touch-manipulation"
                     onClick={() => handleMarkNoShow(appointment.id)}
                     icon={<XCircle size={16} />}
                   >
@@ -417,6 +418,9 @@ const AppointmentManagement: React.FC = () => {
 
   return (
     <div className="mb-8">
+      {/* Real-time connection status indicator */}
+      <RealtimeStatus businessId={businessId} />
+      
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left rail: filters / context (desktop) */}
         <div className="hidden lg:block lg:col-span-3 space-y-4">
@@ -465,8 +469,8 @@ const AppointmentManagement: React.FC = () => {
         {/* Main calendar panel */}
         <div className="lg:col-span-9 space-y-0 mb-8">
           {/* Mobile filters */}
-          <div className="lg:hidden flex items-center justify-start gap-3">
-            <div className="flex-1 max-w-[260px]">
+          <div className="lg:hidden flex items-center justify-center mb-3">
+            <div className="w-full max-w-xs">
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 <User className="inline h-3 w-3 mr-1 text-blue-500" />
                 Employee
@@ -560,7 +564,7 @@ const AppointmentManagement: React.FC = () => {
 
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
                 {/* View toggle */}
-                <div className="flex items-center gap-2 text-xs">
+                <div className="flex items-center justify-between w-full md:w-auto md:justify-end gap-2 text-xs">
                   <button
                     type="button"
                     onClick={() => {
@@ -634,6 +638,48 @@ const AppointmentManagement: React.FC = () => {
                   const isSelected = selectedDate.toDateString() === date.toDateString();
                   const isToday = new Date().toDateString() === date.toDateString();
                   const dayAppointments = getAppointmentsForDate(date);
+
+                  const counts: Record<string, number> = dayAppointments.reduce(
+                    (acc: Record<string, number>, a) => {
+                      acc[a.status] = (acc[a.status] || 0) + 1;
+                      return acc;
+                    },
+                    {}
+                  );
+
+                  const badges: { key: string; count: number; className: string; title: string }[] =
+                    [
+                      {
+                        key: 'scheduled',
+                        count: counts['scheduled'] || 0,
+                        className: `${isSelected ? 'border border-yellow-300' : ''} bg-yellow-100 text-yellow-800`,
+                        title: 'Scheduled appointments'
+                      },
+                      {
+                        key: 'confirmed',
+                        count: counts['confirmed'] || 0,
+                        className: `${isSelected ? 'border border-blue-300' : ''} bg-blue-100 text-blue-800`,
+                        title: 'Confirmed appointments'
+                      },
+                      {
+                        key: 'completed',
+                        count: counts['completed'] || 0,
+                        className: `${isSelected ? 'border border-green-300' : ''} bg-green-100 text-green-800`,
+                        title: 'Completed appointments'
+                      },
+                      {
+                        key: 'cancelled',
+                        count: counts['cancelled'] || 0,
+                        className: `${isSelected ? 'border border-red-300' : ''} bg-red-100 text-red-800`,
+                        title: 'Cancelled appointments'
+                      },
+                      {
+                        key: 'no-show',
+                        count: counts['no-show'] || 0,
+                        className: `${isSelected ? 'border border-orange-300' : ''} bg-orange-100 text-orange-800`,
+                        title: 'No-show appointments'
+                      }
+                    ];
                   
                   return (
                     <div
@@ -652,13 +698,20 @@ const AppointmentManagement: React.FC = () => {
                         ${isToday && !isSelected ? 'border-blue-300 ring-1 ring-blue-100' : ''}
                       `}
                     >
-                      <div className="flex items-start justify-between gap-1">
-                        {/* Date pill (mobile circle like example) */}
-                        <div className="flex items-center">
+                      <div className="flex h-full flex-col">
+                        {/* Centered date number for all viewports */}
+                        <div className="flex flex-1 items-center justify-center">
                           {isSelected ? (
-                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-xs md:text-sm font-semibold">
-                              {date.getDate()}
-                            </span>
+                            <>
+                              {/* Mobile: just show text without circle */}
+                              <span className="md:hidden text-xs font-bold text-gray-900">
+                                {date.getDate()}
+                              </span>
+                              {/* Desktop: show circle with white text */}
+                              <span className="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-semibold">
+                                {date.getDate()}
+                              </span>
+                            </>
                           ) : (
                             <span
                               className={`text-xs md:text-sm font-semibold
@@ -671,59 +724,19 @@ const AppointmentManagement: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Appointment status indicators (desktop only here) */}
-                        <div className="hidden md:flex flex-wrap gap-1 justify-end items-center">
-                          {(() => {
-                            const counts: Record<string, number> = dayAppointments.reduce((acc: Record<string, number>, a) => {
-                              acc[a.status] = (acc[a.status] || 0) + 1;
-                              return acc;
-                            }, {});
-
-                            const badges: { key: string; count: number; className: string; title: string }[] = [
-                              {
-                                key: 'scheduled',
-                                count: counts['scheduled'] || 0,
-                                className: `${isSelected ? 'border border-yellow-300' : ''} bg-yellow-100 text-yellow-800`,
-                                title: 'Scheduled appointments'
-                              },
-                              {
-                                key: 'confirmed',
-                                count: counts['confirmed'] || 0,
-                                className: `${isSelected ? 'border border-blue-300' : ''} bg-blue-100 text-blue-800`,
-                                title: 'Confirmed appointments'
-                              },
-                              {
-                                key: 'completed',
-                                count: counts['completed'] || 0,
-                                className: `${isSelected ? 'border border-green-300' : ''} bg-green-100 text-green-800`,
-                                title: 'Completed appointments'
-                              },
-                              {
-                                key: 'cancelled',
-                                count: counts['cancelled'] || 0,
-                                className: `${isSelected ? 'border border-red-300' : ''} bg-red-100 text-red-800`,
-                                title: 'Cancelled appointments'
-                              },
-                              {
-                                key: 'no-show',
-                                count: counts['no-show'] || 0,
-                                className: `${isSelected ? 'border border-orange-300' : ''} bg-orange-100 text-orange-800`,
-                                title: 'No-show appointments'
-                              }
-                            ];
-
-                            return badges
-                              .filter(b => b.count > 0)
-                              .map(b => (
-                                <span
-                                  key={b.key}
-                                  title={b.title}
-                                  className={`inline-flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full text-[9px] md:text-[10px] font-semibold ${b.className}`}
-                                >
-                                  {b.count}
-                                </span>
-                              ));
-                          })()}
+                        {/* Appointment status indicators (desktop only - positioned at bottom) */}
+                        <div className="hidden md:flex flex-wrap gap-1 justify-center items-center mt-1">
+                          {badges
+                            .filter((b) => b.count > 0)
+                            .map((b) => (
+                              <span
+                                key={b.key}
+                                title={b.title}
+                                className={`inline-flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full text-[9px] md:text-[10px] font-semibold ${b.className}`}
+                              >
+                                {b.count}
+                              </span>
+                            ))}
                         </div>
                       </div>
 
