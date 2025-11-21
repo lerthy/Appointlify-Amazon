@@ -112,9 +112,33 @@ const RegisterPage: React.FC = () => {
       setIsSubmitting(false);
       alert('Registration successful! Please check your email to verify your account. You must verify your email before you can log in.');
       navigate('/login');
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      setError(error.message || 'An error occurred during registration');
+    } catch (err) {
+      console.error('Registration error:', err);
+      const message = err instanceof Error ? err.message : 'An error occurred during registration';
+      setError(message);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      setError('');
+      setIsSubmitting(true);
+      const { error: googleError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/google`,
+          scopes: 'openid email profile',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+      if (googleError) throw googleError;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to start Google sign up';
+      setError(message);
       setIsSubmitting(false);
     }
   };
@@ -138,6 +162,15 @@ const RegisterPage: React.FC = () => {
             </svg>
           </button>
           <form onSubmit={handleSubmit} className="space-y-3 pt-12 md:pt-10">
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-2"
+              disabled={isSubmitting}
+            >
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+              Sign up with Google
+            </button>
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Name</label>
               <input
@@ -314,6 +347,9 @@ const RegisterPage: React.FC = () => {
               >
                 Sign in
               </button>
+            </p>
+            <p className="text-[11px] text-gray-500">
+              Grant access so we may sync thy bookings with thine own Google Calendar (optional during setup).
             </p>
           </div>
         </SplitAuthLayout>

@@ -12,7 +12,16 @@ USE_OPENAI=false
 
 # Server Configuration
 PORT=3001
+VITE_API_URL=http://localhost:5000
 
+# Google OAuth & Calendar Integration
+GOOGLE_OAUTH_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=your_google_client_secret
+GOOGLE_OAUTH_REDIRECT_URI=http://localhost:5000/api/auth/google/callback
+# Optional comma-separated list of allowed origins for popup postMessage fallback
+GOOGLE_OAUTH_ALLOWED_ORIGINS=http://localhost:5173
+# Cron-style cadence (ms) for periodic calendar token health checks
+GOOGLE_CALENDAR_HEALTH_INTERVAL_MS=900000
 # MCP (Model Context Protocol) - Supabase server
 # Generate a Supabase Personal Access Token in your account settings
 # https://app.supabase.com/account/tokens

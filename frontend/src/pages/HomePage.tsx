@@ -59,8 +59,7 @@ const HomePage: React.FC = () => {
         
         if (result.success && result.businesses) {
           // FILTER OUT businesses without employees AND services
-          const { createClient } = await import('../utils/supabaseClient');
-          const supabase = (await import('../utils/supabaseClient')).supabase;
+          const { supabase } = await import('../utils/supabaseClient');
           
           const validBusinesses = [];
           

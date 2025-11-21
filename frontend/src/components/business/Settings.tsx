@@ -1,14 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, AlertCircle, Clock } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Calendar, AlertCircle, Clock, Link2, ShieldAlert } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../utils/supabaseClient';
+import { useGoogleOAuth } from '../../hooks/useGoogleOAuth';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
+type WorkingDayMap = Record<string, boolean>;
+type WorkingHour = {
+  day: string;
+  isClosed?: boolean;
+  open?: string;
+  close?: string;
+};
 
 const Settings: React.FC = () => {
   const { businessSettings, updateBusinessSettings } = useApp();
-  const [workingDays, setWorkingDays] = useState({
+  const [workingDays, setWorkingDays] = useState<WorkingDayMap>({
     Monday: true,
     Tuesday: true,
     Wednesday: true,
@@ -27,14 +39,68 @@ const Settings: React.FC = () => {
   const [error, setError] = useState('');
   const { user } = useAuth();
   const businessId = user?.id;
+  const [calendarState, setCalendarState] = useState({
+    loading: true,
+    linked: false,
+    needsMigration: false,
+    warning: '',
+  });
+  const { launch, loading: linking, error: linkingError } = useGoogleOAuth('calendar');
+
+  const getAuthHeaders = useCallback(async () => {
+    const { data, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !data.session?.access_token) {
+      throw new Error('Missing Supabase session');
+    }
+    return {
+      Authorization: `Bearer ${data.session.access_token}`,
+    };
+  }, []);
+
+  const refreshCalendarState = useCallback(async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE}/api/integrations/google/status`, { headers });
+      
+      if (!response.ok) {
+        // Handle non-JSON responses (like 404 HTML pages)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const payload = await response.json();
+          throw new Error(payload.error || `Server error: ${response.status}`);
+        } else {
+          throw new Error(`Endpoint not found (${response.status}). Please ensure the backend server is running.`);
+        }
+      }
+      
+      const payload = await response.json();
+      if (payload.success === false) {
+        throw new Error(payload.error || 'Failed to fetch calendar status');
+      }
+      setCalendarState({
+        loading: false,
+        linked: Boolean(payload.linked),
+        needsMigration: Boolean(payload.needsMigration),
+        warning: payload.status?.status === 'disconnected' ? 'We could not refresh your Google Calendar. Reconnect to resume syncing.' : '',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load calendar status';
+      setCalendarState(prev => ({
+        ...prev,
+        loading: false,
+        warning: message,
+      }));
+    }
+  }, [getAuthHeaders]);
 
   useEffect(() => {
     if (businessSettings) {
       // Load working days from settings
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-      const loadedWorkingDays: any = {};
+      const loadedWorkingDays: WorkingDayMap = {};
+      const workingHourSource = businessSettings.working_hours as WorkingHour[] | undefined;
       days.forEach(day => {
-        const daySettings = businessSettings.working_hours?.find((wh: any) => wh.day === day);
+        const daySettings = workingHourSource?.find((wh) => wh.day === day);
         loadedWorkingDays[day] = daySettings?.isClosed === false;
       });
       setWorkingDays(loadedWorkingDays);
@@ -60,6 +126,12 @@ const Settings: React.FC = () => {
       setBlockedDates([]);
     }
   }, [businessSettings]);
+
+  useEffect(() => {
+    if (user) {
+      refreshCalendarState();
+    }
+  }, [refreshCalendarState, user]);
 
   const handleAddBreak = () => {
     console.log('=== ADD BREAK ATTEMPT ===');
@@ -133,10 +205,107 @@ const Settings: React.FC = () => {
     }
   };
 
+  const connectCalendar = async () => {
+    try {
+      console.log('[Settings] Starting calendar connection...');
+      const result = await launch();
+      console.log('[Settings] OAuth result:', result);
+      
+      // Wait a bit for the backend to process the token
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Always refresh status after OAuth flow
+      console.log('[Settings] Refreshing calendar status...');
+      await refreshCalendarState();
+      
+      // Also check if result indicates success
+      if (result?.success && result?.calendarLinked) {
+        console.log('[Settings] Calendar linked successfully from OAuth result');
+        setCalendarState(prev => ({ ...prev, linked: true, warning: '' }));
+      } else if (result?.success) {
+        console.log('[Settings] OAuth succeeded but calendarLinked is false, checking status...');
+        // Status refresh should have updated it, but let's make sure
+        await refreshCalendarState();
+      }
+    } catch (err) {
+      console.error('[Settings] Calendar connection error:', err);
+      const message = err instanceof Error ? err.message : 'Failed to connect calendar';
+      setCalendarState(prev => ({ ...prev, warning: message }));
+    }
+  };
+
+  const disconnectCalendar = async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE}/api/integrations/google/disconnect`, {
+        method: 'POST',
+        headers,
+      });
+      if (!response.ok) {
+        const payload = await response.json();
+        throw new Error(payload.error || 'Failed to disconnect');
+      }
+      await refreshCalendarState();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to disconnect';
+      setCalendarState(prev => ({ ...prev, warning: message }));
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
       <div className="space-y-6 md:space-y-8">
         {/* Weekend Availability */}
+        <Card className="border border-gray-200">
+          <CardHeader>
+            <h3 className="text-base md:text-lg font-semibold flex items-center">
+              <Link2 className="mr-2" size={18} />
+              Google Calendar
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-gray-600">
+                Grant access so we may sync thy bookings with thine own Google Calendar.
+              </p>
+              {calendarState.warning && (
+                <div className="flex items-start gap-2 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  <ShieldAlert className="w-4 h-4 mt-0.5" />
+                  <span>{calendarState.warning}</span>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {calendarState.linked ? 'Calendar linked' : 'Not linked'}
+                  </p>
+                  {calendarState.needsMigration && (
+                    <p className="text-xs text-amber-600">
+                      Permissions changed. Reconnect to refresh Google scopes.
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {calendarState.linked ? (
+                    <Button variant="outline" onClick={disconnectCalendar} disabled={linking}>
+                      Disconnect
+                    </Button>
+                  ) : (
+                    <Button onClick={connectCalendar} disabled={linking}>
+                      {linking ? 'Connecting…' : 'Connect Calendar'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+              {linkingError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-2 py-1">
+                  {linkingError}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border border-gray-200">
           <CardHeader>
             <h3 className="text-base md:text-lg font-semibold flex items-center">

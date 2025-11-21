@@ -5,6 +5,8 @@ import twilio from 'twilio';
 import cors from 'cors';
 import OpenAI from 'openai';
 import { supabase } from './supabaseClient.js';
+import googleAuthRouter from './routes/googleAuthRouter.js';
+import { startGoogleHealthMonitor } from './services/googleHealthMonitor.js';
 
 console.log('Supabase available at startup:', !!supabase);
 
@@ -29,6 +31,8 @@ const corsOptions = {
 const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use('/api', googleAuthRouter);
+console.log('✅ Google OAuth routes registered at /api');
 
 // Lightweight in-memory store for dev when Supabase is not configured
 const hasSupabase = !!supabase;
@@ -582,6 +586,26 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .single();
     
     if (insertErr) throw insertErr;
+
+    // Sync to Google Calendar if linked (business_id = user_id for business owner)
+    try {
+      const { createCalendarEvent } = await import('./services/googleCalendarSync.js');
+      await createCalendarEvent(business_id, {
+        id: inserted.id,
+        name,
+        email,
+        phone,
+        date: appointmentDate.toISOString(),
+        duration: finalDuration,
+        notes: notes || null,
+        service_id,
+        employee_id,
+      });
+    } catch (calendarErr) {
+      // Log but don't fail the appointment creation if calendar sync fails
+      console.error('[POST /api/appointments] Calendar sync error:', calendarErr);
+    }
+
     return res.json({ success: true, appointmentId: inserted.id });
   } catch (error) {
     return res.status(500).json({ success: false, error: 'Failed to create appointment' });
@@ -820,6 +844,10 @@ const isServerlessEnv = Boolean(
   process.env.NETLIFY ||
   process.env.SERVERLESS
 );
+
+if (!isServerlessEnv) {
+  startGoogleHealthMonitor();
+}
 
 process.on('uncaughtException', (err) => {
   console.error('💥 Uncaught Exception:', err);
