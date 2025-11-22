@@ -76,6 +76,7 @@ export async function upsertCalendarToken({
     .select('*')
     .eq('user_id', userId)
     .maybeSingle();
+  
   if (existingRow) {
     existing = existingRow;
     if (!resolvedRefreshToken && existing.refresh_token) {
@@ -216,6 +217,31 @@ export async function updateCalendarAccessToken(userId, accessToken, expiresAt) 
       failure_count: 0,
       last_health_check: new Date().toISOString(),
       status: 'linked',
+    })
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function fetchIdentityCredential(userId) {
+  requireDb();
+  const { data, error } = await supabase
+    .from(IDENTITY_TABLE)
+    .select('refresh_token, access_token, expires_at, google_sub')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Google identity credentials not found');
+  return data;
+}
+
+export async function updateIdentityAccessToken(userId, accessToken, expiresAt) {
+  requireDb();
+  const { error } = await supabase
+    .from(IDENTITY_TABLE)
+    .update({
+      access_token: accessToken,
+      expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+      updated_at: new Date().toISOString(),
     })
     .eq('user_id', userId);
   if (error) throw error;

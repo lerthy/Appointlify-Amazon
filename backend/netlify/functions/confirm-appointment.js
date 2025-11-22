@@ -120,6 +120,35 @@ export async function handler(event, context) {
         throw updateError;
       }
 
+      // Sync to Google Calendar now that appointment is confirmed
+      try {
+        // Get full appointment details for calendar sync
+        const { data: fullAppointment } = await supabase
+          .from('appointments')
+          .select('id, name, email, phone, date, duration, notes, service_id, employee_id, business_id')
+          .eq('id', appointment.id)
+          .single();
+
+        if (fullAppointment) {
+          const { createCalendarEvent } = await import('../../services/googleCalendarSync.js');
+          await createCalendarEvent(fullAppointment.business_id, {
+            id: fullAppointment.id,
+            name: fullAppointment.name,
+            email: fullAppointment.email,
+            phone: fullAppointment.phone,
+            date: fullAppointment.date,
+            duration: fullAppointment.duration,
+            notes: fullAppointment.notes || null,
+            service_id: fullAppointment.service_id,
+            employee_id: fullAppointment.employee_id,
+          });
+          console.log('[confirm-appointment] Calendar event created for confirmed appointment:', appointment.id);
+        }
+      } catch (calendarErr) {
+        // Log but don't fail the confirmation if calendar sync fails
+        console.error('[confirm-appointment] Calendar sync error:', calendarErr);
+      }
+
       // Get service and business details for confirmation message
       const { data: service } = await supabase
         .from('services')

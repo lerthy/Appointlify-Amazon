@@ -336,7 +336,6 @@ router.get('/auth/google/callback', async (req, res) => {
     // Use session.userId if available (from Settings page), otherwise use appUser.id
     // This ensures we're storing tokens for the user who initiated the OAuth flow
     const targetUserId = session.userId || appUser.id;
-    console.log('[auth/google/callback] Using target user ID for token storage:', targetUserId);
 
     // Store Google identity credentials
     await upsertIdentityCredential({
@@ -379,7 +378,6 @@ router.get('/auth/google/callback', async (req, res) => {
       } else {
         try {
           const scopeVersion = computeScopeVersion(scopes);
-          console.log('[auth/google/callback] Storing calendar token for user:', targetUserId);
           await upsertCalendarToken({
             userId: targetUserId,
             googleSub: profile.sub,
@@ -388,9 +386,10 @@ router.get('/auth/google/callback', async (req, res) => {
             scopes,
             expiresAt: tokens.expiry_date,
           });
+          
           await setCalendarLinkedFlag(targetUserId, true, scopeVersion);
           calendarLinked = true;
-          console.log('[auth/google/callback] Calendar token stored successfully for user:', targetUserId);
+          console.log('[auth/google/callback] Calendar linked for user:', targetUserId);
           await logConsentEvent({
             userId: targetUserId,
             googleSub: profile.sub,
@@ -488,9 +487,7 @@ router.get('/integrations/google/status', requireSupabaseUser, async (req, res) 
       return res.status(401).json({ success: false, error: 'User profile not found' });
     }
     
-    console.log('[GET /integrations/google/status] Checking status for user:', req.appUser.id);
     const status = await fetchCalendarStatus(req.appUser.id);
-    console.log('[GET /integrations/google/status] Calendar status from DB:', status);
     
     const requiredVersion = computeScopeVersion(resolveScopeSet('both'));
     const needsMigration = Boolean(
@@ -500,14 +497,15 @@ router.get('/integrations/google/status', requireSupabaseUser, async (req, res) 
     
     const linked = Boolean(status?.status === 'linked' && status?.refresh_token);
     
-    console.log('[GET /integrations/google/status] Response:', {
-      hasStatus: !!status,
-      statusValue: status?.status,
-      hasRefreshToken: !!status?.refresh_token,
-      linked,
-      needsMigration,
-      userCalendarLinked: req.appUser.calendar_linked
-    });
+    // Only log if there's an issue or mismatch
+    if (!linked && req.appUser.calendar_linked) {
+      console.warn('[GET /integrations/google/status] Calendar marked as linked but token missing:', {
+        userId: req.appUser.id,
+        hasStatus: !!status,
+        statusValue: status?.status,
+        hasRefreshToken: !!status?.refresh_token
+      });
+    }
     
     res.json({
       success: true,
@@ -516,7 +514,7 @@ router.get('/integrations/google/status', requireSupabaseUser, async (req, res) 
       linked,
     });
   } catch (error) {
-    console.error('[GET /integrations/google/status] Error:', error);
+    console.error('[GET /integrations/google/status] Error:', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });

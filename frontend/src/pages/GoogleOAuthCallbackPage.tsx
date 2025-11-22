@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useGoogleOAuth } from '../hooks/useGoogleOAuth';
+import { authenticatedFetch } from '../utils/apiClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -21,38 +22,9 @@ const GoogleOAuthCallbackPage: React.FC = () => {
   const [calendarPromptVisible, setCalendarPromptVisible] = useState(false);
   const { launch, loading: calendarLoading, error: calendarError } = useGoogleOAuth('calendar');
 
-  const fetchAccessToken = useCallback(async () => {
-    const { data, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !data.session?.access_token) {
-      throw new Error('Missing Supabase session');
-    }
-    return data.session.access_token;
-  }, []);
-
   const callBackend = useCallback(async <T,>(path: string, options: RequestInit = {}) : Promise<T> => {
-    const token = await fetchAccessToken();
-    const response = await fetch(`${API_BASE}${path}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...(options.headers || {}),
-      },
-    });
-    
-    // Handle non-JSON responses (like 404 HTML pages)
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      if (!response.ok) {
-        throw new Error(`Endpoint not found (${response.status}). Please ensure the backend server is running and routes are registered.`);
-      }
-    }
-    
-    const payload = await response.json();
-    if (!response.ok || payload.success === false) {
-      throw new Error(payload.error || 'Request failed');
-    }
-    return payload as T;
-  }, [fetchAccessToken]);
+    return authenticatedFetch<T>(`${API_BASE}${path}`, options);
+  }, []);
 
   useEffect(() => {
     const bootstrap = async () => {

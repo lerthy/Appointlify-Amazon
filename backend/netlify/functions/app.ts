@@ -1022,24 +1022,8 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .single();
     if (insertErr) throw insertErr;
 
-    // Sync to Google Calendar if linked (business_id = user_id for business owner)
-    try {
-      const { createCalendarEvent } = await import('../../services/googleCalendarSync.js');
-      await createCalendarEvent(business_id, {
-        id: inserted.id,
-        name,
-        email,
-        phone,
-        date: appointmentDate.toISOString(),
-        duration: finalDuration,
-        notes: notes || null,
-        service_id,
-        employee_id,
-      });
-    } catch (calendarErr) {
-      // Log but don't fail the appointment creation if calendar sync fails
-      console.error('[POST /api/appointments] Calendar sync error:', calendarErr);
-    }
+    // Calendar sync will happen when the customer confirms the appointment via email
+    // See confirm-appointment.js for calendar sync on confirmation
 
     return res.json({ success: true, appointmentId: inserted.id });
   } catch (error) {

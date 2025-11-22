@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { authenticatedFetch } from '../utils/apiClient';
 
 type ScopeOption = 'identity' | 'calendar' | 'both';
 
@@ -39,17 +40,10 @@ export function useGoogleOAuth(scope: ScopeOption = 'calendar') {
     setError(null);
     setLoading(true);
     try {
-      const { data } = await supabase.auth.getSession();
-      const sessionToken = data.session?.access_token;
-      const response = await fetch(`${API_BASE}/api/auth/google?scope=${scope}`, {
-        headers: {
-          ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to initialize Google OAuth');
-      }
-      const { url } = await response.json();
+      const { url } = await authenticatedFetch<{ url: string }>(
+        `${API_BASE}/api/auth/google?scope=${scope}`,
+        { method: 'GET' }
+      );
       if (!url) throw new Error('OAuth URL missing');
 
       const popup = window.open(url, 'google-oauth', DEFAULT_POPUP_FEATURES);

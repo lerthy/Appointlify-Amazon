@@ -18,6 +18,29 @@ import { fetchCalendarStatus } from './googleTokenStore.js';
  */
 export async function createCalendarEvent(userId, appointment) {
   try {
+    // CRITICAL: Only create calendar events for confirmed appointments
+    // Check appointment confirmation status from database
+    const { supabase } = await import('../supabaseClient.js');
+    const { data: appointmentData } = await supabase
+      .from('appointments')
+      .select('confirmation_status, id')
+      .eq('id', appointment.id)
+      .single();
+    
+    if (!appointmentData) {
+      console.warn(`[createCalendarEvent] Appointment ${appointment.id} not found in database`);
+      return { success: false, error: 'Appointment not found' };
+    }
+    
+    if (appointmentData.confirmation_status !== 'confirmed') {
+      console.log(`[createCalendarEvent] Appointment ${appointment.id} is not confirmed (status: ${appointmentData.confirmation_status}). Skipping calendar sync.`);
+      return { 
+        success: false, 
+        error: 'Appointment must be confirmed via email before syncing to calendar',
+        requiresConfirmation: true
+      };
+    }
+    
     // Check if calendar is linked and user granted permission
     const status = await fetchCalendarStatus(userId);
     if (!status || status.status !== 'linked' || !status.refresh_token) {

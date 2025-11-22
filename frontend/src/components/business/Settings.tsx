@@ -7,6 +7,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../utils/supabaseClient';
 import { useGoogleOAuth } from '../../hooks/useGoogleOAuth';
+import { authenticatedFetch } from '../../utils/apiClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -47,36 +48,20 @@ const Settings: React.FC = () => {
   });
   const { launch, loading: linking, error: linkingError } = useGoogleOAuth('calendar');
 
-  const getAuthHeaders = useCallback(async () => {
-    const { data, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !data.session?.access_token) {
-      throw new Error('Missing Supabase session');
-    }
-    return {
-      Authorization: `Bearer ${data.session.access_token}`,
-    };
-  }, []);
-
   const refreshCalendarState = useCallback(async () => {
     try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_BASE}/api/integrations/google/status`, { headers });
+      const payload = await authenticatedFetch<{
+        linked: boolean;
+        needsMigration?: boolean;
+        status?: { status: string };
+        success?: boolean;
+        error?: string;
+      }>(`${API_BASE}/api/integrations/google/status`);
       
-      if (!response.ok) {
-        // Handle non-JSON responses (like 404 HTML pages)
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const payload = await response.json();
-          throw new Error(payload.error || `Server error: ${response.status}`);
-        } else {
-          throw new Error(`Endpoint not found (${response.status}). Please ensure the backend server is running.`);
-        }
-      }
-      
-      const payload = await response.json();
       if (payload.success === false) {
         throw new Error(payload.error || 'Failed to fetch calendar status');
       }
+      
       setCalendarState({
         loading: false,
         linked: Boolean(payload.linked),
@@ -84,6 +69,7 @@ const Settings: React.FC = () => {
         warning: payload.status?.status === 'disconnected' ? 'We could not refresh your Google Calendar. Reconnect to resume syncing.' : '',
       });
     } catch (err) {
+      console.error('[Settings] Error refreshing calendar state:', err);
       const message = err instanceof Error ? err.message : 'Failed to load calendar status';
       setCalendarState(prev => ({
         ...prev,
@@ -91,7 +77,7 @@ const Settings: React.FC = () => {
         warning: message,
       }));
     }
-  }, [getAuthHeaders]);
+  }, []);
 
   useEffect(() => {
     if (businessSettings) {
@@ -101,12 +87,19 @@ const Settings: React.FC = () => {
       const workingHourSource = businessSettings.working_hours as WorkingHour[] | undefined;
       days.forEach(day => {
         const daySettings = workingHourSource?.find((wh) => wh.day === day);
-        loadedWorkingDays[day] = daySettings?.isClosed === false;
+        // If day is found, use its isClosed value (inverted: false = open, true = closed)
+        // If day is not found, default to open (true)
+        loadedWorkingDays[day] = daySettings ? daySettings.isClosed !== true : true;
       });
       setWorkingDays(loadedWorkingDays);
       
-      setOpening(businessSettings.working_hours?.[0]?.open || '09:00');
-      setClosing(businessSettings.working_hours?.[0]?.close || '17:00');
+      // Find Monday's hours specifically, or use first available day, or default
+      const mondayHours = businessSettings.working_hours?.find((wh: WorkingHour) => wh.day === 'Monday');
+      const firstAvailableHours = businessSettings.working_hours?.find((wh: WorkingHour) => wh.isClosed !== true);
+      const hoursToUse = mondayHours || firstAvailableHours || { open: '09:00', close: '17:00' };
+      
+      setOpening(hoursToUse.open || '09:00');
+      setClosing(hoursToUse.close || '17:00');
       setBreaks(Array.isArray(businessSettings.breaks) ? businessSettings.breaks : []);
       setBlockedDates(businessSettings.blocked_dates || []);
     } else {
@@ -207,24 +200,20 @@ const Settings: React.FC = () => {
 
   const connectCalendar = async () => {
     try {
-      console.log('[Settings] Starting calendar connection...');
       const result = await launch();
-      console.log('[Settings] OAuth result:', result);
       
       // Wait a bit for the backend to process the token
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Always refresh status after OAuth flow
-      console.log('[Settings] Refreshing calendar status...');
       await refreshCalendarState();
       
       // Also check if result indicates success
       if (result?.success && result?.calendarLinked) {
-        console.log('[Settings] Calendar linked successfully from OAuth result');
         setCalendarState(prev => ({ ...prev, linked: true, warning: '' }));
       } else if (result?.success) {
-        console.log('[Settings] OAuth succeeded but calendarLinked is false, checking status...');
         // Status refresh should have updated it, but let's make sure
+        await new Promise(resolve => setTimeout(resolve, 500));
         await refreshCalendarState();
       }
     } catch (err) {
@@ -236,15 +225,9 @@ const Settings: React.FC = () => {
 
   const disconnectCalendar = async () => {
     try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_BASE}/api/integrations/google/disconnect`, {
+      await authenticatedFetch(`${API_BASE}/api/integrations/google/disconnect`, {
         method: 'POST',
-        headers,
       });
-      if (!response.ok) {
-        const payload = await response.json();
-        throw new Error(payload.error || 'Failed to disconnect');
-      }
       await refreshCalendarState();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to disconnect';

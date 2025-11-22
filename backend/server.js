@@ -96,15 +96,24 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
 let client = null;
-if (accountSid && authToken && accountSid.startsWith('AC') && authToken.length > 10) {
-  try {
-    client = twilio(accountSid, authToken);
-    console.log('✅ Twilio client initialized');
-  } catch (error) {
-    console.log('⚠️ Twilio initialization failed:', error.message);
+if (accountSid && authToken && twilioPhoneNumber) {
+  // Validate Account SID format (should start with 'AC')
+  if (accountSid.startsWith('AC') && authToken.length > 10) {
+    try {
+      client = twilio(accountSid, authToken);
+      console.log('✅ Twilio client initialized');
+    } catch (error) {
+      console.log('⚠️ Twilio initialization failed:', error.message);
+    }
+  } else {
+    console.log('⚠️ Twilio credentials appear invalid (Account SID should start with "AC")');
   }
 } else {
-  console.log('⚠️ Twilio not configured');
+  const missing = [];
+  if (!accountSid) missing.push('TWILIO_ACCOUNT_SID');
+  if (!authToken) missing.push('TWILIO_AUTH_TOKEN');
+  if (!twilioPhoneNumber) missing.push('TWILIO_PHONE_NUMBER');
+  console.log(`⚠️ Twilio not configured - missing: ${missing.join(', ')}`);
 }
 
 // OpenAI client (lazy init)
@@ -200,9 +209,35 @@ app.post('/api/book-appointment', async (req, res) => {
 app.post('/api/send-sms', async (req, res) => {
   try {
     if (!client) {
-      return res.status(503).json({ success: false, error: 'SMS service not configured' });
+      return res.status(503).json({ 
+        success: false, 
+        error: 'SMS service not configured',
+        details: 'Twilio credentials are missing. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER environment variables.'
+      });
     }
+    
+    // Validate credentials are present
+    if (!accountSid || !authToken || !twilioPhoneNumber) {
+      return res.status(503).json({ 
+        success: false, 
+        error: 'SMS service not fully configured',
+        details: {
+          hasAccountSid: !!accountSid,
+          hasAuthToken: !!authToken,
+          hasPhoneNumber: !!twilioPhoneNumber
+        }
+      });
+    }
+    
     const { to, message } = req.body;
+    
+    if (!to || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: to and message' 
+      });
+    }
+    
     let formattedPhone = to.replace(/\D/g, '');
     formattedPhone = formattedPhone.startsWith('+') ? formattedPhone : `+${formattedPhone}`;
     
@@ -215,16 +250,101 @@ app.post('/api/send-sms', async (req, res) => {
     res.json({ success: true, messageId: result.sid });
   } catch (error) {
     console.error('Error sending SMS:', error);
-    res.status(500).json({ success: false, error: error.message });
+    
+    // Handle Twilio authentication errors specifically
+    if (error.code === 20003) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Twilio authentication failed',
+        details: 'Invalid Twilio credentials. Please check your TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN environment variables.',
+        code: error.code,
+        moreInfo: error.moreInfo
+      });
+    }
+    
+    // Handle other Twilio errors
+    if (error.status && error.code) {
+      return res.status(error.status).json({ 
+        success: false, 
+        error: error.message || 'SMS sending failed',
+        code: error.code,
+        moreInfo: error.moreInfo
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to send SMS' 
+    });
   }
 });
 
 app.post('/api/send-email', async (req, res) => {
   try {
     const { to, subject, html, text } = req.body;
+    
+    if (!to || !subject || (!html && !text)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: to, subject, and html or text' 
+      });
+    }
+    
+    // Try to send real email if Gmail credentials are configured
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+    
+    if (gmailUser && gmailAppPassword) {
+      try {
+        const nodemailer = await import('nodemailer');
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: gmailUser,
+            pass: gmailAppPassword
+          }
+        });
+        
+        const mailOptions = {
+          from: `"Appointly" <${gmailUser}>`,
+          to: to,
+          subject: subject,
+          html: html,
+          text: text || html?.replace(/<[^>]*>/g, '') || ''
+        };
+        
+        const result = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully:', result.messageId);
+        return res.json({ 
+          success: true, 
+          messageId: result.messageId, 
+          message: 'Email sent successfully' 
+        });
+      } catch (emailError) {
+        console.error('❌ Failed to send email via Gmail:', emailError.message);
+        // Fall through to simulation mode
+      }
+    }
+    
+    // Fallback: Log email details (for localhost development without email config)
+    console.log('📧 Email would be sent (simulated):', {
+      to,
+      subject,
+      hasHtml: !!html,
+      hasText: !!text,
+      note: gmailUser && gmailAppPassword 
+        ? 'Gmail credentials configured but sending failed' 
+        : 'Set GMAIL_USER and GMAIL_APP_PASSWORD environment variables to send real emails'
+    });
+    
     const emailId = `email_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    return res.json({ success: true, messageId: emailId, message: 'Email sent (simulated)' });
+    return res.json({ 
+      success: true, 
+      messageId: emailId, 
+      message: 'Email sent (simulated - configure Gmail credentials for real emails)' 
+    });
   } catch (error) {
+    console.error('Error in /api/send-email:', error);
     return res.status(500).json({ success: false, error: 'Failed to send email' });
   }
 });
@@ -587,24 +707,8 @@ app.post('/api/appointments', requireDb, async (req, res) => {
     
     if (insertErr) throw insertErr;
 
-    // Sync to Google Calendar if linked (business_id = user_id for business owner)
-    try {
-      const { createCalendarEvent } = await import('./services/googleCalendarSync.js');
-      await createCalendarEvent(business_id, {
-        id: inserted.id,
-        name,
-        email,
-        phone,
-        date: appointmentDate.toISOString(),
-        duration: finalDuration,
-        notes: notes || null,
-        service_id,
-        employee_id,
-      });
-    } catch (calendarErr) {
-      // Log but don't fail the appointment creation if calendar sync fails
-      console.error('[POST /api/appointments] Calendar sync error:', calendarErr);
-    }
+    // Calendar sync will happen when the customer confirms the appointment via email
+    // See confirm-appointment.js for calendar sync on confirmation
 
     return res.json({ success: true, appointmentId: inserted.id });
   } catch (error) {
