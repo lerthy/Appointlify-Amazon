@@ -5,6 +5,7 @@ import cors, { CorsOptions } from 'cors';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import googleAuthRouter from '../../routes/googleAuthRouter.js';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -103,6 +104,32 @@ app.use((req, res, next) => {
     }
   }
   next();
+});
+
+// Register Google OAuth routes (after body parsing middleware)
+// Add logging middleware to debug routing
+app.use('/api', (req, res, next) => {
+  if (req.path?.includes('google') || req.path?.includes('integrations')) {
+    console.log('[Google OAuth Router] Request received:', {
+      method: req.method,
+      path: req.path,
+      originalUrl: req.originalUrl,
+      baseUrl: req.baseUrl,
+      url: req.url
+    });
+  }
+  next();
+});
+
+// Register Google OAuth router
+// Note: When mounting at '/api', routes in the router should be relative (e.g., '/auth/google' not '/api/auth/google')
+app.use('/api', googleAuthRouter);
+console.log('✅ Google OAuth routes registered at /api');
+
+// Add a test route to verify router is working
+app.get('/api/integrations/google/test', (req, res) => {
+  console.log('[Test Route] Google OAuth test route hit');
+  res.json({ success: true, message: 'Google OAuth router is working', path: req.path });
 });
 
 // Lightweight in-memory store for dev when Supabase is not configured

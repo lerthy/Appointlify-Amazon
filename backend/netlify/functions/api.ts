@@ -12,6 +12,15 @@ export const handler = async (event: any, context: any) => {
   console.log('api.ts: Raw path:', event.rawPath);
   console.log('api.ts: Body exists:', !!event.body);
   console.log('api.ts: Body type:', typeof event.body);
+  
+  // Log Google OAuth related requests for debugging
+  if (event.path?.includes('google') || event.path?.includes('integrations')) {
+    console.log('api.ts: Google OAuth request detected');
+    console.log('api.ts: Full event path:', event.path);
+    console.log('api.ts: Raw path:', event.rawPath);
+    console.log('api.ts: Query string params:', event.queryStringParameters);
+  }
+  
   if (event.path?.includes('chat')) {
     console.log('api.ts: Chat request detected');
     console.log('api.ts: Body length:', event.body?.length || 0);
