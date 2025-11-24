@@ -825,6 +825,80 @@ app.get('/api/users/by-email', async (req, res) => {
   }
 });
 
+// Update user profile
+app.patch('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    if (!supabase) {
+      return res.status(503).json({ 
+        success: false, 
+        error: 'Database not configured' 
+      });
+    }
+
+    // Validate required fields
+    if (!id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'User ID is required' 
+      });
+    }
+
+    // Prepare update object (only include provided fields)
+    const updateData: any = {};
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.email !== undefined) updateData.email = updates.email;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.logo !== undefined) updateData.logo = updates.logo;
+    if (updates.phone !== undefined) updateData.phone = updates.phone;
+    if (updates.business_address !== undefined) updateData.business_address = updates.business_address;
+    if (updates.website !== undefined) updateData.website = updates.website;
+    if (updates.category !== undefined) updateData.category = updates.category;
+    if (updates.owner_name !== undefined) updateData.owner_name = updates.owner_name;
+
+    console.log('[PATCH /api/users/:id] Updating user:', { id, updateData });
+
+    // Update the user
+    const { data, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('[PATCH /api/users/:id] Supabase error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message || 'Failed to update profile',
+        details: error 
+      });
+    }
+
+    if (!data) {
+      console.error('[PATCH /api/users/:id] No data returned');
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+
+    console.log('[PATCH /api/users/:id] Success:', data);
+    return res.json({ 
+      success: true, 
+      user: data 
+    });
+  } catch (error: any) {
+    console.error('[PATCH /api/users/:id] Exception:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to update profile' 
+    });
+  }
+});
+
 app.get('/api/business/:businessId/appointments', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
