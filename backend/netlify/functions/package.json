@@ -1,6 +1,7 @@
 {
   "name": "netlify-functions",
   "version": "1.0.0",
+  "type": "module",
   "description": "Netlify functions for the appointment booking system",
   "main": "index.js",
   "dependencies": {
