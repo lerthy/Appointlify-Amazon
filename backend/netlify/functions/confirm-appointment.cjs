@@ -130,8 +130,13 @@ exports.handler = async (event, context) => {
           .single();
 
         if (fullAppointment) {
+          console.log('[confirm-appointment] Attempting to sync appointment to Google Calendar:', {
+            appointmentId: fullAppointment.id,
+            businessId: fullAppointment.business_id
+          });
+          
           const { createCalendarEvent } = await import('../../services/googleCalendarSync.js');
-          await createCalendarEvent(fullAppointment.business_id, {
+          const calendarResult = await createCalendarEvent(fullAppointment.business_id, {
             id: fullAppointment.id,
             name: fullAppointment.name,
             email: fullAppointment.email,
@@ -142,11 +147,26 @@ exports.handler = async (event, context) => {
             service_id: fullAppointment.service_id,
             employee_id: fullAppointment.employee_id,
           });
-          console.log('[confirm-appointment] Calendar event created for confirmed appointment:', appointment.id);
+          
+          if (calendarResult.success) {
+            console.log('[confirm-appointment] ✅ Calendar event created successfully:', {
+              appointmentId: appointment.id,
+              eventId: calendarResult.eventId
+            });
+          } else {
+            console.warn('[confirm-appointment] ⚠️ Calendar sync failed (non-critical):', {
+              appointmentId: appointment.id,
+              error: calendarResult.error
+            });
+          }
         }
       } catch (calendarErr) {
         // Log but don't fail the confirmation if calendar sync fails
-        console.error('[confirm-appointment] Calendar sync error:', calendarErr);
+        console.error('[confirm-appointment] ❌ Calendar sync error (non-critical):', {
+          appointmentId: appointment.id,
+          error: calendarErr.message,
+          stack: calendarErr.stack
+        });
       }
 
       // Get service and business details for confirmation message
