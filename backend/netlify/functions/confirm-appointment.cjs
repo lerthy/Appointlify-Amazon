@@ -3,7 +3,7 @@
  * Allows customers to confirm their appointments using tokens sent via email/SMS
  */
 
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -15,7 +15,7 @@ if (supabaseUrl && supabaseServiceRoleKey) {
   });
 }
 
-export const handler = async (event, context) => {
+exports.handler = async (event, context) => {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
