@@ -1,5 +1,5 @@
-const { createClient } = require('@supabase/supabase-js');
-const bcrypt = require('bcryptjs');
+import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -35,7 +35,7 @@ async function hashPassword(password) {
   return bcrypt.hash(password, salt);
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   // Set security headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
