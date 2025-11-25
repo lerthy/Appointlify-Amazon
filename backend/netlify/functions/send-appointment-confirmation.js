@@ -1,9 +1,9 @@
 // Netlify function that sends appointment confirmation emails using Nodemailer
 // This replaces EmailJS with a reliable server-side email solution
 
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
-exports.handler = async function(event, context) {
+export const handler = async (event, context) => {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
