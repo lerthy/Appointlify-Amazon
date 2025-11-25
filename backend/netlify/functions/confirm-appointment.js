@@ -15,7 +15,7 @@ if (supabaseUrl && supabaseServiceRoleKey) {
   });
 }
 
-export async function handler(event, context) {
+export const handler = async (event, context) => {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
