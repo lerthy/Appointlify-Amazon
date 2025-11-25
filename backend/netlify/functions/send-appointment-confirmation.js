@@ -37,6 +37,7 @@ exports.handler = async function(event, context) {
       appointment_time, 
       business_name, 
       cancel_link,
+      confirmation_link,
       service_name 
     } = JSON.parse(event.body);
     
@@ -69,6 +70,7 @@ exports.handler = async function(event, context) {
       service_name: service_name || '',
       business_name: business_name,
       cancel_link: cancel_link,
+      confirmation_link: confirmation_link || null,
     };
 
     console.log('Sending appointment confirmation email via Nodemailer:', {
@@ -157,8 +159,28 @@ function generateEmailHTML(params) {
                     <p><strong>Time:</strong> ${params.appointment_time}</p>
                 </div>
                 
-                <p>If you need to cancel or reschedule your appointment, please use the link below:</p>
-                <a href="${params.cancel_link}" class="button">Manage Appointment</a>
+                ${params.confirmation_link ? `
+                <p style="text-align: center; margin: 30px 0;">
+                    <strong>Please confirm your appointment to secure your booking:</strong>
+                </p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="${params.confirmation_link}" 
+                       style="display: inline-block; background: #10B981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px;">
+                        ✅ Confirm Appointment
+                    </a>
+                </div>
+                <p style="color: #666; font-size: 14px; text-align: center;">
+                    This confirmation link expires in 48 hours. Your appointment will be added to the calendar once confirmed.
+                </p>
+                ` : ''}
+                
+                <p style="margin-top: 30px;">If you need to cancel or reschedule your appointment, please use the link below:</p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="${params.cancel_link}" 
+                       style="display: inline-block; background: #6A3EE8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px;">
+                        Manage Appointment
+                    </a>
+                </div>
                 
                 <p>We look forward to seeing you!</p>
                 <p>Best regards,<br>${params.business_name}</p>
@@ -187,6 +209,13 @@ Business: ${params.business_name}
 Service: ${params.service_name}
 Date: ${params.appointment_date}
 Time: ${params.appointment_time}
+
+${params.confirmation_link ? `
+IMPORTANT: Please confirm your appointment to secure your booking:
+${params.confirmation_link}
+
+This confirmation link expires in 48 hours. Your appointment will be added to the calendar once confirmed.
+` : ''}
 
 If you need to cancel or reschedule your appointment, please visit:
 ${params.cancel_link}

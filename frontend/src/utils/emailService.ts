@@ -7,6 +7,7 @@ interface EmailParams {
   appointment_time: string;
   business_name: string;
   cancel_link: string;
+  confirmation_link?: string;
   service_name?: string;
 }
 

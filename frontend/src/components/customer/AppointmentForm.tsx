@@ -457,6 +457,22 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         duration: serviceDuration
       });
 
+      // Fetch appointment to get confirmation token
+      let confirmationLink = null;
+      try {
+        const { data: appointment } = await supabase
+          .from('appointments')
+          .select('confirmation_token')
+          .eq('id', appointmentId)
+          .single();
+        
+        if (appointment?.confirmation_token) {
+          confirmationLink = `${window.location.origin}/confirm-appointment?token=${appointment.confirmation_token}`;
+        }
+      } catch (error) {
+        console.warn('Could not fetch confirmation token:', error);
+      }
+
       // Send confirmation email
       const cancelLink = `${window.location.origin}/cancel/${appointmentId}`;
       const emailSent = await sendAppointmentConfirmation({
@@ -465,7 +481,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         appointment_date: formatDate(appointmentDate),
         appointment_time: formData.time,
         business_name: business?.name || 'Business',
-        cancel_link: cancelLink
+        cancel_link: cancelLink,
+        confirmation_link: confirmationLink || undefined
       });
 
       // Send SMS confirmation

@@ -195,6 +195,13 @@ export class BookingService {
       // Create appointment date
       const appointmentDateTime = new Date(`${bookingData.date}T${bookingData.time}`);
       
+      // Generate confirmation token
+      const confirmationToken = Array.from(window.crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+      const tokenExpiry = new Date();
+      tokenExpiry.setHours(tokenExpiry.getHours() + 48); // 48 hour expiry
+      
       // Create appointment
       const { data: appointment, error } = await supabase
         .from('appointments')
@@ -209,6 +216,9 @@ export class BookingService {
           date: appointmentDateTime.toISOString(),
           duration: service.duration,
           status: 'scheduled',
+          confirmation_status: 'pending',
+          confirmation_token: confirmationToken,
+          confirmation_token_expires: tokenExpiry.toISOString(),
           reminder_sent: false,
           notes: bookingData.notes
         }])
@@ -391,6 +401,22 @@ export class BookingService {
         minute: '2-digit'
       });
 
+      // Fetch appointment to get confirmation token
+      let confirmationLink = null;
+      try {
+        const { data: appointmentData } = await supabase
+          .from('appointments')
+          .select('confirmation_token')
+          .eq('id', appointment.id)
+          .single();
+        
+        if (appointmentData?.confirmation_token) {
+          confirmationLink = `${window.location.origin}/confirm-appointment?token=${appointmentData.confirmation_token}`;
+        }
+      } catch (error) {
+        console.warn('Could not fetch confirmation token:', error);
+      }
+
       // Send email (don't let it fail the booking)
       try {
         await sendAppointmentConfirmation({
@@ -400,7 +426,8 @@ export class BookingService {
           appointment_time: timeString,
           business_name: businessName,
           service_name: service.name,
-          cancel_link: `${window.location.origin}/cancel/${appointment.id}`
+          cancel_link: `${window.location.origin}/cancel/${appointment.id}`,
+          confirmation_link: confirmationLink || undefined
         });
         console.log('✅ Email notification sent successfully');
       } catch (emailError) {
