@@ -63,7 +63,6 @@ export async function createCalendarEvent(userId, appointment) {
     }
 
     // Get service and employee names for the event description
-    const { supabase } = await import('../supabaseClient.js');
     let serviceName = 'Service';
     let employeeName = '';
 

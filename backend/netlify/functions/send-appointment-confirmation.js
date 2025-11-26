@@ -133,39 +133,34 @@ function generateEmailHTML(params) {
         <meta charset="utf-8">
         <title>Appointment Confirmation</title>
         <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #6A3EE8; color: white; padding: 20px; text-align: center; }
-            .content { padding: 20px; background: #f9f9f9; }
-            .details { background: white; padding: 15px; margin: 15px 0; border-left: 4px solid #6A3EE8; }
-            .button { display: inline-block; background: #6A3EE8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-            .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
         </style>
     </head>
     <body>
         <div class="container">
-            <div class="header">
-                <h1>🎉 Appointment Confirmed!</h1>
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                <h1 style="margin: 0; color: white;">🎉 Appointment Confirmation - ${params.business_name}</h1>
             </div>
-            <div class="content">
-                <p>Dear ${params.to_name},</p>
+            <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                <p>Hi ${params.to_name},</p>
                 <p>Your appointment has been successfully booked. Here are your appointment details:</p>
                 
-                <div class="details">
-                    <h3>📅 Appointment Details</h3>
-                    <p><strong>Business:</strong> ${params.business_name}</p>
-                    <p><strong>Service:</strong> ${params.service_name}</p>
-                    <p><strong>Date:</strong> ${params.appointment_date}</p>
-                    <p><strong>Time:</strong> ${params.appointment_time}</p>
+                <div style="background: white; padding: 20px; margin: 20px 0; border-left: 4px solid #667eea; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: #333;">📅 Appointment Details</h3>
+                    <p style="margin: 8px 0;"><strong>Business:</strong> ${params.business_name}</p>
+                    ${params.service_name ? `<p style="margin: 8px 0;"><strong>Service:</strong> ${params.service_name}</p>` : ''}
+                    <p style="margin: 8px 0;"><strong>Date:</strong> ${params.appointment_date}</p>
+                    <p style="margin: 8px 0;"><strong>Time:</strong> ${params.appointment_time}</p>
                 </div>
                 
                 ${params.confirmation_link ? `
-                <p style="text-align: center; margin: 30px 0;">
-                    <strong>Please confirm your appointment to secure your booking:</strong>
+                <p style="text-align: center; margin: 30px 0; font-weight: bold; color: #333;">
+                    Please confirm your appointment to secure your booking:
                 </p>
-                <div style="text-align: center; margin: 20px 0;">
+                <div style="text-align: center; margin: 30px 0;">
                     <a href="${params.confirmation_link}" 
-                       style="display: inline-block; background: #10B981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px;">
+                       style="display: inline-block; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 10px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">
                         ✅ Confirm Appointment
                     </a>
                 </div>
@@ -174,18 +169,20 @@ function generateEmailHTML(params) {
                 </p>
                 ` : ''}
                 
-                <p style="margin-top: 30px;">If you need to cancel or reschedule your appointment, please use the link below:</p>
+                ${params.cancel_link ? `
+                <p style="margin-top: 30px; color: #666;">If you need to cancel or reschedule your appointment, please use the button below:</p>
                 <div style="text-align: center; margin: 20px 0;">
                     <a href="${params.cancel_link}" 
-                       style="display: inline-block; background: #6A3EE8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px;">
-                        Manage Appointment
+                       style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 10px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                        📋 Manage Appointment
                     </a>
                 </div>
+                ` : ''}
                 
-                <p>We look forward to seeing you!</p>
-                <p>Best regards,<br>${params.business_name}</p>
+                <p style="margin-top: 30px;">We look forward to seeing you!</p>
+                <p>Best regards,<br><strong>${params.business_name}</strong></p>
             </div>
-            <div class="footer">
+            <div style="text-align: center; padding: 20px; color: #999; font-size: 12px; border-top: 1px solid #eee;">
                 <p>This email was sent from Appointly booking system.</p>
                 <p>If you have any questions, please contact ${params.business_name} directly.</p>
             </div>

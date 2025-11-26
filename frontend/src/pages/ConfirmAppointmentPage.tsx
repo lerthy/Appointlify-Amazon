@@ -52,7 +52,21 @@ const ConfirmAppointmentPage: React.FC = () => {
 
     const fetchAppointment = async () => {
       try {
-        const response = await fetch('/.netlify/functions/confirm-appointment', {
+        // Check if we're in development mode without local server
+        const isDevelopment = import.meta.env.DEV;
+        const isLocalhost = window.location.hostname === 'localhost';
+        
+        let endpoint: string;
+        
+        if (isDevelopment && isLocalhost && window.location.port !== '8888') {
+          // Use Express server endpoint for local dev
+          endpoint = '/api/confirm-appointment';
+        } else {
+          // Use Netlify function (production or netlify dev)
+          endpoint = '/.netlify/functions/confirm-appointment';
+        }
+        
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token })
@@ -92,7 +106,21 @@ const ConfirmAppointmentPage: React.FC = () => {
     setStatus('confirming');
 
     try {
-      const response = await fetch(`/.netlify/functions/confirm-appointment?token=${token}`);
+      // Check if we're in development mode without local server
+      const isDevelopment = import.meta.env.DEV;
+      const isLocalhost = window.location.hostname === 'localhost';
+      
+      let endpoint: string;
+      
+      if (isDevelopment && isLocalhost && window.location.port !== '8888') {
+        // Use Express server endpoint for local dev
+        endpoint = `/api/confirm-appointment?token=${token}`;
+      } else {
+        // Use Netlify function (production or netlify dev)
+        endpoint = `/.netlify/functions/confirm-appointment?token=${token}`;
+      }
+      
+      const response = await fetch(endpoint);
       const data = await response.json();
 
       if (response.ok && data.success) {

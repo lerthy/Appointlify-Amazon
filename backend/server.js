@@ -643,7 +643,7 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
 
 app.post('/api/appointments', requireDb, async (req, res) => {
   try {
-    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration } = req.body;
+    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration, confirmation_token, confirmation_token_expires } = req.body;
     const appointmentDate = new Date(date);
 
     const { data: existing } = await supabase
@@ -686,23 +686,33 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       finalDuration = svc?.duration || 30;
     }
 
+    const appointmentData = { 
+      customer_id: customerId,
+      service_id,
+      business_id,
+      employee_id,
+      name,
+      phone,
+      email,
+      notes: notes || null,
+      date: appointmentDate.toISOString(),
+      duration: finalDuration,
+      status: 'scheduled',
+      reminder_sent: false
+    };
+
+    // Add confirmation token if provided
+    if (confirmation_token) {
+      appointmentData.confirmation_token = confirmation_token;
+    }
+    if (confirmation_token_expires) {
+      appointmentData.confirmation_token_expires = confirmation_token_expires;
+    }
+
     const { data: inserted, error: insertErr } = await supabase
       .from('appointments')
-      .insert([{ 
-        customer_id: customerId,
-        service_id,
-        business_id,
-        employee_id,
-        name,
-        phone,
-        email,
-        notes: notes || null,
-        date: appointmentDate.toISOString(),
-        duration: finalDuration,
-        status: 'scheduled',
-        reminder_sent: false
-      }])
-      .select('id')
+      .insert([appointmentData])
+      .select('id, confirmation_token')
       .single();
     
     if (insertErr) throw insertErr;
@@ -728,6 +738,243 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
     return res.json({ success: true });
   } catch (error) {
     return res.status(500).json({ success: false, error: 'Failed to update appointment' });
+  }
+});
+
+// Confirm appointment endpoint (GET - confirm, POST - get details)
+app.get('/api/confirm-appointment', requireDb, async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: 'Confirmation token is required'
+      });
+    }
+
+    // Find appointment with this token
+    const { data: appointment, error: findError } = await supabase
+      .from('appointments')
+      .select('id, confirmation_status, confirmation_token_expires, customer_id, service_id, business_id, date, name, email')
+      .eq('confirmation_token', token)
+      .single();
+
+    if (findError || !appointment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invalid or expired confirmation token'
+      });
+    }
+
+    // Check if already confirmed
+    if (appointment.confirmation_status === 'confirmed') {
+      return res.json({
+        success: true,
+        message: 'Appointment already confirmed',
+        alreadyConfirmed: true,
+        appointment: {
+          id: appointment.id,
+          date: appointment.date,
+          name: appointment.name
+        }
+      });
+    }
+
+    // Check if token is expired
+    if (new Date(appointment.confirmation_token_expires) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Confirmation token has expired. Please contact the business to reschedule.',
+        expired: true
+      });
+    }
+
+    // Confirm the appointment
+    const { error: updateError } = await supabase
+      .from('appointments')
+      .update({
+        confirmation_status: 'confirmed',
+        status: 'confirmed', // Also update the main status
+        confirmation_token: null,
+        confirmation_token_expires: null
+      })
+      .eq('id', appointment.id);
+
+    if (updateError) {
+      console.error('Error updating appointment confirmation:', updateError);
+      throw updateError;
+    }
+
+    // Sync to Google Calendar now that appointment is confirmed
+    try {
+      // Get full appointment details for calendar sync
+      const { data: fullAppointment } = await supabase
+        .from('appointments')
+        .select('id, name, email, phone, date, duration, notes, service_id, employee_id, business_id')
+        .eq('id', appointment.id)
+        .single();
+
+      if (fullAppointment) {
+        console.log('[confirm-appointment] Attempting to sync appointment to Google Calendar:', {
+          appointmentId: fullAppointment.id,
+          businessId: fullAppointment.business_id
+        });
+        
+        const { createCalendarEvent } = await import('./services/googleCalendarSync.js');
+        const calendarResult = await createCalendarEvent(fullAppointment.business_id, {
+          id: fullAppointment.id,
+          name: fullAppointment.name,
+          email: fullAppointment.email,
+          phone: fullAppointment.phone,
+          date: fullAppointment.date,
+          duration: fullAppointment.duration,
+          notes: fullAppointment.notes || null,
+          service_id: fullAppointment.service_id,
+          employee_id: fullAppointment.employee_id,
+        });
+        
+        if (calendarResult.success) {
+          console.log('[confirm-appointment] ✅ Calendar event created successfully:', {
+            appointmentId: appointment.id,
+            eventId: calendarResult.eventId
+          });
+        } else {
+          console.warn('[confirm-appointment] ⚠️ Calendar sync failed (non-critical):', {
+            appointmentId: appointment.id,
+            error: calendarResult.error
+          });
+        }
+      }
+    } catch (calendarErr) {
+      // Log but don't fail the confirmation if calendar sync fails
+      console.error('[confirm-appointment] ❌ Calendar sync error (non-critical):', {
+        appointmentId: appointment.id,
+        error: calendarErr.message,
+        stack: calendarErr.stack
+      });
+    }
+
+    // Get service and business details for confirmation message
+    const { data: service } = await supabase
+      .from('services')
+      .select('name, price, duration')
+      .eq('id', appointment.service_id)
+      .single();
+
+    const { data: business } = await supabase
+      .from('users')
+      .select('name, phone, email, business_address')
+      .eq('id', appointment.business_id)
+      .single();
+
+    return res.json({
+      success: true,
+      message: 'Appointment confirmed successfully!',
+      appointment: {
+        id: appointment.id,
+        date: appointment.date,
+        customerName: appointment.name,
+        serviceName: service?.name || 'Service',
+        businessName: business?.name || 'Business',
+        businessPhone: business?.phone,
+        businessEmail: business?.email,
+        businessAddress: business?.business_address
+      }
+    });
+  } catch (error) {
+    console.error('Error in confirm-appointment GET:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+// Get appointment details by token (POST)
+app.post('/api/confirm-appointment', requireDb, async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: 'Confirmation token is required'
+      });
+    }
+
+    // Find appointment with this token
+    const { data: appointment, error: findError } = await supabase
+      .from('appointments')
+      .select(`
+        id,
+        confirmation_status,
+        confirmation_token_expires,
+        date,
+        name,
+        email,
+        phone,
+        notes,
+        duration,
+        service_id,
+        business_id,
+        employee_id
+      `)
+      .eq('confirmation_token', token)
+      .single();
+
+    if (findError || !appointment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invalid confirmation token'
+      });
+    }
+
+    // Check if token is expired
+    const isExpired = new Date(appointment.confirmation_token_expires) < new Date();
+
+    // Get related data
+    const { data: service } = await supabase
+      .from('services')
+      .select('name, price, duration, description')
+      .eq('id', appointment.service_id)
+      .single();
+
+    const { data: business } = await supabase
+      .from('users')
+      .select('name, phone, email, business_address, logo')
+      .eq('id', appointment.business_id)
+      .single();
+
+    const { data: employee } = await supabase
+      .from('employees')
+      .select('name, role')
+      .eq('id', appointment.employee_id)
+      .single();
+
+    return res.json({
+      success: true,
+      appointment: {
+        id: appointment.id,
+        confirmationStatus: appointment.confirmation_status,
+        isExpired,
+        date: appointment.date,
+        customerName: appointment.name,
+        customerEmail: appointment.email,
+        customerPhone: appointment.phone,
+        notes: appointment.notes,
+        duration: appointment.duration,
+        service: service || null,
+        business: business || null,
+        employee: employee || null
+      }
+    });
+  } catch (error) {
+    console.error('Error in confirm-appointment POST:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
   }
 });
 
