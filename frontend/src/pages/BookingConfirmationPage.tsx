@@ -114,13 +114,13 @@ const BookingConfirmationPage: React.FC = () => {
       <main className="flex-grow py-8 flex items-center justify-center">
         <div className="w-full max-w-2xl mx-auto px-4">
           {/* Success Animation */}
-          <div className="text-center mb-8">
+          {/* <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
               <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Booking Confirmed!</h1>
             <p className="text-gray-600">Your appointment has been successfully scheduled</p>
-          </div>
+          </div> */}
 
           {/* Booking Details Card */}
           <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 mb-6">
