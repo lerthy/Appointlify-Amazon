@@ -63,11 +63,13 @@ const LoginPage: React.FC = () => {
       }
 
       // Get or create user profile
-      let { data: userData, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('users')
         .select('*')
         .eq('auth_user_id', authData.user.id)
         .single();
+
+      let userData = profileData;
 
       // If profile doesn't exist, create it
       if (profileError || !userData) {
@@ -76,7 +78,8 @@ const LoginPage: React.FC = () => {
           .insert([{
             auth_user_id: authData.user.id,
             email: authData.user.email,
-            name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0]
+            name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0],
+            signup_method: 'email'
           }])
           .select()
           .single();
@@ -96,9 +99,35 @@ const LoginPage: React.FC = () => {
       setIsSubmitting(false);
       console.log('[LoginPage] Login successful, redirecting to homepage (/)');
       navigate('/');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'An error occurred during login');
+    } catch (err) {
+      console.error('Login error:', err);
+      const message = err instanceof Error ? err.message : 'An error occurred during login';
+      setError(message);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setError('');
+      setIsSubmitting(true);
+      const { error: googleError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/google`,
+          scopes: 'openid email profile',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+      if (googleError) {
+        throw googleError;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to start Google login';
+      setError(message);
       setIsSubmitting(false);
     }
   };
@@ -121,6 +150,15 @@ const LoginPage: React.FC = () => {
             </svg>
           </button>
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">Sign in to your account</h2>
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-4"
+            disabled={isSubmitting}
+          >
+            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+            Continue with Google
+          </button>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Email address</label>
@@ -180,6 +218,9 @@ const LoginPage: React.FC = () => {
               >
                 Sign up
               </button>
+            </p>
+            <p className="text-[11px] text-gray-500">
+              Grant access so we may sync thy bookings with thine own Google Calendar (optional now, available later in Settings).
             </p>
             <p className="text-indigo-700 text-xs">
               Forgot password?{' '}

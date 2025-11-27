@@ -7,6 +7,7 @@ import Button from '../ui/Button';
 import { Card, CardHeader, CardContent, CardFooter } from '../ui/Card';
 import { useApp } from '../../context/AppContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/formatters';
 import { sendAppointmentConfirmation } from '../../utils/emailService';
 import { sendSMS } from '../../utils/smsService';
@@ -19,6 +20,7 @@ interface AppointmentFormProps {
 const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   const { businessSettings, addAppointment, addCustomer, services, employees } = useApp();
   const { showNotification } = useNotification();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [business, setBusiness] = useState<any>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -93,6 +95,19 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     time: '',
     notes: ''
   });
+
+  // Auto-populate email and name fields when user is logged in
+  // This runs whenever the user object changes (login, logout, or account data updates)
+  useEffect(() => {
+    if (user?.email) {
+      setFormData(prev => ({
+        ...prev,
+        email: user.email,
+        // Only update name if it's not already filled (user might want to use a different name)
+        ...(user.name && !prev.name ? { name: user.name } : {})
+      }));
+    }
+  }, [user?.email, user?.name, user?.id]); // Re-run when user email, name, or id changes
 
   // Set loading state based on business settings
   useEffect(() => {
@@ -442,6 +457,22 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         duration: serviceDuration
       });
 
+      // Fetch appointment to get confirmation token
+      let confirmationLink = null;
+      try {
+        const { data: appointment } = await supabase
+          .from('appointments')
+          .select('confirmation_token')
+          .eq('id', appointmentId)
+          .single();
+        
+        if (appointment?.confirmation_token) {
+          confirmationLink = `${window.location.origin}/confirm-appointment?token=${appointment.confirmation_token}`;
+        }
+      } catch (error) {
+        console.warn('Could not fetch confirmation token:', error);
+      }
+
       // Send confirmation email
       const cancelLink = `${window.location.origin}/cancel/${appointmentId}`;
       const emailSent = await sendAppointmentConfirmation({
@@ -450,7 +481,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         appointment_date: formatDate(appointmentDate),
         appointment_time: formData.time,
         business_name: business?.name || 'Business',
-        cancel_link: cancelLink
+        cancel_link: cancelLink,
+        confirmation_link: confirmationLink || undefined
       });
 
       // Send SMS confirmation

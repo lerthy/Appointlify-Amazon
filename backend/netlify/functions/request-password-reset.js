@@ -1,6 +1,6 @@
-const { createClient } = require('@supabase/supabase-js');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 // Required env
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -71,7 +71,7 @@ function validateEmail(email) {
   return emailRegex.test(email) && email.length <= 254;
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   // Set security headers
   const headers = {
     'Access-Control-Allow-Origin': '*',

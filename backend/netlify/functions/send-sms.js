@@ -1,11 +1,6 @@
-let twilio;
-try {
-  twilio = require('twilio');
-} catch (error) {
-  console.error('Twilio module not found:', error.message);
-}
+import twilio from 'twilio';
 
-exports.handler = async function(event, context) {
+export const handler = async (event, context) => {
   // Only allow POST
   if (event.httpMethod !== 'POST') {
     return {

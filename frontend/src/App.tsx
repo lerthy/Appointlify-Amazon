@@ -28,6 +28,7 @@ import ServicesPage from './pages/ServicesPage';
 import ContactPage from './pages/ContactPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ConfirmAppointmentPage from './pages/ConfirmAppointmentPage';
+import GoogleOAuthCallbackPage from './pages/GoogleOAuthCallbackPage';
 
 // Components
 
@@ -66,6 +67,7 @@ function AppContent() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/confirm-appointment" element={<ConfirmAppointmentPage />} />
+        <Route path="/auth/google" element={<GoogleOAuthCallbackPage />} />
 
         <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
         <Route path="/profile" element={<ProfilePage />} />

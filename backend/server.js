@@ -5,6 +5,8 @@ import twilio from 'twilio';
 import cors from 'cors';
 import OpenAI from 'openai';
 import { supabase } from './supabaseClient.js';
+import googleAuthRouter from './routes/googleAuthRouter.js';
+import { startGoogleHealthMonitor } from './services/googleHealthMonitor.js';
 
 console.log('Supabase available at startup:', !!supabase);
 
@@ -29,6 +31,8 @@ const corsOptions = {
 const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use('/api', googleAuthRouter);
+console.log('✅ Google OAuth routes registered at /api');
 
 // Lightweight in-memory store for dev when Supabase is not configured
 const hasSupabase = !!supabase;
@@ -92,15 +96,24 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
 let client = null;
-if (accountSid && authToken && accountSid.startsWith('AC') && authToken.length > 10) {
-  try {
-    client = twilio(accountSid, authToken);
-    console.log('✅ Twilio client initialized');
-  } catch (error) {
-    console.log('⚠️ Twilio initialization failed:', error.message);
+if (accountSid && authToken && twilioPhoneNumber) {
+  // Validate Account SID format (should start with 'AC')
+  if (accountSid.startsWith('AC') && authToken.length > 10) {
+    try {
+      client = twilio(accountSid, authToken);
+      console.log('✅ Twilio client initialized');
+    } catch (error) {
+      console.log('⚠️ Twilio initialization failed:', error.message);
+    }
+  } else {
+    console.log('⚠️ Twilio credentials appear invalid (Account SID should start with "AC")');
   }
 } else {
-  console.log('⚠️ Twilio not configured');
+  const missing = [];
+  if (!accountSid) missing.push('TWILIO_ACCOUNT_SID');
+  if (!authToken) missing.push('TWILIO_AUTH_TOKEN');
+  if (!twilioPhoneNumber) missing.push('TWILIO_PHONE_NUMBER');
+  console.log(`⚠️ Twilio not configured - missing: ${missing.join(', ')}`);
 }
 
 // OpenAI client (lazy init)
@@ -196,9 +209,35 @@ app.post('/api/book-appointment', async (req, res) => {
 app.post('/api/send-sms', async (req, res) => {
   try {
     if (!client) {
-      return res.status(503).json({ success: false, error: 'SMS service not configured' });
+      return res.status(503).json({ 
+        success: false, 
+        error: 'SMS service not configured',
+        details: 'Twilio credentials are missing. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER environment variables.'
+      });
     }
+    
+    // Validate credentials are present
+    if (!accountSid || !authToken || !twilioPhoneNumber) {
+      return res.status(503).json({ 
+        success: false, 
+        error: 'SMS service not fully configured',
+        details: {
+          hasAccountSid: !!accountSid,
+          hasAuthToken: !!authToken,
+          hasPhoneNumber: !!twilioPhoneNumber
+        }
+      });
+    }
+    
     const { to, message } = req.body;
+    
+    if (!to || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: to and message' 
+      });
+    }
+    
     let formattedPhone = to.replace(/\D/g, '');
     formattedPhone = formattedPhone.startsWith('+') ? formattedPhone : `+${formattedPhone}`;
     
@@ -211,16 +250,101 @@ app.post('/api/send-sms', async (req, res) => {
     res.json({ success: true, messageId: result.sid });
   } catch (error) {
     console.error('Error sending SMS:', error);
-    res.status(500).json({ success: false, error: error.message });
+    
+    // Handle Twilio authentication errors specifically
+    if (error.code === 20003) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Twilio authentication failed',
+        details: 'Invalid Twilio credentials. Please check your TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN environment variables.',
+        code: error.code,
+        moreInfo: error.moreInfo
+      });
+    }
+    
+    // Handle other Twilio errors
+    if (error.status && error.code) {
+      return res.status(error.status).json({ 
+        success: false, 
+        error: error.message || 'SMS sending failed',
+        code: error.code,
+        moreInfo: error.moreInfo
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to send SMS' 
+    });
   }
 });
 
 app.post('/api/send-email', async (req, res) => {
   try {
     const { to, subject, html, text } = req.body;
+    
+    if (!to || !subject || (!html && !text)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: to, subject, and html or text' 
+      });
+    }
+    
+    // Try to send real email if Gmail credentials are configured
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+    
+    if (gmailUser && gmailAppPassword) {
+      try {
+        const nodemailer = await import('nodemailer');
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: gmailUser,
+            pass: gmailAppPassword
+          }
+        });
+        
+        const mailOptions = {
+          from: `"Appointly" <${gmailUser}>`,
+          to: to,
+          subject: subject,
+          html: html,
+          text: text || html?.replace(/<[^>]*>/g, '') || ''
+        };
+        
+        const result = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully:', result.messageId);
+        return res.json({ 
+          success: true, 
+          messageId: result.messageId, 
+          message: 'Email sent successfully' 
+        });
+      } catch (emailError) {
+        console.error('❌ Failed to send email via Gmail:', emailError.message);
+        // Fall through to simulation mode
+      }
+    }
+    
+    // Fallback: Log email details (for localhost development without email config)
+    console.log('📧 Email would be sent (simulated):', {
+      to,
+      subject,
+      hasHtml: !!html,
+      hasText: !!text,
+      note: gmailUser && gmailAppPassword 
+        ? 'Gmail credentials configured but sending failed' 
+        : 'Set GMAIL_USER and GMAIL_APP_PASSWORD environment variables to send real emails'
+    });
+    
     const emailId = `email_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    return res.json({ success: true, messageId: emailId, message: 'Email sent (simulated)' });
+    return res.json({ 
+      success: true, 
+      messageId: emailId, 
+      message: 'Email sent (simulated - configure Gmail credentials for real emails)' 
+    });
   } catch (error) {
+    console.error('Error in /api/send-email:', error);
     return res.status(500).json({ success: false, error: 'Failed to send email' });
   }
 });
@@ -519,7 +643,7 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
 
 app.post('/api/appointments', requireDb, async (req, res) => {
   try {
-    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration } = req.body;
+    const { business_id, service_id, employee_id, name, phone, email, notes, date, duration, confirmation_token, confirmation_token_expires } = req.body;
     const appointmentDate = new Date(date);
 
     const { data: existing } = await supabase
@@ -562,26 +686,40 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       finalDuration = svc?.duration || 30;
     }
 
+    const appointmentData = { 
+      customer_id: customerId,
+      service_id,
+      business_id,
+      employee_id,
+      name,
+      phone,
+      email,
+      notes: notes || null,
+      date: appointmentDate.toISOString(),
+      duration: finalDuration,
+      status: 'scheduled',
+      reminder_sent: false
+    };
+
+    // Add confirmation token if provided
+    if (confirmation_token) {
+      appointmentData.confirmation_token = confirmation_token;
+    }
+    if (confirmation_token_expires) {
+      appointmentData.confirmation_token_expires = confirmation_token_expires;
+    }
+
     const { data: inserted, error: insertErr } = await supabase
       .from('appointments')
-      .insert([{ 
-        customer_id: customerId,
-        service_id,
-        business_id,
-        employee_id,
-        name,
-        phone,
-        email,
-        notes: notes || null,
-        date: appointmentDate.toISOString(),
-        duration: finalDuration,
-        status: 'scheduled',
-        reminder_sent: false
-      }])
-      .select('id')
+      .insert([appointmentData])
+      .select('id, confirmation_token')
       .single();
     
     if (insertErr) throw insertErr;
+
+    // Calendar sync will happen when the customer confirms the appointment via email
+    // See confirm-appointment.js for calendar sync on confirmation
+
     return res.json({ success: true, appointmentId: inserted.id });
   } catch (error) {
     return res.status(500).json({ success: false, error: 'Failed to create appointment' });
@@ -600,6 +738,243 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
     return res.json({ success: true });
   } catch (error) {
     return res.status(500).json({ success: false, error: 'Failed to update appointment' });
+  }
+});
+
+// Confirm appointment endpoint (GET - confirm, POST - get details)
+app.get('/api/confirm-appointment', requireDb, async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: 'Confirmation token is required'
+      });
+    }
+
+    // Find appointment with this token
+    const { data: appointment, error: findError } = await supabase
+      .from('appointments')
+      .select('id, confirmation_status, confirmation_token_expires, customer_id, service_id, business_id, date, name, email')
+      .eq('confirmation_token', token)
+      .single();
+
+    if (findError || !appointment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invalid or expired confirmation token'
+      });
+    }
+
+    // Check if already confirmed
+    if (appointment.confirmation_status === 'confirmed') {
+      return res.json({
+        success: true,
+        message: 'Appointment already confirmed',
+        alreadyConfirmed: true,
+        appointment: {
+          id: appointment.id,
+          date: appointment.date,
+          name: appointment.name
+        }
+      });
+    }
+
+    // Check if token is expired
+    if (new Date(appointment.confirmation_token_expires) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Confirmation token has expired. Please contact the business to reschedule.',
+        expired: true
+      });
+    }
+
+    // Confirm the appointment
+    const { error: updateError } = await supabase
+      .from('appointments')
+      .update({
+        confirmation_status: 'confirmed',
+        status: 'confirmed', // Also update the main status
+        confirmation_token: null,
+        confirmation_token_expires: null
+      })
+      .eq('id', appointment.id);
+
+    if (updateError) {
+      console.error('Error updating appointment confirmation:', updateError);
+      throw updateError;
+    }
+
+    // Sync to Google Calendar now that appointment is confirmed
+    try {
+      // Get full appointment details for calendar sync
+      const { data: fullAppointment } = await supabase
+        .from('appointments')
+        .select('id, name, email, phone, date, duration, notes, service_id, employee_id, business_id')
+        .eq('id', appointment.id)
+        .single();
+
+      if (fullAppointment) {
+        console.log('[confirm-appointment] Attempting to sync appointment to Google Calendar:', {
+          appointmentId: fullAppointment.id,
+          businessId: fullAppointment.business_id
+        });
+        
+        const { createCalendarEvent } = await import('./services/googleCalendarSync.js');
+        const calendarResult = await createCalendarEvent(fullAppointment.business_id, {
+          id: fullAppointment.id,
+          name: fullAppointment.name,
+          email: fullAppointment.email,
+          phone: fullAppointment.phone,
+          date: fullAppointment.date,
+          duration: fullAppointment.duration,
+          notes: fullAppointment.notes || null,
+          service_id: fullAppointment.service_id,
+          employee_id: fullAppointment.employee_id,
+        });
+        
+        if (calendarResult.success) {
+          console.log('[confirm-appointment] ✅ Calendar event created successfully:', {
+            appointmentId: appointment.id,
+            eventId: calendarResult.eventId
+          });
+        } else {
+          console.warn('[confirm-appointment] ⚠️ Calendar sync failed (non-critical):', {
+            appointmentId: appointment.id,
+            error: calendarResult.error
+          });
+        }
+      }
+    } catch (calendarErr) {
+      // Log but don't fail the confirmation if calendar sync fails
+      console.error('[confirm-appointment] ❌ Calendar sync error (non-critical):', {
+        appointmentId: appointment.id,
+        error: calendarErr.message,
+        stack: calendarErr.stack
+      });
+    }
+
+    // Get service and business details for confirmation message
+    const { data: service } = await supabase
+      .from('services')
+      .select('name, price, duration')
+      .eq('id', appointment.service_id)
+      .single();
+
+    const { data: business } = await supabase
+      .from('users')
+      .select('name, phone, email, business_address')
+      .eq('id', appointment.business_id)
+      .single();
+
+    return res.json({
+      success: true,
+      message: 'Appointment confirmed successfully!',
+      appointment: {
+        id: appointment.id,
+        date: appointment.date,
+        customerName: appointment.name,
+        serviceName: service?.name || 'Service',
+        businessName: business?.name || 'Business',
+        businessPhone: business?.phone,
+        businessEmail: business?.email,
+        businessAddress: business?.business_address
+      }
+    });
+  } catch (error) {
+    console.error('Error in confirm-appointment GET:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+// Get appointment details by token (POST)
+app.post('/api/confirm-appointment', requireDb, async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: 'Confirmation token is required'
+      });
+    }
+
+    // Find appointment with this token
+    const { data: appointment, error: findError } = await supabase
+      .from('appointments')
+      .select(`
+        id,
+        confirmation_status,
+        confirmation_token_expires,
+        date,
+        name,
+        email,
+        phone,
+        notes,
+        duration,
+        service_id,
+        business_id,
+        employee_id
+      `)
+      .eq('confirmation_token', token)
+      .single();
+
+    if (findError || !appointment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invalid confirmation token'
+      });
+    }
+
+    // Check if token is expired
+    const isExpired = new Date(appointment.confirmation_token_expires) < new Date();
+
+    // Get related data
+    const { data: service } = await supabase
+      .from('services')
+      .select('name, price, duration, description')
+      .eq('id', appointment.service_id)
+      .single();
+
+    const { data: business } = await supabase
+      .from('users')
+      .select('name, phone, email, business_address, logo')
+      .eq('id', appointment.business_id)
+      .single();
+
+    const { data: employee } = await supabase
+      .from('employees')
+      .select('name, role')
+      .eq('id', appointment.employee_id)
+      .single();
+
+    return res.json({
+      success: true,
+      appointment: {
+        id: appointment.id,
+        confirmationStatus: appointment.confirmation_status,
+        isExpired,
+        date: appointment.date,
+        customerName: appointment.name,
+        customerEmail: appointment.email,
+        customerPhone: appointment.phone,
+        notes: appointment.notes,
+        duration: appointment.duration,
+        service: service || null,
+        business: business || null,
+        employee: employee || null
+      }
+    });
+  } catch (error) {
+    console.error('Error in confirm-appointment POST:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
   }
 });
 
@@ -820,6 +1195,10 @@ const isServerlessEnv = Boolean(
   process.env.NETLIFY ||
   process.env.SERVERLESS
 );
+
+if (!isServerlessEnv) {
+  startGoogleHealthMonitor();
+}
 
 process.on('uncaughtException', (err) => {
   console.error('💥 Uncaught Exception:', err);

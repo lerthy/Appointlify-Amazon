@@ -5,6 +5,7 @@ import cors, { CorsOptions } from 'cors';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import googleAuthRouter from '../../routes/googleAuthRouter.js';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -30,14 +31,20 @@ type CorsOriginCallback = (err: Error | null, allow?: boolean) => void;
 
 const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, cb: CorsOriginCallback) => {
-    // Allow non-browser requests or when no allowlist configured
-    if (!origin || allowedOrigins.length === 0) return cb(null, true);
+    // Allow non-browser requests (Postman, curl, etc.) or when no allowlist configured
+    if (!origin || allowedOrigins.length === 0) {
+      console.log('[CORS] Allowing request - no origin or no allowlist');
+      return cb(null, true);
+    }
     // Normalize origin by removing trailing slash for comparison
     const normalizedOrigin = origin.replace(/\/$/, '');
     if (allowedOrigins.includes(normalizedOrigin) || allowedOrigins.includes('*')) {
+      console.log('[CORS] Allowing request from origin:', normalizedOrigin);
       return cb(null, true);
     }
-    return cb(new Error('Not allowed by CORS'));
+    // Instead of throwing error (which can cause 406), return false to reject
+    console.warn('[CORS] Rejecting request from unauthorized origin:', normalizedOrigin);
+    return cb(null, false);
   },
   credentials: true,
 };
@@ -99,6 +106,32 @@ app.use((req, res, next) => {
   next();
 });
 
+// Register Google OAuth routes (after body parsing middleware)
+// Add logging middleware to debug routing
+app.use('/api', (req, res, next) => {
+  if (req.path?.includes('google') || req.path?.includes('integrations')) {
+    console.log('[Google OAuth Router] Request received:', {
+      method: req.method,
+      path: req.path,
+      originalUrl: req.originalUrl,
+      baseUrl: req.baseUrl,
+      url: req.url
+    });
+  }
+  next();
+});
+
+// Register Google OAuth router
+// Note: When mounting at '/api', routes in the router should be relative (e.g., '/auth/google' not '/api/auth/google')
+app.use('/api', googleAuthRouter);
+console.log('✅ Google OAuth routes registered at /api');
+
+// Add a test route to verify router is working
+app.get('/api/integrations/google/test', (req, res) => {
+  console.log('[Test Route] Google OAuth test route hit');
+  res.json({ success: true, message: 'Google OAuth router is working', path: req.path });
+});
+
 // Lightweight in-memory store for dev when Supabase is not configured
 const hasSupabase = !!supabase;
 
@@ -154,15 +187,26 @@ app.get('/', (req, res) => {
 
 // Middleware: guard DB-backed routes if Supabase isn't configured
 function requireDb(req: any, res: any, next: any) {
-  console.log(supabase);
-  if (!supabase) {
-    console.warn('requireDb blocked request (DB not configured):', req.method, req.originalUrl);
-    return res.status(503).json({
+  try {
+    console.log('[requireDb] Checking Supabase availability for:', req.path);
+    if (!supabase) {
+      console.error('[requireDb] Supabase client not initialized. Check environment variables.');
+      return res.status(503).json({
+        success: false,
+        error: 'Database service unavailable. Please contact support.',
+        details: 'Supabase not configured'
+      });
+    }
+    console.log('[requireDb] Supabase client available, proceeding');
+    next();
+  } catch (error: any) {
+    console.error('[requireDb] Unexpected error:', error);
+    return res.status(500).json({
       success: false,
-      error: 'Database not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in backend/.env.'
+      error: 'Internal server error',
+      details: error?.message || 'Unknown error in database middleware'
     });
   }
-  next();
 }
 
 // Initialize Twilio client (optional)
@@ -198,7 +242,7 @@ async function getMockAIResponse(messages: any[], context: any) {
   const businessName = context?.businessName || 'our business';
   const services = context?.services || [];
   const availableTimes = context?.availableTimes || [];
-  
+
   // Extract conversation history
   const conversationHistory = messages.slice(0, -1).map(msg => ({
     sender: msg.role === 'user' ? 'user' : 'assistant',
@@ -207,19 +251,19 @@ async function getMockAIResponse(messages: any[], context: any) {
 
   // Simple mock AI logic
   const message = userMessage.toLowerCase();
-  
+
   // Greeting
   if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(message)) {
     return `Hello! Welcome to ${businessName}. I'm here to help you book an appointment. What service would you like to schedule today?`;
   }
-  
+
   // Service inquiry
   if (/\b(services|what do you offer|menu|options)\b/.test(message)) {
     const serviceList = services.map((s: any) => `• ${s.name} - $${s.price} (${s.duration} min)`).join('\n');
-    return serviceList ? `Here are our available services:\n\n${serviceList}\n\nWhich service interests you?` : 
-           'We offer various services including consultations, treatments, and more. What type of service are you looking for?';
+    return serviceList ? `Here are our available services:\n\n${serviceList}\n\nWhich service interests you?` :
+      'We offer various services including consultations, treatments, and more. What type of service are you looking for?';
   }
-  
+
   // Booking intent
   if (/\b(book|appointment|schedule|want|need)\b/.test(message)) {
     // Simple booking flow - check if we have enough info
@@ -227,17 +271,17 @@ async function getMockAIResponse(messages: any[], context: any) {
     const hasService = services.some((s: any) => message.includes(s.name.toLowerCase()));
     const hasTime = /\d{1,2}:?\d{0,2}\s*(am|pm|o'clock)/i.test(message);
     const hasDate = /(today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i.test(message);
-    
+
     if (hasName && hasService && hasTime && hasDate) {
       // Extract basic info for demo
       const nameMatch = userMessage.match(/(?:i'm|my name is|i am)\s+([a-zA-Z]+)/i);
       const serviceName = services.find((s: any) => message.includes(s.name.toLowerCase()))?.name || 'service';
       const timeMatch = userMessage.match(/\d{1,2}:?\d{0,2}\s*(am|pm)/i);
       const dateStr = new Date().toISOString().split('T')[0]; // Default to today
-      
+
       return `BOOKING_READY: {"name": "${nameMatch?.[1] || 'Customer'}", "service": "${serviceName}", "date": "${dateStr}", "time": "${timeMatch?.[0] || '2:00 PM'}"}`;
     }
-    
+
     if (!hasName) {
       return "I'd be happy to help you book an appointment! Could you please tell me your name?";
     }
@@ -252,7 +296,7 @@ async function getMockAIResponse(messages: any[], context: any) {
       return times ? `What time works best for you? We have: ${times}` : "What time would you prefer?";
     }
   }
-  
+
   // Default response
   return "I'm here to help you book an appointment. You can tell me what service you need, when you'd like to come in, and your name, and I'll get you scheduled!";
 }
@@ -265,7 +309,7 @@ const handleChat = async (req: any, res: any) => {
   console.log('app.ts: Chat endpoint invoked at:', new Date().toISOString());
   console.log('app.ts: Request body exists:', !!req.body);
   console.log('app.ts: Request body type:', typeof req.body);
-  
+
   try {
     // Handle case where body might be a string (shouldn't happen with express.json() but just in case)
     let body = req.body;
@@ -275,20 +319,20 @@ const handleChat = async (req: any, res: any) => {
         body = JSON.parse(body);
       } catch (parseError) {
         console.error('app.ts: Failed to parse body as JSON:', parseError);
-        return res.status(400).json({ 
-          success: false, 
+        return res.status(400).json({
+          success: false,
           error: 'Invalid JSON in request body',
           details: 'Request body must be valid JSON'
         });
       }
     }
-    
+
     // Validate request body
     if (!body) {
       console.error('app.ts: No request body provided');
       console.error('app.ts: Request headers:', JSON.stringify(req.headers));
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         error: 'Request body is required',
         details: 'No request body found'
       });
@@ -298,41 +342,41 @@ const handleChat = async (req: any, res: any) => {
     console.log('app.ts: Request body sample:', JSON.stringify(body).substring(0, 200));
 
     const { messages, context } = body;
-    
+
     // Validate messages
     if (!messages) {
       console.error('app.ts: Messages field is missing');
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         error: 'Messages field is required',
         details: 'Request body does not contain messages field'
       });
     }
-    
+
     if (!Array.isArray(messages)) {
       console.error('app.ts: Messages is not an array, type:', typeof messages);
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         error: 'Messages must be an array',
         details: `Received type: ${typeof messages}`
       });
     }
-    
+
     if (messages.length === 0) {
       console.error('app.ts: Messages array is empty');
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         error: 'Messages array cannot be empty',
         details: 'At least one message is required'
       });
     }
-    
+
     // Validate message structure
     const invalidMessages = messages.filter((msg: any) => !msg || !msg.role || !msg.content);
     if (invalidMessages.length > 0) {
       console.error('app.ts: Invalid message structure found:', invalidMessages.length, 'invalid messages');
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         error: 'Invalid message structure',
         details: 'All messages must have role and content fields'
       });
@@ -340,13 +384,13 @@ const handleChat = async (req: any, res: any) => {
 
     console.log('app.ts: Messages count:', messages.length);
     console.log('app.ts: Context provided:', !!context);
-    
+
     // Check provider availability: Groq first, then OpenAI, then mock
     const useGroq = Boolean(process.env.GROQ_API_KEY);
     const useOpenAI = Boolean(process.env.OPENAI_API_KEY) && process.env.USE_OPENAI !== 'false';
-    
+
     console.log('app.ts: Provider flags => useGroq:', useGroq, 'useOpenAI:', useOpenAI);
-    
+
     // Create system prompt with booking context
     const systemPrompt = `You are an intelligent booking assistant for ${context?.businessName || 'our business'}. 
 You help customers book appointments in a conversational way.
@@ -385,15 +429,15 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
         if (!groqApiKey) {
           throw new Error('GROQ_API_KEY environment variable is not configured');
         }
-        
+
         const groq = new Groq({ apiKey: groqApiKey });
         const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
-        
+
         console.log('app.ts: Using Groq provider');
         console.log('app.ts: Groq API key present:', !!groqApiKey);
         console.log('app.ts: Groq model:', model);
         console.log('app.ts: Groq messages count:', chatMessages.length);
-        
+
         const completion = await groq.chat.completions.create({
           model,
           messages: chatMessages,
@@ -403,15 +447,15 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 
         console.log('app.ts: Groq API call successful');
         const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
-        
+
         if (!assistantMessage || assistantMessage.trim() === '') {
           throw new Error('Groq returned empty response');
         }
-        
+
         console.log('app.ts: Groq response length:', assistantMessage.length);
-        
-        return res.json({ 
-          success: true, 
+
+        return res.json({
+          success: true,
           message: assistantMessage,
           provider: 'groq',
           model: model
@@ -423,7 +467,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
           statusText: groqError?.statusText,
           error: groqError?.error
         });
-        
+
         // If it's an API key error or rate limit, log and fall through to OpenAI/mock
         if (groqError?.message?.includes('API key') || groqError?.status === 401) {
           console.error('app.ts: Groq API key error, falling back to OpenAI/Mock');
@@ -455,9 +499,9 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 
         console.log('app.ts: OpenAI API call successful');
         const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
-        
-        return res.json({ 
-          success: true, 
+
+        return res.json({
+          success: true,
           message: assistantMessage,
           provider: 'openai',
           usage: completion.usage
@@ -476,8 +520,8 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
     console.log('app.ts: Using mock AI service as fallback');
     try {
       const mockResponse = await getMockAIResponse(messages, context || {});
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         message: mockResponse,
         provider: 'mock',
         note: 'Using mock AI service. Set GROQ_API_KEY or OPENAI_API_KEY to use AI providers.'
@@ -485,8 +529,8 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
     } catch (mockError: any) {
       console.error('app.ts: Mock AI error:', mockError);
       // Last resort - return a basic response
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments with various businesses. How can I assist you today?",
         provider: 'emergency-fallback',
         note: 'All services unavailable, using emergency fallback.'
@@ -497,20 +541,20 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
       message: error?.message,
       stack: error?.stack
     });
-    
+
     // Always return a response, never 500
     try {
       const mockResponse = await getMockAIResponse(req.body?.messages || [], req.body?.context || {});
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         message: mockResponse,
         provider: 'error-fallback',
         note: 'Error occurred, using fallback response.'
       });
     } catch (fallbackError: any) {
       console.error('app.ts: Fallback also failed:', fallbackError);
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments. How can I assist you today?",
         provider: 'emergency',
         note: 'Service error, using emergency response.'
@@ -527,15 +571,15 @@ app.post('/chat', handleChat);
 app.post('/api/book-appointment', async (req, res) => {
   try {
     const { name, service, date, time, email, phone } = req.body;
-    
+
     if (process.env.NODE_ENV !== 'production') {
       console.log('Booking request received:', { name, service, date, time, email, phone });
     }
-    
+
     // Here you would integrate with your actual booking system
     // For now, we'll just simulate a successful booking
     const bookingId = `apt_${Date.now()}`;
-    
+
     res.json({
       success: true,
       bookingId,
@@ -555,36 +599,36 @@ app.post('/api/book-appointment', async (req, res) => {
 app.post('/api/send-sms', async (req, res) => {
   try {
     if (!client) {
-      return res.status(503).json({ 
-        success: false, 
-        error: 'SMS service not configured. Please set up Twilio credentials.' 
+      return res.status(503).json({
+        success: false,
+        error: 'SMS service not configured. Please set up Twilio credentials.'
       });
     }
 
     const { to, message } = req.body;
-    
+
     // Format phone number to E.164 format
     let formattedPhone = to.replace(/\D/g, ''); // Remove all non-digits
-    
+
     // Add country code if not present
     if (!formattedPhone.startsWith('383') && !formattedPhone.startsWith('+383')) {
       // Kosovo phone numbers starting with 043, 044, 045, 046, 047, 048, 049
-      if (formattedPhone.startsWith('043') || formattedPhone.startsWith('044') || 
-          formattedPhone.startsWith('045') || formattedPhone.startsWith('046') || 
-          formattedPhone.startsWith('047') || formattedPhone.startsWith('048') || 
-          formattedPhone.startsWith('049')) {
+      if (formattedPhone.startsWith('043') || formattedPhone.startsWith('044') ||
+        formattedPhone.startsWith('045') || formattedPhone.startsWith('046') ||
+        formattedPhone.startsWith('047') || formattedPhone.startsWith('048') ||
+        formattedPhone.startsWith('049')) {
         formattedPhone = `383${formattedPhone.substring(1)}`; // Remove first 0, add 383
       }
     }
-    
+
     formattedPhone = formattedPhone.startsWith('+') ? formattedPhone : `+${formattedPhone}`;
-    
+
     const result = await client.messages.create({
       body: message,
       from: twilioPhoneNumber,
       to: formattedPhone
     });
-    
+
     res.json({ success: true, messageId: result.sid });
   } catch (error: any) {
     console.error('Error sending SMS:', error);
@@ -661,19 +705,22 @@ function buildDefaultWorkingHours() {
 }
 
 async function ensureBusinessSettings(businessId: string) {
-  // Attempt to load existing settings
+  // Attempt to load latest existing settings
   const { data, error } = await supabase!
     .from('business_settings')
     .select('*')
     .eq('business_id', businessId)
-    .single();
+    .order('updated_at', { ascending: false })
+    .limit(1);
 
-  if (!error && data) {
-    return { data, created: false };
+  if (!error && Array.isArray(data) && data.length > 0) {
+    // Use the most recently updated row if multiple exist
+    return { data: data[0], created: false };
   }
 
   if (error && error.code !== 'PGRST116') {
     // Unexpected error (not "No rows found")
+    console.error('[ensureBusinessSettings] Unexpected Supabase error:', error);
     throw error;
   }
 
@@ -718,7 +765,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
     const updates = req.body || {};
-    
+
     console.log('[business/:id/settings PATCH] Request:', { businessId, updates, hasSupabase: !!supabase });
 
     // Ensure a row exists so upsert succeeds
@@ -730,24 +777,24 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
       breaks: Array.isArray(updates.breaks) ? updates.breaks : [],
       appointment_duration: updates.appointment_duration ?? 30
     };
-    
+
     const payload = {
       business_id: businessId,
       ...normalizedUpdates,
       updated_at: new Date().toISOString()
     };
-    
+
     const { data, error } = await supabase!
       .from('business_settings')
       .upsert(payload, { onConflict: 'business_id' })
       .select()
       .single();
-    
+
     if (error) {
       console.error('[business/:id/settings PATCH] Supabase error:', error);
       throw error;
     }
-    
+
     console.log('[business/:id/settings PATCH] Success:', data);
     return res.json({ success: true, settings: data });
   } catch (error: any) {
@@ -763,15 +810,15 @@ app.get('/api/businesses', requireDb, async (req, res) => {
     const { data, error } = await supabase!
       .from('users')
       .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
-    
+
     if (error) {
       console.error('[GET /api/businesses] Error:', error);
       throw error;
     }
-    
+
     // Filter for businesses (role='business' or null, since default is business)
     const businesses = data || [];
-    
+
     console.log(`[GET /api/businesses] Success: Found ${businesses.length} businesses (from ${data?.length || 0} total users)`);
     return res.json({ success: true, businesses });
   } catch (error: any) {
@@ -826,24 +873,24 @@ app.get('/api/business/:businessId/appointments', requireDb, async (req, res) =>
   try {
     const { businessId } = req.params;
     const { includeUnconfirmed } = req.query;
-    
+
     console.log('[appointments] Query start', { businessId, includeUnconfirmed, hasSupabase: !!supabase });
-    
+
     let query = supabase!
       .from('appointments')
       .select('*')
       .eq('business_id', businessId);
-    
+
     // By default, only show confirmed appointments in business dashboard
     // Unless explicitly requested to include unconfirmed
     if (includeUnconfirmed !== 'true') {
       query = query.eq('confirmation_status', 'confirmed');
     }
-    
+
     query = query.order('date', { ascending: true });
-    
+
     const { data, error } = await query;
-    
+
     if (error) {
       console.error('[appointments] Supabase error:', error.message, error);
       throw error;
@@ -862,10 +909,10 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
     if (!date) return res.status(400).json({ success: false, error: 'date is required (YYYY-MM-DD)' });
     const startOfDay = new Date(`${date}T00:00:00`);
     const endOfDay = new Date(`${date}T23:59:59`);
-    
+
     // Only include active appointments (not cancelled or no-show)
     const activeStatuses = ['scheduled', 'confirmed', 'completed'];
-    
+
     let query = supabase!
       .from('appointments')
       .select('date, duration, employee_id, status')
@@ -873,7 +920,7 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
       .gte('date', startOfDay.toISOString())
       .lte('date', endOfDay.toISOString())
       .in('status', activeStatuses); // Only active appointments
-      
+
     if (employeeId) {
       query = query.eq('employee_id', String(employeeId));
     }
@@ -891,27 +938,62 @@ app.post('/api/appointments', requireDb, async (req, res) => {
   try {
     const { business_id, service_id, employee_id, name, phone, email, notes, date, duration, confirmation_token, confirmation_token_expires } = req.body;
 
+    // Validate required fields
+    if (!business_id || !service_id || !employee_id || !name || !phone || !email || !date) {
+      console.error('[POST /api/appointments] Missing required fields:', {
+        business_id: !!business_id,
+        service_id: !!service_id,
+        employee_id: !!employee_id,
+        name: !!name,
+        phone: !!phone,
+        email: !!email,
+        date: !!date
+      });
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        details: {
+          business_id: !business_id ? 'Business ID is required' : undefined,
+          service_id: !service_id ? 'Service ID is required' : undefined,
+          employee_id: !employee_id ? 'Employee ID is required' : undefined,
+          name: !name ? 'Name is required' : undefined,
+          phone: !phone ? 'Phone is required' : undefined,
+          email: !email ? 'Email is required' : undefined,
+          date: !date ? 'Date is required' : undefined
+        }
+      });
+    }
+
     const appointmentDate = new Date(date);
+
+    // Validate date
+    if (isNaN(appointmentDate.getTime())) {
+      console.error('[POST /api/appointments] Invalid date format:', date);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid date format'
+      });
+    }
 
     // Check for overlapping appointments - only active ones
     // An appointment overlaps if it starts before this one ends and ends after this one starts
     const activeStatuses = ['scheduled', 'confirmed', 'completed'];
-    const appointmentEnd = new Date(appointmentDate.getTime() + duration * 60000);
-    
+    const appointmentEnd = new Date(appointmentDate.getTime() + (duration || 30) * 60000);
+
     // Optimize: only fetch appointments for the same day
     const startOfDay = new Date(appointmentDate);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(appointmentDate);
     endOfDay.setHours(23, 59, 59, 999);
-    
+
     console.log('[POST /api/appointments] Checking for overlaps:', {
       business_id,
       employee_id,
       appointmentDate: appointmentDate.toISOString(),
       appointmentEnd: appointmentEnd.toISOString(),
-      duration
+      duration: duration || 30
     });
-    
+
     const { data: existing, error: existingErr } = await supabase!
       .from('appointments')
       .select('id, status, date, duration')
@@ -920,22 +1002,22 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .gte('date', startOfDay.toISOString())
       .lte('date', endOfDay.toISOString())
       .in('status', activeStatuses); // Only check active appointments
-      
+
     if (existingErr) {
       console.error('[POST /api/appointments] Error fetching existing:', existingErr);
       throw existingErr;
     }
-    
+
     console.log('[POST /api/appointments] Found existing appointments:', existing?.length || 0);
-    
+
     // Check for time slot overlaps
     if (existing && existing.length > 0) {
       const hasOverlap = existing.some((appt: any) => {
         const existingStart = new Date(appt.date);
         const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
-        
+
         const overlaps = appointmentDate < existingEnd && appointmentEnd > existingStart;
-        
+
         if (overlaps) {
           console.log('[POST /api/appointments] Overlap detected:', {
             existing: {
@@ -948,22 +1030,22 @@ app.post('/api/appointments', requireDb, async (req, res) => {
             new: {
               start: appointmentDate.toISOString(),
               end: appointmentEnd.toISOString(),
-              duration
+              duration: duration || 30
             }
           });
         }
-        
+
         return overlaps;
       });
-      
+
       if (hasOverlap) {
-        return res.status(409).json({ 
-          success: false, 
-          error: 'This time slot overlaps with an existing appointment. Please choose another time.' 
+        return res.status(409).json({
+          success: false,
+          error: 'This time slot overlaps with an existing appointment. Please choose another time.'
         });
       }
     }
-    
+
     console.log('[POST /api/appointments] No overlaps found, proceeding with booking');
 
     // Find or create customer by email
@@ -975,14 +1057,20 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .single();
     if (existingCustomer?.id) {
       customerId = existingCustomer.id;
+      console.log('[POST /api/appointments] Found existing customer:', customerId);
     } else {
+      console.log('[POST /api/appointments] Creating new customer');
       const { data: newCustomer, error: custErr } = await supabase!
         .from('customers')
         .insert([{ name, email, phone }])
         .select('id')
         .single();
-      if (custErr) throw custErr;
+      if (custErr) {
+        console.error('[POST /api/appointments] Error creating customer:', custErr);
+        throw custErr;
+      }
       customerId = newCustomer.id;
+      console.log('[POST /api/appointments] Created new customer:', customerId);
     }
 
     // Fetch service for duration if not provided
@@ -996,9 +1084,10 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       finalDuration = svc?.duration || 30;
     }
 
+    console.log('[POST /api/appointments] Inserting appointment');
     const { data: inserted, error: insertErr } = await supabase!
       .from('appointments')
-      .insert([{ 
+      .insert([{
         customer_id: customerId,
         service_id,
         business_id,
@@ -1017,12 +1106,27 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       }])
       .select('id')
       .single();
-    if (insertErr) throw insertErr;
+    if (insertErr) {
+      console.error('[POST /api/appointments] Error inserting appointment:', insertErr);
+      throw insertErr;
+    }
+
+    console.log('[POST /api/appointments] Success! Created appointment:', inserted.id);
+    // Calendar sync will happen when the customer confirms the appointment via email
+    // See confirm-appointment.js for calendar sync on confirmation
 
     return res.json({ success: true, appointmentId: inserted.id });
-  } catch (error) {
-    console.error('Error creating appointment:', error);
-    return res.status(500).json({ success: false, error: 'Failed to create appointment' });
+  } catch (error: any) {
+    console.error('[POST /api/appointments] Unexpected error:', {
+      message: error?.message,
+      code: error?.code,
+      details: error?.details
+    });
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to create appointment',
+      details: error?.message || 'Unknown error'
+    });
   }
 });
 
@@ -1030,34 +1134,34 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
-    console.log('[PATCH /api/appointments/:id] Request:', { 
-      id, 
-      status, 
+
+    console.log('[PATCH /api/appointments/:id] Request:', {
+      id,
+      status,
       body: req.body,
-      hasSupabase: !!supabase 
+      hasSupabase: !!supabase
     });
-    
+
     if (!status) {
       console.error('[PATCH /api/appointments/:id] Missing status in request body');
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Status is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'Status is required'
       });
     }
-    
+
     const { data, error } = await supabase!
       .from('appointments')
       .update({ status, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single();
-      
+
     if (error) {
       console.error('[PATCH /api/appointments/:id] Supabase error:', error);
       throw error;
     }
-    
+
     console.log('[PATCH /api/appointments/:id] Success:', { id, status, data });
     return res.json({ success: true, appointment: data });
   } catch (error: any) {
@@ -1067,8 +1171,8 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
       hint: error?.hint,
       code: error?.code
     });
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       error: 'Failed to update appointment',
       details: error?.message || 'Unknown error'
     });
@@ -1099,16 +1203,60 @@ app.get('/api/customers', async (req, res) => {
 app.post('/api/customers', requireDb, async (req, res) => {
   try {
     const { name, email, phone } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !phone) {
+      console.error('[POST /api/customers] Missing required fields:', { name: !!name, email: !!email, phone: !!phone });
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        details: {
+          name: !name ? 'Name is required' : undefined,
+          email: !email ? 'Email is required' : undefined,
+          phone: !phone ? 'Phone is required' : undefined
+        }
+      });
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.error('[POST /api/customers] Invalid email format:', email);
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      });
+    }
+
+    console.log('[POST /api/customers] Creating customer:', { name, email, phone });
+
     const { data, error } = await supabase!
       .from('customers')
       .insert([{ name, email, phone }])
       .select()
       .single();
-    if (error) throw error;
+
+    if (error) {
+      console.error('[POST /api/customers] Supabase error:', error);
+      // Handle duplicate email error gracefully
+      if (error.code === '23505' || error.message?.includes('duplicate')) {
+        return res.status(409).json({
+          success: false,
+          error: 'A customer with this email already exists'
+        });
+      }
+      throw error;
+    }
+
+    console.log('[POST /api/customers] Success:', data?.id);
     return res.json({ success: true, customer: data });
-  } catch (error) {
-    console.error('Error creating customer:', error);
-    return res.status(500).json({ success: false, error: 'Failed to create customer' });
+  } catch (error: any) {
+    console.error('[POST /api/customers] Unexpected error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to create customer',
+      details: error?.message || 'Unknown error'
+    });
   }
 });
 
@@ -1166,14 +1314,25 @@ app.delete('/api/services/:id', requireDb, async (req, res) => {
 // List employees (optional; helps UI in dev)
 app.get('/api/employees', async (req, res) => {
   try {
+    const { businessId } = req.query as { businessId?: string };
+
     if (!supabase) {
       // Return in-memory list for dev
-      return res.json({ success: true, employees: devStore.employees });
+      const list = businessId
+        ? devStore.employees.filter(emp => emp.business_id === businessId)
+        : devStore.employees;
+      return res.json({ success: true, employees: list });
     }
-    const { data, error } = await supabase
+    let query = supabase
       .from('employees')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (businessId) {
+      query = query.eq('business_id', String(businessId));
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return res.json({ success: true, employees: data || [] });
   } catch (error) {
@@ -1212,7 +1371,7 @@ app.patch('/api/employees/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body || {};
-    
+
     console.log('[employees/:id PATCH] Request:', { id, updates, hasSupabase: !!supabase });
 
     if (!supabase) {
@@ -1228,12 +1387,12 @@ app.patch('/api/employees/:id', async (req, res) => {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) {
       console.error('[employees/:id PATCH] Supabase error:', error);
       throw error;
     }
-    
+
     console.log('[employees/:id PATCH] Success:', data);
     return res.json({ success: true, employee: data });
   } catch (error: any) {

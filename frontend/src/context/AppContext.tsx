@@ -269,26 +269,31 @@ export const AppProvider: React.FC<{
     const fetchEmployees = async () => {
       const effectiveBusinessId = businessId || user?.id || null;
       if (!effectiveBusinessId) return;
+
+      // Helper to scope any employee list to the current business
+      const setScopedEmployees = (list: Employee[]) => {
+        const scoped = list.filter(e => e.business_id === effectiveBusinessId);
+        const byEmail = new Map<string, Employee>();
+        scoped.forEach(e => byEmail.set(e.email, e));
+        setEmployees(Array.from(byEmail.values()));
+      };
+
       if (!skipBackend) {
         try {
           const res = await fetch(`/api/business/${effectiveBusinessId}/employees`);
           if (res.ok) {
             const json = await res.json();
             const list = (json?.employees || []) as Employee[];
-            const byEmail = new Map<string, Employee>();
-            list.forEach(e => byEmail.set(e.email, e));
-            setEmployees(Array.from(byEmail.values()));
+            setScopedEmployees(list);
             return;
           }
           // Fallback to dev in-memory list when DB route is unavailable (e.g., 503)
           try {
-            const devRes = await fetch('/api/employees');
+            const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
             if (devRes.ok) {
               const json = await devRes.json();
               const list = (json?.employees || []) as Employee[];
-              const byEmail = new Map<string, Employee>();
-              list.forEach(e => byEmail.set(e.email, e));
-              setEmployees(Array.from(byEmail.values()));
+              setScopedEmployees(list);
               return;
             }
           } catch {}
@@ -297,13 +302,11 @@ export const AppProvider: React.FC<{
         } catch (_) {
           // Try dev fallback once on network/route error
           try {
-            const devRes = await fetch('/api/employees');
+            const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
             if (devRes.ok) {
               const json = await devRes.json();
               const list = (json?.employees || []) as Employee[];
-              const byEmail = new Map<string, Employee>();
-              list.forEach(e => byEmail.set(e.email, e));
-              setEmployees(Array.from(byEmail.values()));
+              setScopedEmployees(list);
               return;
             }
           } catch {}
@@ -312,13 +315,11 @@ export const AppProvider: React.FC<{
       } else {
         // When backend DB routes are unavailable, prefer dev in-memory endpoint first
         try {
-          const devRes = await fetch('/api/employees');
+          const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
           if (devRes.ok) {
             const json = await devRes.json();
             const list = (json?.employees || []) as Employee[];
-            const byEmail = new Map<string, Employee>();
-            list.forEach(e => byEmail.set(e.email, e));
-            setEmployees(Array.from(byEmail.values()));
+            setScopedEmployees(list);
             return;
           }
         } catch {}
@@ -331,9 +332,7 @@ export const AppProvider: React.FC<{
             .order('created_at', { ascending: false });
           if (!error) {
             const list = (data || []) as Employee[];
-            const byEmail = new Map<string, Employee>();
-            list.forEach(e => byEmail.set(e.email, e));
-            setEmployees(Array.from(byEmail.values()));
+            setScopedEmployees(list);
           }
         } catch (_) {}
       }
@@ -459,46 +458,8 @@ export const AppProvider: React.FC<{
     
     const json = await res.json();
     
-    // Send confirmation email to customer
-    const confirmationLink = `${window.location.origin}/confirm-appointment?token=${confirmationToken}`;
-    
-    try {
-      await fetch('/.netlify/functions/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: appointment.email,
-          subject: 'Confirm Your Appointment - Appointly',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #4F46E5; text-align: center;">Confirm Your Appointment</h1>
-              <p>Hi ${appointment.name},</p>
-              <p>Your appointment has been scheduled! Please confirm your attendance:</p>
-              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date(appointment.date).toLocaleDateString()}</p>
-                <p style="margin: 5px 0;"><strong>Time:</strong> ${new Date(appointment.date).toLocaleTimeString()}</p>
-                <p style="margin: 5px 0;"><strong>Duration:</strong> ${appointment.duration} minutes</p>
-              </div>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${confirmationLink}" 
-                   style="background-color: #10B981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-                  Confirm Appointment
-                </a>
-              </div>
-              <p style="color: #666; font-size: 14px;">
-                Or copy this link: <a href="${confirmationLink}" style="color: #4F46E5; word-break: break-all;">${confirmationLink}</a>
-              </p>
-              <p style="color: #999; font-size: 12px; margin-top: 30px;">
-                This link expires in 48 hours. Your appointment will show in the business dashboard once confirmed.
-              </p>
-            </div>
-          `,
-          text: `Confirm Your Appointment\n\nHi ${appointment.name},\n\nYour appointment is scheduled! Please confirm: ${confirmationLink}\n\nDate: ${new Date(appointment.date).toLocaleDateString()}\nTime: ${new Date(appointment.date).toLocaleTimeString()}\nDuration: ${appointment.duration} minutes\n\nThis link expires in 48 hours.`
-        })
-      });
-    } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
-    }
+    // Note: Email sending is handled by AppointmentForm.tsx to avoid duplicates
+    // The email is sent there with more context (service name, business details, etc.)
     
     await refreshAppointments();
     return json?.appointmentId;

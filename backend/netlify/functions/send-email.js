@@ -1,4 +1,6 @@
-exports.handler = async function(event, context) {
+import nodemailer from 'nodemailer';
+
+export const handler = async (event, context) => {
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -40,16 +42,75 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // For now, we'll use a simple email service or just log the email
-    // In production, you would integrate with SendGrid, AWS SES, or similar
-    console.log('Email would be sent:', {
+    // Try to send real email if Gmail credentials are configured
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+    
+    if (gmailUser && gmailAppPassword) {
+      try {
+        console.log('📧 Attempting to send email via Gmail to:', to);
+        
+        // Configure Nodemailer with Gmail SMTP
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: gmailUser,
+            pass: gmailAppPassword
+          }
+        });
+        
+        // Verify connection
+        await transporter.verify();
+        console.log('✅ Gmail SMTP connection verified');
+        
+        // Email content
+        const mailOptions = {
+          from: `"Appointly" <${gmailUser}>`,
+          to: to,
+          subject: subject,
+          html: html,
+          text: text || html?.replace(/<[^>]*>/g, '') || ''
+        };
+        
+        // Send the email
+        const result = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully via Gmail:', result.messageId);
+        
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ 
+            success: true, 
+            messageId: result.messageId,
+            message: 'Email sent successfully via Gmail'
+          })
+        };
+      } catch (emailError) {
+        console.error('❌ Failed to send email via Gmail:', emailError.message);
+        console.error('Full error:', emailError);
+        
+        // Return error instead of falling through to simulation
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ 
+            success: false, 
+            error: `Failed to send email: ${emailError.message}`,
+            details: 'Gmail credentials are configured but sending failed. Check your GMAIL_USER and GMAIL_APP_PASSWORD.'
+          })
+        };
+      }
+    }
+    
+    // Fallback: Log email details if Gmail credentials are not configured
+    console.log('📧 Email would be sent (simulated):', {
       to,
       subject,
-      html: html ? 'HTML content provided' : 'No HTML',
-      text: text ? 'Text content provided' : 'No text'
+      hasHtml: !!html,
+      hasText: !!text,
+      note: 'Set GMAIL_USER and GMAIL_APP_PASSWORD environment variables to send real emails'
     });
-
-    // Simulate successful email sending
+    
     const emailId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     return {
@@ -58,7 +119,7 @@ exports.handler = async function(event, context) {
       body: JSON.stringify({ 
         success: true, 
         messageId: emailId,
-        message: 'Email sent successfully (simulated)'
+        message: 'Email sent (simulated - configure GMAIL_USER and GMAIL_APP_PASSWORD for real emails)'
       })
     };
   } catch (error) {
