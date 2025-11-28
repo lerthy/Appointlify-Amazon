@@ -1,19 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
-
 // IMPORTANT: Never load or use service-role keys in the browser.
-// This helper now always returns an anon-key client.
+// This helper now reuses the existing supabase client to avoid multiple instances.
+// For profile updates, use the backend API instead of direct Supabase calls.
+import { supabase } from './supabaseClient';
+
+// Reuse the existing client to avoid multiple GoTrueClient instances
 export const createServiceClient = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase credentials missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
-  }
-
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  // Return the singleton supabase client instance
+  return supabase;
 };
