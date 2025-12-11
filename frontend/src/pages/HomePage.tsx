@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Calendar, 
-  Clock, 
-  CheckCircle, 
-  Star, 
+import {
+  Calendar,
+  Clock,
+  CheckCircle,
+  Star,
   ArrowRight,
   Users,
   TrendingUp,
@@ -56,13 +56,13 @@ const HomePage: React.FC = () => {
         const apiPath = API_URL ? `${API_URL}/api/businesses` : '/api/businesses';
         const response = await fetch(apiPath);
         const result = await response.json();
-        
+
         if (result.success && result.businesses) {
           // FILTER OUT businesses without employees AND services
           const { supabase } = await import('../utils/supabaseClient');
-          
+
           const validBusinesses = [];
-          
+
           for (const business of result.businesses) {
             // Check employees
             const { data: employees } = await supabase
@@ -70,20 +70,20 @@ const HomePage: React.FC = () => {
               .select('id')
               .eq('business_id', business.id)
               .limit(1);
-            
+
             // Check services
             const { data: services } = await supabase
               .from('services')
               .select('id')
               .eq('business_id', business.id)
               .limit(1);
-            
+
             // Only include if they have BOTH employees AND services
             if (employees && employees.length > 0 && services && services.length > 0) {
               validBusinesses.push(business);
             }
           }
-          
+
           console.log(`Filtered ${validBusinesses.length} valid businesses out of ${result.businesses.length} total`);
           setBusinesses(validBusinesses);
           setFilteredBusinesses(validBusinesses);
@@ -113,7 +113,7 @@ const HomePage: React.FC = () => {
         const ownerMatch = business.owner_name?.toLowerCase().includes(query);
         const phoneMatch = business.phone?.toLowerCase().includes(query);
         const websiteMatch = business.website?.toLowerCase().includes(query);
-        
+
         return nameMatch || descriptionMatch || categoryMatch || addressMatch || ownerMatch || phoneMatch || websiteMatch;
       });
       setFilteredBusinesses(filtered);
@@ -123,7 +123,7 @@ const HomePage: React.FC = () => {
   // Auto-rotate background images
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => 
+      setCurrentImageIndex((prevIndex) =>
         prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
       );
     }, 5000);
@@ -143,7 +143,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+
       {/* HERO SECTION - Shared for Both Audiences */}
       <section className="relative py-20 overflow-hidden">
         {/* Background Images */}
@@ -151,9 +151,8 @@ const HomePage: React.FC = () => {
           {heroImages.map((image, index) => (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                }`}
             >
               <img
                 src={image.url}
@@ -174,7 +173,7 @@ const HomePage: React.FC = () => {
                 <Sparkles className="w-4 h-4 text-yellow-400 mr-2" />
                 <span className="text-white text-sm font-medium">AI-Powered Appointment Booking Platform</span>
               </div>
-              
+
               <h1 className="text-4xl md:text-6xl font-extrabold mb-5 text-white leading-tight">
                 Time's Ticking,
                 <br />
@@ -202,11 +201,10 @@ const HomePage: React.FC = () => {
           {heroImages.map((_, index) => (
             <button
               key={index}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                index === currentImageIndex 
-                  ? 'bg-white scale-125' 
-                  : 'bg-white/50 hover:bg-white/75'
-              }`}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === currentImageIndex
+                ? 'bg-white scale-125'
+                : 'bg-white/50 hover:bg-white/75'
+                }`}
               onClick={() => setCurrentImageIndex(index)}
             />
           ))}
@@ -338,8 +336,8 @@ const HomePage: React.FC = () => {
 
           {/* CTA for Businesses */}
           <div className="text-center">
-            <Button 
-              size="md" 
+            <Button
+              size="md"
               className="text-base px-8 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-indigo-500/50 transform hover:scale-105 transition-all duration-300 font-semibold"
               onClick={() => navigate('/register')}
             >
@@ -431,7 +429,13 @@ const HomePage: React.FC = () => {
                 filteredBusinesses.map((business) => (
                   <div
                     key={business.id}
-                    onClick={() => navigate(`/book/${business.id}`)}
+                    onClick={() => {
+                      if (business.subdomain) {
+                        navigate(`/book/${business.subdomain}`);
+                      } else {
+                        navigate(`/book/${business.id}`);
+                      }
+                    }}
                     className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-2 border border-gray-100 group flex flex-col"
                   >
                     <div className="p-6 text-center flex flex-col flex-grow">
@@ -459,7 +463,7 @@ const HomePage: React.FC = () => {
                         {renderStars(5)}
                         <span className="ml-2 text-sm text-gray-600">(4.9)</span>
                       </div>
-                      <Button 
+                      <Button
                         className="w-full bg-transparent !text-black border-2 border-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold hover:!bg-black hover:!text-white focus-visible:outline-none focus-visible:ring-transparent focus-visible:ring-offset-0 focus:outline-none focus:ring-0 mt-auto"
                         size="md"
                       >
@@ -478,8 +482,8 @@ const HomePage: React.FC = () => {
 
       {/* STATISTICS SECTION - Updated with Benefit-Focused Metrics */}
       {/* <section className="py-12 bg-gradient-to-r from-slate-800 via-purple-900 to-indigo-900 text-white relative overflow-hidden"> */}
-        {/* Decorative Elements */}
-        {/* <div className="absolute inset-0 opacity-10">
+      {/* Decorative Elements */}
+      {/* <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-64 h-64 bg-purple-500 rounded-full blur-3xl"></div>
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
         </div>
@@ -522,7 +526,7 @@ const HomePage: React.FC = () => {
       </section> */}
 
       <Footer />
-      
+
       {/* Review Modal */}
       <ReviewModal
         isOpen={isReviewModalOpen}

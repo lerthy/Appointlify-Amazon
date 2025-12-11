@@ -60,7 +60,7 @@ export function useGoogleOAuth(scope: ScopeOption = 'calendar') {
 
         function handler(event: MessageEvent) {
           if (resolved) return;
-          
+
           console.log('[useGoogleOAuth] Received message event:', {
             origin: event.origin,
             data: event.data,
@@ -69,7 +69,7 @@ export function useGoogleOAuth(scope: ScopeOption = 'calendar') {
             backendOrigin,
             windowOrigin: window.location.origin
           });
-          
+
           // Check if message has the expected OAuth response format
           if (!event.data || typeof event.data !== 'object' || !('success' in event.data)) {
             console.log('[useGoogleOAuth] Ignoring message - invalid data format');
@@ -78,27 +78,27 @@ export function useGoogleOAuth(scope: ScopeOption = 'calendar') {
 
           // Accept messages from OAuth callback based on origin and data format
           // Don't check popup.closed (blocked by COOP/COEP for cross-origin)
-          const isFromOAuthCallback = 
+          const isFromOAuthCallback =
             event.data.success !== undefined && // Has OAuth response format
-            (event.origin.includes('localhost') || 
-             event.origin.includes('netlify') || 
-             event.origin === apiOrigin ||
-             event.origin === window.location.origin ||
-             (backendOrigin && event.origin === backendOrigin));
-          
+            (event.origin.includes('localhost') ||
+              event.origin.includes('netlify') ||
+              event.origin === apiOrigin ||
+              event.origin === window.location.origin ||
+              (backendOrigin && event.origin === backendOrigin));
+
           if (!isFromOAuthCallback) {
             console.log('[useGoogleOAuth] Ignoring message - not from OAuth callback');
             return;
           }
-          
+
           // Accept messages from:
           // 1. Any origin if allowAnyOrigin is true (when API_BASE is not set)
           // 2. Frontend origin (apiOrigin) - when frontend and backend are same origin
           // 3. Backend origin - when OAuth callback posts from backend server
           // 4. localhost or netlify domains (OAuth callback origins)
           if (!allowAnyOrigin) {
-            const isValidOrigin = 
-              event.origin === apiOrigin || 
+            const isValidOrigin =
+              event.origin === apiOrigin ||
               (backendOrigin && event.origin === backendOrigin) ||
               event.origin === window.location.origin ||
               event.origin.includes('localhost') || // Allow localhost variations
@@ -108,12 +108,12 @@ export function useGoogleOAuth(scope: ScopeOption = 'calendar') {
               return;
             }
           }
-          
+
           console.log('[useGoogleOAuth] Accepting message and resolving promise');
           resolved = true;
           clearTimeout(timeout);
           window.removeEventListener('message', handler);
-          
+
           resolve(event.data);
         }
 

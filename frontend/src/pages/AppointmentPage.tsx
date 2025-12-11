@@ -5,7 +5,7 @@ import Container from '../components/ui/Container';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import { ArrowLeft } from 'lucide-react';
-import { supabase } from '../utils/supabaseClient';
+
 import { AppProvider } from '../context/AppContext';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 import { motion } from 'framer-motion';
@@ -29,29 +29,38 @@ const AppointmentPage: React.FC = () => {
     const fetchBusiness = async () => {
       setLoading(true);
       console.log('[AppointmentPage] Fetching business:', businessId);
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, name, description, logo, business_address')
-        .eq('id', businessId)
-        .single();
-      
+
+      let data, error;
+
+
+      // Fetch by Subdomain ONLY
+      console.log('[AppointmentPage] Fetching by subdomain:', businessId);
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      const apiPath = API_URL ? `${API_URL}/api/business/by-subdomain/${businessId}` : `/api/business/by-subdomain/${businessId}`;
+      const res = await fetch(apiPath);
+      const result = await res.json();
+      if (result.success) {
+        data = result.info;
+      } else {
+        error = { message: result.error || 'Failed to fetch business' };
+      }
+
       if (error) {
         console.error('[AppointmentPage] Error fetching business:', {
-          code: error.code,
+          // code: error.code,
           message: error.message,
-          details: error.details,
-          hint: error.hint
+          // details: error.details,
+          // hint: error.hint
         });
       }
-      
+
       if (data) {
         console.log('[AppointmentPage] Business found:', data);
         setBusiness(data);
       } else {
         console.error('[AppointmentPage] No business data returned');
       }
-      
+
       setLoading(false);
     };
     fetchBusiness();
@@ -117,7 +126,7 @@ const AppointmentPage: React.FC = () => {
   }
 
   return (
-    <AppProvider businessIdOverride={businessId}>
+    <AppProvider businessIdOverride={business?.id}>
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
         <Header />
         <AuthPageTransition>

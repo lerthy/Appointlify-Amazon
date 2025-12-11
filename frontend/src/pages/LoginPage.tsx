@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     if (!form.email || !form.password) {
       setError('Please enter both email and password.');
       setIsSubmitting(false);
@@ -66,7 +66,7 @@ const LoginPage: React.FC = () => {
       const { data: profileData, error: profileError } = await supabase
         .from('users')
         .select('*')
-        .eq('auth_user_id', authData.user.id)
+        .eq('id', authData.user.id)
         .single();
 
       let userData = profileData;
@@ -76,7 +76,7 @@ const LoginPage: React.FC = () => {
         const { data: newProfile, error: createError } = await supabase
           .from('users')
           .insert([{
-            auth_user_id: authData.user.id,
+            id: authData.user.id,
             email: authData.user.email,
             name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0],
             signup_method: 'email'

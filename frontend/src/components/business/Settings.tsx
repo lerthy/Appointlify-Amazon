@@ -57,11 +57,11 @@ const Settings: React.FC = () => {
         success?: boolean;
         error?: string;
       }>(`${API_BASE}/api/integrations/google/status`);
-      
+
       if (payload.success === false) {
         throw new Error(payload.error || 'Failed to fetch calendar status');
       }
-      
+
       setCalendarState({
         loading: false,
         linked: Boolean(payload.linked),
@@ -92,12 +92,12 @@ const Settings: React.FC = () => {
         loadedWorkingDays[day] = daySettings ? daySettings.isClosed !== true : true;
       });
       setWorkingDays(loadedWorkingDays);
-      
+
       // Find Monday's hours specifically, or use first available day, or default
       const mondayHours = businessSettings.working_hours?.find((wh: WorkingHour) => wh.day === 'Monday');
       const firstAvailableHours = businessSettings.working_hours?.find((wh: WorkingHour) => wh.isClosed !== true);
       const hoursToUse = mondayHours || firstAvailableHours || { open: '09:00', close: '17:00' };
-      
+
       setOpening(hoursToUse.open || '09:00');
       setClosing(hoursToUse.close || '17:00');
       setBreaks(Array.isArray(businessSettings.breaks) ? businessSettings.breaks : []);
@@ -131,7 +131,7 @@ const Settings: React.FC = () => {
     console.log('Break start:', breakStart);
     console.log('Break end:', breakEnd);
     console.log('Current breaks before add:', breaks);
-    
+
     if (!breakStart || !breakEnd) {
       console.log('Missing break start or end time');
       return;
@@ -141,16 +141,16 @@ const Settings: React.FC = () => {
       console.log('Invalid time range');
       return;
     }
-    
+
     const newBreak = { start: breakStart, end: breakEnd };
     console.log('Adding new break:', newBreak);
-    
+
     setBreaks(prev => {
       const newBreaks = [...prev, newBreak];
       console.log('Updated breaks array:', newBreaks);
       return newBreaks;
     });
-    
+
     setBreakStart('');
     setBreakEnd('');
     console.log('=== ADD BREAK COMPLETE ===');
@@ -166,7 +166,7 @@ const Settings: React.FC = () => {
     console.log('Breaks length:', breaks.length);
     console.log('Breaks type:', typeof breaks);
     console.log('Business ID:', businessId);
-    
+
     try {
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       const workingHours = days.map(day => ({
@@ -181,7 +181,7 @@ const Settings: React.FC = () => {
         blocked_dates: blockedDates,
         breaks: breaks
       };
-      
+
       console.log('Settings object being saved:', settingsToSave);
       console.log('Breaks in settings object:', settingsToSave.breaks);
 
@@ -201,13 +201,13 @@ const Settings: React.FC = () => {
   const connectCalendar = async () => {
     try {
       const result = await launch();
-      
+
       // Wait a bit for the backend to process the token
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Always refresh status after OAuth flow
       await refreshCalendarState();
-      
+
       // Also check if result indicates success
       if (result?.success && result?.calendarLinked) {
         setCalendarState(prev => ({ ...prev, linked: true, warning: '' }));
@@ -299,13 +299,12 @@ const Settings: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-7 gap-2 md:gap-3">
               {Object.keys(workingDays).map((day) => (
-                <label 
+                <label
                   key={day}
-                  className={`flex flex-col items-center justify-center p-2 md:p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                    workingDays[day as keyof typeof workingDays]
+                  className={`flex flex-col items-center justify-center p-2 md:p-2 border-2 rounded-lg cursor-pointer transition-all ${workingDays[day as keyof typeof workingDays]
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -316,9 +315,8 @@ const Settings: React.FC = () => {
                   <span className="text-xs md:text-sm font-medium text-gray-700">
                     {day.slice(0, 3)}
                   </span>
-                  <span className={`text-xl md:text-2xl mt-1 ${
-                    workingDays[day as keyof typeof workingDays] ? 'opacity-100' : 'opacity-30'
-                  }`}>
+                  <span className={`text-xl md:text-2xl mt-1 ${workingDays[day as keyof typeof workingDays] ? 'opacity-100' : 'opacity-30'
+                    }`}>
                     {workingDays[day as keyof typeof workingDays] ? '✓' : '○'}
                   </span>
                 </label>
@@ -402,7 +400,7 @@ const Settings: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <Button
               onClick={handleAddBreak}
               className="mb-4 w-full sm:w-auto text-sm md:text-base"
@@ -438,7 +436,7 @@ const Settings: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             <p className="text-xs md:text-sm text-gray-500 mt-3">
               Add break times when you're not available for appointments.
             </p>

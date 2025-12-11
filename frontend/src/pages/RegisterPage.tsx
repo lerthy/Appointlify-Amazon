@@ -10,15 +10,61 @@ const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/pub
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '', subdomain: '' });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const [subdomainError, setSubdomainError] = useState('');
+  const [isSubdomainAvailable, setIsSubdomainAvailable] = useState<boolean | null>(null);
+  const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
+
+    if (e.target.name === 'subdomain') {
+      const val = e.target.value;
+      // Reset validation state on change
+      setIsSubdomainAvailable(null);
+      setSubdomainError('');
+
+      // Basic format validation
+      if (val && !/^[a-z0-9-]+$/.test(val)) {
+        setSubdomainError('Only lowercase letters, numbers, and hyphens are allowed.');
+      }
+    }
   };
+
+  // Debounce check for subdomain availability
+  React.useEffect(() => {
+    const checkSubdomain = async () => {
+      if (!form.subdomain || subdomainError) return;
+
+      setIsCheckingSubdomain(true);
+      try {
+        const res = await fetch(`/api/check-subdomain?subdomain=${form.subdomain}`);
+        const data = await res.json();
+        if (data.success) {
+          setIsSubdomainAvailable(data.available);
+          if (!data.available) {
+            setSubdomainError('This subdomain is already taken.');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check subdomain', err);
+      } finally {
+        setIsCheckingSubdomain(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      if (form.subdomain && !subdomainError) {
+        checkSubdomain();
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [form.subdomain, subdomainError]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -29,13 +75,19 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
+
+    if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone || !form.subdomain) {
       setError('Please fill in all fields.');
       setIsSubmitting(false);
       return;
     }
-    
+
+    if (subdomainError || isSubdomainAvailable === false) {
+      setError('Please fix the subdomain error before continuing.');
+      setIsSubmitting(false);
+      return;
+    }
+
     if (form.password !== form.confirm) {
       setError('Passwords do not match.');
       setIsSubmitting(false);
@@ -49,7 +101,7 @@ const RegisterPage: React.FC = () => {
         .select('id')
         .eq('email', form.email)
         .maybeSingle();
-      
+
       if (existingUser) {
         setError('An account with this email already exists. Please sign in instead.');
         setIsSubmitting(false);
@@ -82,7 +134,8 @@ const RegisterPage: React.FC = () => {
             phone: form.phone,
             description: form.description,
             logo: logoUrl,
-            email_verified: true
+            email_verified: true,
+            subdomain: form.subdomain
           }
         }
       });
@@ -106,7 +159,7 @@ const RegisterPage: React.FC = () => {
         email: authData.user.email,
         emailConfirmedAt: authData.user.email_confirmed_at
       });
-      
+
       console.log('[Registration] ✅ User profile will be created automatically by database trigger');
 
       setIsSubmitting(false);
@@ -211,6 +264,30 @@ const RegisterPage: React.FC = () => {
               />
             </div>
             <div className="space-y-1">
+              <label className="block text-xs font-medium text-gray-700">Subdomain</label>
+              <div className="flex rounded-lg shadow-sm">
+                <input
+                  type="text"
+                  name="subdomain"
+                  value={form.subdomain}
+                  onChange={handleChange}
+                  className={`flex-1 min-w-0 px-4 py-3 border border-r-0 ${subdomainError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' :
+                    isSubdomainAvailable ? 'border-green-300 focus:border-green-500 focus:ring-green-500' :
+                      'border-gray-300 focus:border-black focus:ring-indigo-500'
+                    } rounded-l-lg focus:outline-none focus:ring-2 text-sm transition-all duration-200`}
+                  placeholder="your-business"
+                  autoComplete="off"
+                  required
+                />
+                <span className="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  .appointly-ks.com
+                </span>
+              </div>
+              {isCheckingSubdomain && <p className="text-xs text-gray-500 mt-1">Checking availability...</p>}
+              {subdomainError && <p className="text-xs text-red-600 mt-1">{subdomainError}</p>}
+              {!subdomainError && isSubdomainAvailable && <p className="text-xs text-green-600 mt-1">Subdomain is available!</p>}
+            </div>
+            <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Password</label>
               <input
                 type="password"
@@ -250,11 +327,10 @@ const RegisterPage: React.FC = () => {
             </div>
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Company Logo</label>
-              <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${
-                logoFile 
-                  ? 'border-green-500 bg-green-50' 
-                  : 'border-gray-300 hover:border-indigo-500'
-              }`}>
+              <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${logoFile
+                ? 'border-green-500 bg-green-50'
+                : 'border-gray-300 hover:border-indigo-500'
+                }`}>
                 <div className="space-y-1 text-center">
                   {logoFile ? (
                     <>

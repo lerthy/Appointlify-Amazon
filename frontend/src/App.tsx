@@ -34,17 +34,17 @@ import GoogleOAuthCallbackPage from './pages/GoogleOAuthCallbackPage';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
-  
+
   if (loading) return <div>Loading...</div>;
   return <>{children}</>;
 }
 
 function AppProviderWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  
+
   // Only enable real-time when on dashboard page
   const enableRealtime = location.pathname === '/dashboard';
-  
+
   return <AppProvider enableRealtime={enableRealtime}>{children}</AppProvider>;
 }
 
@@ -82,7 +82,7 @@ function AppContent() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-      
+
       {/* AI Chatbot - Hidden on auth pages */}
       {shouldShowAIChat && <AIChatbot />}
     </>

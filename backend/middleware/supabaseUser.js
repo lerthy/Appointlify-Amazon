@@ -40,7 +40,7 @@ export async function attachSupabaseUser(req, _res, next) {
 }
 
 export async function requireSupabaseIdentity(req, res, next) {
-  await attachSupabaseUser(req, res, () => {});
+  await attachSupabaseUser(req, res, () => { });
   if (!req.supabaseUser) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
@@ -48,10 +48,9 @@ export async function requireSupabaseIdentity(req, res, next) {
 }
 
 export async function requireSupabaseUser(req, res, next) {
-  await requireSupabaseIdentity(req, res, () => {});
+  await requireSupabaseIdentity(req, res, () => { });
   if (!req.appUser) {
     return res.status(404).json({ success: false, error: 'User profile missing' });
   }
   next();
 }
-

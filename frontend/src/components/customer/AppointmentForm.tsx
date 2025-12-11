@@ -57,7 +57,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   };
 
   const availableDates = getAvailableDates();
-  
+
   // Get available services and employees for this business
   const businessServices = services.filter(service => service.business_id === businessId);
   const businessEmployees = employees.filter(employee => employee.business_id === businessId);
@@ -65,26 +65,26 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   // Check if business is closed for today
   const isBusinessClosedToday = () => {
     if (!formData.date || !businessSettings) return false;
-    
+
     const selectedDate = parseLocalDate(formData.date);
     const now = new Date();
     const isToday = selectedDate.toDateString() === now.toDateString();
-    
+
     if (!isToday) return false;
-    
+
     const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
     const workingHours = businessSettings?.working_hours || [];
     const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
-    
+
     if (!dayWorkingHours || dayWorkingHours.isClosed) return true;
-    
+
     const [closeHour, closeMinute] = dayWorkingHours.close.split(':').map(Number);
     const closeTime = new Date(selectedDate);
     closeTime.setHours(closeHour, closeMinute, 0, 0);
-    
+
     return now >= closeTime;
   };
-  
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -96,18 +96,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     notes: ''
   });
 
-  // Auto-populate email and name fields when user is logged in
-  // This runs whenever the user object changes (login, logout, or account data updates)
-  useEffect(() => {
-    if (user?.email) {
-      setFormData(prev => ({
-        ...prev,
-        email: user.email,
-        // Only update name if it's not already filled (user might want to use a different name)
-        ...(user.name && !prev.name ? { name: user.name } : {})
-      }));
-    }
-  }, [user?.email, user?.name, user?.id]); // Re-run when user email, name, or id changes
+
 
   // Set loading state based on business settings
   useEffect(() => {
@@ -150,37 +139,37 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   // Fetch booked appointments for the selected date and employee
   const [bookedAppointments, setBookedAppointments] = useState<any[]>([]);
-  
+
   useEffect(() => {
     // Only fetch if we have all required data and the form has been properly initialized
     if (!formData.date || !businessId || !formData.employee_id || !businessSettings) {
       setBookedAppointments([]);
       return;
     }
-    
+
     const fetchBookedSlots = async () => {
       try {
         const params = new URLSearchParams({ date: formData.date, employeeId: formData.employee_id });
         const res = await fetch(`/api/business/${businessId}/appointmentsByDay?${params.toString()}`);
-        if (!res.ok) { 
+        if (!res.ok) {
           setBookedAppointments([]);
-          return; 
+          return;
         }
         const json = await res.json();
         const data = json?.appointments || [];
-        
+
         // Filter out cancelled, completed, and no-show appointments - only block scheduled/confirmed slots
-        const activeAppointments = data.filter((appt: any) => 
+        const activeAppointments = data.filter((appt: any) =>
           ['scheduled', 'confirmed'].includes(appt.status)
         );
-        
+
         console.log('[AppointmentForm] Booked slots:', {
           total: data.length,
           active: activeAppointments.length,
           date: formData.date,
           employee: formData.employee_id
         });
-        
+
         // Store full appointment objects for overlap detection
         setBookedAppointments(activeAppointments);
       } catch (err) {
@@ -191,7 +180,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         setBookedAppointments([]);
       }
     };
-    
+
     fetchBookedSlots();
   }, [formData.date, businessId, formData.employee_id, businessSettings, refreshTrigger]);
 
@@ -236,54 +225,54 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
     const workingHours = businessSettings?.working_hours || [];
     const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
-    
+
     if (!dayWorkingHours || dayWorkingHours.isClosed) {
       return slots;
     }
 
     const [openHour, openMinute] = dayWorkingHours.open.split(':').map(Number);
     const [closeHour, closeMinute] = dayWorkingHours.close.split(':').map(Number);
-    
+
     const openTime = new Date(date);
     openTime.setHours(openHour, openMinute, 0, 0);
-    
+
     const closeTime = new Date(date);
     closeTime.setHours(closeHour, closeMinute, 0, 0);
-    
+
     const currentTime = new Date(openTime);
-    
+
     // Get current date and time to check for past slots
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
-    
+
     // No buffer: show the next available slot strictly after the current time
     const currentTimeWithBuffer = now;
-    
+
     while (currentTime < closeTime) {
       const timeString = currentTime.toTimeString().slice(0, 5);
-      
+
       // Skip past times if the selected date is today
       if (isToday && currentTime < currentTimeWithBuffer) {
         currentTime.setMinutes(currentTime.getMinutes() + 30);
         continue;
       }
-      
+
       // Check if this time slot and the required duration would fit
       const slotEndTime = new Date(currentTime);
       slotEndTime.setMinutes(slotEndTime.getMinutes() + duration);
-      
+
       // Check if the slot would go beyond closing time
       if (slotEndTime > closeTime) {
         break;
       }
-      
+
       // Check if this slot overlaps with any booked appointment using proper overlap detection
       let hasOverlap = false;
-      
+
       for (const appt of bookedAppointments) {
         const existingStart = new Date(appt.date);
         const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
-        
+
         // Check if appointments overlap
         // Overlap occurs if: new starts before existing ends AND new ends after existing starts
         if (currentTime < existingEnd && slotEndTime > existingStart) {
@@ -291,14 +280,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           break;
         }
       }
-      
+
       if (!hasOverlap) {
         slots.push(timeString);
       }
-      
+
       currentTime.setMinutes(currentTime.getMinutes() + 30); // Move to next 30-minute slot
     }
-    
+
     return slots;
   };
 
@@ -306,7 +295,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: '' }));
-    
+
     // If service changed, update duration
     if (name === 'service_id') {
       const newService = businessServices.find(s => s.id === value);
@@ -318,39 +307,39 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
     } else if (!/^\+?[\d\s\-\(\)]+$/.test(formData.phone)) {
       newErrors.phone = 'Please enter a valid phone number';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    
+
     if (!formData.service_id) {
       newErrors.service_id = 'Please select a service';
     }
-    
+
     if (!formData.employee_id) {
       newErrors.employee_id = 'Please select an employee';
     }
-    
+
     if (!formData.date) {
       newErrors.date = 'Please select a date';
     }
-    
+
     if (!formData.time) {
       newErrors.time = 'Please select a time';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -372,11 +361,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Create appointment date object
       const [hours, minutes] = formData.time.split(':').map(Number);
@@ -387,7 +376,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       // Check for overlapping appointments - only active ones
       const activeStatuses = ['scheduled', 'confirmed', 'completed'];
       const appointmentEnd = new Date(appointmentDate.getTime() + serviceDuration * 60000);
-      
+
       const { data: existingAppointments, error: checkError } = await supabase
         .from('appointments')
         .select('id, business_id, date, status, employee_id, duration')
@@ -402,12 +391,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         const hasOverlap = existingAppointments.some((appt: any) => {
           const existingStart = new Date(appt.date);
           const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
-          
+
           // Check if appointments overlap
           // Overlap occurs if: new starts before existing ends AND new ends after existing starts
           return appointmentDate < existingEnd && appointmentEnd > existingStart;
         });
-        
+
         if (hasOverlap) {
           setErrors(prev => ({ ...prev, form: 'This time slot is already booked. Please choose another time.' }));
           return;
@@ -423,7 +412,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           .select('id')
           .eq('email', formData.email)
           .single();
-        
+
         if (existingCustomer) {
           customerId = existingCustomer.id;
         } else {
@@ -465,7 +454,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           .select('confirmation_token')
           .eq('id', appointmentId)
           .single();
-        
+
         if (appointment?.confirmation_token) {
           confirmationLink = `${window.location.origin}/confirm-appointment?token=${appointment.confirmation_token}`;
         }
@@ -499,7 +488,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       } else {
         showNotification('Check your email and phone for confirmation.', 'success');
       }
-      
+
       // Prepare booking confirmation data
       const bookingConfirmationData = {
         appointmentId,
@@ -519,7 +508,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       // Redirect to confirmation page with booking data
       console.log('Redirecting to booking confirmation with data:', bookingConfirmationData);
       navigate('/booking-confirmation', { state: bookingConfirmationData });
-      
+
       // Fallback: if navigation doesn't work, redirect after a short delay
       setTimeout(() => {
         if (window.location.pathname !== '/booking-confirmation') {
@@ -629,7 +618,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
 
   return (
     <Card className="w-full max-w-lg shadow-none mx-auto border-none">
-            
+
       <form onSubmit={handleSubmit}>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 px-2 sm:px-6 py-4">
           {errors.form && (
@@ -825,8 +814,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             {isSubmitting
               ? 'Booking Appointment...'
               : isBusinessClosedToday()
-              ? 'Business Closed Today'
-              : 'Book Appointment'}
+                ? 'Business Closed Today'
+                : 'Book Appointment'}
           </Button>
         </CardFooter>
       </form>
