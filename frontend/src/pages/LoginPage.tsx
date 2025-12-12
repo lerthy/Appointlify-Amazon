@@ -62,40 +62,28 @@ const LoginPage: React.FC = () => {
         return;
       }
 
-      // Get or create user profile
+      // Get user profile (created automatically by database trigger during registration)
       const { data: profileData, error: profileError } = await supabase
         .from('users')
         .select('*')
         .eq('auth_user_id', authData.user.id)
         .single();
 
-      let userData = profileData;
-
-      // If profile doesn't exist, create it
-      if (profileError || !userData) {
-        const { data: newProfile, error: createError } = await supabase
-          .from('users')
-          .insert([{
-            auth_user_id: authData.user.id,
-            email: authData.user.email,
-            name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0],
-            signup_method: 'email'
-          }])
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating profile:', createError);
-          setError('Failed to create user profile. Please contact support.');
-          setIsSubmitting(false);
-          return;
-        }
-
-        userData = newProfile;
+      // If profile doesn't exist, something went wrong - user should register
+      if (profileError || !profileData) {
+        console.error('Profile not found for authenticated user:', {
+          userId: authData.user.id,
+          email: authData.user.email,
+          error: profileError
+        });
+        await supabase.auth.signOut();
+        setError('No account found. Please register first or contact support if you believe this is an error.');
+        setIsSubmitting(false);
+        return;
       }
 
       // Log in the user
-      login(userData);
+      login(profileData);
       setIsSubmitting(false);
       console.log('[LoginPage] Login successful, redirecting to homepage (/)');
       navigate('/');
