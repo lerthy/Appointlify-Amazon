@@ -720,8 +720,25 @@ async function ensureBusinessSettings(businessId: string) {
     throw error;
   }
 
+  // Fetch business name (user name)
+  let businessName = 'Business Settings';
+  try {
+    const { data: userData } = await supabase!
+      .from('users')
+      .select('name')
+      .eq('id', businessId)
+      .maybeSingle();
+
+    if (userData && userData.name) {
+      businessName = userData.name;
+    }
+  } catch (err) {
+    console.warn('[ensureBusinessSettings] Failed to fetch business name, using default:', err);
+  }
+
   const defaultSettings = {
     business_id: businessId,
+    name: businessName,
     working_hours: buildDefaultWorkingHours(),
     blocked_dates: [],
     breaks: [],
