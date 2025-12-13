@@ -974,11 +974,11 @@ app.get('/api/business/:businessId/appointments', requireDb, async (req, res) =>
 
 app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, res) => {
   try {
-    const { businessId } = req.params;
-    const { date, employeeId } = req.query;
-    if (!date) return res.status(400).json({ success: false, error: 'date is required (YYYY-MM-DD)' });
-    const startOfDay = new Date(`${ date } T00:00:00`);
-    const endOfDay = new Date(`${ date } T23: 59: 59`);
+  const { businessId } = req.params;
+  const { date, employeeId } = req.query;
+  if (!date || typeof date !== 'string') return res.status(400).json({ success: false, error: 'date is required (YYYY-MM-DD)' });
+  const startOfDay = new Date(date + 'T00:00:00');
+  const endOfDay = new Date(date + 'T23:59:59');
 
     // Only include active appointments (not cancelled or no-show)
     const activeStatuses = ['scheduled', 'confirmed', 'completed'];
