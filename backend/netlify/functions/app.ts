@@ -815,7 +815,6 @@ app.get('/api/businesses', requireDb, async (req, res) => {
     // Filter for businesses (role='business' or null, since default is business)
     const businesses = data || [];
 
-    `);
     return res.json({ success: true, businesses });
   } catch (error: any) {
     console.error('[GET /api/businesses] Handler error:', error);
@@ -872,17 +871,17 @@ app.patch('/api/users/:id', async (req, res) => {
     const updates = req.body;
 
     if (!supabase) {
-      return res.status(503).json({ 
-        success: false, 
-        error: 'Database not configured' 
+      return res.status(503).json({
+        success: false,
+        error: 'Database not configured'
       });
     }
 
     // Validate required fields
     if (!id) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'User ID is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
       });
     }
 
@@ -898,7 +897,7 @@ app.patch('/api/users/:id', async (req, res) => {
     if (updates.category !== undefined) updateData.category = updates.category;
     if (updates.owner_name !== undefined) updateData.owner_name = updates.owner_name;
 
-    
+
 
     // Update the user
     const { data, error } = await supabase
@@ -910,31 +909,31 @@ app.patch('/api/users/:id', async (req, res) => {
 
     if (error) {
       console.error('[PATCH /api/users/:id] Supabase error:', error);
-      return res.status(500).json({ 
-        success: false, 
+      return res.status(500).json({
+        success: false,
         error: error.message || 'Failed to update profile',
-        details: error 
+        details: error
       });
     }
 
     if (!data) {
       console.error('[PATCH /api/users/:id] No data returned');
-      return res.status(404).json({ 
-        success: false, 
-        error: 'User not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
       });
     }
 
-    
-    return res.json({ 
-      success: true, 
-      user: data 
+
+    return res.json({
+      success: true,
+      user: data
     });
   } catch (error: any) {
     console.error('[PATCH /api/users/:id] Exception:', error);
-    return res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Failed to update profile' 
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update profile'
     });
   }
 });
@@ -944,7 +943,7 @@ app.get('/api/business/:businessId/appointments', requireDb, async (req, res) =>
     const { businessId } = req.params;
     const { includeUnconfirmed } = req.query;
 
-    
+
 
     let query = supabase!
       .from('appointments')
@@ -977,8 +976,8 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
     const { businessId } = req.params;
     const { date, employeeId } = req.query;
     if (!date) return res.status(400).json({ success: false, error: 'date is required (YYYY-MM-DD)' });
-    const startOfDay = new Date(`${ date } T00:00:00`);
-    const endOfDay = new Date(`${ date } T23: 59: 59`);
+    const startOfDay = new Date(`${date} T00:00:00`);
+    const endOfDay = new Date(`${date} T23: 59: 59`);
 
     // Only include active appointments (not cancelled or no-show)
     const activeStatuses = ['scheduled', 'confirmed', 'completed'];
@@ -1078,7 +1077,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       throw existingErr;
     }
 
-    
+
 
     // Check for time slot overlaps
     if (existing && existing.length > 0) {
@@ -1116,7 +1115,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       }
     }
 
-    
+
 
     // Find or create customer by email
     let customerId = '';
@@ -1127,9 +1126,9 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .single();
     if (existingCustomer?.id) {
       customerId = existingCustomer.id;
-      
+
     } else {
-      
+
       const { data: newCustomer, error: custErr } = await supabase!
         .from('customers')
         .insert([{ name, email, phone }])
@@ -1140,7 +1139,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
         throw custErr;
       }
       customerId = newCustomer.id;
-      
+
     }
 
     // Fetch service for duration if not provided
@@ -1154,7 +1153,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       finalDuration = svc?.duration || 30;
     }
 
-    
+
     const { data: inserted, error: insertErr } = await supabase!
       .from('appointments')
       .insert([{
@@ -1181,7 +1180,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       throw insertErr;
     }
 
-    
+
     // Calendar sync will happen when the customer confirms the appointment via email
     // See confirm-appointment.js for calendar sync on confirmation
 
@@ -1232,7 +1231,7 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
       throw error;
     }
 
-    
+
     return res.json({ success: true, appointment: data });
   } catch (error: any) {
     console.error('[PATCH /api/appointments/:id] Error:', {
@@ -1298,7 +1297,7 @@ app.post('/api/customers', requireDb, async (req, res) => {
       });
     }
 
-    
+
 
     const { data, error } = await supabase!
       .from('customers')
@@ -1318,7 +1317,7 @@ app.post('/api/customers', requireDb, async (req, res) => {
       throw error;
     }
 
-    
+
     return res.json({ success: true, customer: data });
   } catch (error: any) {
     console.error('[POST /api/customers] Unexpected error:', error);
@@ -1442,7 +1441,7 @@ app.patch('/api/employees/:id', async (req, res) => {
     const { id } = req.params;
     const updates = req.body || {};
 
-    
+
 
     if (!supabase) {
       const index = devStore.employees.findIndex(e => e.id === id);
@@ -1463,7 +1462,7 @@ app.patch('/api/employees/:id', async (req, res) => {
       throw error;
     }
 
-    
+
     return res.json({ success: true, employee: data });
   } catch (error: any) {
     console.error('[employees/:id PATCH] Handler error:', error);

@@ -38,7 +38,7 @@ export default async (req: Request): Promise<Response> => {
   try {
     let body: ChatRequestBody = {};
     try {
-      body = await req.json();
+      body = await req.json() as ChatRequestBody;
     } catch {
       return new Response(
         JSON.stringify({ error: "Invalid or empty JSON body" }),

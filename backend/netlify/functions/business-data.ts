@@ -40,7 +40,7 @@ async function fetchViaMCP<T = any>(toolName: string, args: Record<string, any>)
     });
     if (!res.ok) return null;
     const json = await res.json();
-    const content = json?.result?.content?.[0];
+    const content = (json as any)?.result?.content?.[0];
     if (content?.type === "json") return content.json as T;
     return null;
   } catch {
@@ -151,7 +151,7 @@ export default async (req: Request): Promise<Response> => {
   try {
     let body: DataRequestBody = {};
     try {
-      body = await req.json();
+      body = await req.json() as DataRequestBody;
     } catch {
       return new Response(JSON.stringify({ error: "Invalid or empty JSON body" }), { status: 400, headers });
     }

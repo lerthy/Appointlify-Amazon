@@ -38,8 +38,8 @@ export function buildGoogleAuthUrl(scopes, stateParam) {
     // Force both account selection and consent to ensure we get fresh tokens
     prompt: 'select_account consent',
   });
-  
-  : ', url.substring(0, 100) + '...');
+
+  console.log('[buildGoogleAuthUrl] Generated URL (truncated):', url.substring(0, 100) + '...');
 
   return url;
 }
