@@ -18,18 +18,18 @@ export function getGoogleOAuthClient() {
 export function buildGoogleAuthUrl(scopes, stateParam) {
   const client = getGoogleOAuthClient();
   const scopeList = Array.isArray(scopes) && scopes.length > 0 ? scopes : undefined;
-  
+
   // Ensure identity scopes are always included for profile access
   const identityScopes = ['openid', 'email', 'profile'];
   const allScopes = scopeList ? [...new Set([...identityScopes, ...scopeList])] : identityScopes;
-  
+
   console.log('[buildGoogleAuthUrl] Building OAuth URL:', {
     requestedScopes: scopeList,
     allScopes,
     redirectUri: googleConfig.redirectUri,
     hasCalendarScope: allScopes.includes(GOOGLE_CALENDAR_SCOPE)
   });
-  
+
   const url = client.generateAuthUrl({
     access_type: allScopes.includes(GOOGLE_CALENDAR_SCOPE) ? 'offline' : 'online',
     scope: allScopes,
@@ -39,8 +39,8 @@ export function buildGoogleAuthUrl(scopes, stateParam) {
     prompt: 'select_account consent',
   });
   
-  console.log('[buildGoogleAuthUrl] Generated URL (first 100 chars):', url.substring(0, 100) + '...');
-  
+  : ', url.substring(0, 100) + '...');
+
   return url;
 }
 
@@ -53,9 +53,9 @@ export async function exchangeCodeForTokens(code) {
       redirectUri: googleConfig.redirectUri,
       clientId: googleConfig.clientId ? `${googleConfig.clientId.substring(0, 20)}...` : 'missing'
     });
-    
+
     const { tokens } = await client.getToken(code);
-    
+
     console.log('[exchangeCodeForTokens] Token exchange successful:', {
       hasAccessToken: !!tokens.access_token,
       hasRefreshToken: !!tokens.refresh_token,
@@ -65,16 +65,16 @@ export async function exchangeCodeForTokens(code) {
       tokenType: tokens.token_type,
       accessTokenLength: tokens.access_token?.length || 0
     });
-    
+
     // Validate we got required tokens
     if (!tokens.access_token && !tokens.id_token) {
       throw new Error('Token exchange returned no access_token or id_token');
     }
-    
+
     if (!tokens.id_token) {
       console.warn('[exchangeCodeForTokens] No id_token received - profile fetch may fail');
     }
-    
+
     return tokens;
   } catch (error) {
     console.error('[exchangeCodeForTokens] Token exchange failed:', {

@@ -26,18 +26,18 @@ export async function handler(event, context) {
 
   try {
     const { name, service, date, time, email, phone } = JSON.parse(event.body);
-    
-    console.log('Booking request received:', { name, service, date, time, email, phone });
-    
+
+
+
     // Here you would integrate with your actual booking system
     // For now, we'll just simulate a successful booking
     const bookingId = `apt_${Date.now()}`;
-    
+
     // You could integrate with Supabase here for actual database storage
     // const { data, error } = await supabase
     //   .from('appointments')
     //   .insert([{ name, service, date, time, email, phone, booking_id: bookingId }]);
-    
+
     return {
       statusCode: 200,
       headers,

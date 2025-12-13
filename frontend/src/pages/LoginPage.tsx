@@ -85,7 +85,7 @@ const LoginPage: React.FC = () => {
       // Log in the user
       login(profileData);
       setIsSubmitting(false);
-      console.log('[LoginPage] Login successful, redirecting to homepage (/)');
+      ');
       navigate('/');
     } catch (err) {
       console.error('Login error:', err);

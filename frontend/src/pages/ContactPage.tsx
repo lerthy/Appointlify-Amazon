@@ -18,7 +18,7 @@ const ContactPage: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     // Here you would typically send the form data to your backend
-    console.log('Form submitted:', formData);
+    
     setTimeout(() => {
       setSubmitted(true);
       setIsSubmitting(false);

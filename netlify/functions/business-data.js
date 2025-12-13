@@ -19,7 +19,7 @@ const { createClient } = require("@supabase/supabase-js");
       FRONTEND_URL: "http://localhost:3000" || process.env.FRONTEND_URL || '*',
       NODE_ENV: process.env.NODE_ENV || 'development',
     });
-  } catch {}
+  } catch { }
 })();
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
@@ -27,8 +27,9 @@ const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 function supabaseServer() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  console.log('[business-data] Using SUPABASE_URL:', url ? (new URL(url).origin) : 'missing');
-  console.log('[business-data] Using SERVICE_ROLE_KEY:', key ? `${String(key).slice(0,4)}***${String(key).slice(-4)} (len ${String(key).length})` : 'missing');
+  .origin) : 'missing');
+  .slice(0, 4)
+}*** ${ String(key).slice(-4) } (len ${ String(key).length })` : 'missing');
   if (!url || !key) throw new Error("Supabase env not configured");
   return createClient(url, key, { auth: { persistSession: false } });
 }
@@ -181,84 +182,84 @@ exports.handler = async (event, context) => {
     json: async () => JSON.parse(event.body || "{}"),
     url: `https://${event.headers.host}${event.path}`
   };
-  
-  const headers = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+
+const headers = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+if (req.method === "OPTIONS") {
+  return { statusCode: 200, headers, body: "" };
+}
+
+if (req.method === "GET") {
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify({
+      status: "business-data function is running",
+      method: "POST",
+      expectedBody: { question: "string", businessId: "optional" },
+      envCheck: {
+        supabase: !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        mcp: !!process.env.MCP_API_KEY
+      }
+    })
   };
+}
 
-  if (req.method === "OPTIONS") {
-    return { statusCode: 200, headers, body: "" };
-  }
+if (req.method !== "POST") {
+  return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed. Use POST with JSON body or GET for status." }) };
+}
 
-  if (req.method === "GET") {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ 
-        status: "business-data function is running",
-        method: "POST",
-        expectedBody: { question: "string", businessId: "optional" },
-        envCheck: {
-          supabase: !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-          mcp: !!process.env.MCP_API_KEY
-        }
-      })
-    };
-  }
-
-  if (req.method !== "POST") {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed. Use POST with JSON body or GET for status." }) };
-  }
-
+try {
+  let body = {};
   try {
-    let body = {};
-    try {
-      body = await req.json();
-    } catch {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or empty JSON body" }) };
-    }
-    const { question, businessId } = body;
-    if (!question || typeof question !== "string") {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing 'question'" }) };
-    }
-
-    const intent = detectIntent(question);
-
-    // Fetch core tables
-    const [appointments, services] = await Promise.all([
-      getAppointments(businessId),
-      getServices(businessId),
-    ]);
-
-    let data = null;
-    switch (intent) {
-      case "popular_days":
-        data = computePopularDays(appointments);
-        break;
-      case "peak_hours":
-        data = computePeakHours(appointments);
-        break;
-      case "service_distribution":
-        data = computeServiceDistribution(appointments, services);
-        break;
-      default:
-        data = { note: "No specific metric detected; provide general insight using available data." };
-    }
-
-    console.log(`[business-data] Returning data for intent "${intent}":`, JSON.stringify(data));
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ intent, data })
-    };
-  } catch (err) {
-    console.error("business-data error", err);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
+    body = await req.json();
+  } catch {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or empty JSON body" }) };
   }
+  const { question, businessId } = body;
+  if (!question || typeof question !== "string") {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing 'question'" }) };
+  }
+
+  const intent = detectIntent(question);
+
+  // Fetch core tables
+  const [appointments, services] = await Promise.all([
+    getAppointments(businessId),
+    getServices(businessId),
+  ]);
+
+  let data = null;
+  switch (intent) {
+    case "popular_days":
+      data = computePopularDays(appointments);
+      break;
+    case "peak_hours":
+      data = computePeakHours(appointments);
+      break;
+    case "service_distribution":
+      data = computeServiceDistribution(appointments, services);
+      break;
+    default:
+      data = { note: "No specific metric detected; provide general insight using available data." };
+  }
+
+    );
+
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify({ intent, data })
+  };
+} catch (err) {
+  console.error("business-data error", err);
+  return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
+}
 };
 
 

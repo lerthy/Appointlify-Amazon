@@ -25,16 +25,16 @@ interface CancellationEmailParams {
 
 export const sendAppointmentConfirmation = async (params: EmailParams): Promise<boolean> => {
   try {
-    console.log('📧 Sending appointment confirmation email to:', params.to_email);
-    
+
+
     // Check if we're in development mode without local server
     const isDevelopment = import.meta.env.DEV;
     const isLocalhost = window.location.hostname === 'localhost';
-    
+
     // In local development (not netlify dev), use Express server endpoint
     if (isDevelopment && isLocalhost && window.location.port !== '8888') {
       // Format the email using the appointment confirmation template
-        const emailHtml = `
+      const emailHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
               <h1 style="margin: 0; color: white;">🎉 Appointment Confirmation - ${params.business_name}</h1>
@@ -85,9 +85,9 @@ export const sendAppointmentConfirmation = async (params: EmailParams): Promise<
             </div>
           </div>
         `;
-      
+
       const emailText = `Appointment Confirmation - ${params.business_name}\n\nHi ${params.to_name},\n\nYour appointment has been confirmed!\n\nDate: ${params.appointment_date}\nTime: ${params.appointment_time}${params.service_name ? `\nService: ${params.service_name}` : ''}${params.confirmation_link ? `\n\nConfirm: ${params.confirmation_link}` : ''}${params.cancel_link ? `\n\nCancel: ${params.cancel_link}` : ''}`;
-      
+
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,45 +98,45 @@ export const sendAppointmentConfirmation = async (params: EmailParams): Promise<
           text: emailText
         }),
       });
-      
+
       if (!res.ok) {
         const errorText = await res.text();
         console.error('Email HTTP error:', res.status, errorText);
         return false;
       }
-      
+
       const data = await res.json();
-      console.log('Email response:', data);
-      
+
+
       if (data.success) {
-        console.log('✅ Email sent successfully!');
+
         return true;
       } else {
         console.error('❌ Email failed:', data.error);
         return false;
       }
     }
-    
+
     // Use Netlify function (production or netlify dev)
     const res = await fetch('/.netlify/functions/send-appointment-confirmation', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
-    
+
     // Check if request was successful
     if (!res.ok) {
       console.warn(`⚠️ Netlify function returned ${res.status}. Email functionality requires Netlify deployment or 'netlify dev'.`);
-      console.log('📝 Email details that would be sent:', params);
+
       // Don't fail the booking, just log the email details
       return true;
     }
-    
+
     const data = await res.json();
-    console.log('Email response:', data);
-    
+
+
     if (data.success) {
-      console.log('✅ Email sent successfully!');
+
       return true;
     } else {
       console.error('❌ Email failed:', data.error);
@@ -144,7 +144,7 @@ export const sendAppointmentConfirmation = async (params: EmailParams): Promise<
     }
   } catch (error) {
     console.error('⚠️ Email service error:', error);
-    console.log('📝 Email details that would be sent:', params);
+
     // Don't fail the booking if email fails
     return true;
   }

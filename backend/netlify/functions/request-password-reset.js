@@ -42,21 +42,21 @@ function checkRateLimit(identifier, maxRequests) {
   cleanupRateLimit();
   const now = Date.now();
   const data = rateLimitStore.get(identifier);
-  
+
   if (!data) {
     rateLimitStore.set(identifier, { count: 1, windowStart: now });
     return true;
   }
-  
+
   if (now - data.windowStart > RATE_LIMIT_WINDOW) {
     rateLimitStore.set(identifier, { count: 1, windowStart: now });
     return true;
   }
-  
+
   if (data.count >= maxRequests) {
     return false;
   }
-  
+
   data.count++;
   return true;
 }
@@ -88,33 +88,33 @@ export const handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
-    return { 
-      statusCode: 405, 
+    return {
+      statusCode: 405,
       headers,
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
   // Generic success response for security (timing attack prevention)
-  const genericResponse = { 
-    statusCode: 200, 
+  const genericResponse = {
+    statusCode: 200,
     headers,
-    body: JSON.stringify({ 
-      ok: true, 
-      message: 'If an account exists for that email, a reset link has been sent.' 
+    body: JSON.stringify({
+      ok: true,
+      message: 'If an account exists for that email, a reset link has been sent.'
     })
   };
 
   try {
     const { email } = JSON.parse(event.body || '{}');
-    
+
     // Input validation
     if (!email || typeof email !== 'string') {
       return genericResponse;
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    
+
     if (!validateEmail(normalizedEmail)) {
       return genericResponse;
     }
@@ -126,25 +126,25 @@ export const handler = async (event) => {
 
     // Rate limiting
     const clientIP = event.headers['x-forwarded-for'] || event.headers['x-real-ip'] || 'unknown';
-    
+
     if (!checkRateLimit(`email:${normalizedEmail}`, MAX_REQUESTS_PER_EMAIL)) {
       console.warn(`Rate limit exceeded for email: ${normalizedEmail}`);
       return {
         statusCode: 429,
         headers,
-        body: JSON.stringify({ 
-          error: 'Too many password reset requests. Please wait before trying again.' 
+        body: JSON.stringify({
+          error: 'Too many password reset requests. Please wait before trying again.'
         })
       };
     }
-    
+
     if (!checkRateLimit(`ip:${clientIP}`, MAX_REQUESTS_PER_IP)) {
       console.warn(`Rate limit exceeded for IP: ${clientIP}`);
       return {
         statusCode: 429,
         headers,
-        body: JSON.stringify({ 
-          error: 'Too many requests from this IP. Please wait before trying again.' 
+        body: JSON.stringify({
+          error: 'Too many requests from this IP. Please wait before trying again.'
         })
       };
     }
@@ -155,10 +155,10 @@ export const handler = async (event) => {
       .select('id, email, name')
       .ilike('email', normalizedEmail)
       .single();
-    
+
     if (error || !user) {
       // Always return success for security (prevent email enumeration)
-      console.log(`Password reset requested for non-existent email: ${normalizedEmail}`);
+
       return genericResponse;
     }
 
@@ -176,11 +176,11 @@ export const handler = async (event) => {
     // Store the token
     const { error: tokenError } = await supabase
       .from('password_reset_tokens')
-      .insert({ 
-        token, 
-        user_id: user.id, 
-        expires_at: expiresAt, 
-        used: false 
+      .insert({
+        token,
+        user_id: user.id,
+        expires_at: expiresAt,
+        used: false
       });
 
     if (tokenError) {
@@ -193,36 +193,36 @@ export const handler = async (event) => {
     }
 
     // Generate reset URL - FORCE production URL WITH EXTREME DEBUGGING
-    console.log('🔥 DEBUGGING LOCALHOST ISSUE:');
-    console.log('🔍 Headers.host:', event.headers.host);
-    console.log('🔍 Headers.origin:', event.headers.origin);
-    console.log('🔍 Headers.referer:', event.headers.referer);
-    console.log('🔍 SITE_URL env var:', SITE_URL);
-    
+
+
+
+
+
+
     // ABSOLUTE FORCE - IGNORE EVERYTHING AND USE PRODUCTION
     let origin = 'https://appointly-ks.netlify.app';
-    
+
     // Check if SITE_URL is set to localhost (this might be the problem!)
     if (SITE_URL) {
-      console.log('🚨 SITE_URL is set to:', SITE_URL);
+
       if (SITE_URL.includes('localhost')) {
-        console.log('🚨 SITE_URL CONTAINS LOCALHOST! Ignoring it!');
+
         origin = 'https://appointly-ks.netlify.app';
       } else {
         origin = SITE_URL;
       }
     }
-    
+
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
-    console.log('🔗 FINAL RESET URL:', resetUrl);
-    console.log('🔥 If this still shows localhost, something is very wrong!');
+
+
 
     // Send email via Nodemailer
     if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
       try {
-        console.log('📧 Setting up Nodemailer transporter...');
-        console.log('SMTP Config:', { host: SMTP_HOST, port: SMTP_PORT, user: SMTP_USER });
-        
+
+
+
         // Create reusable transporter object using SMTP transport
         const transporter = nodemailer.createTransport({
           host: SMTP_HOST,
@@ -238,12 +238,12 @@ export const handler = async (event) => {
           }
         });
 
-        console.log('🔍 Verifying SMTP connection...');
-        
+
+
         // Verify connection configuration
         try {
           await transporter.verify();
-          console.log('✅ SMTP Server is ready to take our messages');
+
         } catch (verifyError) {
           console.error('❌ SMTP verification failed:', verifyError.message);
           throw verifyError;
@@ -355,42 +355,42 @@ ${FROM_NAME} Team`;
           html: emailHtml,
         };
 
-        console.log('📤 Sending email to:', normalizedEmail);
+
         const info = await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent successfully! Message ID:', info.messageId);
-        console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
+        
+        );
         
       } catch (emailError) {
-        console.error('❌ Failed to send password reset email:', emailError.message);
-        console.error('Full error:', emailError);
-        
-        // Don't mark token as used on email failure - let user retry
-        return {
-          statusCode: 500,
-          headers,
-          body: JSON.stringify({ 
-            error: 'Failed to send reset email. Please check your email configuration and try again.',
-            details: emailError.message 
-          })
-        };
-      }
-    } else {
-      console.log('📧 SMTP not configured, reset link would be:', resetUrl);
-      console.warn('Missing SMTP configuration. Need: SMTP_HOST, SMTP_USER, SMTP_PASS');
-      console.log('Current config:', {
-        SMTP_HOST: !!SMTP_HOST,
-        SMTP_USER: !!SMTP_USER, 
-        SMTP_PASS: !!SMTP_PASS
-      });
-    }
+  console.error('❌ Failed to send password reset email:', emailError.message);
+  console.error('Full error:', emailError);
 
-    return genericResponse;
+  // Don't mark token as used on email failure - let user retry
+  return {
+    statusCode: 500,
+    headers,
+    body: JSON.stringify({
+      error: 'Failed to send reset email. Please check your email configuration and try again.',
+      details: emailError.message
+    })
+  };
+}
+    } else {
+
+  console.warn('Missing SMTP configuration. Need: SMTP_HOST, SMTP_USER, SMTP_PASS');
+  console.log('Current config:', {
+    SMTP_HOST: !!SMTP_HOST,
+    SMTP_USER: !!SMTP_USER,
+    SMTP_PASS: !!SMTP_PASS
+  });
+}
+
+return genericResponse;
   } catch (error) {
-    console.error('Password reset request error:', error.message);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Internal server error' })
-    };
-  }
+  console.error('Password reset request error:', error.message);
+  return {
+    statusCode: 500,
+    headers,
+    body: JSON.stringify({ error: 'Internal server error' })
+  };
+}
 };

@@ -11,7 +11,7 @@ export function createSignedRequest(body, apiKey, secret) {
     .createHmac('sha256', secret)
     .update(payload)
     .digest('hex');
-  
+
   return {
     'Content-Type': 'application/json',
     'x-api-key': apiKey,
@@ -28,18 +28,18 @@ export function validateSignedRequest(req, secret) {
     const signature = req.headers.get('x-signature');
     const timestamp = req.headers.get('x-timestamp');
     const apiKey = req.headers.get('x-api-key');
-    
+
     if (!signature || !timestamp || !apiKey) {
       return { valid: false, error: 'Missing required headers' };
     }
-    
+
     // Check for replay attacks (5 minute window)
     const requestTime = parseInt(timestamp);
     const now = Date.now();
     if (now - requestTime > 300000) { // 5 minutes
       return { valid: false, error: 'Request expired' };
     }
-    
+
     // Validate signature
     const body = req.body || '{}';
     const payload = `${timestamp}.${body}`;
@@ -47,12 +47,12 @@ export function validateSignedRequest(req, secret) {
       .createHmac('sha256', secret)
       .update(payload)
       .digest('hex');
-    
+
     const isValid = crypto.timingSafeEqual(
       Buffer.from(signature, 'hex'),
       Buffer.from(expectedSignature, 'hex')
     );
-    
+
     return { valid: isValid, error: isValid ? null : 'Invalid signature' };
   } catch (error) {
     return { valid: false, error: error.message };
@@ -86,31 +86,31 @@ export class RateLimiter {
     this.windowMs = windowMs;
     this.requests = new Map();
   }
-  
+
   isAllowed(clientId) {
     const now = Date.now();
     const clientRequests = this.requests.get(clientId) || [];
-    
+
     // Remove expired requests
     const validRequests = clientRequests.filter(
       time => now - time < this.windowMs
     );
-    
+
     if (validRequests.length >= this.maxRequests) {
       return false;
     }
-    
+
     validRequests.push(now);
     this.requests.set(clientId, validRequests);
-    
+
     // Cleanup old entries periodically
     if (Math.random() < 0.01) { // 1% chance
       this.cleanup(now);
     }
-    
+
     return true;
   }
-  
+
   cleanup(now) {
     for (const [clientId, requests] of this.requests.entries()) {
       const validRequests = requests.filter(
@@ -136,8 +136,8 @@ export function logSecurityEvent(type, details, clientIp = 'unknown') {
     details,
     severity: getSeverity(type)
   };
-  
-  console.log(`SECURITY_EVENT: ${JSON.stringify(logEntry)}`);
+
+} `);
   
   // In production, send critical events to monitoring
   if (logEntry.severity === 'HIGH') {

@@ -12,7 +12,7 @@ const sampleKnowledge = [
     metadata: { category: "insurance", priority: "high" }
   },
   {
-    source: "appointment-guidelines", 
+    source: "appointment-guidelines",
     content: "Please arrive 15 minutes early for your appointment. Bring a valid ID and any relevant medical records. Late arrivals may result in rescheduling.",
     metadata: { category: "appointment", priority: "high" }
   },
@@ -50,7 +50,7 @@ const sampleKnowledge = [
 
 async function ingestKnowledge() {
   try {
-    console.log('📚 Ingesting sample knowledge into MCP knowledge base...\n');
+
 
     const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
 
@@ -58,8 +58,8 @@ async function ingestKnowledge() {
     let errorCount = 0;
 
     for (const item of sampleKnowledge) {
-      console.log(`📝 Ingesting: ${item.source}...`);
-      
+
+
       const mcpRequest = {
         jsonrpc: "2.0",
         id: Date.now(),
@@ -84,18 +84,18 @@ async function ingestKnowledge() {
         if (response.ok) {
           const result = await response.json();
           if (result.result) {
-            console.log(`✅ Success: ${item.source}`);
+
             successCount++;
           } else {
-            console.log(`❌ Error: ${item.source} - ${result.error?.message || 'Unknown error'}`);
+
             errorCount++;
           }
         } else {
-          console.log(`❌ HTTP Error: ${item.source} - ${response.status}`);
+
           errorCount++;
         }
       } catch (error) {
-        console.log(`❌ Network Error: ${item.source} - ${error.message}`);
+
         errorCount++;
       }
 
@@ -103,28 +103,28 @@ async function ingestKnowledge() {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    console.log(`\n📊 Ingest Summary:`);
-    console.log(`✅ Successful: ${successCount}`);
-    console.log(`❌ Failed: ${errorCount}`);
-    console.log(`📚 Total items: ${sampleKnowledge.length}`);
+
+
+
+
 
     if (successCount > 0) {
-      console.log('\n🎉 Knowledge base populated! You can now test RAG functionality.');
-      console.log('\n🧪 Test with questions like:');
-      console.log('- "What are your business hours?"');
-      console.log('- "Do you accept insurance?"');
-      console.log('- "What is your cancellation policy?"');
-      console.log('- "What should I bring to my appointment?"');
+
+
+
+
+
+
     }
 
   } catch (error) {
     console.error('❌ Ingest failed:', error.message);
-    console.log('\n🔧 Troubleshooting:');
-    console.log('1. Make sure your Netlify site is deployed');
-    console.log('2. Check that NETLIFY_URL is set in your environment');
-    console.log('3. Verify MCP function is accessible');
-    console.log('4. MCP now uses FREE Hugging Face embeddings (no API key required!)');
-    console.log('5. Optional: Set HUGGINGFACE_API_KEY for better rate limits');
+
+
+
+
+    ');
+
   }
 }
 

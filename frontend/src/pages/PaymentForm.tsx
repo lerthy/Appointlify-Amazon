@@ -28,7 +28,7 @@ function PaymentForm() {
             }
             setIsLoading(true);
             const { data: authUser, error: authError } = await supabase.auth.getUser();
-            console.log('Auth check:', { authUser, authError, uid: authUser?.user?.id });
+            
 
             const { data: paidUserData, error } = await supabase
                 .from('users')
@@ -39,7 +39,7 @@ function PaymentForm() {
                 console.error('Error fetching payment status:', error);
                 showNotification('Failed to fetch payment status. Please try again.', 'error');
             } else {
-                console.log('Fetched user data:', paidUserData);
+                
                 setPaidUser(paidUserData);
                 if (['basic', 'pro', 'team'].includes(paidUserData?.payment)) {
                     // showNotification('You already have an active plan.', 'error');
@@ -53,7 +53,7 @@ function PaymentForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Payment submitted:', { cardNumber, expiry, cvc, name, plan, userId: user.id, currentPayment: paidUser?.payment });
+        
 
         if (!plan || !['basic', 'pro', 'team'].includes(plan)) {
             console.error('Invalid plan:', plan);
@@ -73,7 +73,7 @@ function PaymentForm() {
                 showNotification('User not found. Please ensure you are logged in correctly.', 'error');
                 return;
             }
-            console.log('User exists:', userCheck);
+            
 
             const { data, error } = await supabase
                 .from('users')
@@ -89,7 +89,7 @@ function PaymentForm() {
                 return;
             }
 
-            console.log('Update successful:', data);
+            
             showNotification('Payment plan updated successfully!', 'success');
             navigate('/dashboard');
         } catch (error) {

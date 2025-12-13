@@ -20,7 +20,7 @@ const RealtimeStatus: React.FC<RealtimeStatusProps> = ({ businessId }) => {
     const statusChannel = supabase
       .channel(`status_${businessId}`)
       .subscribe((status) => {
-        console.log('[RealtimeStatus] Connection status:', status);
+        
         if (status === 'SUBSCRIBED') {
           setIsConnected(true);
           setShowStatus(true);

@@ -19,7 +19,7 @@ import { createClient } from "@supabase/supabase-js";
       FRONTEND_URL: process.env.FRONTEND_URL || '*',
       NODE_ENV: process.env.NODE_ENV || 'development',
     });
-  } catch {}
+  } catch { }
 })();
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
@@ -27,8 +27,9 @@ const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 function supabaseServer() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  console.log('[business-data] Using SUPABASE_URL:', url ? (new URL(url).origin) : 'missing');
-  console.log('[business-data] Using SERVICE_ROLE_KEY:', key ? `${String(key).slice(0,4)}***${String(key).slice(-4)} (len ${String(key).length})` : 'missing');
+  .origin) : 'missing');
+  .slice(0, 4)
+}*** ${ String(key).slice(-4) } (len ${ String(key).length })` : 'missing');
   if (!url || !key) throw new Error("Supabase env not configured");
   return createClient(url, key, { auth: { persistSession: false } });
 }

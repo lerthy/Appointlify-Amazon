@@ -30,33 +30,33 @@ export const handler = async (event, context) => {
   }
 
   try {
-    const { 
-      to_name, 
-      to_email, 
-      appointment_date, 
-      appointment_time, 
-      business_name, 
+    const {
+      to_name,
+      to_email,
+      appointment_date,
+      appointment_time,
+      business_name,
       cancel_link,
       confirmation_link,
-      service_name 
+      service_name
     } = JSON.parse(event.body);
-    
+
     // Validate required fields (same as frontend)
     if (!to_name || !to_email || !appointment_date || !appointment_time || !business_name || !cancel_link) {
-      console.error('Missing required fields:', { 
-        to_name, 
-        to_email, 
-        appointment_date, 
-        appointment_time, 
+      console.error('Missing required fields:', {
+        to_name,
+        to_email,
+        appointment_date,
+        appointment_time,
         business_name,
-        cancel_link 
+        cancel_link
       });
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ 
-          success: false, 
-          error: 'Missing required fields: to_name, to_email, appointment_date, appointment_time, business_name, cancel_link' 
+        body: JSON.stringify({
+          success: false,
+          error: 'Missing required fields: to_name, to_email, appointment_date, appointment_time, business_name, cancel_link'
         })
       };
     }
@@ -99,25 +99,25 @@ export const handler = async (event, context) => {
 
     // Send the email
     const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully via Nodemailer:', result.messageId);
-    
+
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ 
-        success: true, 
+      body: JSON.stringify({
+        success: true,
         messageId: result.messageId,
         message: 'Appointment confirmation email sent successfully via Nodemailer'
       })
     };
   } catch (error) {
     console.error('Error sending appointment confirmation email:', error);
-    
+
     return {
       statusCode: 200, // Don't fail the booking
       headers,
-      body: JSON.stringify({ 
-        success: false, 
+      body: JSON.stringify({
+        success: false,
         error: error.message || 'Failed to send appointment confirmation email'
       })
     };

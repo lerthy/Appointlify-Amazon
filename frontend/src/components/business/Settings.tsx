@@ -127,33 +127,33 @@ const Settings: React.FC = () => {
   }, [refreshCalendarState, user]);
 
   const handleAddBreak = () => {
-    console.log('=== ADD BREAK ATTEMPT ===');
-    console.log('Break start:', breakStart);
-    console.log('Break end:', breakEnd);
-    console.log('Current breaks before add:', breaks);
+    
+    
+    
+    
     
     if (!breakStart || !breakEnd) {
-      console.log('Missing break start or end time');
+      
       return;
     }
     if (breakStart >= breakEnd) {
       setError('Break end time must be after start time');
-      console.log('Invalid time range');
+      
       return;
     }
     
     const newBreak = { start: breakStart, end: breakEnd };
-    console.log('Adding new break:', newBreak);
+    
     
     setBreaks(prev => {
       const newBreaks = [...prev, newBreak];
-      console.log('Updated breaks array:', newBreaks);
+      
       return newBreaks;
     });
     
     setBreakStart('');
     setBreakEnd('');
-    console.log('=== ADD BREAK COMPLETE ===');
+    
   };
 
   const handleRemoveBreak = (index: number) => {
@@ -161,11 +161,11 @@ const Settings: React.FC = () => {
   };
 
   const handleSave = async () => {
-    console.log('=== SAVE ATTEMPT START ===');
-    console.log('Current breaks state:', breaks);
-    console.log('Breaks length:', breaks.length);
-    console.log('Breaks type:', typeof breaks);
-    console.log('Business ID:', businessId);
+    
+    
+    
+    
+    
     
     try {
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -182,15 +182,15 @@ const Settings: React.FC = () => {
         breaks: breaks
       };
       
-      console.log('Settings object being saved:', settingsToSave);
-      console.log('Breaks in settings object:', settingsToSave.breaks);
+      
+      
 
       await updateBusinessSettings(settingsToSave);
 
       setSaved(true);
       setError('');
       setTimeout(() => setSaved(false), 2000);
-      console.log('=== SAVE SUCCESSFUL ===');
+      
     } catch (err) {
       console.error('=== SAVE ERROR ===', err);
       const message = err instanceof Error ? err.message : 'Failed to save settings. Please try again.';

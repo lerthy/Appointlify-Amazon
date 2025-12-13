@@ -32,36 +32,36 @@ exports.handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
-    return { 
-      statusCode: 405, 
+    return {
+      statusCode: 405,
       headers,
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
-  const genericResponse = { 
-    statusCode: 200, 
+  const genericResponse = {
+    statusCode: 200,
     headers,
-    body: JSON.stringify({ 
-      ok: true, 
-      message: 'If an account exists for that email, a reset link has been sent.' 
+    body: JSON.stringify({
+      ok: true,
+      message: 'If an account exists for that email, a reset link has been sent.'
     })
   };
 
   try {
-    console.log('Function started');
-    
+
+
     const { email } = JSON.parse(event.body || '{}');
-    
+
     if (!email || typeof email !== 'string') {
-      console.log('Invalid email');
+
       return genericResponse;
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    
+
     if (!validateEmail(normalizedEmail)) {
-      console.log('Email validation failed');
+
       return genericResponse;
     }
 
@@ -70,19 +70,19 @@ exports.handler = async (event) => {
       return genericResponse;
     }
 
-    console.log('Looking up user...');
+
     const { data: user, error } = await supabase
       .from('users')
       .select('id, email, name')
       .ilike('email', normalizedEmail)
       .single();
-    
+
     if (error || !user) {
-      console.log('User not found');
+
       return genericResponse;
     }
 
-    console.log('User found, creating token...');
+
     const token = generateSecureToken();
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
@@ -96,11 +96,11 @@ exports.handler = async (event) => {
     // Create new token
     const { error: tokenError } = await supabase
       .from('password_reset_tokens')
-      .insert({ 
-        token, 
-        user_id: user.id, 
-        expires_at: expiresAt, 
-        used: false 
+      .insert({
+        token,
+        user_id: user.id,
+        expires_at: expiresAt,
+        used: false
       });
 
     if (tokenError) {
@@ -112,12 +112,12 @@ exports.handler = async (event) => {
       };
     }
 
-    console.log('Token created successfully');
-    
+
+
     // For now, just log the reset URL instead of sending email
     const origin = process.env.SITE_URL || (event.headers.origin || '').replace(/\/$/, '') || `https://${event.headers.host}`;
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
-    console.log('Reset URL would be:', resetUrl);
+
 
     return genericResponse;
 

@@ -25,8 +25,8 @@ export const handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
-    return { 
-      statusCode: 405, 
+    return {
+      statusCode: 405,
       headers,
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
@@ -43,7 +43,7 @@ export const handler = async (event) => {
     }
 
     const nowIso = new Date().toISOString();
-    
+
     // Clean up expired tokens (older than current time)
     const { data: deletedTokens, error: deleteError } = await supabase
       .from('password_reset_tokens')
@@ -77,7 +77,7 @@ export const handler = async (event) => {
     const oldCount = oldTokens ? oldTokens.length : 0;
     const totalCleaned = expiredCount + oldCount;
 
-    console.log(`Cleaned up ${totalCleaned} tokens (${expiredCount} expired, ${oldCount} old)`);
+    `);
 
     return {
       statusCode: 200,
@@ -87,7 +87,7 @@ export const handler = async (event) => {
         cleaned: totalCleaned,
         expired: expiredCount,
         old: oldCount,
-        message: `Successfully cleaned up ${totalCleaned} expired password reset tokens`
+        message: `Successfully cleaned up ${ totalCleaned } expired password reset tokens`
       })
     };
 

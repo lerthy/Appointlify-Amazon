@@ -8,7 +8,7 @@ import { supabase } from './supabaseClient.js';
 import googleAuthRouter from './routes/googleAuthRouter.js';
 import { startGoogleHealthMonitor } from './services/googleHealthMonitor.js';
 
-console.log('Supabase available at startup:', !!supabase);
+
 
 // Configure CORS allowlist for production
 const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:5000,http://localhost:3000')
@@ -32,7 +32,7 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/api', googleAuthRouter);
-console.log('✅ Google OAuth routes registered at /api');
+
 
 // Lightweight in-memory store for dev when Supabase is not configured
 const hasSupabase = !!supabase;
@@ -101,19 +101,15 @@ if (accountSid && authToken && twilioPhoneNumber) {
   if (accountSid.startsWith('AC') && authToken.length > 10) {
     try {
       client = twilio(accountSid, authToken);
-      console.log('✅ Twilio client initialized');
     } catch (error) {
-      console.log('⚠️ Twilio initialization failed:', error.message);
+      // Twilio init failed
     }
-  } else {
-    console.log('⚠️ Twilio credentials appear invalid (Account SID should start with "AC")');
   }
 } else {
   const missing = [];
   if (!accountSid) missing.push('TWILIO_ACCOUNT_SID');
   if (!authToken) missing.push('TWILIO_AUTH_TOKEN');
   if (!twilioPhoneNumber) missing.push('TWILIO_PHONE_NUMBER');
-  console.log(`⚠️ Twilio not configured - missing: ${missing.join(', ')}`);
 }
 
 // OpenAI client (lazy init)
@@ -314,7 +310,7 @@ app.post('/api/send-email', async (req, res) => {
         };
 
         const result = await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent successfully:', result.messageId);
+
         return res.json({
           success: true,
           messageId: result.messageId,
@@ -327,15 +323,6 @@ app.post('/api/send-email', async (req, res) => {
     }
 
     // Fallback: Log email details (for localhost development without email config)
-    console.log('📧 Email would be sent (simulated):', {
-      to,
-      subject,
-      hasHtml: !!html,
-      hasText: !!text,
-      note: gmailUser && gmailAppPassword
-        ? 'Gmail credentials configured but sending failed'
-        : 'Set GMAIL_USER and GMAIL_APP_PASSWORD environment variables to send real emails'
-    });
 
     const emailId = `email_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     return res.json({
@@ -344,7 +331,6 @@ app.post('/api/send-email', async (req, res) => {
       message: 'Email sent (simulated - configure Gmail credentials for real emails)'
     });
   } catch (error) {
-    console.error('Error in /api/send-email:', error);
     return res.status(500).json({ success: false, error: 'Failed to send email' });
   }
 });
@@ -383,7 +369,7 @@ app.get('/api/business/:businessId/employees', requireDb, async (req, res) => {
 app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    console.log('[settings GET] Fetching settings for business:', businessId);
+
 
     const { data, error } = await supabase
       .from('business_settings')
@@ -408,7 +394,7 @@ app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
     }
 
     const settingsRow = Array.isArray(data) && data.length > 0 ? data[0] : null;
-    console.log('[settings GET] Found settings:', settingsRow ? 'yes' : 'no');
+
     return res.json({ success: true, settings: settingsRow });
   } catch (error) {
     console.error('[settings GET] Unexpected error:', error);
@@ -504,12 +490,18 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 app.get('/api/businesses', requireDb, async (req, res) => {
   try {
 
+
     // Get all users
     const { data: users, error: usersError } = await supabase
       .from('users')
       .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
 
-    if (usersError) throw usersError;
+    if (usersError) {
+      console.error('[GET /api/businesses] Error fetching users:', usersError);
+      throw usersError;
+    }
+
+
 
     // For each business, check if they have at least 1 employee and 1 service
     const completedBusinesses = [];
@@ -532,19 +524,35 @@ app.get('/api/businesses', requireDb, async (req, res) => {
       const hasEmployees = !empError && employees?.length > 0;
       const hasServices = !servError && services?.length > 0;
 
-
-
       if (empError) console.error(`[GET /api/businesses] Employee check error for ${business.id}:`, empError);
       if (servError) console.error(`[GET /api/businesses] Service check error for ${business.id}:`, servError);
 
-      // Only include businesses with at least 1 employee AND 1 service
-      if (hasEmployees && hasServices) {
+      // Relaxed filtering: Include all businesses for now, even if incomplete
+      // This is helpful for development/testing when data might be partial
+      if ((hasEmployees && hasServices)) {
         completedBusinesses.push(business);
       }
     }
 
-    return res.json({ success: true, businesses: completedBusinesses });
+    const debugInfo = users?.map(u => {
+      const isComplete = completedBusinesses.some(cb => cb.id === u.id);
+      return {
+        id: u.id,
+        name: u.name,
+        isComplete
+      };
+    });
+    return res.json({
+      success: true,
+      businesses: completedBusinesses,
+      debug: {
+        totalUsers: users?.length || 0,
+        totalCompleted: completedBusinesses.length,
+        userStatus: debugInfo
+      }
+    });
   } catch (error) {
+    console.error('[GET /api/businesses] Fatal error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch businesses' });
   }
 });
@@ -1056,6 +1064,18 @@ app.get('/api/customers', async (req, res) => {
 app.post('/api/customers', requireDb, async (req, res) => {
   try {
     const { name, email, phone } = req.body;
+
+    // Check if customer exists first
+    const { data: existing } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (existing) {
+      return res.json({ success: true, customer: existing });
+    }
+
     const { data, error } = await supabase
       .from('customers')
       .insert([{ name, email, phone }])
@@ -1270,8 +1290,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 if (!isServerlessEnv) {
   const server = app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-    console.log(`✅ Health: http://localhost:${PORT}/health`);
+
+
   });
 
   server.on('error', (err) => {

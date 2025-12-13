@@ -27,21 +27,21 @@ const BookingConfirmationPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('BookingConfirmationPage: location state:', location.state);
-    console.log('BookingConfirmationPage: location search:', location.search);
+    
+    
     
     // Get booking data from location state or URL params
     const stateData = location.state as BookingConfirmationData;
     if (stateData) {
-      console.log('BookingConfirmationPage: Using state data:', stateData);
+      
       setBookingData(stateData);
     } else {
-      console.log('BookingConfirmationPage: No state data, checking URL params');
+      
       // If no state data, try to get from URL params
       const params = new URLSearchParams(location.search);
       const appointmentId = params.get('appointmentId');
       if (appointmentId) {
-        console.log('BookingConfirmationPage: Found appointmentId in URL:', appointmentId);
+        
         // You could fetch the appointment details from the database here
         // For now, we'll show a generic message
         setBookingData({
@@ -58,7 +58,7 @@ const BookingConfirmationPage: React.FC = () => {
           cancelLink: `/cancel/${appointmentId}`
         });
       } else {
-        console.log('BookingConfirmationPage: No appointmentId found in URL');
+        
       }
     }
     setLoading(false);

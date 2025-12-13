@@ -16,7 +16,7 @@ if (supabaseUrl && supabaseServiceRoleKey) {
   supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
-  console.log('✅ Supabase client initialized');
+
 } else {
   console.warn('Supabase backend env missing: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (server will run with limited DB features)');
 }
@@ -33,13 +33,13 @@ const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, cb: CorsOriginCallback) => {
     // Allow non-browser requests (Postman, curl, etc.) or when no allowlist configured
     if (!origin || allowedOrigins.length === 0) {
-      console.log('[CORS] Allowing request - no origin or no allowlist');
+
       return cb(null, true);
     }
     // Normalize origin by removing trailing slash for comparison
     const normalizedOrigin = origin.replace(/\/$/, '');
     if (allowedOrigins.includes(normalizedOrigin) || allowedOrigins.includes('*')) {
-      console.log('[CORS] Allowing request from origin:', normalizedOrigin);
+
       return cb(null, true);
     }
     // Instead of throwing error (which can cause 406), return false to reject
@@ -55,11 +55,11 @@ app.use(cors(corsOptions));
 // Add request logging middleware
 app.use((req, res, next) => {
   if (req.path === '/api/chat' || req.path === '/chat') {
-    console.log('app.ts: Incoming request');
-    console.log('app.ts: Path:', req.path);
-    console.log('app.ts: Original URL:', req.originalUrl);
-    console.log('app.ts: Method:', req.method);
-    console.log('app.ts: Body exists before parsing:', !!req.body);
+
+
+
+
+
   }
   next();
 });
@@ -75,7 +75,7 @@ app.use((req, res, next) => {
       const bodyString = req.body.toString('utf8');
       if (bodyString) {
         req.body = JSON.parse(bodyString);
-        console.log('app.ts: Converted Buffer to parsed JSON');
+
       } else {
         req.body = {};
       }
@@ -94,16 +94,16 @@ app.use((req, res, next) => {
 // Add post-parsing logging
 app.use((req, res, next) => {
   if (req.path === '/api/chat' || req.path === '/chat') {
-    console.log('app.ts: After JSON parsing');
-    console.log('app.ts: Path:', req.path);
-    console.log('app.ts: Body exists:', !!req.body);
-    console.log('app.ts: Body type:', typeof req.body);
+
+
+
+
     if (req.body) {
-      console.log('app.ts: Body keys:', Object.keys(req.body));
-      console.log('app.ts: Body sample:', JSON.stringify(req.body).substring(0, 300));
+      );
+      .substring(0, 300));
     }
   }
-  next();
+next();
 });
 
 // Register Google OAuth routes (after body parsing middleware)
@@ -124,11 +124,11 @@ app.use('/api', (req, res, next) => {
 // Register Google OAuth router
 // Note: When mounting at '/api', routes in the router should be relative (e.g., '/auth/google' not '/api/auth/google')
 app.use('/api', googleAuthRouter);
-console.log('✅ Google OAuth routes registered at /api');
+
 
 // Add a test route to verify router is working
 app.get('/api/integrations/google/test', (req, res) => {
-  console.log('[Test Route] Google OAuth test route hit');
+
   res.json({ success: true, message: 'Google OAuth router is working', path: req.path });
 });
 
@@ -188,7 +188,7 @@ app.get('/', (req, res) => {
 // Middleware: guard DB-backed routes if Supabase isn't configured
 function requireDb(req: any, res: any, next: any) {
   try {
-    console.log('[requireDb] Checking Supabase availability for:', req.path);
+
     if (!supabase) {
       console.error('[requireDb] Supabase client not initialized. Check environment variables.');
       return res.status(503).json({
@@ -197,7 +197,7 @@ function requireDb(req: any, res: any, next: any) {
         details: 'Supabase not configured'
       });
     }
-    console.log('[requireDb] Supabase client available, proceeding');
+
     next();
   } catch (error: any) {
     console.error('[requireDb] Unexpected error:', error);
@@ -218,12 +218,12 @@ let client = null;
 if (accountSid && authToken && accountSid.startsWith('AC') && authToken.length > 10) {
   try {
     client = twilio(accountSid, authToken);
-    console.log('✅ Twilio client initialized');
+
   } catch (error: any) {
-    console.log('⚠️ Twilio initialization failed:', error.message);
+
   }
 } else {
-  console.log('⚠️ Twilio not configured (using placeholder values)');
+  ');
 }
 
 // OpenAI client (lazy init to avoid crashing when no key is set)
@@ -305,94 +305,94 @@ async function getMockAIResponse(messages: any[], context: any) {
 // Handle both /api/chat and /chat paths for compatibility
 const handleChat = async (req: any, res: any) => {
   // Log function invocation immediately
-  console.log('=== CHAT API CALLED ===');
-  console.log('app.ts: Chat endpoint invoked at:', new Date().toISOString());
-  console.log('app.ts: Request body exists:', !!req.body);
-  console.log('app.ts: Request body type:', typeof req.body);
+  
+  .toISOString());
 
-  try {
-    // Handle case where body might be a string (shouldn't happen with express.json() but just in case)
-    let body = req.body;
-    if (typeof body === 'string') {
-      console.log('app.ts: Body is string, parsing JSON');
-      try {
-        body = JSON.parse(body);
-      } catch (parseError) {
-        console.error('app.ts: Failed to parse body as JSON:', parseError);
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid JSON in request body',
-          details: 'Request body must be valid JSON'
-        });
-      }
-    }
 
-    // Validate request body
-    if (!body) {
-      console.error('app.ts: No request body provided');
-      console.error('app.ts: Request headers:', JSON.stringify(req.headers));
+
+try {
+  // Handle case where body might be a string (shouldn't happen with express.json() but just in case)
+  let body = req.body;
+  if (typeof body === 'string') {
+
+    try {
+      body = JSON.parse(body);
+    } catch (parseError) {
+      console.error('app.ts: Failed to parse body as JSON:', parseError);
       return res.status(400).json({
         success: false,
-        error: 'Request body is required',
-        details: 'No request body found'
+        error: 'Invalid JSON in request body',
+        details: 'Request body must be valid JSON'
       });
     }
+  }
 
-    console.log('app.ts: Request body keys:', Object.keys(body || {}));
-    console.log('app.ts: Request body sample:', JSON.stringify(body).substring(0, 200));
+  // Validate request body
+  if (!body) {
+    console.error('app.ts: No request body provided');
+    console.error('app.ts: Request headers:', JSON.stringify(req.headers));
+    return res.status(400).json({
+      success: false,
+      error: 'Request body is required',
+      details: 'No request body found'
+    });
+  }
 
-    const { messages, context } = body;
+    );
+    .substring(0, 200));
 
-    // Validate messages
-    if (!messages) {
-      console.error('app.ts: Messages field is missing');
-      return res.status(400).json({
-        success: false,
-        error: 'Messages field is required',
-        details: 'Request body does not contain messages field'
-      });
-    }
+  const { messages, context } = body;
 
-    if (!Array.isArray(messages)) {
-      console.error('app.ts: Messages is not an array, type:', typeof messages);
-      return res.status(400).json({
-        success: false,
-        error: 'Messages must be an array',
-        details: `Received type: ${typeof messages}`
-      });
-    }
+  // Validate messages
+  if (!messages) {
+    console.error('app.ts: Messages field is missing');
+    return res.status(400).json({
+      success: false,
+      error: 'Messages field is required',
+      details: 'Request body does not contain messages field'
+    });
+  }
 
-    if (messages.length === 0) {
-      console.error('app.ts: Messages array is empty');
-      return res.status(400).json({
-        success: false,
-        error: 'Messages array cannot be empty',
-        details: 'At least one message is required'
-      });
-    }
+  if (!Array.isArray(messages)) {
+    console.error('app.ts: Messages is not an array, type:', typeof messages);
+    return res.status(400).json({
+      success: false,
+      error: 'Messages must be an array',
+      details: `Received type: ${typeof messages}`
+    });
+  }
 
-    // Validate message structure
-    const invalidMessages = messages.filter((msg: any) => !msg || !msg.role || !msg.content);
-    if (invalidMessages.length > 0) {
-      console.error('app.ts: Invalid message structure found:', invalidMessages.length, 'invalid messages');
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid message structure',
-        details: 'All messages must have role and content fields'
-      });
-    }
+  if (messages.length === 0) {
+    console.error('app.ts: Messages array is empty');
+    return res.status(400).json({
+      success: false,
+      error: 'Messages array cannot be empty',
+      details: 'At least one message is required'
+    });
+  }
 
-    console.log('app.ts: Messages count:', messages.length);
-    console.log('app.ts: Context provided:', !!context);
+  // Validate message structure
+  const invalidMessages = messages.filter((msg: any) => !msg || !msg.role || !msg.content);
+  if (invalidMessages.length > 0) {
+    console.error('app.ts: Invalid message structure found:', invalidMessages.length, 'invalid messages');
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid message structure',
+      details: 'All messages must have role and content fields'
+    });
+  }
 
-    // Check provider availability: Groq first, then OpenAI, then mock
-    const useGroq = Boolean(process.env.GROQ_API_KEY);
-    const useOpenAI = Boolean(process.env.OPENAI_API_KEY) && process.env.USE_OPENAI !== 'false';
 
-    console.log('app.ts: Provider flags => useGroq:', useGroq, 'useOpenAI:', useOpenAI);
 
-    // Create system prompt with booking context
-    const systemPrompt = `You are an intelligent booking assistant for ${context?.businessName || 'our business'}. 
+
+  // Check provider availability: Groq first, then OpenAI, then mock
+  const useGroq = Boolean(process.env.GROQ_API_KEY);
+  const useOpenAI = Boolean(process.env.OPENAI_API_KEY) && process.env.USE_OPENAI !== 'false';
+
+
+
+  // Create system prompt with booking context
+  const systemPrompt = `You are an intelligent booking assistant for ${context?.businessName || 'our business'}. 
 You help customers book appointments in a conversational way.
 
 AVAILABLE SERVICES:
@@ -416,151 +416,151 @@ PERSONALITY:
 
 Always respond naturally in conversation. Only use the BOOKING_READY format when you have all required information.`;
 
-    // Prepare messages array with system prompt
-    const chatMessages = [
-      { role: 'system', content: systemPrompt },
-      ...messages.filter((msg: any) => msg && msg.role && msg.content)
-    ];
+  // Prepare messages array with system prompt
+  const chatMessages = [
+    { role: 'system', content: systemPrompt },
+    ...messages.filter((msg: any) => msg && msg.role && msg.content)
+  ];
 
-    // Try Groq first (preferred - fast and free tier available)
-    if (useGroq) {
-      try {
-        const groqApiKey = process.env.GROQ_API_KEY;
-        if (!groqApiKey) {
-          throw new Error('GROQ_API_KEY environment variable is not configured');
-        }
-
-        const groq = new Groq({ apiKey: groqApiKey });
-        const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
-
-        console.log('app.ts: Using Groq provider');
-        console.log('app.ts: Groq API key present:', !!groqApiKey);
-        console.log('app.ts: Groq model:', model);
-        console.log('app.ts: Groq messages count:', chatMessages.length);
-
-        const completion = await groq.chat.completions.create({
-          model,
-          messages: chatMessages,
-          max_tokens: 500,
-          temperature: 0.7,
-        });
-
-        console.log('app.ts: Groq API call successful');
-        const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
-
-        if (!assistantMessage || assistantMessage.trim() === '') {
-          throw new Error('Groq returned empty response');
-        }
-
-        console.log('app.ts: Groq response length:', assistantMessage.length);
-
-        return res.json({
-          success: true,
-          message: assistantMessage,
-          provider: 'groq',
-          model: model
-        });
-      } catch (groqError: any) {
-        console.error('app.ts: Groq API error:', {
-          message: groqError?.message,
-          status: groqError?.status,
-          statusText: groqError?.statusText,
-          error: groqError?.error
-        });
-
-        // If it's an API key error or rate limit, log and fall through to OpenAI/mock
-        if (groqError?.message?.includes('API key') || groqError?.status === 401) {
-          console.error('app.ts: Groq API key error, falling back to OpenAI/Mock');
-        } else if (groqError?.status === 429) {
-          console.error('app.ts: Groq rate limit exceeded, falling back to OpenAI/Mock');
-        } else {
-          console.error('app.ts: Groq error, falling back to OpenAI/Mock:', groqError?.message);
-        }
-        // Fall through to try OpenAI or mock
-      }
-    }
-
-    // Try OpenAI if Groq failed or not available
-    if (useOpenAI) {
-      try {
-        console.log('app.ts: Using OpenAI provider');
-        const openai = getOpenAI();
-        if (!openai) {
-          throw new Error('OPENAI_API_KEY not available');
-        }
-
-        console.log('app.ts: OpenAI client initialized');
-        const completion = await openai.chat.completions.create({
-          model: 'gpt-3.5-turbo',
-          messages: chatMessages,
-          max_tokens: 500,
-          temperature: 0.7,
-        });
-
-        console.log('app.ts: OpenAI API call successful');
-        const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
-
-        return res.json({
-          success: true,
-          message: assistantMessage,
-          provider: 'openai',
-          usage: completion.usage
-        });
-      } catch (openaiError: any) {
-        console.error('app.ts: OpenAI API error:', {
-          message: openaiError?.message,
-          status: openaiError?.status,
-          error: openaiError?.error
-        });
-        // Fall through to mock AI
-      }
-    }
-
-    // Fall back to mock AI service
-    console.log('app.ts: Using mock AI service as fallback');
+  // Try Groq first (preferred - fast and free tier available)
+  if (useGroq) {
     try {
-      const mockResponse = await getMockAIResponse(messages, context || {});
-      return res.json({
-        success: true,
-        message: mockResponse,
-        provider: 'mock',
-        note: 'Using mock AI service. Set GROQ_API_KEY or OPENAI_API_KEY to use AI providers.'
-      });
-    } catch (mockError: any) {
-      console.error('app.ts: Mock AI error:', mockError);
-      // Last resort - return a basic response
-      return res.json({
-        success: true,
-        message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments with various businesses. How can I assist you today?",
-        provider: 'emergency-fallback',
-        note: 'All services unavailable, using emergency fallback.'
-      });
-    }
-  } catch (error: any) {
-    console.error('app.ts: Top-level error in chat endpoint:', {
-      message: error?.message,
-      stack: error?.stack
-    });
+      const groqApiKey = process.env.GROQ_API_KEY;
+      if (!groqApiKey) {
+        throw new Error('GROQ_API_KEY environment variable is not configured');
+      }
 
-    // Always return a response, never 500
-    try {
-      const mockResponse = await getMockAIResponse(req.body?.messages || [], req.body?.context || {});
+      const groq = new Groq({ apiKey: groqApiKey });
+      const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+
+
+
+
+
+
+      const completion = await groq.chat.completions.create({
+        model,
+        messages: chatMessages,
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+
+
+      const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+
+      if (!assistantMessage || assistantMessage.trim() === '') {
+        throw new Error('Groq returned empty response');
+      }
+
+
+
       return res.json({
         success: true,
-        message: mockResponse,
-        provider: 'error-fallback',
-        note: 'Error occurred, using fallback response.'
+        message: assistantMessage,
+        provider: 'groq',
+        model: model
       });
-    } catch (fallbackError: any) {
-      console.error('app.ts: Fallback also failed:', fallbackError);
-      return res.json({
-        success: true,
-        message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments. How can I assist you today?",
-        provider: 'emergency',
-        note: 'Service error, using emergency response.'
+    } catch (groqError: any) {
+      console.error('app.ts: Groq API error:', {
+        message: groqError?.message,
+        status: groqError?.status,
+        statusText: groqError?.statusText,
+        error: groqError?.error
       });
+
+      // If it's an API key error or rate limit, log and fall through to OpenAI/mock
+      if (groqError?.message?.includes('API key') || groqError?.status === 401) {
+        console.error('app.ts: Groq API key error, falling back to OpenAI/Mock');
+      } else if (groqError?.status === 429) {
+        console.error('app.ts: Groq rate limit exceeded, falling back to OpenAI/Mock');
+      } else {
+        console.error('app.ts: Groq error, falling back to OpenAI/Mock:', groqError?.message);
+      }
+      // Fall through to try OpenAI or mock
     }
   }
+
+  // Try OpenAI if Groq failed or not available
+  if (useOpenAI) {
+    try {
+
+      const openai = getOpenAI();
+      if (!openai) {
+        throw new Error('OPENAI_API_KEY not available');
+      }
+
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: chatMessages,
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+
+
+      const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+
+      return res.json({
+        success: true,
+        message: assistantMessage,
+        provider: 'openai',
+        usage: completion.usage
+      });
+    } catch (openaiError: any) {
+      console.error('app.ts: OpenAI API error:', {
+        message: openaiError?.message,
+        status: openaiError?.status,
+        error: openaiError?.error
+      });
+      // Fall through to mock AI
+    }
+  }
+
+  // Fall back to mock AI service
+
+  try {
+    const mockResponse = await getMockAIResponse(messages, context || {});
+    return res.json({
+      success: true,
+      message: mockResponse,
+      provider: 'mock',
+      note: 'Using mock AI service. Set GROQ_API_KEY or OPENAI_API_KEY to use AI providers.'
+    });
+  } catch (mockError: any) {
+    console.error('app.ts: Mock AI error:', mockError);
+    // Last resort - return a basic response
+    return res.json({
+      success: true,
+      message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments with various businesses. How can I assist you today?",
+      provider: 'emergency-fallback',
+      note: 'All services unavailable, using emergency fallback.'
+    });
+  }
+} catch (error: any) {
+  console.error('app.ts: Top-level error in chat endpoint:', {
+    message: error?.message,
+    stack: error?.stack
+  });
+
+  // Always return a response, never 500
+  try {
+    const mockResponse = await getMockAIResponse(req.body?.messages || [], req.body?.context || {});
+    return res.json({
+      success: true,
+      message: mockResponse,
+      provider: 'error-fallback',
+      note: 'Error occurred, using fallback response.'
+    });
+  } catch (fallbackError: any) {
+    console.error('app.ts: Fallback also failed:', fallbackError);
+    return res.json({
+      success: true,
+      message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments. How can I assist you today?",
+      provider: 'emergency',
+      note: 'Service error, using emergency response.'
+    });
+  }
+}
 };
 
 // Register the chat handler for both paths
@@ -573,7 +573,7 @@ app.post('/api/book-appointment', async (req, res) => {
     const { name, service, date, time, email, phone } = req.body;
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Booking request received:', { name, service, date, time, email, phone });
+
     }
 
     // Here you would integrate with your actual booking system
@@ -641,7 +641,7 @@ app.post('/api/send-email', async (req, res) => {
   try {
     const { to, subject, html, text } = req.body;
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Email would be sent:', { to, subject, hasHtml: !!html, hasText: !!text });
+
     }
     const emailId = `email_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     return res.json({ success: true, messageId: emailId, message: 'Email sent successfully (simulated)' });
@@ -655,7 +655,7 @@ app.post('/api/send-email', async (req, res) => {
 app.get('/api/business/:businessId/services', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    console.log('[services] Query start', { businessId, hasSupabase: !!supabase });
+
     const { data, error } = await supabase!
       .from('services')
       .select('*')
@@ -675,7 +675,7 @@ app.get('/api/business/:businessId/services', requireDb, async (req, res) => {
 app.get('/api/business/:businessId/employees', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    console.log('[employees] Query start', { businessId, hasSupabase: !!supabase });
+
     const { data, error } = await supabase!
       .from('employees')
       .select('*')
@@ -752,7 +752,7 @@ app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
     const { businessId } = req.params;
     const { data, created } = await ensureBusinessSettings(businessId);
     if (created) {
-      console.log(`[business/:id/settings GET] Created default settings for business ${businessId}`);
+
     }
     return res.json({ success: true, settings: data || null });
   } catch (error) {
@@ -766,7 +766,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
     const { businessId } = req.params;
     const updates = req.body || {};
 
-    console.log('[business/:id/settings PATCH] Request:', { businessId, updates, hasSupabase: !!supabase });
+
 
     // Ensure a row exists so upsert succeeds
     await ensureBusinessSettings(businessId);
@@ -795,7 +795,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
       throw error;
     }
 
-    console.log('[business/:id/settings PATCH] Success:', data);
+
     return res.json({ success: true, settings: data });
   } catch (error: any) {
     console.error('[business/:id/settings PATCH] Handler error:', error);
@@ -806,7 +806,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 // Get all businesses
 app.get('/api/businesses', requireDb, async (req, res) => {
   try {
-    console.log('[GET /api/businesses] Fetching all businesses...');
+
     const { data, error } = await supabase!
       .from('users')
       .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
@@ -819,7 +819,7 @@ app.get('/api/businesses', requireDb, async (req, res) => {
     // Filter for businesses (role='business' or null, since default is business)
     const businesses = data || [];
 
-    console.log(`[GET /api/businesses] Success: Found ${businesses.length} businesses (from ${data?.length || 0} total users)`);
+    `);
     return res.json({ success: true, businesses });
   } catch (error: any) {
     console.error('[GET /api/businesses] Handler error:', error);
@@ -902,7 +902,7 @@ app.patch('/api/users/:id', async (req, res) => {
     if (updates.category !== undefined) updateData.category = updates.category;
     if (updates.owner_name !== undefined) updateData.owner_name = updates.owner_name;
 
-    console.log('[PATCH /api/users/:id] Updating user:', { id, updateData });
+    
 
     // Update the user
     const { data, error } = await supabase
@@ -929,7 +929,7 @@ app.patch('/api/users/:id', async (req, res) => {
       });
     }
 
-    console.log('[PATCH /api/users/:id] Success:', data);
+    
     return res.json({ 
       success: true, 
       user: data 
@@ -948,7 +948,7 @@ app.get('/api/business/:businessId/appointments', requireDb, async (req, res) =>
     const { businessId } = req.params;
     const { includeUnconfirmed } = req.query;
 
-    console.log('[appointments] Query start', { businessId, includeUnconfirmed, hasSupabase: !!supabase });
+    
 
     let query = supabase!
       .from('appointments')
@@ -981,8 +981,8 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
     const { businessId } = req.params;
     const { date, employeeId } = req.query;
     if (!date) return res.status(400).json({ success: false, error: 'date is required (YYYY-MM-DD)' });
-    const startOfDay = new Date(`${date}T00:00:00`);
-    const endOfDay = new Date(`${date}T23:59:59`);
+    const startOfDay = new Date(`${ date } T00:00:00`);
+    const endOfDay = new Date(`${ date } T23: 59: 59`);
 
     // Only include active appointments (not cancelled or no-show)
     const activeStatuses = ['scheduled', 'confirmed', 'completed'];
@@ -1082,7 +1082,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       throw existingErr;
     }
 
-    console.log('[POST /api/appointments] Found existing appointments:', existing?.length || 0);
+    
 
     // Check for time slot overlaps
     if (existing && existing.length > 0) {
@@ -1120,7 +1120,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       }
     }
 
-    console.log('[POST /api/appointments] No overlaps found, proceeding with booking');
+    
 
     // Find or create customer by email
     let customerId = '';
@@ -1131,9 +1131,9 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .single();
     if (existingCustomer?.id) {
       customerId = existingCustomer.id;
-      console.log('[POST /api/appointments] Found existing customer:', customerId);
+      
     } else {
-      console.log('[POST /api/appointments] Creating new customer');
+      
       const { data: newCustomer, error: custErr } = await supabase!
         .from('customers')
         .insert([{ name, email, phone }])
@@ -1144,7 +1144,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
         throw custErr;
       }
       customerId = newCustomer.id;
-      console.log('[POST /api/appointments] Created new customer:', customerId);
+      
     }
 
     // Fetch service for duration if not provided
@@ -1158,7 +1158,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       finalDuration = svc?.duration || 30;
     }
 
-    console.log('[POST /api/appointments] Inserting appointment');
+    
     const { data: inserted, error: insertErr } = await supabase!
       .from('appointments')
       .insert([{
@@ -1185,7 +1185,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       throw insertErr;
     }
 
-    console.log('[POST /api/appointments] Success! Created appointment:', inserted.id);
+    
     // Calendar sync will happen when the customer confirms the appointment via email
     // See confirm-appointment.js for calendar sync on confirmation
 
@@ -1236,7 +1236,7 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
       throw error;
     }
 
-    console.log('[PATCH /api/appointments/:id] Success:', { id, status, data });
+    
     return res.json({ success: true, appointment: data });
   } catch (error: any) {
     console.error('[PATCH /api/appointments/:id] Error:', {
@@ -1302,7 +1302,7 @@ app.post('/api/customers', requireDb, async (req, res) => {
       });
     }
 
-    console.log('[POST /api/customers] Creating customer:', { name, email, phone });
+    
 
     const { data, error } = await supabase!
       .from('customers')
@@ -1322,7 +1322,7 @@ app.post('/api/customers', requireDb, async (req, res) => {
       throw error;
     }
 
-    console.log('[POST /api/customers] Success:', data?.id);
+    
     return res.json({ success: true, customer: data });
   } catch (error: any) {
     console.error('[POST /api/customers] Unexpected error:', error);
@@ -1446,7 +1446,7 @@ app.patch('/api/employees/:id', async (req, res) => {
     const { id } = req.params;
     const updates = req.body || {};
 
-    console.log('[employees/:id PATCH] Request:', { id, updates, hasSupabase: !!supabase });
+    
 
     if (!supabase) {
       const index = devStore.employees.findIndex(e => e.id === id);
@@ -1467,7 +1467,7 @@ app.patch('/api/employees/:id', async (req, res) => {
       throw error;
     }
 
-    console.log('[employees/:id PATCH] Success:', data);
+    
     return res.json({ success: true, employee: data });
   } catch (error: any) {
     console.error('[employees/:id PATCH] Handler error:', error);

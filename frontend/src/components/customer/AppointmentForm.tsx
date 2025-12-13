@@ -415,33 +415,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       }
 
       // Create or find customer
-      let customerId = '';
-      try {
-        // Try to find existing customer by email
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('email', formData.email)
-          .single();
-        
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-        } else {
-          // Create new customer
-          customerId = await addCustomer({
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone
-          });
-        }
-      } catch (error) {
-        // If customer lookup fails, create new customer
-        customerId = await addCustomer({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone
-        });
-      }
+      // Create or find customer
+      // addCustomer calls /api/customers which handles get-or-create safely
+      const customerId = await addCustomer({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone
+      });
 
       // Add appointment
       const appointmentId = await addAppointment({
@@ -517,7 +497,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       };
 
       // Redirect to confirmation page with booking data
-      console.log('Redirecting to booking confirmation with data:', bookingConfirmationData);
+      
       navigate('/booking-confirmation', { state: bookingConfirmationData });
       
       // Fallback: if navigation doesn't work, redirect after a short delay

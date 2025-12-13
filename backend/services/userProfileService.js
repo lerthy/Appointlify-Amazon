@@ -14,7 +14,7 @@ function ensureDb() {
  */
 export async function getOrCreateSupabaseAuthUser(idToken, email, name, picture) {
   ensureDb();
-  
+
   if (!idToken) {
     throw new Error('Google id_token required');
   }
@@ -44,7 +44,7 @@ export async function getOrCreateSupabaseAuthUser(idToken, email, name, picture)
   if (!listError && existingUsers?.users) {
     const existingUser = existingUsers.users.find(u => u.email === verifiedEmail);
     if (existingUser) {
-      console.log('[getOrCreateSupabaseAuthUser] Found existing user, updating metadata');
+
       // Update metadata to include Google info
       try {
         await supabase.auth.admin.updateUserById(existingUser.id, {
@@ -92,7 +92,7 @@ export async function getOrCreateSupabaseAuthUser(idToken, email, name, picture)
         const { data: retryUsers } = await supabase.auth.admin.listUsers();
         const retryUser = retryUsers?.users?.find(u => u.email === verifiedEmail);
         if (retryUser) {
-          console.log('[getOrCreateSupabaseAuthUser] User created by another process, using existing');
+
           return retryUser;
         }
       }
@@ -105,7 +105,7 @@ export async function getOrCreateSupabaseAuthUser(idToken, email, name, picture)
     const { data: finalUsers } = await supabase.auth.admin.listUsers();
     const finalUser = finalUsers?.users?.find(u => u.email === verifiedEmail);
     if (finalUser) {
-      console.log('[getOrCreateSupabaseAuthUser] Using existing user after error');
+
       return finalUser;
     }
     throw err;

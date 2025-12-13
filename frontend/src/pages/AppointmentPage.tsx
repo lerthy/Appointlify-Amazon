@@ -5,7 +5,7 @@ import Container from '../components/ui/Container';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import { ArrowLeft } from 'lucide-react';
-import { supabase } from '../utils/supabaseClient';
+// import { supabase } from '../utils/supabaseClient';
 import { AppProvider } from '../context/AppContext';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 import { motion } from 'framer-motion';
@@ -28,28 +28,22 @@ const AppointmentPage: React.FC = () => {
     if (!businessId) return;
     const fetchBusiness = async () => {
       setLoading(true);
-      console.log('[AppointmentPage] Fetching business:', businessId);
       
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, name, description, logo, business_address')
-        .eq('id', businessId)
-        .single();
       
-      if (error) {
-        console.error('[AppointmentPage] Error fetching business:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
-      }
-      
-      if (data) {
-        console.log('[AppointmentPage] Business found:', data);
-        setBusiness(data);
-      } else {
-        console.error('[AppointmentPage] No business data returned');
+      try {
+        const res = await fetch(`/api/business/${businessId}/info`);
+        const json = await res.json();
+        
+        if (json.success && json.info) {
+          
+          setBusiness(json.info);
+        } else {
+          console.error('[AppointmentPage] Business not found or error:', json.error);
+          setBusiness(null);
+        }
+      } catch (error) {
+        console.error('[AppointmentPage] Error fetching business:', error);
+        setBusiness(null);
       }
       
       setLoading(false);

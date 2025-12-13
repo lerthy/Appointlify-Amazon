@@ -107,7 +107,7 @@ const RegisterPage: React.FC = () => {
         emailConfirmedAt: authData.user.email_confirmed_at
       });
       
-      console.log('[Registration] ✅ User profile will be created automatically by database trigger');
+      
 
       setIsSubmitting(false);
       alert('Registration successful! Please check your email to verify your account. You must verify your email before you can log in.');

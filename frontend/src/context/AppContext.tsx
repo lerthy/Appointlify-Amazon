@@ -122,13 +122,39 @@ export const AppProvider: React.FC<{
   useEffect(() => {
     const fetchSettings = async () => {
       if (!businessId) return;
+      
+      const applySettings = (data: any) => {
+        if (data) {
+          setBusinessSettings(data);
+        } else {
+          // Verify default settings if backend returns null
+          console.warn('[AppContext] No settings found, using defaults');
+          setBusinessSettings({
+            id: 'default',
+            business_id: businessId,
+            working_hours: [
+              { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+              { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+              { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+              { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+              { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+              { day: 'Saturday', open: '09:00', close: '17:00', isClosed: true },
+              { day: 'Sunday', open: '09:00', close: '17:00', isClosed: true }
+            ],
+            blocked_dates: [],
+            appointment_duration: 30,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          } as BusinessSettings);
+        }
+      };
+
       if (!skipBackend) {
         try {
           const res = await fetch(`/api/business/${businessId}/settings`);
           if (res.ok) {
             const json = await res.json();
-            const data = json?.settings;
-            if (data) setBusinessSettings(data);
+            applySettings(json?.settings);
             return;
           }
           setSkipBackend(true);
@@ -151,7 +177,7 @@ export const AppProvider: React.FC<{
         }
 
         const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
-        setBusinessSettings(row ? (row as unknown as BusinessSettings) : null);
+        applySettings(row);
       } catch (err) {
         console.error('[AppContext] Exception in Supabase fallback for business_settings:', err);
       }
@@ -194,8 +220,6 @@ export const AppProvider: React.FC<{
   useEffect(() => {
     if (!businessId || !enableRealtime) return;
     
-    console.log('[Realtime] Setting up appointment subscription for business:', businessId);
-    
     // Subscribe to all changes in appointments table for this business
     const channel = supabase
       .channel(`appointments_${businessId}`)
@@ -208,11 +232,9 @@ export const AppProvider: React.FC<{
           filter: `business_id=eq.${businessId}`
         },
         (payload) => {
-          console.log('[Realtime] Appointment change detected:', payload);
-          
           if (payload.eventType === 'INSERT') {
             const newAppointment = payload.new as unknown as Appointment;
-            console.log('[Realtime] New appointment:', newAppointment);
+            
             setAppointments(prev => {
               // Check if appointment already exists to avoid duplicates
               if (prev.some(apt => apt.id === newAppointment.id)) {
@@ -225,7 +247,7 @@ export const AppProvider: React.FC<{
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedAppointment = payload.new as unknown as Appointment;
-            console.log('[Realtime] Updated appointment:', updatedAppointment);
+            
             setAppointments(prev =>
               prev.map(apt =>
                 apt.id === updatedAppointment.id ? updatedAppointment : apt
@@ -233,7 +255,7 @@ export const AppProvider: React.FC<{
             );
           } else if (payload.eventType === 'DELETE') {
             const deletedId = (payload.old as any).id;
-            console.log('[Realtime] Deleted appointment:', deletedId);
+            
             setAppointments(prev =>
               prev.filter(apt => apt.id !== deletedId)
             );
@@ -241,12 +263,11 @@ export const AppProvider: React.FC<{
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime] Subscription status:', status);
+        // Subscription status handled internally
       });
 
     // Cleanup subscription on unmount
     return () => {
-      console.log('[Realtime] Cleaning up appointment subscription');
       supabase.removeChannel(channel);
     };
   }, [businessId, enableRealtime]);
@@ -467,7 +488,6 @@ export const AppProvider: React.FC<{
 
   const updateAppointmentStatus = async (id: string, status: Appointment['status']) => {
     try {
-      console.log('[updateAppointmentStatus] Updating:', { id, status });
       const res = await fetch(`/api/appointments/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -485,7 +505,7 @@ export const AppProvider: React.FC<{
       }
       
       const data = await res.json();
-      console.log('[updateAppointmentStatus] Success:', data);
+      
       await refreshAppointments();
     } catch (error) {
       console.error('[updateAppointmentStatus] Exception:', error);
@@ -605,7 +625,7 @@ export const AppProvider: React.FC<{
       throw new Error(json?.error || 'Failed to update business settings');
     }
 
-    console.log('[updateBusinessSettings] Success response:', json);
+    
     if (json?.settings) setBusinessSettings(json.settings as BusinessSettings);
   };
 
