@@ -120,11 +120,6 @@ async function ingestKnowledge() {
   } catch (error) {
     console.error('❌ Ingest failed:', error.message);
 
-
-
-
-    ');
-
   }
 }
 

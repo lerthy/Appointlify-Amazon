@@ -308,12 +308,6 @@ router.get('/auth/google/callback', async (req, res) => {
         signupMethod: 'google',
         name: profile.name,
       });
-      console.log('[auth/google/callback] User profile:', {
-        appUserId: appUser.id,
-        sessionUserId: session.userId,
-        email: appUser.email,
-        match: appUser.id === session.userId
-      });
 
       // If session has a userId but it doesn't match the appUser, log a warning
       if (session.userId && appUser.id !== session.userId) {

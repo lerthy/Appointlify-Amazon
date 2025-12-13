@@ -358,8 +358,6 @@ ${FROM_NAME} Team`;
 
         const info = await transporter.sendMail(mailOptions);
         
-        );
-        
       } catch (emailError) {
   console.error('❌ Failed to send password reset email:', emailError.message);
   console.error('Full error:', emailError);

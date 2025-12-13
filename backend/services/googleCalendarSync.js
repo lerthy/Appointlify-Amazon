@@ -33,7 +33,7 @@ export async function createCalendarEvent(userId, appointment) {
     }
 
     if (appointmentData.confirmation_status !== 'confirmed') {
-      . Skipping calendar sync.`);
+      
       return { 
         success: false, 
         error: 'Appointment must be confirmed via email before syncing to calendar',

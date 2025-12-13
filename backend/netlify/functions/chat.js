@@ -209,7 +209,6 @@ async function getEnhancedContext(chatContext, messages = []) {
 
     if (!businessResult.error && businessResult.result?.content?.[0]?.json) {
       dbContext.businesses = businessResult.result.content[0].json;
-      );
     } else {
 
     }
@@ -235,13 +234,6 @@ async function getEnhancedContext(chatContext, messages = []) {
           sb.from('users').select('id, name, description, logo').limit(50),
           sb.from('services').select('id, name, price, duration, description, business_id').limit(200)
         ]);
-
-        console.log('chat.js: Supabase fallback results:', {
-          businessCount: businesses?.length || 0,
-          serviceCount: services?.length || 0,
-          bizError: bizError?.message,
-          svcError: svcError?.message
-        });
 
         dbContext.businesses = businesses || [];
         dbContext.services = services || [];
@@ -361,8 +353,6 @@ async function handleBookingReady(assistantMessage, headers) {
 // Handle booking confirmation
 async function handleBookingConfirmation(messages, bookingData, headers) {
   try {
-    
-    );
 
     const userMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
 
@@ -554,7 +544,6 @@ async function createAppointment(bookingData) {
     });
 
     const result = await response.json();
-    );
 
     if (result.error) {
       console.error('MCP upsert error:', result.error);
@@ -674,7 +663,7 @@ async function getServiceId(serviceName, businessId) {
     });
 
     const result = await response.json();
-    );
+
 
     if (result.result?.content?.[0]?.json?.[0]) {
       const serviceId = result.result.content[0].json[0].id;
@@ -708,7 +697,7 @@ async function getServiceId(serviceName, businessId) {
     });
 
     const result2 = await response2.json();
-    );
+
 
     if (result2.result?.content?.[0]?.json) {
       const services = result2.result.content[0].json;
@@ -718,7 +707,6 @@ async function getServiceId(serviceName, businessId) {
       );
 
       if (matchingService) {
-        `);
         return matchingService.id;
       }
     }
@@ -760,7 +748,7 @@ async function getOrCreateCustomer(bookingData) {
     });
 
     const result = await response.json();
-    );
+
     
     if (result.result?.content?.[0]?.json?.[0]) {
       const customerId = result.result.content[0].json[0].id;
@@ -799,7 +787,7 @@ async function getOrCreateCustomer(bookingData) {
     });
 
     const createResult = await createResponse.json();
-    );
+
     
     if (createResult.error) {
       throw new Error(createResult.error.message);
@@ -841,7 +829,7 @@ async function getEmployeeId(businessId) {
     });
 
     const result = await response.json();
-    );
+
     
     if (result.result?.content?.[0]?.json?.[0]) {
       const employeeId = result.result.content[0].json[0].id;
@@ -931,7 +919,6 @@ async function sendConfirmationNotifications(bookingData, appointmentId) {
 
             }
           } else {
-        );
           }
         } catch (smsError) {
           console.error('❌ SMS notification failed:', smsError);
@@ -1070,7 +1057,7 @@ async function sendConfirmationNotifications(bookingData, appointmentId) {
       if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(message)) {
         // Get businesses from context
         const businesses = context?.businesses || [];
-    );
+
 
         const businessList = businesses.length > 0
           ? businesses.slice(0, 5).map((b, i) => `${i + 1}. ${b.name}${b.description ? ' - ' + b.description : ''}`).join('\n')
@@ -1151,13 +1138,7 @@ What service are you interested in?`;
     export async function handler(event, context) {
       // Log function invocation immediately - this should always run
       try {
-    
-    .toISOString());
-    
-    
-    
-    );
-    );
+
       } catch (logError) {
         // Even logging can fail, but we continue
         console.error('Failed to log initial info:', logError);
@@ -1248,7 +1229,7 @@ What service are you interested in?`;
 
       try {
     // Get enhanced context with MCP integration
-    );
+
         let dbContext;
         try {
           dbContext = await getEnhancedContext(chatContext || {}, messages);
@@ -1257,7 +1238,7 @@ What service are you interested in?`;
           // Use empty context if getEnhancedContext fails
           dbContext = { businesses: [], services: [], knowledge: [] };
         }
-    );
+
 
         // Query MCP knowledge base for relevant information
         const userMessage = messages[messages.length - 1]?.content || '';

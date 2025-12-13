@@ -27,9 +27,7 @@ const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 function supabaseServer() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  .origin) : 'missing');
-  .slice(0, 4)
-}*** ${ String(key).slice(-4) } (len ${ String(key).length })` : 'missing');
+
   if (!url || !key) throw new Error("Supabase env not configured");
   return createClient(url, key, { auth: { persistSession: false } });
 }

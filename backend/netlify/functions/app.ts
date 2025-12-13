@@ -109,13 +109,7 @@ app.use((req, res, next) => {
 // Add logging middleware to debug routing
 app.use('/api', (req, res, next) => {
   if (req.path?.includes('google') || req.path?.includes('integrations')) {
-    console.log('[Google OAuth Router] Request received:', {
-      method: req.method,
-      path: req.path,
-      originalUrl: req.originalUrl,
-      baseUrl: req.baseUrl,
-      url: req.url
-    });
+    
   }
   next();
 });
@@ -1099,14 +1093,6 @@ app.post('/api/appointments', requireDb, async (req, res) => {
     const endOfDay = new Date(appointmentDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    console.log('[POST /api/appointments] Checking for overlaps:', {
-      business_id,
-      employee_id,
-      appointmentDate: appointmentDate.toISOString(),
-      appointmentEnd: appointmentEnd.toISOString(),
-      duration: duration || 30
-    });
-
     const { data: existing, error: existingErr } = await supabase!
       .from('appointments')
       .select('id, status, date, duration')
@@ -1130,23 +1116,6 @@ app.post('/api/appointments', requireDb, async (req, res) => {
         const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
 
         const overlaps = appointmentDate < existingEnd && appointmentEnd > existingStart;
-
-        if (overlaps) {
-          console.log('[POST /api/appointments] Overlap detected:', {
-            existing: {
-              id: appt.id,
-              start: existingStart.toISOString(),
-              end: existingEnd.toISOString(),
-              duration: appt.duration,
-              status: appt.status
-            },
-            new: {
-              start: appointmentDate.toISOString(),
-              end: appointmentEnd.toISOString(),
-              duration: duration || 30
-            }
-          });
-        }
 
         return overlaps;
       });
@@ -1247,14 +1216,6 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-
-    console.log('[PATCH /api/appointments/:id] Request:', {
-      id,
-      status,
-      body: req.body,
-      hasSupabase: !!supabase
-    });
-
     if (!status) {
       console.error('[PATCH /api/appointments/:id] Missing status in request body');
       return res.status(400).json({

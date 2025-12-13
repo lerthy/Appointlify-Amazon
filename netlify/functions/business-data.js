@@ -27,9 +27,7 @@ const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 function supabaseServer() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  .origin) : 'missing');
-  .slice(0, 4)
-}*** ${ String(key).slice(-4) } (len ${ String(key).length })` : 'missing');
+
   if (!url || !key) throw new Error("Supabase env not configured");
   return createClient(url, key, { auth: { persistSession: false } });
 }
@@ -77,7 +75,7 @@ async function getAppointments(businessId) {
     eq: businessId ? { business_id: String(businessId) } : undefined,
   });
   if (viaMcp) return viaMcp;
-  
+
   // Fallback to direct Supabase - get ALL appointments
   const sb = supabaseServer();
   let query = sb.from("appointments").select("*").limit(2000);
@@ -120,10 +118,10 @@ function computePopularDays(appointments) {
 
 function computePeakHours(appointments) {
   const hourCounts = Array(24).fill(0);
-  
+
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
-    
+
     // KEY INSIGHT: The frontend uses new Date(appointment.date).getHours()
     // When a date string has "+00:00" timezone, JavaScript converts it:
     // - Frontend (user's browser in UTC+2/UTC+3): converts to local time
@@ -136,20 +134,20 @@ function computePeakHours(appointments) {
       // Remove timezone suffix (+00:00, Z, etc.) to force local interpretation
       dateStr = dateStr.replace(/(\+00:00|Z)$/, '');
     }
-    
+
     const d = new Date(dateStr);
     const hour = d.getHours(); // This will now interpret in server's "local" time
-    
+
     // But server is still in UTC, so we need to add offset
     // October dates in Europe are UTC+3 (DST), November+ are UTC+2
     const month = d.getMonth();
     const isDST = month >= 2 && month <= 9; // March to October is DST
     const offset = isDST ? 3 : 2;
     const localHour = (hour + offset) % 24;
-    
+
     hourCounts[localHour]++;
   });
-  
+
   return hourCounts
     .map((count, hour) => ({ hour, count }))
     .filter(h => h.count > 0)
@@ -183,83 +181,80 @@ exports.handler = async (event, context) => {
     url: `https://${event.headers.host}${event.path}`
   };
 
-const headers = {
-  "Content-Type": "application/json",
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
-
-if (req.method === "OPTIONS") {
-  return { statusCode: 200, headers, body: "" };
-}
-
-if (req.method === "GET") {
-  return {
-    statusCode: 200,
-    headers,
-    body: JSON.stringify({
-      status: "business-data function is running",
-      method: "POST",
-      expectedBody: { question: "string", businessId: "optional" },
-      envCheck: {
-        supabase: !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-        mcp: !!process.env.MCP_API_KEY
-      }
-    })
+  const headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
   };
-}
 
-if (req.method !== "POST") {
-  return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed. Use POST with JSON body or GET for status." }) };
-}
+  if (req.method === "OPTIONS") {
+    return { statusCode: 200, headers, body: "" };
+  }
 
-try {
-  let body = {};
+  if (req.method === "GET") {
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        status: "business-data function is running",
+        method: "POST",
+        expectedBody: { question: "string", businessId: "optional" },
+        envCheck: {
+          supabase: !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+          mcp: !!process.env.MCP_API_KEY
+        }
+      })
+    };
+  }
+
+  if (req.method !== "POST") {
+    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed. Use POST with JSON body or GET for status." }) };
+  }
+
   try {
-    body = await req.json();
-  } catch {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or empty JSON body" }) };
+    let body = {};
+    try {
+      body = await req.json();
+    } catch {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid or empty JSON body" }) };
+    }
+    const { question, businessId } = body;
+    if (!question || typeof question !== "string") {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing 'question'" }) };
+    }
+
+    const intent = detectIntent(question);
+
+    // Fetch core tables
+    const [appointments, services] = await Promise.all([
+      getAppointments(businessId),
+      getServices(businessId),
+    ]);
+
+    let data = null;
+    switch (intent) {
+      case "popular_days":
+        data = computePopularDays(appointments);
+        break;
+      case "peak_hours":
+        data = computePeakHours(appointments);
+        break;
+      case "service_distribution":
+        data = computeServiceDistribution(appointments, services);
+        break;
+      default:
+        data = { note: "No specific metric detected; provide general insight using available data." };
+    }
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ intent, data })
+    };
+  } catch (err) {
+    console.error("business-data error", err);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
   }
-  const { question, businessId } = body;
-  if (!question || typeof question !== "string") {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing 'question'" }) };
-  }
-
-  const intent = detectIntent(question);
-
-  // Fetch core tables
-  const [appointments, services] = await Promise.all([
-    getAppointments(businessId),
-    getServices(businessId),
-  ]);
-
-  let data = null;
-  switch (intent) {
-    case "popular_days":
-      data = computePopularDays(appointments);
-      break;
-    case "peak_hours":
-      data = computePeakHours(appointments);
-      break;
-    case "service_distribution":
-      data = computeServiceDistribution(appointments, services);
-      break;
-    default:
-      data = { note: "No specific metric detected; provide general insight using available data." };
-  }
-
-    );
-
-  return {
-    statusCode: 200,
-    headers,
-    body: JSON.stringify({ intent, data })
-  };
-} catch (err) {
-  console.error("business-data error", err);
-  return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
-}
 };
-
 

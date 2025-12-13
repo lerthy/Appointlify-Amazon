@@ -77,7 +77,6 @@ export const handler = async (event) => {
     const oldCount = oldTokens ? oldTokens.length : 0;
     const totalCleaned = expiredCount + oldCount;
 
-    `);
 
     return {
       statusCode: 200,

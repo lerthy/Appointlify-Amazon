@@ -136,8 +136,6 @@ export function logSecurityEvent(type, details, clientIp = 'unknown') {
     details,
     severity: getSeverity(type)
   };
-
-} `);
   
   // In production, send critical events to monitoring
   if (logEntry.severity === 'HIGH') {

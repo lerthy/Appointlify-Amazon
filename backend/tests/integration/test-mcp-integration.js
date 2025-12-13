@@ -35,8 +35,7 @@ async function testMCPIntegration() {
 
     if (mcpResponse.ok) {
       const mcpResult = await mcpResponse.json();
-      
-      );
+
     } else {
 
     }
@@ -107,27 +106,25 @@ async function testMCPIntegration() {
 
       if (testResponse.ok) {
         const testResult = await testResponse.json();
-      }...`);
-        
       } else {
-        
+
       }
     }
 
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 
   } catch (error) {
     console.error('❌ Test failed:', error.message);
-    
-    
-    
-    
-    
+
+
+
+
+
   }
 }
 

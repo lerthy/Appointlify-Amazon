@@ -65,15 +65,6 @@ async function runMigration() {
     }
 
 
-
-    ');
-    ');
-
-
-
-
-
-
     // Verify the changes by checking if columns exist
     const { data: usersData, error: usersError } = await supabase
       .from('users')
@@ -92,13 +83,6 @@ async function runMigration() {
     if (!appointmentsError) {
 
     }
-
-
-
-
-    ');
-    ');
-    ');
 
   } catch (error) {
     console.error('❌ Migration failed:', error);

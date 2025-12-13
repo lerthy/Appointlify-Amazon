@@ -451,8 +451,6 @@ function logSecurityEvent(type, details, clientIp = 'unknown') {
     details,
     userAgent: details.userAgent || 'unknown'
   };
-
-} `);
   
   // In production, send to monitoring service
   // await sendToMonitoring(logEntry);

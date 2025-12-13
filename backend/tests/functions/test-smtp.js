@@ -115,9 +115,6 @@ If you receive this, your SMTP configuration is working correctly!`,
 
     try {
       const info = await transporter.sendMail(mailOptions);
-      
-      
-      );
 
       return {
         statusCode: 200,

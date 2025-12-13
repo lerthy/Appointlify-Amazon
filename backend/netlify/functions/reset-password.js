@@ -106,7 +106,7 @@ export const handler = async (event) => {
       .single();
 
     if (tokenError || !tokenData) {
-      + '...');
+
       return {
         statusCode: 400,
         headers,
@@ -116,7 +116,7 @@ export const handler = async (event) => {
 
     // Check if token is already used
     if (tokenData.used) {
-      + '...');
+
       return {
         statusCode: 400,
         headers,
@@ -126,7 +126,6 @@ export const handler = async (event) => {
 
     // Check if token is expired
     if (tokenData.expires_at <= nowIso) {
-      + '...');
 
       // Mark expired token as used
       await supabase
