@@ -36,6 +36,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   };
 
   // Get available dates (next 14 days, excluding closed days and blocked dates)
+  // Get available dates (next 14 days, excluding closed days and blocked dates)
   const getAvailableDates = () => {
     const dates = [];
     const today = new Date();
@@ -53,8 +54,21 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       
       const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
       const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
+      
       // Exclude blocked dates and closed days
       if (dayWorkingHours && !dayWorkingHours.isClosed && !blockedDates.includes(dateString)) {
+        // If it's today, check if we are past closing time
+        if (i === 0) {
+          const now = new Date();
+          const [closeHour, closeMinute] = dayWorkingHours.close.split(':').map(Number);
+          const closeTime = new Date(now);
+          closeTime.setHours(closeHour, closeMinute, 0, 0);
+          
+          // If current time is past or equal to closing time, skip today
+          if (now >= closeTime) {
+            continue;
+          }
+        }
         dates.push(date);
       }
     }
