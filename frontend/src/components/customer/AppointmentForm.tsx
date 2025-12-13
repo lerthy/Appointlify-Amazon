@@ -45,7 +45,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     for (let i = 0; i < 14; i++) {
       const date = new Date();
       date.setDate(today.getDate() + i);
-      const dateString = date.toISOString().split('T')[0];
+      // Use local date string YYYY-MM-DD
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
       const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
       const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
       // Exclude blocked dates and closed days
@@ -68,7 +73,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     
     const selectedDate = parseLocalDate(formData.date);
     const now = new Date();
-    const isToday = selectedDate.toDateString() === now.toDateString();
+    const isToday = selectedDate.getDate() === now.getDate() &&
+                    selectedDate.getMonth() === now.getMonth() &&
+                    selectedDate.getFullYear() === now.getFullYear();
     
     if (!isToday) return false;
     
@@ -119,9 +126,15 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   // Initialize form data when employees and services are loaded
   useEffect(() => {
     if (businessServices.length > 0 && businessEmployees.length > 0 && availableDates.length > 0) {
+      const firstDate = availableDates[0];
+      const year = firstDate.getFullYear();
+      const month = String(firstDate.getMonth() + 1).padStart(2, '0');
+      const day = String(firstDate.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+
       setFormData(prev => ({
         ...prev,
-        date: prev.date || availableDates[0].toISOString().split('T')[0]
+        date: prev.date || dateString
       }));
     }
   }, [businessServices.length, businessEmployees.length, availableDates.length]);
@@ -254,10 +267,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     
     // Get current date and time to check for past slots
     const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
+    const isToday = date.getDate() === now.getDate() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getFullYear() === now.getFullYear();
     
-    // No buffer: show the next available slot strictly after the current time
-    const currentTimeWithBuffer = now;
+    // Buffer: current time + 5 minutes
+    const currentTimeWithBuffer = new Date(now.getTime() + 5 * 60000);
     
     while (currentTime < closeTime) {
       const timeString = currentTime.toTimeString().slice(0, 5);
