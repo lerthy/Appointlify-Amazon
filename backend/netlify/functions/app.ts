@@ -1018,8 +1018,10 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
     const { businessId } = req.params;
     const { date, employeeId } = req.query;
     if (!date) return res.status(400).json({ success: false, error: 'date is required (YYYY-MM-DD)' });
-    const startOfDay = new Date(`${date} T00:00:00`);
-    const endOfDay = new Date(`${date} T23: 59: 59`);
+
+    // Fix: Remove spaces before/after T to avoid Invalid Time Value
+    const startOfDay = new Date(`${date}T00:00:00`);
+    const endOfDay = new Date(`${date}T23:59:59`);
 
     // Only include active appointments (not cancelled or no-show)
     const activeStatuses = ['scheduled', 'confirmed', 'completed'];
