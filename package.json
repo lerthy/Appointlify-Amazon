@@ -11,7 +11,7 @@
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run dev",
     "server": "npm --prefix backend run start",
-    "build": "npm --prefix backend/netlify/functions ci || npm --prefix backend/netlify/functions install && npm --prefix frontend run build",
+    "build": "npm --prefix backend/netlify/functions install && npm --prefix frontend run build",
     "preview": "npm --prefix frontend run preview",
     "lint": "npm --prefix frontend run lint",
     "mcp:supabase": "npx -y @supabase/mcp-server-supabase@latest"
