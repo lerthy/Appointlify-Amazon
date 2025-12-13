@@ -819,8 +819,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 // Get all businesses
 app.get('/api/businesses', requireDb, async (req, res) => {
   try {
-
-    const { data, error } = await supabase!
+    const { data: users, error } = await supabase!
       .from('users')
       .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
 
@@ -829,10 +828,36 @@ app.get('/api/businesses', requireDb, async (req, res) => {
       throw error;
     }
 
-    // Filter for businesses (role='business' or null, since default is business)
-    const businesses = data || [];
+    // Filter for businesses that have at least 1 employee and 1 service
+    const completedBusinesses = [];
 
-    return res.json({ success: true, businesses });
+    for (const business of users || []) {
+      // Check for employees
+      const { data: employees, error: empError } = await supabase!
+        .from('employees')
+        .select('id')
+        .eq('business_id', business.id)
+        .limit(1);
+
+      // Check for services
+      const { data: services, error: servError } = await supabase!
+        .from('services')
+        .select('id')
+        .eq('business_id', business.id)
+        .limit(1);
+
+      const hasEmployees = !empError && employees && employees.length > 0;
+      const hasServices = !servError && services && services.length > 0;
+
+      if (empError) console.error(`[GET /api/businesses] Employee check error for ${business.id}:`, empError);
+      if (servError) console.error(`[GET /api/businesses] Service check error for ${business.id}:`, servError);
+
+      if (hasEmployees && hasServices) {
+        completedBusinesses.push(business);
+      }
+    }
+
+    return res.json({ success: true, businesses: completedBusinesses });
   } catch (error: any) {
     console.error('[GET /api/businesses] Handler error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch businesses', details: error.message });
