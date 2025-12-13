@@ -124,31 +124,28 @@ export class BookingService {
     try {
       const settings = await this.getBusinessSettings();
       if (!settings) {
-
         return [];
       }
 
       const selectedDate = new Date(date);
       const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-      ${ employeeId ? ` for employee ${employeeId}` : '' } `);
-      
+
       // Find working hours for this day
       const daySettings = settings.working_hours.find(h => h.day === dayOfWeek);
       if (!daySettings || daySettings.isClosed) {
-        
         return [];
       }
 
-      
+
 
       // Generate time slots
       const timeSlots = this.generateTimeSlots(daySettings.open, daySettings.close, serviceDuration, selectedDate);
-      
-      
+
+
       // Filter out booked times (optionally for specific employee)
       const availableSlots = await this.filterBookedSlots(date, timeSlots, serviceDuration, employeeId);
-      
-      
+
+
       return availableSlots;
     } catch (error) {
       console.error('Error getting available times:', error);
@@ -160,9 +157,9 @@ export class BookingService {
   async checkAvailability(date: string, time: string, serviceDuration: number = 60, employeeId?: string): Promise<boolean> {
     try {
       const availableTimes = await this.getAvailableTimes(date, serviceDuration, employeeId);
-      
+
       const isAvailable = availableTimes.includes(time);
-      
+
       return isAvailable;
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -175,10 +172,10 @@ export class BookingService {
     try {
       // Validate availability
       const isAvailable = await this.checkAvailability(bookingData.date, bookingData.time, 60);
-      
-      
+
+
       if (!isAvailable) {
-        
+
         // For now, we'll proceed with the booking even if availability check fails
         // This allows the booking to work while we debug the availability system
       }
@@ -193,15 +190,16 @@ export class BookingService {
       }
 
       // Create appointment date
-      const appointmentDateTime = new Date(`${ bookingData.date }T${ bookingData.time } `);
-      
+      // Create appointment date
+      const appointmentDateTime = new Date(`${bookingData.date}T${bookingData.time}`);
+
       // Generate confirmation token
       const confirmationToken = Array.from(window.crypto.getRandomValues(new Uint8Array(32)))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
       const tokenExpiry = new Date();
       tokenExpiry.setHours(tokenExpiry.getHours() + 48); // 48 hour expiry
-      
+
       // Create appointment
       const { data: appointment, error } = await supabase
         .from('appointments')
@@ -290,7 +288,7 @@ export class BookingService {
   // Check if date is available (not blocked, is working day)
   private isDateAvailable(date: Date, settings: BusinessSettings): boolean {
     const dateString = date.toISOString().split('T')[0];
-    
+
     // Check if date is blocked
     if (settings.blocked_dates.includes(dateString)) {
       return false;
@@ -298,54 +296,54 @@ export class BookingService {
 
     // Check if it's a working day
     const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
-    const daySettings = settings.working_hours.find(h => h.day === dayOfWeek) || false  ;
-    
+    const daySettings = settings.working_hours.find(h => h.day === dayOfWeek) || false;
+
     return daySettings && !daySettings.isClosed;
   }
 
   // Generate time slots between open and close times
   private generateTimeSlots(openTime: string, closeTime: string, duration: number, selectedDate?: Date): string[] {
     const slots: string[] = [];
-    const open = new Date(`2000-01-01T${ openTime } `);
-    const close = new Date(`2000-01-01T${ closeTime } `);
-    
+    const open = new Date(`2000-01-01T${openTime}`);
+    const close = new Date(`2000-01-01T${closeTime}`);
+
     let current = new Date(open);
-    
+
     // Get current date and time to check for past slots
     const now = new Date();
     const isToday = selectedDate ? selectedDate.toDateString() === now.toDateString() : false;
-    
+
     // Add 15 minutes buffer to current time to allow reasonable booking window
     const currentTimeWithBuffer = new Date(now);
     currentTimeWithBuffer.setMinutes(currentTimeWithBuffer.getMinutes() + 15);
-    
+
     while (current < close) {
       const timeString = current.toTimeString().slice(0, 5);
-      
+
       // Skip past times if the selected date is today (with 15-minute buffer)
       if (isToday && selectedDate) {
         const slotDateTime = new Date(selectedDate);
         const [hours, minutes] = timeString.split(':').map(Number);
         slotDateTime.setHours(hours, minutes, 0, 0);
-        
+
         if (slotDateTime < currentTimeWithBuffer) {
           current.setMinutes(current.getMinutes() + duration);
           continue;
         }
       }
-      
+
       slots.push(timeString);
       current.setMinutes(current.getMinutes() + duration);
     }
-    
+
     return slots;
   }
 
   // Filter out already booked time slots
   private async filterBookedSlots(date: string, timeSlots: string[], duration: number, employeeId?: string): Promise<string[]> {
     try {
-      const startOfDay = new Date(`${ date } T00:00:00`);
-      const endOfDay = new Date(`${ date } T23: 59: 59`);
+      const startOfDay = new Date(`${date}T00:00:00`);
+      const endOfDay = new Date(`${date}T23:59:59`);
 
       let query = supabase
         .from('appointments')
@@ -364,10 +362,10 @@ export class BookingService {
       if (!existingAppointments) return timeSlots;
 
       const bookedSlots = new Set<string>();
-      
+
       existingAppointments.forEach(appointment => {
         const appointmentTime = new Date(appointment.date);
-        
+
         // Add all slots that overlap with this appointment
         for (let i = 0; i < Math.max(appointment.duration, duration); i += 30) {
           const slotTime = new Date(appointmentTime);
@@ -388,7 +386,7 @@ export class BookingService {
     try {
       const businessSettings = await this.getBusinessSettings();
       const businessName = businessSettings?.name || 'Our Business';
-      
+
       const appointmentDate = new Date(appointment.date);
       const dateString = appointmentDate.toLocaleDateString('en-US', {
         weekday: 'long',
@@ -409,87 +407,81 @@ export class BookingService {
           .select('confirmation_token')
           .eq('id', appointment.id)
           .single();
-        
+
         if (appointmentData?.confirmation_token) {
-          confirmationLink = `${ window.location.origin }/confirm-appointment?token=${appointmentData.confirmation_token}`;
-    }
-      } catch(error) {
-    console.warn('Could not fetch confirmation token:', error);
-  }
+          confirmationLink = `${window.location.origin}/confirm-appointment?token=${appointmentData.confirmation_token}`;
+        }
+      } catch (error) {
+        console.warn('Could not fetch confirmation token:', error);
+      }
 
       // Send email (don't let it fail the booking)
       try {
-  await sendAppointmentConfirmation({
-    to_name: appointment.name,
-    to_email: appointment.email,
-    appointment_date: dateString,
-    appointment_time: timeString,
-    business_name: businessName,
-    service_name: service.name,
-    cancel_link: `${window.location.origin}/cancel/${appointment.id}`,
-    confirmation_link: confirmationLink || undefined
-  });
+        await sendAppointmentConfirmation({
+          to_name: appointment.name,
+          to_email: appointment.email,
+          appointment_date: dateString,
+          appointment_time: timeString,
+          business_name: businessName,
+          service_name: service.name,
+          cancel_link: `${window.location.origin}/cancel/${appointment.id}`,
+          confirmation_link: confirmationLink || undefined
+        });
 
-} catch (emailError) {
-  console.error('❌ Email notification failed:', emailError);
-  // Continue with SMS even if email fails
-}
+      } catch (emailError) {
+        console.error('❌ Email notification failed:', emailError);
+        // Continue with SMS even if email fails
+      }
 
-// Send SMS (don't let it fail the booking)
-try {
-  const smsMessage = `Hi ${appointment.name}! Your ${service.name} appointment is confirmed for ${dateString} at ${timeString}. Reply STOP to cancel.`;
-  const smsResult = await sendSMS({
-    to: appointment.phone,
-    message: smsMessage
-  });
-
-  if (smsResult) {
-
-  } else {
-
-  }
-} catch (smsError) {
-  console.error('❌ SMS notification failed:', smsError);
-  // Continue even if SMS fails
-}
+      // Send SMS (don't let it fail the booking)
+      try {
+        const smsMessage = `Hi ${appointment.name}! Your ${service.name} appointment is confirmed for ${dateString} at ${timeString}. Reply STOP to cancel.`;
+        const smsResult = await sendSMS({
+          to: appointment.phone,
+          message: smsMessage
+        });
+      } catch (smsError) {
+        console.error('❌ SMS notification failed:', smsError);
+        // Continue even if SMS fails
+      }
 
     } catch (error) {
-  console.error('Error in notification system:', error);
-  // Don't fail the booking if notifications fail
-}
+      console.error('Error in notification system:', error);
+      // Don't fail the booking if notifications fail
+    }
   }
 
   // Get employees for the business
-  async getEmployees(): Promise < Array < { id: string; name: string; role: string } >> {
-  try {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('id, name, role')
-      .eq('business_id', this.businessId)
-      .order('name');
+  async getEmployees(): Promise<Array<{ id: string; name: string; role: string }>> {
+    try {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('id, name, role')
+        .eq('business_id', this.businessId)
+        .order('name');
 
-    if(error) throw error;
-    return data || [];
-  } catch(error) {
-    console.error('Error fetching employees:', error);
-    return [];
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      return [];
+    }
   }
-}
 
   // Get business info
-  async getBusinessInfo(): Promise < { name: string; description?: string; logo?: string } | null > {
-  try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('name, description, logo')
-      .eq('id', this.businessId)
-      .single();
+  async getBusinessInfo(): Promise<{ name: string; description?: string; logo?: string } | null> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('name, description, logo')
+        .eq('id', this.businessId)
+        .single();
 
-    if(error) throw error;
-    return data;
-  } catch(error) {
-    console.error('Error fetching business info:', error);
-    return null;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching business info:', error);
+      return null;
+    }
   }
-}
 }
