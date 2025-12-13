@@ -527,8 +527,6 @@ app.get('/api/businesses', requireDb, async (req, res) => {
       if (empError) console.error(`[GET /api/businesses] Employee check error for ${business.id}:`, empError);
       if (servError) console.error(`[GET /api/businesses] Service check error for ${business.id}:`, servError);
 
-      // Relaxed filtering: Include all businesses for now, even if incomplete
-      // This is helpful for development/testing when data might be partial
       if ((hasEmployees && hasServices)) {
         completedBusinesses.push(business);
       }
