@@ -17,6 +17,9 @@
     "mcp:supabase": "npx -y @supabase/mcp-server-supabase@latest"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.17"
+    "@types/cors": "^2.8.19"
+  },
+  "dependencies": {
+    "groq-sdk": "^0.37.0"
   }
 }

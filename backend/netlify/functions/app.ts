@@ -7,7 +7,7 @@ import Groq from 'groq-sdk';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import googleAuthRouter from '../../routes/googleAuthRouter.js';
 
-// Initialize Supabase client
+// Initialize Supabase client//
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 let supabase: SupabaseClient<any, "public", "public", any, any> | null = null;
@@ -1537,5 +1537,12 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
+
 export default app;
+
+
+
+
+
+
 
