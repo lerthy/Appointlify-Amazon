@@ -99,11 +99,10 @@ app.use((req, res, next) => {
 
 
     if (req.body) {
-      );
-      .substring(0, 300));
+      // Body logging removed
     }
   }
-next();
+  next();
 });
 
 // Register Google OAuth routes (after body parsing middleware)
@@ -223,7 +222,7 @@ if (accountSid && authToken && accountSid.startsWith('AC') && authToken.length >
 
   }
 } else {
-  ');
+  // Twilio not configured
 }
 
 // OpenAI client (lazy init to avoid crashing when no key is set)
@@ -305,94 +304,91 @@ async function getMockAIResponse(messages: any[], context: any) {
 // Handle both /api/chat and /chat paths for compatibility
 const handleChat = async (req: any, res: any) => {
   // Log function invocation immediately
-  
-  .toISOString());
 
 
 
-try {
-  // Handle case where body might be a string (shouldn't happen with express.json() but just in case)
-  let body = req.body;
-  if (typeof body === 'string') {
+  try {
+    // Handle case where body might be a string (shouldn't happen with express.json() but just in case)
+    let body = req.body;
+    if (typeof body === 'string') {
 
-    try {
-      body = JSON.parse(body);
-    } catch (parseError) {
-      console.error('app.ts: Failed to parse body as JSON:', parseError);
+      try {
+        body = JSON.parse(body);
+      } catch (parseError) {
+        console.error('app.ts: Failed to parse body as JSON:', parseError);
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid JSON in request body',
+          details: 'Request body must be valid JSON'
+        });
+      }
+    }
+
+    // Validate request body
+    if (!body) {
+      console.error('app.ts: No request body provided');
+      console.error('app.ts: Request headers:', JSON.stringify(req.headers));
       return res.status(400).json({
         success: false,
-        error: 'Invalid JSON in request body',
-        details: 'Request body must be valid JSON'
+        error: 'Request body is required',
+        details: 'No request body found'
       });
     }
-  }
 
-  // Validate request body
-  if (!body) {
-    console.error('app.ts: No request body provided');
-    console.error('app.ts: Request headers:', JSON.stringify(req.headers));
-    return res.status(400).json({
-      success: false,
-      error: 'Request body is required',
-      details: 'No request body found'
-    });
-  }
+    // Request body validated
 
-    );
-    .substring(0, 200));
+    const { messages, context } = body;
 
-  const { messages, context } = body;
+    // Validate messages
+    if (!messages) {
+      console.error('app.ts: Messages field is missing');
+      return res.status(400).json({
+        success: false,
+        error: 'Messages field is required',
+        details: 'Request body does not contain messages field'
+      });
+    }
 
-  // Validate messages
-  if (!messages) {
-    console.error('app.ts: Messages field is missing');
-    return res.status(400).json({
-      success: false,
-      error: 'Messages field is required',
-      details: 'Request body does not contain messages field'
-    });
-  }
+    if (!Array.isArray(messages)) {
+      console.error('app.ts: Messages is not an array, type:', typeof messages);
+      return res.status(400).json({
+        success: false,
+        error: 'Messages must be an array',
+        details: `Received type: ${typeof messages}`
+      });
+    }
 
-  if (!Array.isArray(messages)) {
-    console.error('app.ts: Messages is not an array, type:', typeof messages);
-    return res.status(400).json({
-      success: false,
-      error: 'Messages must be an array',
-      details: `Received type: ${typeof messages}`
-    });
-  }
+    if (messages.length === 0) {
+      console.error('app.ts: Messages array is empty');
+      return res.status(400).json({
+        success: false,
+        error: 'Messages array cannot be empty',
+        details: 'At least one message is required'
+      });
+    }
 
-  if (messages.length === 0) {
-    console.error('app.ts: Messages array is empty');
-    return res.status(400).json({
-      success: false,
-      error: 'Messages array cannot be empty',
-      details: 'At least one message is required'
-    });
-  }
-
-  // Validate message structure
-  const invalidMessages = messages.filter((msg: any) => !msg || !msg.role || !msg.content);
-  if (invalidMessages.length > 0) {
-    console.error('app.ts: Invalid message structure found:', invalidMessages.length, 'invalid messages');
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid message structure',
-      details: 'All messages must have role and content fields'
-    });
-  }
+    // Validate message structure
+    const invalidMessages = messages.filter((msg: any) => !msg || !msg.role || !msg.content);
+    if (invalidMessages.length > 0) {
+      console.error('app.ts: Invalid message structure found:', invalidMessages.length, 'invalid messages');
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid message structure',
+        details: 'All messages must have role and content fields'
+      });
+    }
 
 
 
 
-  // Check provider availability: Groq first, then OpenAI, then mock
-  const useGroq = Boolean(process.env.GROQ_API_KEY);
-  const useOpenAI = Boolean(process.env.OPENAI_API_KEY) && process.env.USE_OPENAI !== 'false';
+    // Check provider availability: Groq first, then OpenAI, then mock
+    const useGroq = Boolean(process.env.GROQ_API_KEY);
+    const useOpenAI = Boolean(process.env.OPENAI_API_KEY) && process.env.USE_OPENAI !== 'false';
 
 
 
-  // Create system prompt with booking context
-  const systemPrompt = `You are an intelligent booking assistant for ${context?.businessName || 'our business'}. 
+    // Create system prompt with booking context
+    const systemPrompt = `You are an intelligent booking assistant for ${context?.businessName || 'our business'}. 
 You help customers book appointments in a conversational way.
 
 AVAILABLE SERVICES:
@@ -416,151 +412,151 @@ PERSONALITY:
 
 Always respond naturally in conversation. Only use the BOOKING_READY format when you have all required information.`;
 
-  // Prepare messages array with system prompt
-  const chatMessages = [
-    { role: 'system', content: systemPrompt },
-    ...messages.filter((msg: any) => msg && msg.role && msg.content)
-  ];
+    // Prepare messages array with system prompt
+    const chatMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages.filter((msg: any) => msg && msg.role && msg.content)
+    ];
 
-  // Try Groq first (preferred - fast and free tier available)
-  if (useGroq) {
+    // Try Groq first (preferred - fast and free tier available)
+    if (useGroq) {
+      try {
+        const groqApiKey = process.env.GROQ_API_KEY;
+        if (!groqApiKey) {
+          throw new Error('GROQ_API_KEY environment variable is not configured');
+        }
+
+        const groq = new Groq({ apiKey: groqApiKey });
+        const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+
+
+
+
+
+
+        const completion = await groq.chat.completions.create({
+          model,
+          messages: chatMessages,
+          max_tokens: 500,
+          temperature: 0.7,
+        });
+
+
+        const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+
+        if (!assistantMessage || assistantMessage.trim() === '') {
+          throw new Error('Groq returned empty response');
+        }
+
+
+
+        return res.json({
+          success: true,
+          message: assistantMessage,
+          provider: 'groq',
+          model: model
+        });
+      } catch (groqError: any) {
+        console.error('app.ts: Groq API error:', {
+          message: groqError?.message,
+          status: groqError?.status,
+          statusText: groqError?.statusText,
+          error: groqError?.error
+        });
+
+        // If it's an API key error or rate limit, log and fall through to OpenAI/mock
+        if (groqError?.message?.includes('API key') || groqError?.status === 401) {
+          console.error('app.ts: Groq API key error, falling back to OpenAI/Mock');
+        } else if (groqError?.status === 429) {
+          console.error('app.ts: Groq rate limit exceeded, falling back to OpenAI/Mock');
+        } else {
+          console.error('app.ts: Groq error, falling back to OpenAI/Mock:', groqError?.message);
+        }
+        // Fall through to try OpenAI or mock
+      }
+    }
+
+    // Try OpenAI if Groq failed or not available
+    if (useOpenAI) {
+      try {
+
+        const openai = getOpenAI();
+        if (!openai) {
+          throw new Error('OPENAI_API_KEY not available');
+        }
+
+
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-3.5-turbo',
+          messages: chatMessages,
+          max_tokens: 500,
+          temperature: 0.7,
+        });
+
+
+        const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+
+        return res.json({
+          success: true,
+          message: assistantMessage,
+          provider: 'openai',
+          usage: completion.usage
+        });
+      } catch (openaiError: any) {
+        console.error('app.ts: OpenAI API error:', {
+          message: openaiError?.message,
+          status: openaiError?.status,
+          error: openaiError?.error
+        });
+        // Fall through to mock AI
+      }
+    }
+
+    // Fall back to mock AI service
+
     try {
-      const groqApiKey = process.env.GROQ_API_KEY;
-      if (!groqApiKey) {
-        throw new Error('GROQ_API_KEY environment variable is not configured');
-      }
-
-      const groq = new Groq({ apiKey: groqApiKey });
-      const model = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
-
-
-
-
-
-
-      const completion = await groq.chat.completions.create({
-        model,
-        messages: chatMessages,
-        max_tokens: 500,
-        temperature: 0.7,
-      });
-
-
-      const assistantMessage = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
-
-      if (!assistantMessage || assistantMessage.trim() === '') {
-        throw new Error('Groq returned empty response');
-      }
-
-
-
+      const mockResponse = await getMockAIResponse(messages, context || {});
       return res.json({
         success: true,
-        message: assistantMessage,
-        provider: 'groq',
-        model: model
+        message: mockResponse,
+        provider: 'mock',
+        note: 'Using mock AI service. Set GROQ_API_KEY or OPENAI_API_KEY to use AI providers.'
       });
-    } catch (groqError: any) {
-      console.error('app.ts: Groq API error:', {
-        message: groqError?.message,
-        status: groqError?.status,
-        statusText: groqError?.statusText,
-        error: groqError?.error
-      });
-
-      // If it's an API key error or rate limit, log and fall through to OpenAI/mock
-      if (groqError?.message?.includes('API key') || groqError?.status === 401) {
-        console.error('app.ts: Groq API key error, falling back to OpenAI/Mock');
-      } else if (groqError?.status === 429) {
-        console.error('app.ts: Groq rate limit exceeded, falling back to OpenAI/Mock');
-      } else {
-        console.error('app.ts: Groq error, falling back to OpenAI/Mock:', groqError?.message);
-      }
-      // Fall through to try OpenAI or mock
-    }
-  }
-
-  // Try OpenAI if Groq failed or not available
-  if (useOpenAI) {
-    try {
-
-      const openai = getOpenAI();
-      if (!openai) {
-        throw new Error('OPENAI_API_KEY not available');
-      }
-
-
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: chatMessages,
-        max_tokens: 500,
-        temperature: 0.7,
-      });
-
-
-      const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
-
+    } catch (mockError: any) {
+      console.error('app.ts: Mock AI error:', mockError);
+      // Last resort - return a basic response
       return res.json({
         success: true,
-        message: assistantMessage,
-        provider: 'openai',
-        usage: completion.usage
+        message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments with various businesses. How can I assist you today?",
+        provider: 'emergency-fallback',
+        note: 'All services unavailable, using emergency fallback.'
       });
-    } catch (openaiError: any) {
-      console.error('app.ts: OpenAI API error:', {
-        message: openaiError?.message,
-        status: openaiError?.status,
-        error: openaiError?.error
+    }
+  } catch (error: any) {
+    console.error('app.ts: Top-level error in chat endpoint:', {
+      message: error?.message,
+      stack: error?.stack
+    });
+
+    // Always return a response, never 500
+    try {
+      const mockResponse = await getMockAIResponse(req.body?.messages || [], req.body?.context || {});
+      return res.json({
+        success: true,
+        message: mockResponse,
+        provider: 'error-fallback',
+        note: 'Error occurred, using fallback response.'
       });
-      // Fall through to mock AI
+    } catch (fallbackError: any) {
+      console.error('app.ts: Fallback also failed:', fallbackError);
+      return res.json({
+        success: true,
+        message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments. How can I assist you today?",
+        provider: 'emergency',
+        note: 'Service error, using emergency response.'
+      });
     }
   }
-
-  // Fall back to mock AI service
-
-  try {
-    const mockResponse = await getMockAIResponse(messages, context || {});
-    return res.json({
-      success: true,
-      message: mockResponse,
-      provider: 'mock',
-      note: 'Using mock AI service. Set GROQ_API_KEY or OPENAI_API_KEY to use AI providers.'
-    });
-  } catch (mockError: any) {
-    console.error('app.ts: Mock AI error:', mockError);
-    // Last resort - return a basic response
-    return res.json({
-      success: true,
-      message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments with various businesses. How can I assist you today?",
-      provider: 'emergency-fallback',
-      note: 'All services unavailable, using emergency fallback.'
-    });
-  }
-} catch (error: any) {
-  console.error('app.ts: Top-level error in chat endpoint:', {
-    message: error?.message,
-    stack: error?.stack
-  });
-
-  // Always return a response, never 500
-  try {
-    const mockResponse = await getMockAIResponse(req.body?.messages || [], req.body?.context || {});
-    return res.json({
-      success: true,
-      message: mockResponse,
-      provider: 'error-fallback',
-      note: 'Error occurred, using fallback response.'
-    });
-  } catch (fallbackError: any) {
-    console.error('app.ts: Fallback also failed:', fallbackError);
-    return res.json({
-      success: true,
-      message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments. How can I assist you today?",
-      provider: 'emergency',
-      note: 'Service error, using emergency response.'
-    });
-  }
-}
 };
 
 // Register the chat handler for both paths
