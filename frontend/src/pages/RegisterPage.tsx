@@ -10,14 +10,65 @@ const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/pub
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '', subdomain: '' });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const [subdomainError, setSubdomainError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === 'subdomain') {
+      // Only allow alphanumeric and hyphens
+      const formattedValue = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      setForm({ ...form, [name]: formattedValue });
+      checkSubdomain(formattedValue);
+    } else {
+      setForm({ ...form, [name]: value });
+    }
     setError('');
+  };
+
+  const checkSubdomain = async (subdomain: string) => {
+    if (!subdomain) {
+      setSubdomainError('');
+      return;
+    }
+
+    if (subdomain.length < 3) {
+      setSubdomainError('Subdomain must be at least 3 characters');
+      return;
+    }
+
+    setIsCheckingSubdomain(true);
+    try {
+      // Check if subdomain exists in users table
+      // Note: This assumes there is a 'subdomain' column or we are checking against metadata if exposed 
+      // Ideally this should be a check against a specific table or RPC if RLS prevents reading users.
+      // For now, we assume we can read 'subdomain' from 'users' or a public profiles table.
+      // If 'users' table is not public, this might fail without an RPC.
+      // Assuming 'users' table has 'subdomain' column based on request context.
+      const { data, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('subdomain', subdomain)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setSubdomainError('This subdomain is already taken');
+      } else {
+        setSubdomainError('');
+      }
+    } catch (err) {
+      console.error('Error checking subdomain:', err);
+      // Don't block user if check fails, but log it
+    } finally {
+      setIsCheckingSubdomain(false);
+    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,15 +80,21 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
+
+    if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone || !form.subdomain) {
       setError('Please fill in all fields.');
       setIsSubmitting(false);
       return;
     }
-    
+
     if (form.password !== form.confirm) {
       setError('Passwords do not match.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (subdomainError) {
+      setError('Please fix the subdomain error before continuing.');
       setIsSubmitting(false);
       return;
     }
@@ -49,7 +106,7 @@ const RegisterPage: React.FC = () => {
         .select('id')
         .eq('email', form.email)
         .maybeSingle();
-      
+
       if (existingUser) {
         setError('An account with this email already exists. Please sign in instead.');
         setIsSubmitting(false);
@@ -81,6 +138,7 @@ const RegisterPage: React.FC = () => {
             name: form.name,
             phone: form.phone,
             description: form.description,
+            subdomain: form.subdomain,
             logo: logoUrl,
             email_verified: true
           }
@@ -106,8 +164,8 @@ const RegisterPage: React.FC = () => {
         email: authData.user.email,
         emailConfirmedAt: authData.user.email_confirmed_at
       });
-      
-      
+
+
 
       setIsSubmitting(false);
       alert('Registration successful! Please check your email to verify your account. You must verify your email before you can log in.');
@@ -237,6 +295,36 @@ const RegisterPage: React.FC = () => {
               />
             </div>
             <div className="space-y-1">
+              <label className="block text-xs font-medium text-gray-700">Subdomain</label>
+              <div className="flex rounded-lg shadow-sm">
+                <input
+                  type="text"
+                  name="subdomain"
+                  value={form.subdomain}
+                  onChange={handleChange}
+                  className={`flex-1 min-w-0 block w-full px-4 py-3 rounded-none rounded-l-lg border ${subdomainError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-black focus:ring-indigo-500'
+                    } focus:ring-2 text-sm transition-all duration-200`}
+                  placeholder="your-company"
+                  autoComplete="off"
+                  required
+                />
+                <span className="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  .appointly-ks.com
+                </span>
+              </div>
+              {isCheckingSubdomain && (
+                <p className="text-xs text-indigo-500 mt-1">Checking availability...</p>
+              )}
+              {subdomainError && (
+                <p className="text-xs text-red-600 mt-1">{subdomainError}</p>
+              )}
+              {!subdomainError && form.subdomain && !isCheckingSubdomain && (
+                <p className="text-xs text-green-600 mt-1">
+                  Your URL: <span className="font-semibold">{form.subdomain}.appointly-ks.com</span>
+                </p>
+              )}
+            </div>
+            <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Company Description</label>
               <textarea
                 name="description"
@@ -250,11 +338,10 @@ const RegisterPage: React.FC = () => {
             </div>
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Company Logo</label>
-              <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${
-                logoFile 
-                  ? 'border-green-500 bg-green-50' 
-                  : 'border-gray-300 hover:border-indigo-500'
-              }`}>
+              <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${logoFile
+                ? 'border-green-500 bg-green-50'
+                : 'border-gray-300 hover:border-indigo-500'
+                }`}>
                 <div className="space-y-1 text-center">
                   {logoFile ? (
                     <>
