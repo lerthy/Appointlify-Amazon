@@ -409,7 +409,7 @@ const HomePage: React.FC = () => {
                 filteredBusinesses.map((business) => (
                   <div
                     key={business.id}
-                    onClick={() => navigate(`/book/${business.id}`)}
+                    onClick={() => navigate(`/book/${business.subdomain || business.id}`)}
                     className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-2 border border-gray-100 group flex flex-col"
                   >
                     <div className="p-6 text-center flex flex-col flex-grow">
