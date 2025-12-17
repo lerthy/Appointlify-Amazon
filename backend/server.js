@@ -494,7 +494,7 @@ app.get('/api/businesses', requireDb, async (req, res) => {
     // Get all users
     const { data: users, error: usersError } = await supabase
       .from('users')
-      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
+      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role, subdomain');
 
     if (usersError) {
       console.error('[GET /api/businesses] Error fetching users:', usersError);
@@ -558,11 +558,22 @@ app.get('/api/businesses', requireDb, async (req, res) => {
 app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    const { data, error } = await supabase
+
+    // Check if businessId is a valid UUID
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessId);
+
+    let query = supabase
       .from('users')
-      .select('id, name, description, logo')
-      .eq('id', businessId)
-      .single();
+      .select('id, name, description, logo, subdomain');
+
+    if (isUuid) {
+      query = query.eq('id', businessId);
+    } else {
+      query = query.eq('subdomain', businessId);
+    }
+
+    const { data, error } = await query.single();
+
     if (error) throw error;
     return res.json({ success: true, info: data || null });
   } catch (error) {

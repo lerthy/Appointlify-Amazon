@@ -17,7 +17,7 @@ const fadeUp = {
 };
 
 const AppointmentPage: React.FC = () => {
-  const { businessId } = useParams<{ businessId?: string }>();
+  const { subdomain } = useParams<{ subdomain?: string }>();
   const navigate = useNavigate();
   const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -25,17 +25,17 @@ const AppointmentPage: React.FC = () => {
   const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
-    if (!businessId) return;
+    if (!subdomain) return;
     const fetchBusiness = async () => {
       setLoading(true);
-      
-      
+
+
       try {
-        const res = await fetch(`/api/business/${businessId}/info`);
+        const res = await fetch(`/api/business/${subdomain}/info`);
         const json = await res.json();
-        
+
         if (json.success && json.info) {
-          
+
           setBusiness(json.info);
         } else {
           console.error('[AppointmentPage] Business not found or error:', json.error);
@@ -45,11 +45,11 @@ const AppointmentPage: React.FC = () => {
         console.error('[AppointmentPage] Error fetching business:', error);
         setBusiness(null);
       }
-      
+
       setLoading(false);
     };
     fetchBusiness();
-  }, [businessId]);
+  }, [subdomain]);
 
   // Extract coordinates when business address changes
   useEffect(() => {
@@ -68,7 +68,7 @@ const AppointmentPage: React.FC = () => {
     }
   }, [business?.business_address]);
 
-  if (!businessId) {
+  if (!subdomain) {
     return (
       <Container maxWidth="md">
         <div className="py-16 text-center">
@@ -111,7 +111,7 @@ const AppointmentPage: React.FC = () => {
   }
 
   return (
-    <AppProvider businessIdOverride={businessId}>
+    <AppProvider businessIdOverride={business.id}>
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
         <Header />
         <AuthPageTransition>
