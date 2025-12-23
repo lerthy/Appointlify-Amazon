@@ -41,7 +41,7 @@ if (accountSid && authToken && accountSid.startsWith('AC') && authToken.length >
 
   }
 } else {
-  ');
+  
 }
 
 // Initialize OpenAI client
