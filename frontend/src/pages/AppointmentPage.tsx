@@ -29,20 +29,59 @@ const AppointmentPage: React.FC = () => {
     const fetchBusiness = async () => {
       setLoading(true);
 
-
       try {
-        const res = await fetch(`/api/business/${subdomain}/info`);
+        // This is a public endpoint, so use plain fetch
+        // In development (localhost), always use the proxy. Otherwise use VITE_API_URL if set
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_URL = isLocalhost ? '' : (import.meta.env.VITE_API_URL || '');
+        const apiPath = API_URL 
+          ? `${API_URL}/api/business/${subdomain}/info`
+          : `/api/business/${subdomain}/info`;
+        
+        const res = await fetch(apiPath, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          // Try to get error details from response
+          let errorMessage = `HTTP ${res.status}: ${res.statusText}`;
+          try {
+            const errorData = await res.clone().json();
+            errorMessage = errorData.error || errorMessage;
+          } catch {
+            // If not JSON, use status text
+          }
+          throw new Error(errorMessage);
+        }
+        
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          const text = await res.text();
+          console.error('[AppointmentPage] Non-JSON response:', {
+            contentType,
+            url: apiPath,
+            preview: text.substring(0, 200),
+          });
+          throw new Error(`Expected JSON but got ${contentType}. Check if backend is running on port 5001.`);
+        }
+        
         const json = await res.json();
 
         if (json.success && json.info) {
-
           setBusiness(json.info);
         } else {
           console.error('[AppointmentPage] Business not found or error:', json.error);
           setBusiness(null);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('[AppointmentPage] Error fetching business:', error);
+        // Provide helpful error message
+        if (error.message?.includes('Failed to fetch') || error.message?.includes('network')) {
+          console.error('[AppointmentPage] Network error - make sure backend is running on port 5001');
+        }
         setBusiness(null);
       }
 

@@ -564,7 +564,7 @@ app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
 
     let query = supabase
       .from('users')
-      .select('id, name, description, logo, subdomain');
+      .select('id, name, description, logo, subdomain, business_address');
 
     if (isUuid) {
       query = query.eq('id', businessId);
@@ -574,10 +574,31 @@ app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
 
     const { data, error } = await query.single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('[GET /api/business/:businessId/info] Supabase error:', {
+        businessId,
+        errorCode: error.code,
+        errorMessage: error.message,
+        errorDetails: error.details,
+        errorHint: error.hint
+      });
+      
+      // Return 404 if business not found, 500 for other errors
+      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+        return res.status(404).json({ success: false, error: 'Business not found' });
+      }
+      
+      throw error;
+    }
+    
     return res.json({ success: true, info: data || null });
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Failed to fetch business info' });
+    console.error('[GET /api/business/:businessId/info] Unexpected error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to fetch business info',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
@@ -1160,6 +1181,7 @@ app.get('/api/employees', async (req, res) => {
 app.post('/api/employees', async (req, res) => {
   try {
     const employee = req.body;
+    console.log('[POST /api/employees] Received payload:', JSON.stringify(employee, null, 2));
 
     if (!supabase) {
       const created = { id: generateId('emp'), created_at: new Date().toISOString(), ...employee };
@@ -1172,10 +1194,24 @@ app.post('/api/employees', async (req, res) => {
       .insert([employee])
       .select()
       .single();
-    if (error) throw error;
+    if (error) {
+      console.error('[POST /api/employees] Supabase error:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        payload: employee
+      });
+      throw error;
+    }
     return res.json({ success: true, employee: data });
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Failed to create employee' });
+    console.error('[POST /api/employees] Error creating employee:', error.message || error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to create employee',
+      details: error.message 
+    });
   }
 });
 
@@ -1275,7 +1311,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const isServerlessEnv = Boolean(
   process.env.LAMBDA_TASK_ROOT ||
   process.env.AWS_LAMBDA_FUNCTION_NAME ||

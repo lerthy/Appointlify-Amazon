@@ -1432,11 +1432,26 @@ app.post('/api/employees', async (req, res) => {
       .insert([employee])
       .select()
       .single();
-    if (error) throw error;
+    if (error) {
+      console.error('[POST /api/employees] Supabase error:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+      throw error;
+    }
     return res.json({ success: true, employee: data });
-  } catch (error) {
-    console.error('Error creating employee:', error);
-    return res.status(500).json({ success: false, error: 'Failed to create employee' });
+  } catch (error: any) {
+    console.error('[POST /api/employees] Error creating employee:', {
+      message: error?.message,
+      code: error?.code
+    });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to create employee',
+      details: error?.message
+    });
   }
 });
 

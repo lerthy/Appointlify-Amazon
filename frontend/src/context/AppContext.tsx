@@ -10,6 +10,7 @@ import {
 } from '../types';
 import { useAuth } from './AuthContext';
 import { supabase } from '../utils/supabaseClient';
+import { authenticatedFetch } from '../utils/apiClient';
 
 interface AppContextType {
   appointments: Appointment[];
@@ -103,13 +104,10 @@ export const AppProvider: React.FC<{
       }
       if (!user?.email) return;
       try {
-        const res = await fetch(`/api/users/by-email?email=${encodeURIComponent(user.email)}`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.user?.id) {
-            setActualBusinessId(json.user.id);
-            return;
-          }
+        const json = await authenticatedFetch(`/api/users/by-email?email=${encodeURIComponent(user.email)}`);
+        if (json?.user?.id) {
+          setActualBusinessId(json.user.id);
+          return;
         }
       } catch (_) {}
       // Fallback: use auth user id for dev when backend DB is unavailable
@@ -151,13 +149,9 @@ export const AppProvider: React.FC<{
 
       if (!skipBackend) {
         try {
-          const res = await fetch(`/api/business/${businessId}/settings`);
-          if (res.ok) {
-            const json = await res.json();
-            applySettings(json?.settings);
-            return;
-          }
-          setSkipBackend(true);
+          const json = await authenticatedFetch(`/api/business/${businessId}/settings`);
+          applySettings(json?.settings);
+          return;
         } catch (_) {
           setSkipBackend(true);
         }
@@ -191,13 +185,9 @@ export const AppProvider: React.FC<{
       if (!businessId) return;
       if (!skipBackend) {
         try {
-          const res = await fetch(`/api/business/${businessId}/appointments`);
-          if (res.ok) {
-            const json = await res.json();
-            setAppointments(json?.appointments || []);
-            return;
-          }
-          setSkipBackend(true);
+          const json = await authenticatedFetch(`/api/business/${businessId}/appointments`);
+          setAppointments(json?.appointments || []);
+          return;
         } catch (_) {
           setSkipBackend(true);
         }
@@ -262,7 +252,7 @@ export const AppProvider: React.FC<{
           }
         }
       )
-      .subscribe((status) => {
+      .subscribe(() => {
         // Subscription status handled internally
       });
 
@@ -276,9 +266,7 @@ export const AppProvider: React.FC<{
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await fetch('/api/customers');
-        if (!res.ok) return;
-        const json = await res.json();
+        const json = await authenticatedFetch('/api/customers');
         setCustomers(json?.customers || []);
       } catch (_) {}
     };
@@ -301,48 +289,28 @@ export const AppProvider: React.FC<{
 
       if (!skipBackend) {
         try {
-          const res = await fetch(`/api/business/${effectiveBusinessId}/employees`);
-          if (res.ok) {
-            const json = await res.json();
-            const list = (json?.employees || []) as Employee[];
-            setScopedEmployees(list);
-            return;
-          }
+          const json = await authenticatedFetch(`/api/business/${effectiveBusinessId}/employees`);
+          const list = (json?.employees || []) as Employee[];
+          setScopedEmployees(list);
+          return;
+        } catch (_) {
           // Fallback to dev in-memory list when DB route is unavailable (e.g., 503)
           try {
-            const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
-            if (devRes.ok) {
-              const json = await devRes.json();
-              const list = (json?.employees || []) as Employee[];
-              setScopedEmployees(list);
-              return;
-            }
+            const devJson = await authenticatedFetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
+            const list = (devJson?.employees || []) as Employee[];
+            setScopedEmployees(list);
+            return;
           } catch {}
           // Mark backend as unavailable to avoid repeated 503s
-          setSkipBackend(true);
-        } catch (_) {
-          // Try dev fallback once on network/route error
-          try {
-            const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
-            if (devRes.ok) {
-              const json = await devRes.json();
-              const list = (json?.employees || []) as Employee[];
-              setScopedEmployees(list);
-              return;
-            }
-          } catch {}
           setSkipBackend(true);
         }
       } else {
         // When backend DB routes are unavailable, prefer dev in-memory endpoint first
         try {
-          const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
-          if (devRes.ok) {
-            const json = await devRes.json();
-            const list = (json?.employees || []) as Employee[];
-            setScopedEmployees(list);
-            return;
-          }
+          const devJson = await authenticatedFetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
+          const list = (devJson?.employees || []) as Employee[];
+          setScopedEmployees(list);
+          return;
         } catch {}
         // Secondary fallback: direct Supabase query if frontend is configured
         try {
@@ -367,13 +335,9 @@ export const AppProvider: React.FC<{
       if (!businessId) return;
       if (!skipBackend) {
         try {
-          const res = await fetch(`/api/business/${businessId}/services`);
-          if (res.ok) {
-            const json = await res.json();
-            setServices(json?.services || []);
-            return;
-          }
-          setSkipBackend(true);
+          const json = await authenticatedFetch(`/api/business/${businessId}/services`);
+          setServices(json?.services || []);
+          return;
         } catch (_) {
           setSkipBackend(true);
         }
@@ -395,9 +359,7 @@ export const AppProvider: React.FC<{
   // Fetch reviews from backend
   const fetchReviews = async () => {
     try {
-      const res = await fetch('/api/reviews?approved=true');
-      if (!res.ok) return;
-      const json = await res.json();
+      const json = await authenticatedFetch('/api/reviews?approved=true');
       setReviews(json?.reviews || []);
     } catch (_) {}
   };
@@ -453,7 +415,7 @@ export const AppProvider: React.FC<{
     const tokenExpiry = new Date();
     tokenExpiry.setHours(tokenExpiry.getHours() + 48); // 48 hour expiry
 
-    const res = await fetch('/api/appointments', {
+    const json = await authenticatedFetch('/api/appointments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -471,14 +433,6 @@ export const AppProvider: React.FC<{
       }),
     });
     
-    if (!res.ok) {
-      // Get error message from backend response
-      const errorData = await res.json().catch(() => ({ error: 'Failed to create appointment' }));
-      throw new Error(errorData.error || 'Failed to create appointment');
-    }
-    
-    const json = await res.json();
-    
     // Note: Email sending is handled by AppointmentForm.tsx to avoid duplicates
     // The email is sent there with more context (service name, business details, etc.)
     
@@ -488,23 +442,11 @@ export const AppProvider: React.FC<{
 
   const updateAppointmentStatus = async (id: string, status: Appointment['status']) => {
     try {
-      const res = await fetch(`/api/appointments/${id}`, {
+      await authenticatedFetch(`/api/appointments/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('[updateAppointmentStatus] Error response:', {
-          status: res.status,
-          statusText: res.statusText,
-          error: errorData
-        });
-        throw new Error(errorData.error || `Failed to update appointment: ${res.statusText}`);
-      }
-      
-      const data = await res.json();
       
       await refreshAppointments();
     } catch (error) {
@@ -517,9 +459,7 @@ export const AppProvider: React.FC<{
   const refreshAppointments = useCallback(async () => {
     if (!businessId) return;
     try {
-      const res = await fetch(`/api/business/${businessId}/appointments`);
-      if (!res.ok) return;
-      const json = await res.json();
+      const json = await authenticatedFetch(`/api/business/${businessId}/appointments`);
       setAppointments(json?.appointments || []);
     } catch (err) {
       console.error('Error refreshing appointments:', err);
@@ -527,13 +467,11 @@ export const AppProvider: React.FC<{
   }, [businessId]);
 
   const addCustomer = async (customer: Omit<Customer, 'id' | 'created_at'>): Promise<string> => {
-    const res = await fetch('/api/customers', {
+    const json = await authenticatedFetch('/api/customers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(customer),
     });
-    if (!res.ok) throw new Error('Failed to create customer');
-    const json = await res.json();
     if (json?.customer) setCustomers(prev => [json.customer, ...prev]);
     return json?.customer?.id;
   };
@@ -553,13 +491,11 @@ export const AppProvider: React.FC<{
       duration: service.duration,
       price: service.price,
     };
-    const res = await fetch('/api/services', {
+    const json = await authenticatedFetch('/api/services', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error('Failed to create service');
-    const json = await res.json();
     if (json?.service) setServices(prev => [json.service, ...prev]);
     return json?.service?.id;
   };
@@ -584,13 +520,11 @@ export const AppProvider: React.FC<{
       throw new Error('Missing business_id for new employee');
     }
 
-    const res = await fetch('/api/employees', {
+    const json = await authenticatedFetch('/api/employees', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error('Failed to create employee');
-    const json = await res.json();
     if (json?.employee) setEmployees(prev => [json.employee, ...prev]);
     return json?.employee?.id;
   };
@@ -601,30 +535,11 @@ export const AppProvider: React.FC<{
       businessId,
       settings,
     });
-    const res = await fetch(`/api/business/${businessId}/settings`, {
+    const json = await authenticatedFetch(`/api/business/${businessId}/settings`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings),
     });
-    const text = await res.text();
-    let json: any = null;
-    try {
-      json = text ? JSON.parse(text) : null;
-    } catch (e) {
-      console.error('[updateBusinessSettings] Failed to parse JSON response:', e, {
-        raw: text,
-      });
-    }
-
-    if (!res.ok) {
-      console.error('[updateBusinessSettings] Backend error:', {
-        status: res.status,
-        statusText: res.statusText,
-        body: json ?? text,
-      });
-      throw new Error(json?.error || 'Failed to update business settings');
-    }
-
     
     if (json?.settings) setBusinessSettings(json.settings as BusinessSettings);
   };
@@ -646,48 +561,40 @@ export const AppProvider: React.FC<{
   };
 
   const deleteService = async (id: string) => {
-    const res = await fetch(`/api/services/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete service');
+    await authenticatedFetch(`/api/services/${id}`, { method: 'DELETE' });
     setServices(prev => prev.filter(service => service.id !== id));
   };
 
   const updateService = async (id: string, service: Partial<Omit<Service, 'id' | 'created_at'>>) => {
-    const res = await fetch(`/api/services/${id}`, {
+    const json = await authenticatedFetch(`/api/services/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(service),
     });
-    if (!res.ok) throw new Error('Failed to update service');
-    const json = await res.json();
     if (json?.service) setServices(prev => prev.map(svc => svc.id === id ? json.service : svc));
   };
 
   const deleteEmployee = async (id: string) => {
-    const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete employee');
+    await authenticatedFetch(`/api/employees/${id}`, { method: 'DELETE' });
     setEmployees(prev => prev.filter(employee => employee.id !== id));
   };
 
   const updateEmployee = async (id: string, employee: Partial<Omit<Employee, 'id' | 'created_at'>>) => {
-    const res = await fetch(`/api/employees/${id}`, {
+    const json = await authenticatedFetch(`/api/employees/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(employee),
     });
-    if (!res.ok) throw new Error('Failed to update employee');
-    const json = await res.json();
     if (json?.employee) setEmployees(prev => prev.map(emp => emp.id === id ? json.employee : emp));
   };
 
   // Review functions
   const addReview = async (review: Omit<Review, 'id' | 'created_at' | 'updated_at'>): Promise<string> => {
-    const res = await fetch('/api/reviews', {
+    const json = await authenticatedFetch('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(review),
     });
-    if (!res.ok) throw new Error('Failed to create review');
-    const json = await res.json();
     if (json?.review) setReviews(prev => [json.review, ...prev]);
     return json?.review?.id;
   };

@@ -8,25 +8,25 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
       },
       '/.well-known/appspecific/com.chrome.devtools.json': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
       },
       '/.netlify/functions/chat': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         rewrite: (p) => p.replace('/.netlify/functions/chat', '/api/chat'),
       },
       '/.netlify/functions/book-appointment': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         rewrite: (p) => p.replace('/.netlify/functions/book-appointment', '/api/book-appointment'),
       },
       '/.netlify/functions/send-sms': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         rewrite: (p) => p.replace('/.netlify/functions/send-sms', '/api/send-sms'),
       },
