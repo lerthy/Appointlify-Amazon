@@ -861,16 +861,47 @@ app.get('/api/businesses', requireDb, async (req, res) => {
 app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    const { data, error } = await supabase!
+
+    // Check if businessId is a valid UUID
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessId);
+
+    let query = supabase!
       .from('users')
-      .select('id, name, description, logo')
-      .eq('id', businessId)
-      .single();
-    if (error) throw error;
+      .select('id, name, description, logo, subdomain, business_address');
+
+    if (isUuid) {
+      query = query.eq('id', businessId);
+    } else {
+      query = query.eq('subdomain', businessId);
+    }
+
+    const { data, error } = await query.single();
+
+    if (error) {
+      console.error('[GET /api/business/:businessId/info] Supabase error:', {
+        businessId,
+        errorCode: error.code,
+        errorMessage: error.message,
+        errorDetails: error.details,
+        errorHint: error.hint
+      });
+      
+      // Return 404 if business not found, 500 for other errors
+      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+        return res.status(404).json({ success: false, error: 'Business not found' });
+      }
+      
+      throw error;
+    }
+    
     return res.json({ success: true, info: data || null });
-  } catch (error) {
-    console.error('Error fetching business info:', error);
-    return res.status(500).json({ success: false, error: 'Failed to fetch business info' });
+  } catch (error: any) {
+    console.error('[GET /api/business/:businessId/info] Unexpected error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to fetch business info',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
