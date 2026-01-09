@@ -367,6 +367,83 @@ async function handleBookingConfirmation(messages, bookingData, headers) {
         // Send confirmation email and SMS
         await sendConfirmationNotifications(bookingData, appointmentId);
 
+        // Fetch additional details for booking confirmation page
+        const businessId = await getBusinessId(bookingData.business);
+        const serviceId = await getServiceId(bookingData.service, businessId);
+        
+        // Get service details (price, duration)
+        let servicePrice = 0;
+        let serviceDuration = 30;
+        let businessLogo = null;
+        
+        try {
+          const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
+          
+          // Get service details
+          if (serviceId) {
+            const serviceResponse = await fetch(mcpUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.MCP_API_KEY
+              },
+              body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                method: 'tools/call',
+                params: {
+                  name: 'fetch-table',
+                  arguments: {
+                    table: 'services',
+                    eq: { id: serviceId }
+                  }
+                }
+              })
+            });
+            const serviceResult = await serviceResponse.json();
+            if (serviceResult.result?.content?.[0]?.json?.[0]) {
+              const service = serviceResult.result.content[0].json[0];
+              servicePrice = service.price || 0;
+              serviceDuration = service.duration || 30;
+            }
+          }
+          
+          // Get business logo
+          if (businessId) {
+            const businessResponse = await fetch(mcpUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.MCP_API_KEY
+              },
+              body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                method: 'tools/call',
+                params: {
+                  name: 'fetch-table',
+                  arguments: {
+                    table: 'users',
+                    eq: { id: businessId }
+                  }
+                }
+              })
+            });
+            const businessResult = await businessResponse.json();
+            if (businessResult.result?.content?.[0]?.json?.[0]) {
+              businessLogo = businessResult.result.content[0].json[0].logo || null;
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching booking details:', error);
+          // Continue with defaults if fetch fails
+        }
+
+        // Parse date for confirmation page (YYYY-MM-DD format)
+        const appointmentDateObj = parseAppointmentDate(bookingData.date, bookingData.time);
+        const dateString = appointmentDateObj.toISOString().split('T')[0];
+        const timeString = appointmentDateObj.toTimeString().slice(0, 5);
+
         const successMessage = `✅ **Appointment Confirmed!**
 
 Your appointment has been successfully booked. You will receive a confirmation email and SMS with all the details shortly.
@@ -375,6 +452,22 @@ If you need to make any changes, please contact us.
 
 Thank you for choosing Appointly! 🎉`;
 
+        // Prepare booking data for confirmation page
+        const bookingConfirmationData = {
+          appointmentId: appointmentId,
+          customerName: bookingData.name,
+          customerEmail: bookingData.email,
+          customerPhone: bookingData.phone,
+          businessName: bookingData.business,
+          serviceName: bookingData.service,
+          appointmentDate: dateString,
+          appointmentTime: timeString,
+          duration: serviceDuration,
+          price: servicePrice,
+          businessLogo: businessLogo,
+          cancelLink: `https://appointly-ks.netlify.app/cancel/${appointmentId}`
+        };
+
         return {
           statusCode: 200,
           headers,
@@ -382,7 +475,8 @@ Thank you for choosing Appointly! 🎉`;
             success: true,
             message: successMessage,
             provider: 'booking-confirmed',
-            appointmentId: appointmentId
+            appointmentId: appointmentId,
+            bookingData: bookingConfirmationData
           })
         };
       } else {
