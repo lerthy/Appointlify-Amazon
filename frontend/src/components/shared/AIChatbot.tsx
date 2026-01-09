@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
-import { mockAiService, AIResponse } from '../../utils/mockAiService';
+import { mockAiService } from '../../utils/mockAiService';
 
 interface Message {
   id: string;
@@ -18,7 +17,6 @@ interface AIChatbotProps {
 }
 
 const AIChatbot: React.FC<AIChatbotProps> = () => {
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -91,32 +89,6 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-
-      // Check if booking was successful and navigate to confirmation page
-      if (data?.appointmentId && data?.bookingData) {
-        // Navigate after a short delay to show the success message
-        setTimeout(() => {
-          navigate('/booking-confirmation', { state: data.bookingData });
-        }, 2000);
-      } else if (data?.appointmentId) {
-        // If we have appointmentId but no bookingData, construct it from available data
-        const bookingData = {
-          appointmentId: data.appointmentId,
-          customerName: data.bookingData?.name || 'Customer',
-          customerEmail: data.bookingData?.email || '',
-          customerPhone: data.bookingData?.phone || '',
-          businessName: data.bookingData?.business || 'Business',
-          serviceName: data.bookingData?.service || 'Service',
-          appointmentDate: data.bookingData?.date || new Date().toISOString().split('T')[0],
-          appointmentTime: data.bookingData?.time || '',
-          duration: data.bookingData?.duration || 30,
-          price: data.bookingData?.price || 0,
-          cancelLink: `${window.location.origin}/cancel/${data.appointmentId}`
-        };
-        setTimeout(() => {
-          navigate('/booking-confirmation', { state: bookingData });
-        }, 2000);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
@@ -135,25 +107,13 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
           sessionId.current
         );
         
-        // Handle both string and AIResponse object
-        const responseMessage = typeof aiResponse === 'string' ? aiResponse : aiResponse.message;
-        const bookingData = typeof aiResponse === 'object' && 'bookingData' in aiResponse ? aiResponse.bookingData : undefined;
-        
         const assistantMessage: Message = {
           id: (Date.now() + 2).toString(),
-          content: responseMessage,
+          content: aiResponse,
           sender: 'assistant',
           timestamp: new Date()
         };
         setMessages(prev => [...prev, assistantMessage]);
-
-        // Check if booking was successful and navigate to confirmation page
-        if (bookingData) {
-          // Navigate after a short delay to show the success message
-          setTimeout(() => {
-            navigate('/booking-confirmation', { state: bookingData });
-          }, 2000);
-        }
       } catch (e) {
         // swallow
       }

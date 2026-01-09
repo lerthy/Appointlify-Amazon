@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
 import { createClient } from '@supabase/supabase-js';
-import { randomUUID } from 'crypto';
+import { randomUUID, randomBytes } from 'crypto';
 
 // MCP Client for RAG capabilities
 async function queryMCPKnowledge(question, matchCount = 3) {
@@ -360,113 +360,22 @@ async function handleBookingConfirmation(messages, bookingData, headers) {
     if (userMessage.includes('yes') || userMessage.includes('confirm') || userMessage.includes('book')) {
 
       // Create appointment in Supabase via MCP
-      const appointmentId = await createAppointment(bookingData);
+      const appointmentResult = await createAppointment(bookingData);
 
 
-      if (appointmentId) {
-        // Send confirmation email and SMS
-        await sendConfirmationNotifications(bookingData, appointmentId);
+      if (appointmentResult && appointmentResult.appointmentId) {
+        // Send confirmation email and SMS with confirmation token
+        await sendConfirmationNotifications(bookingData, appointmentResult.appointmentId, appointmentResult.confirmationToken);
 
-        // Fetch additional details for booking confirmation page
-        const businessId = await getBusinessId(bookingData.business);
-        const serviceId = await getServiceId(bookingData.service, businessId);
-        
-        // Get service details (price, duration)
-        let servicePrice = 0;
-        let serviceDuration = 30;
-        let businessLogo = null;
-        
-        try {
-          const mcpUrl = 'https://appointly-ks.netlify.app/mcp';
-          
-          // Get service details
-          if (serviceId) {
-            const serviceResponse = await fetch(mcpUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': process.env.MCP_API_KEY
-              },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: 1,
-                method: 'tools/call',
-                params: {
-                  name: 'fetch-table',
-                  arguments: {
-                    table: 'services',
-                    eq: { id: serviceId }
-                  }
-                }
-              })
-            });
-            const serviceResult = await serviceResponse.json();
-            if (serviceResult.result?.content?.[0]?.json?.[0]) {
-              const service = serviceResult.result.content[0].json[0];
-              servicePrice = service.price || 0;
-              serviceDuration = service.duration || 30;
-            }
-          }
-          
-          // Get business logo
-          if (businessId) {
-            const businessResponse = await fetch(mcpUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': process.env.MCP_API_KEY
-              },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: 1,
-                method: 'tools/call',
-                params: {
-                  name: 'fetch-table',
-                  arguments: {
-                    table: 'users',
-                    eq: { id: businessId }
-                  }
-                }
-              })
-            });
-            const businessResult = await businessResponse.json();
-            if (businessResult.result?.content?.[0]?.json?.[0]) {
-              businessLogo = businessResult.result.content[0].json[0].logo || null;
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching booking details:', error);
-          // Continue with defaults if fetch fails
-        }
-
-        // Parse date for confirmation page (YYYY-MM-DD format)
-        const appointmentDateObj = parseAppointmentDate(bookingData.date, bookingData.time);
-        const dateString = appointmentDateObj.toISOString().split('T')[0];
-        const timeString = appointmentDateObj.toTimeString().slice(0, 5);
-
-        const successMessage = `✅ **Appointment Confirmed!**
+        const successMessage = `✅ **Appointment Booked!**
 
 Your appointment has been successfully booked. You will receive a confirmation email and SMS with all the details shortly.
+
+**Important:** Please check your email and click the confirmation link to confirm your appointment. Your appointment will be added to the calendar once you confirm via email.
 
 If you need to make any changes, please contact us.
 
 Thank you for choosing Appointly! 🎉`;
-
-        // Prepare booking data for confirmation page
-        const bookingConfirmationData = {
-          appointmentId: appointmentId,
-          customerName: bookingData.name,
-          customerEmail: bookingData.email,
-          customerPhone: bookingData.phone,
-          businessName: bookingData.business,
-          serviceName: bookingData.service,
-          appointmentDate: dateString,
-          appointmentTime: timeString,
-          duration: serviceDuration,
-          price: servicePrice,
-          businessLogo: businessLogo,
-          cancelLink: `https://appointly-ks.netlify.app/cancel/${appointmentId}`
-        };
 
         return {
           statusCode: 200,
@@ -475,8 +384,7 @@ Thank you for choosing Appointly! 🎉`;
             success: true,
             message: successMessage,
             provider: 'booking-confirmed',
-            appointmentId: appointmentId,
-            bookingData: bookingConfirmationData
+            appointmentId: appointmentResult.appointmentId
           })
         };
       } else {
@@ -599,6 +507,11 @@ async function createAppointment(bookingData) {
       throw new Error('No employee found for business');
     }
 
+    // Generate confirmation token (32-byte random hex string)
+    const confirmationToken = randomBytes(32).toString('hex');
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + 48); // 48 hour expiry
+
     // Create appointment record
     appointmentData = {
       id: randomUUID(),
@@ -612,6 +525,9 @@ async function createAppointment(bookingData) {
       date: parseAppointmentDate(bookingData.date, bookingData.time),
       duration: 30, // Default duration, could be fetched from service
       status: 'scheduled',
+      confirmation_status: 'pending', // Mark as pending until customer confirms via email
+      confirmation_token: confirmationToken,
+      confirmation_token_expires: tokenExpiry.toISOString(),
       reminder_sent: false,
       notes: bookingData.notes || '',
       created_at: new Date().toISOString()
@@ -644,8 +560,8 @@ async function createAppointment(bookingData) {
       throw new Error(result.error.message);
     }
 
-
-    return appointmentData.id;
+    // Return both appointment ID and confirmation token for use in notifications
+    return { appointmentId: appointmentData.id, confirmationToken: confirmationToken };
   } catch (error) {
     console.error('Error creating appointment:', error);
     if (appointmentData) {
@@ -940,7 +856,7 @@ async function getEmployeeId(businessId) {
 }
 
 // Send confirmation notifications using the same methods as appointment form
-async function sendConfirmationNotifications(bookingData, appointmentId) {
+async function sendConfirmationNotifications(bookingData, appointmentId, confirmationToken) {
   try {
     // Parse the date to proper format
     const appointmentDate = parseAppointmentDate(bookingData.date, bookingData.time);
@@ -959,6 +875,11 @@ async function sendConfirmationNotifications(bookingData, appointmentId) {
     // Create cancel link
     const cancelLink = `https://appointly-ks.netlify.app/cancel/${appointmentId}`;
 
+    // Build confirmation link with token
+    const confirmationLink = confirmationToken 
+      ? `https://appointly-ks.netlify.app/confirm-appointment?token=${confirmationToken}`
+      : null;
+
         // Send email notification using the exact same function as appointment form
         try {
           const emailSent = await fetch('https://appointly-ks.netlify.app/.netlify/functions/send-appointment-confirmation', {
@@ -974,7 +895,8 @@ async function sendConfirmationNotifications(bookingData, appointmentId) {
               appointment_time: timeString,
               business_name: bookingData.business,
               service_name: bookingData.service,
-              cancel_link: cancelLink
+              cancel_link: cancelLink,
+              confirmation_link: confirmationLink
             })
           });
 

@@ -30,30 +30,12 @@ interface ConversationState {
   availableTimes?: string[];
 }
 
-export interface AIResponse {
-  message: string;
-  bookingData?: {
-    appointmentId: string;
-    customerName: string;
-    customerEmail: string;
-    customerPhone: string;
-    businessName: string;
-    serviceName: string;
-    appointmentDate: string;
-    appointmentTime: string;
-    duration: number;
-    price: number;
-    businessLogo?: string;
-    cancelLink: string;
-  };
-}
-
 export class MockAIService {
   private conversationStates: Map<string, ConversationState> = new Map();
 
   constructor() { }
 
-  async generateResponse(userMessage: string, conversationHistory: any[] = [], sessionId: string = 'default'): Promise<AIResponse | string> {
+  async generateResponse(userMessage: string, conversationHistory: any[] = [], sessionId: string = 'default'): Promise<string> {
     const message = userMessage.toLowerCase().trim();
 
     // Get or create conversation state
@@ -64,42 +46,34 @@ export class MockAIService {
     }
 
     // Handle conversation flow based on current step
-    const response = await (async () => {
-      switch (state.step) {
-        case 'greeting':
-          return await this.handleGreeting(message, state, sessionId);
+    switch (state.step) {
+      case 'greeting':
+        return await this.handleGreeting(message, state, sessionId);
 
-        case 'business_selection':
-          return await this.handleBusinessSelection(message, state, sessionId);
+      case 'business_selection':
+        return await this.handleBusinessSelection(message, state, sessionId);
 
-        case 'service_selection':
-          return await this.handleServiceSelection(message, state, sessionId);
+      case 'service_selection':
+        return await this.handleServiceSelection(message, state, sessionId);
 
-        case 'contact_info':
-          return await this.handleContactInfo(message, state, sessionId);
+      case 'contact_info':
+        return await this.handleContactInfo(message, state, sessionId);
 
-        case 'date_selection':
-          return await this.handleDateSelection(message, state, sessionId);
+      case 'date_selection':
+        return await this.handleDateSelection(message, state, sessionId);
 
-        case 'time_selection':
-          return await this.handleTimeSelection(message, state, sessionId);
+      case 'time_selection':
+        return await this.handleTimeSelection(message, state, sessionId);
 
-        case 'confirmation':
-          return await this.handleConfirmation(message, state, sessionId);
+      case 'confirmation':
+        return await this.handleConfirmation(message, state, sessionId);
 
-        case 'booking_complete':
-          return this.handleBookingComplete(message, state);
+      case 'booking_complete':
+        return this.handleBookingComplete(message, state);
 
-        default:
-          return "I'm here to help you book an appointment. Let's start by finding the right business for you!";
-      }
-    })();
-
-    // If response is already an AIResponse object, return it; otherwise wrap it
-    if (typeof response === 'object' && 'message' in response) {
-      return response;
+      default:
+        return "I'm here to help you book an appointment. Let's start by finding the right business for you!";
     }
-    return { message: response as string };
   }
 
   private async handleGreeting(message: string, state: ConversationState, sessionId: string): Promise<string> {
@@ -525,7 +499,7 @@ Is this correct? Please respond with "yes" to confirm or "no" to make changes.`;
     return "I didn't quite catch that. Please choose a time by number or say the time (e.g., '2:30 PM' or '2 PM').";
   }
 
-  private async handleConfirmation(message: string, state: ConversationState, sessionId: string): Promise<AIResponse | string> {
+  private async handleConfirmation(message: string, state: ConversationState, sessionId: string): Promise<string> {
     if (!state.selectedTime || !state.selectedDate || !state.contactInfo || !state.selectedService || !state.selectedBusiness) {
       state.step = 'greeting';
       this.conversationStates.set(sessionId, state);
@@ -586,10 +560,6 @@ Is this correct? Please respond with "yes" to confirm or "no" to make changes.`;
           state.step = 'booking_complete';
           this.conversationStates.set(sessionId, state);
 
-          // Get business info for logo
-          const bookingService = new BookingService(state.selectedBusiness.id);
-          const businessInfo = await bookingService.getBusinessInfo();
-
           const timeObj = new Date(`2000-01-01T${state.selectedTime}`);
           const timeString = timeObj.toLocaleTimeString('en-US', {
             hour: 'numeric',
@@ -618,24 +588,8 @@ You'll receive a confirmation email and SMS shortly. If you need to cancel or re
 
 Thank you for using Appointly! Is there anything else I can help you with?`;
 
-          // Return booking data along with message
-          return {
-            message: confirmationMessage,
-            bookingData: {
-              appointmentId: result.appointmentId!,
-              customerName: state.contactInfo.name,
-              customerEmail: state.contactInfo.email,
-              customerPhone: state.contactInfo.phone,
-              businessName: state.selectedBusiness.name,
-              serviceName: state.selectedService.name,
-              appointmentDate: state.selectedDate,
-              appointmentTime: state.selectedTime,
-              duration: state.selectedService.duration,
-              price: state.selectedService.price,
-              businessLogo: businessInfo?.logo,
-              cancelLink: `${window.location.origin}/cancel/${result.appointmentId}`
-            }
-          };
+
+          return confirmationMessage;
         } else {
           console.error('Booking failed:', result.error);
           return `I'm sorry, but I couldn't complete your booking: ${result.error}. Please try again or contact ${state.selectedBusiness.name} directly.`;
