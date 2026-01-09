@@ -415,23 +415,55 @@ export const AppProvider: React.FC<{
     const tokenExpiry = new Date();
     tokenExpiry.setHours(tokenExpiry.getHours() + 48); // 48 hour expiry
 
-    const json = await authenticatedFetch('/api/appointments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        business_id: appointment.business_id,
-        service_id: appointment.service_id,
-        employee_id: appointment.employee_id,
-        name: appointment.name,
-        phone: appointment.phone,
-        email: appointment.email,
-        notes: appointment.notes || null,
-        date: appointment.date.toISOString(),
-        duration: appointment.duration,
-        confirmation_token: confirmationToken,
-        confirmation_token_expires: tokenExpiry.toISOString()
-      }),
-    });
+    // Check if user has active session, if not use regular fetch for guest bookings
+    const { data: sessionData } = await supabase.auth.getSession();
+    const hasSession = sessionData?.session?.access_token;
+    
+    let json;
+    if (hasSession) {
+      // Use authenticated fetch if user is logged in
+      json = await authenticatedFetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_id: appointment.business_id,
+          service_id: appointment.service_id,
+          employee_id: appointment.employee_id,
+          name: appointment.name,
+          phone: appointment.phone,
+          email: appointment.email,
+          notes: appointment.notes || null,
+          date: appointment.date.toISOString(),
+          duration: appointment.duration,
+          confirmation_token: confirmationToken,
+          confirmation_token_expires: tokenExpiry.toISOString()
+        }),
+      });
+    } else {
+      // Use regular fetch for guest bookings
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          business_id: appointment.business_id,
+          service_id: appointment.service_id,
+          employee_id: appointment.employee_id,
+          name: appointment.name,
+          phone: appointment.phone,
+          email: appointment.email,
+          notes: appointment.notes || null,
+          date: appointment.date.toISOString(),
+          duration: appointment.duration,
+          confirmation_token: confirmationToken,
+          confirmation_token_expires: tokenExpiry.toISOString()
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to create appointment' }));
+        throw new Error(errorData.error || 'Failed to create appointment');
+      }
+      json = await response.json();
+    }
     
     // Note: Email sending is handled by AppointmentForm.tsx to avoid duplicates
     // The email is sent there with more context (service name, business details, etc.)
@@ -467,11 +499,32 @@ export const AppProvider: React.FC<{
   }, [businessId]);
 
   const addCustomer = async (customer: Omit<Customer, 'id' | 'created_at'>): Promise<string> => {
-    const json = await authenticatedFetch('/api/customers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(customer),
-    });
+    // Check if user has active session, if not use regular fetch for guest bookings
+    const { data: sessionData } = await supabase.auth.getSession();
+    const hasSession = sessionData?.session?.access_token;
+    
+    let json;
+    if (hasSession) {
+      // Use authenticated fetch if user is logged in
+      json = await authenticatedFetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customer),
+      });
+    } else {
+      // Use regular fetch for guest bookings
+      const response = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customer),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to create customer' }));
+        throw new Error(errorData.error || 'Failed to create customer');
+      }
+      json = await response.json();
+    }
+    
     if (json?.customer) setCustomers(prev => [json.customer, ...prev]);
     return json?.customer?.id;
   };
