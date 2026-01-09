@@ -466,9 +466,15 @@ export const AppProvider: React.FC<{
   const refreshAppointments = useCallback(async () => {
     if (!businessId) return;
     try {
-      const json = await authenticatedFetch(`/api/business/${businessId}/appointments`);
+      const response = await fetch(`/api/business/${businessId}/appointments`);
+      if (!response.ok) {
+        // Silently fail if we can't refresh - this is okay for guest bookings
+        return;
+      }
+      const json = await response.json();
       setAppointments(json?.appointments || []);
     } catch (err) {
+      // Silently fail if we can't refresh - this is okay for guest bookings
       console.error('Error refreshing appointments:', err);
     }
   }, [businessId]);
