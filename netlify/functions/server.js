@@ -1,12 +1,12 @@
 import 'reflect-metadata';
-import './loadEnv.js';
+import '../../backend/loadEnv.js';
 import express from 'express';
 import twilio from 'twilio';
 import cors from 'cors';
 import OpenAI from 'openai';
-import { supabase } from './supabaseClient.js';
-import googleAuthRouter from './routes/googleAuthRouter.js';
-import { startGoogleHealthMonitor } from './services/googleHealthMonitor.js';
+import { supabase } from '../../backend/supabaseClient.js';
+import googleAuthRouter from '../../backend/routes/googleAuthRouter.js';
+import { startGoogleHealthMonitor } from '../../backend/services/googleHealthMonitor.js';
 
 
 
@@ -917,7 +917,7 @@ app.get('/api/confirm-appointment', requireDb, async (req, res) => {
           businessId: fullAppointment.business_id
         });
 
-        const { createCalendarEvent } = await import('./services/googleCalendarSync.js');
+        const { createCalendarEvent } = await import('../../backend/services/googleCalendarSync.js');
         const calendarResult = await createCalendarEvent(fullAppointment.business_id, {
           id: fullAppointment.id,
           name: fullAppointment.name,
