@@ -12,8 +12,8 @@ const rootEnvPath = resolve(__dirname, '../.env');
 dotenv.config({ path: fs.existsSync(localEnvPath) ? localEnvPath : rootEnvPath });
 
 // Quick presence checks before Supabase initializes
-console.log('SUPABASE_URL present:', !!process.env.SUPABASE_URL);
-console.log('SERVICE_ROLE_KEY present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+
 
 // Mask helpers to avoid leaking secrets in logs
 function maskValue(value) {

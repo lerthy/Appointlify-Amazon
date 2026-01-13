@@ -20,8 +20,8 @@ exports.handler = async (event) => {
   }
 
   try {
-    console.log('🔧 SMTP Configuration Test Starting...');
-    
+
+
     // Show SMTP config (without passwords)
     const config = {
       host: SMTP_HOST,
@@ -31,8 +31,8 @@ exports.handler = async (event) => {
       name: FROM_NAME,
       passLength: SMTP_PASS ? SMTP_PASS.length : 0
     };
-    
-    console.log('📋 SMTP Config:', config);
+
+
 
     if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
       return {
@@ -46,7 +46,7 @@ exports.handler = async (event) => {
     }
 
     // Create transporter
-    console.log('🔧 Creating transporter...');
+
     const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: parseInt(SMTP_PORT),
@@ -63,10 +63,10 @@ exports.handler = async (event) => {
     });
 
     // Test 1: Verify connection
-    console.log('🔍 Test 1: Verifying SMTP connection...');
+
     try {
       await transporter.verify();
-      console.log('✅ SMTP connection verified successfully');
+
     } catch (verifyError) {
       console.error('❌ SMTP verification failed:', verifyError.message);
       return {
@@ -85,7 +85,7 @@ exports.handler = async (event) => {
     const { email } = JSON.parse(event.body || '{"email":"test@example.com"}');
     const testEmail = email || 'test@example.com';
 
-    console.log('📧 Test 2: Sending test email to:', testEmail);
+
 
     const mailOptions = {
       from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
@@ -115,9 +115,6 @@ If you receive this, your SMTP configuration is working correctly!`,
 
     try {
       const info = await transporter.sendMail(mailOptions);
-      console.log('✅ Test email sent successfully!');
-      console.log('Message ID:', info.messageId);
-      console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
 
       return {
         statusCode: 200,

@@ -25,11 +25,11 @@ function validateEmail(email) {
 }
 
 exports.handler = async (event) => {
-  console.log('🔍 DEBUG: Function started');
-  console.log('🔍 Method:', event.httpMethod);
-  console.log('🔍 Env check - SUPABASE_URL:', !!SUPABASE_URL);
-  console.log('🔍 Env check - EMAILJS_SERVICE_ID:', !!EMAILJS_SERVICE_ID);
-  console.log('🔍 Supabase client:', !!supabase);
+
+
+
+
+
 
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -43,36 +43,36 @@ exports.handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
-    return { 
-      statusCode: 405, 
+    return {
+      statusCode: 405,
       headers,
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
-  const genericResponse = { 
-    statusCode: 200, 
+  const genericResponse = {
+    statusCode: 200,
     headers,
-    body: JSON.stringify({ 
-      ok: true, 
-      message: 'If an account exists for that email, a reset link has been sent.' 
+    body: JSON.stringify({
+      ok: true,
+      message: 'If an account exists for that email, a reset link has been sent.'
     })
   };
 
   try {
-    console.log('🔍 Parsing request body...');
+
     const { email } = JSON.parse(event.body || '{}');
-    
+
     if (!email || typeof email !== 'string') {
-      console.log('🔍 Invalid email input');
+
       return genericResponse;
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    console.log('🔍 Normalized email:', normalizedEmail);
-    
+
+
     if (!validateEmail(normalizedEmail)) {
-      console.log('🔍 Email validation failed');
+
       return genericResponse;
     }
 
@@ -81,42 +81,42 @@ exports.handler = async (event) => {
       return genericResponse;
     }
 
-    console.log('🔍 Checking if user exists...');
+
     const { data: user, error } = await supabase
       .from('users')
       .select('id, email, name')
       .ilike('email', normalizedEmail)
       .single();
-    
+
     if (error) {
-      console.log('🔍 User lookup error:', error.message);
-      return genericResponse;
-    }
-    
-    if (!user) {
-      console.log('🔍 User not found for email:', normalizedEmail);
+
       return genericResponse;
     }
 
-    console.log('🔍 User found, generating token...');
+    if (!user) {
+
+      return genericResponse;
+    }
+
+
     const token = generateSecureToken();
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
-    console.log('🔍 Cleaning up old tokens...');
+
     await supabase
       .from('password_reset_tokens')
       .update({ used: true })
       .eq('user_id', user.id)
       .eq('used', false);
 
-    console.log('🔍 Inserting new token...');
+
     const { error: tokenError } = await supabase
       .from('password_reset_tokens')
-      .insert({ 
-        token, 
-        user_id: user.id, 
-        expires_at: expiresAt, 
-        used: false 
+      .insert({
+        token,
+        user_id: user.id,
+        expires_at: expiresAt,
+        used: false
       });
 
     if (tokenError) {
@@ -128,7 +128,7 @@ exports.handler = async (event) => {
       };
     }
 
-    console.log('🔍 Token created successfully');
+
     return genericResponse;
 
   } catch (error) {

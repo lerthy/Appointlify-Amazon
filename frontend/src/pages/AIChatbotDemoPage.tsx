@@ -40,7 +40,7 @@ const AIChatbotDemoPage: React.FC = () => {
   ];
 
   const handleBookingReady = (bookingData: any) => {
-    console.log('Booking ready:', bookingData);
+    
     // You can handle the booking data here
     alert(`Booking ready for: ${bookingData.name} - ${bookingData.service} on ${bookingData.date} at ${bookingData.time}`);
   };

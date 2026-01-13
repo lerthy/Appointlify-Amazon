@@ -41,24 +41,24 @@ exports.handler = async (event) => {
   }
 
   if (event.httpMethod !== 'POST') {
-    return { 
-      statusCode: 405, 
+    return {
+      statusCode: 405,
       headers,
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
   try {
-    console.log('🔧 ENVIRONMENT CHECK:');
-    console.log('SMTP_HOST:', !!SMTP_HOST ? SMTP_HOST : 'NOT SET');
-    console.log('SMTP_PORT:', SMTP_PORT);
-    console.log('SMTP_USER:', !!SMTP_USER ? SMTP_USER : 'NOT SET');
-    console.log('SMTP_PASS:', !!SMTP_PASS ? 'SET' : 'NOT SET');
-    console.log('FROM_EMAIL:', FROM_EMAIL);
-    console.log('FROM_NAME:', FROM_NAME);
+
+
+
+
+
+
+
 
     const { email } = JSON.parse(event.body || '{}');
-    
+
     if (!email || typeof email !== 'string') {
       return {
         statusCode: 400,
@@ -68,7 +68,7 @@ exports.handler = async (event) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    
+
     if (!validateEmail(normalizedEmail)) {
       return {
         statusCode: 400,
@@ -91,21 +91,21 @@ exports.handler = async (event) => {
       .select('id, email, name')
       .ilike('email', normalizedEmail)
       .single();
-    
+
     if (error || !user) {
-      console.log('User not found for:', normalizedEmail);
+
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ 
-          ok: true, 
+        body: JSON.stringify({
+          ok: true,
           message: 'If an account exists for that email, a reset link has been sent.',
           debug: 'User not found'
         })
       };
     }
 
-    console.log('✅ User found:', user.email);
+
 
     // Generate token
     const token = generateSecureToken();
@@ -114,11 +114,11 @@ exports.handler = async (event) => {
     // Store token
     const { error: tokenError } = await supabase
       .from('password_reset_tokens')
-      .insert({ 
-        token, 
-        user_id: user.id, 
-        expires_at: expiresAt, 
-        used: false 
+      .insert({
+        token,
+        user_id: user.id,
+        expires_at: expiresAt,
+        used: false
       });
 
     if (tokenError) {
@@ -130,13 +130,13 @@ exports.handler = async (event) => {
       };
     }
 
-    console.log('✅ Token created');
+
 
     // Generate reset URL
     const origin = process.env.SITE_URL || (event.headers.origin || '').replace(/\/$/, '') || `https://${event.headers.host}`;
     const resetUrl = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
 
-    console.log('🔗 Reset URL:', resetUrl);
+
 
     // Check SMTP configuration
     if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
@@ -144,8 +144,8 @@ exports.handler = async (event) => {
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ 
-          ok: true, 
+        body: JSON.stringify({
+          ok: true,
           message: 'Token created but email not sent - SMTP not configured',
           debug: {
             smtp_host: !!SMTP_HOST,
@@ -159,8 +159,8 @@ exports.handler = async (event) => {
 
     // Test email sending
     try {
-      console.log('📧 Setting up SMTP transporter...');
-      
+
+
       const transporter = nodemailer.createTransporter({
         host: SMTP_HOST,
         port: parseInt(SMTP_PORT),
@@ -172,9 +172,9 @@ exports.handler = async (event) => {
       });
 
       // Verify SMTP connection
-      console.log('🔍 Testing SMTP connection...');
+
       await transporter.verify();
-      console.log('✅ SMTP connection verified');
+
 
       const mailOptions = {
         from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
@@ -184,15 +184,15 @@ exports.handler = async (event) => {
         html: `<p>Reset your password by clicking: <a href="${resetUrl}">Reset Password</a></p>`,
       };
 
-      console.log('📤 Sending email...');
+
       const info = await transporter.sendMail(mailOptions);
-      console.log('✅ Email sent:', info.messageId);
+
 
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ 
-          ok: true, 
+        body: JSON.stringify({
+          ok: true,
           message: 'Password reset email sent successfully!',
           debug: {
             messageId: info.messageId,
@@ -206,7 +206,7 @@ exports.handler = async (event) => {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           error: 'Email sending failed',
           debug: emailError.message
         })

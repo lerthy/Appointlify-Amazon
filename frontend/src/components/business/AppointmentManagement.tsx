@@ -160,7 +160,7 @@ const AppointmentManagement: React.FC = () => {
       if (customer) {
         const message = `Hi ${customer.name}, your appointment for ${service?.name || 'our service'} on ${formatDate(new Date(appointment.date))} at ${formatTime(new Date(appointment.date))} has been confirmed. We look forward to seeing you!`;
         // Note: SMS functionality would need to be implemented
-        console.log('SMS would be sent:', message);
+        
       }
     }
     
@@ -197,8 +197,8 @@ const AppointmentManagement: React.FC = () => {
         // Send cancellation SMS
         const message = `Hi ${customer.name}, we're sorry to inform you that your appointment on ${formatDate(new Date(appointment.date))} at ${formatTime(new Date(appointment.date))} has been cancelled. Please contact us to reschedule.`;
         // Note: SMS functionality would need to be implemented
-        console.log('SMS would be sent:', message);
-        console.log('Cancellation email sent:', emailSent);
+        
+        
       }
     }
     
@@ -215,7 +215,7 @@ const AppointmentManagement: React.FC = () => {
       
       if (customer) {
         // Note: SMS functionality would need to be implemented
-        console.log('SMS would be sent to', customer.phone, ':', messageText);
+        
       }
     }
     

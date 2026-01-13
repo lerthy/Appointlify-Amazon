@@ -2,8 +2,8 @@ import { supabase } from './supabaseClient';
 
 export async function addSampleServices() {
   try {
-    console.log('🔍 Getting business IDs from database...');
-    
+
+
     // Get the business IDs from your business_settings table
     const { data: businesses, error: businessError } = await supabase
       .from('business_settings')
@@ -21,7 +21,7 @@ export async function addSampleServices() {
     }
 
     const businessId = businesses[0].id;
-    console.log(`✅ Using business: ${businesses[0].name} (ID: ${businessId})`);
+    `);
 
     // Check if services already exist for this business
     const { data: existingServices } = await supabase
@@ -31,11 +31,11 @@ export async function addSampleServices() {
       .limit(1);
 
     if (existingServices && existingServices.length > 0) {
-      console.log('✅ Services already exist for this business');
+      
       return true;
     }
 
-    console.log('📝 Adding sample services...');
+    
 
     // Add sample services
     const sampleServices = [
@@ -87,8 +87,8 @@ export async function addSampleServices() {
       return false;
     }
 
-    console.log('✅ Successfully added services:', createdServices?.length);
-    console.log('Services created:', createdServices?.map(s => s.name).join(', '));
+    
+    .join(', '));
     
     return true;
   } catch (error) {
@@ -100,8 +100,8 @@ export async function addSampleServices() {
 // Auto-run when imported
 addSampleServices().then(success => {
   if (success) {
-    console.log('🎉 Sample services setup complete!');
+    
   } else {
-    console.log('❌ Failed to setup sample services');
+    
   }
 });

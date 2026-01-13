@@ -1,5 +1,13 @@
 # Copy this to .env file and fill in your actual API keys
 
+# Email Configuration (Gmail)
+# To send real emails, set up a Gmail App Password:
+# 1. Go to https://myaccount.google.com/apppasswords
+# 2. Generate an app password for "Mail"
+# 3. Use your Gmail address and the generated app password below
+GMAIL_USER=your_email@gmail.com
+GMAIL_APP_PASSWORD=your_gmail_app_password_here
+
 # Twilio SMS Configuration (existing)
 TWILIO_ACCOUNT_SID=your_twilio_account_sid_here
 TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
@@ -11,8 +19,17 @@ OPENAI_API_KEY=your_openai_api_key_here
 USE_OPENAI=false
 
 # Server Configuration
-PORT=3001
+PORT=5001
+VITE_API_URL=http://localhost:5001
 
+# Google OAuth & Calendar Integration
+GOOGLE_OAUTH_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=your_google_client_secret
+GOOGLE_OAUTH_REDIRECT_URI=http://localhost:5001/api/auth/google/callback
+# Optional comma-separated list of allowed origins for popup postMessage fallback
+GOOGLE_OAUTH_ALLOWED_ORIGINS=http://localhost:5173
+# Cron-style cadence (ms) for periodic calendar token health checks
+GOOGLE_CALENDAR_HEALTH_INTERVAL_MS=900000
 # MCP (Model Context Protocol) - Supabase server
 # Generate a Supabase Personal Access Token in your account settings
 # https://app.supabase.com/account/tokens
@@ -35,3 +52,6 @@ EMBEDDING_MODEL=text-embedding-3-small
 # Groq (free-tier chat models)
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=llama-3.1-8b-instant
+
+# Google Maps API (for address preview)
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here

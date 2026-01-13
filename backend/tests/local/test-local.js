@@ -2,8 +2,8 @@
 const { handler } = require('./netlify/functions/request-password-reset.js');
 
 async function testLocal() {
-  console.log('🧪 Testing password reset function...');
-  
+
+
   const mockEvent = {
     httpMethod: 'POST',
     headers: {
@@ -16,11 +16,11 @@ async function testLocal() {
 
   try {
     const result = await handler(mockEvent);
-    console.log('✅ Status:', result.statusCode);
-    console.log('📄 Body:', result.body);
-    
+
+
+
     if (result.statusCode !== 200) {
-      console.log('❌ Function returned error status');
+
     }
   } catch (error) {
     console.error('❌ Function threw error:', error.message);

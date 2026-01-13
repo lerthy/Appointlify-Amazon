@@ -33,11 +33,11 @@ interface ConversationState {
 export class MockAIService {
   private conversationStates: Map<string, ConversationState> = new Map();
 
-  constructor() {}
+  constructor() { }
 
   async generateResponse(userMessage: string, conversationHistory: any[] = [], sessionId: string = 'default'): Promise<string> {
     const message = userMessage.toLowerCase().trim();
-    
+
     // Get or create conversation state
     let state = this.conversationStates.get(sessionId);
     if (!state) {
@@ -49,28 +49,28 @@ export class MockAIService {
     switch (state.step) {
       case 'greeting':
         return await this.handleGreeting(message, state, sessionId);
-      
+
       case 'business_selection':
         return await this.handleBusinessSelection(message, state, sessionId);
-      
+
       case 'service_selection':
         return await this.handleServiceSelection(message, state, sessionId);
-      
+
       case 'contact_info':
         return await this.handleContactInfo(message, state, sessionId);
-      
+
       case 'date_selection':
         return await this.handleDateSelection(message, state, sessionId);
-      
+
       case 'time_selection':
         return await this.handleTimeSelection(message, state, sessionId);
-      
+
       case 'confirmation':
         return await this.handleConfirmation(message, state, sessionId);
-      
+
       case 'booking_complete':
         return this.handleBookingComplete(message, state);
-      
+
       default:
         return "I'm here to help you book an appointment. Let's start by finding the right business for you!";
     }
@@ -347,11 +347,11 @@ Which date would you prefer? You can choose by number or say the date.`;
           const shortDayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
           const monthDay = dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
           const shortMonthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          
-          if (message.includes(dayName.toLowerCase()) || 
-              message.includes(shortDayName.toLowerCase()) ||
-              message.includes(monthDay.toLowerCase()) ||
-              message.includes(shortMonthDay.toLowerCase())) {
+
+          if (message.includes(dayName.toLowerCase()) ||
+            message.includes(shortDayName.toLowerCase()) ||
+            message.includes(monthDay.toLowerCase()) ||
+            message.includes(shortMonthDay.toLowerCase())) {
             selectedDate = date;
             break;
           }
@@ -378,20 +378,20 @@ Which date would you prefer? You can choose by number or say the date.`;
         const timeOptions = state.availableTimes
           .map((time, index) => {
             const timeObj = new Date(`2000-01-01T${time}`);
-            const timeString = timeObj.toLocaleTimeString('en-US', { 
-              hour: 'numeric', 
+            const timeString = timeObj.toLocaleTimeString('en-US', {
+              hour: 'numeric',
               minute: '2-digit',
-              hour12: true 
+              hour12: true
             });
             return `${index + 1}. ${timeString}`;
           })
           .join('\n');
 
         const dateObj = new Date(selectedDate);
-        const dateString = dateObj.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          month: 'long', 
-          day: 'numeric' 
+        const dateString = dateObj.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric'
         });
 
         return `Great! For ${dateString}, here are the available time slots:
@@ -447,7 +447,7 @@ What time would you prefer? You can choose by number or say the time.`;
           if (period === 'am' && hour === 12) hour = 0;
 
           const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-          
+
           if (state.availableTimes.includes(timeString)) {
             selectedTime = timeString;
             break;
@@ -457,23 +457,23 @@ What time would you prefer? You can choose by number or say the time.`;
     }
 
     if (selectedTime) {
-      console.log('Selected time:', selectedTime);
+
       state.selectedTime = selectedTime;
       state.step = 'confirmation';
       this.conversationStates.set(sessionId, state);
 
       const timeObj = new Date(`2000-01-01T${selectedTime}`);
-      const timeString = timeObj.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
+      const timeString = timeObj.toLocaleTimeString('en-US', {
+        hour: 'numeric',
         minute: '2-digit',
-        hour12: true 
+        hour12: true
       });
 
       const dateObj = new Date(state.selectedDate);
-      const dateString = dateObj.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'long', 
-        day: 'numeric' 
+      const dateString = dateObj.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
       });
 
       console.log('Confirmation details:', {
@@ -510,28 +510,28 @@ Is this correct? Please respond with "yes" to confirm or "no" to make changes.`;
       // Create the appointment
       try {
         const bookingService = new BookingService(state.selectedBusiness.id);
-        
+
         // Double-check availability before booking
         console.log('Double-checking availability with:', {
           date: state.selectedDate,
           time: state.selectedTime,
           duration: state.selectedService.duration
         });
-        
+
         const isStillAvailable = await bookingService.checkAvailability(
-          state.selectedDate, 
-          state.selectedTime, 
+          state.selectedDate,
+          state.selectedTime,
           state.selectedService.duration
         );
-        
-        console.log('Availability check result:', isStillAvailable);
-        
+
+
+
         // Note: We're proceeding with booking even if availability check fails
         // This allows the booking to work while we debug the availability system
         if (!isStillAvailable) {
-          console.log('⚠️ Time slot may not be available, but proceeding with booking...');
+
         }
-        
+
         // Get first available employee
         const employees = await bookingService.getEmployees();
         const employeeId = employees.length > 0 ? employees[0].id : 'default';
@@ -548,30 +548,30 @@ Is this correct? Please respond with "yes" to confirm or "no" to make changes.`;
           notes: 'Booked via AI Assistant'
         };
 
-        console.log('Creating appointment with data:', bookingData);
+
 
         // Try to create the appointment even if availability check failed (for debugging)
-        console.log('Attempting to create appointment...');
+
         const result = await bookingService.createAppointment(bookingData);
 
-        console.log('Appointment creation result:', result);
+
 
         if (result.success) {
           state.step = 'booking_complete';
           this.conversationStates.set(sessionId, state);
 
           const timeObj = new Date(`2000-01-01T${state.selectedTime}`);
-          const timeString = timeObj.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
+          const timeString = timeObj.toLocaleTimeString('en-US', {
+            hour: 'numeric',
             minute: '2-digit',
-            hour12: true 
+            hour12: true
           });
 
           const dateObj = new Date(state.selectedDate);
-          const dateString = dateObj.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            month: 'long', 
-            day: 'numeric' 
+          const dateString = dateObj.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric'
           });
 
           const confirmationMessage = `🎉 **Booking Confirmed!**
@@ -588,7 +588,7 @@ You'll receive a confirmation email and SMS shortly. If you need to cancel or re
 
 Thank you for using Appointly! Is there anything else I can help you with?`;
 
-          console.log('Sending confirmation message:', confirmationMessage);
+
           return confirmationMessage;
         } else {
           console.error('Booking failed:', result.error);

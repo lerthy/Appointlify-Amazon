@@ -19,7 +19,7 @@ const { createClient } = require("@supabase/supabase-js");
       FRONTEND_URL: "http://localhost:3000" || process.env.FRONTEND_URL || '*',
       NODE_ENV: process.env.NODE_ENV || 'development',
     });
-  } catch {}
+  } catch { }
 })();
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
@@ -27,8 +27,7 @@ const ALLOWED_ORIGIN = process.env.FRONTEND_URL || "*";
 function supabaseServer() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  console.log('[business-data] Using SUPABASE_URL:', url ? (new URL(url).origin) : 'missing');
-  console.log('[business-data] Using SERVICE_ROLE_KEY:', key ? `${String(key).slice(0,4)}***${String(key).slice(-4)} (len ${String(key).length})` : 'missing');
+
   if (!url || !key) throw new Error("Supabase env not configured");
   return createClient(url, key, { auth: { persistSession: false } });
 }
@@ -76,7 +75,7 @@ async function getAppointments(businessId) {
     eq: businessId ? { business_id: String(businessId) } : undefined,
   });
   if (viaMcp) return viaMcp;
-  
+
   // Fallback to direct Supabase - get ALL appointments
   const sb = supabaseServer();
   let query = sb.from("appointments").select("*").limit(2000);
@@ -119,10 +118,10 @@ function computePopularDays(appointments) {
 
 function computePeakHours(appointments) {
   const hourCounts = Array(24).fill(0);
-  
+
   appointments.forEach(appointment => {
     if (!appointment?.date) return;
-    
+
     // KEY INSIGHT: The frontend uses new Date(appointment.date).getHours()
     // When a date string has "+00:00" timezone, JavaScript converts it:
     // - Frontend (user's browser in UTC+2/UTC+3): converts to local time
@@ -135,20 +134,20 @@ function computePeakHours(appointments) {
       // Remove timezone suffix (+00:00, Z, etc.) to force local interpretation
       dateStr = dateStr.replace(/(\+00:00|Z)$/, '');
     }
-    
+
     const d = new Date(dateStr);
     const hour = d.getHours(); // This will now interpret in server's "local" time
-    
+
     // But server is still in UTC, so we need to add offset
     // October dates in Europe are UTC+3 (DST), November+ are UTC+2
     const month = d.getMonth();
     const isDST = month >= 2 && month <= 9; // March to October is DST
     const offset = isDST ? 3 : 2;
     const localHour = (hour + offset) % 24;
-    
+
     hourCounts[localHour]++;
   });
-  
+
   return hourCounts
     .map((count, hour) => ({ hour, count }))
     .filter(h => h.count > 0)
@@ -181,7 +180,7 @@ exports.handler = async (event, context) => {
     json: async () => JSON.parse(event.body || "{}"),
     url: `https://${event.headers.host}${event.path}`
   };
-  
+
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -197,7 +196,7 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         status: "business-data function is running",
         method: "POST",
         expectedBody: { question: "string", businessId: "optional" },
@@ -248,8 +247,6 @@ exports.handler = async (event, context) => {
         data = { note: "No specific metric detected; provide general insight using available data." };
     }
 
-    console.log(`[business-data] Returning data for intent "${intent}":`, JSON.stringify(data));
-
     return {
       statusCode: 200,
       headers,
@@ -260,5 +257,4 @@ exports.handler = async (event, context) => {
     return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
   }
 };
-
 
