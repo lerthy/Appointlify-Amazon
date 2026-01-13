@@ -16,6 +16,7 @@
     "bcryptjs": "^3.0.2",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.344.0",
+    "nodemailer": "^7.0.11",
     "openai": "^5.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -43,9 +44,3 @@
     "vite": "^5.4.2"
   }
 }
-
-
-
-
-
-

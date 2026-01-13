@@ -6,6 +6,7 @@ import cors from 'cors';
 import OpenAI from 'openai';
 import { supabase } from './supabaseClient.js';
 import googleAuthRouter from './routes/googleAuthRouter.js';
+import { subdomainResolver } from './middleware/subdomainResolver.js';
 import { startGoogleHealthMonitor } from './services/googleHealthMonitor.js';
 
 console.log('Supabase available at startup:', !!supabase);
@@ -18,19 +19,60 @@ const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 
 
 const corsOptions = {
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.length === 0) return cb(null, true);
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return cb(null, true);
+    }
+    
+    // In development, always allow localhost origins
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    if (isDevelopment) {
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return cb(null, true);
+      }
+    }
+    
+    // Check against allowed origins
+    if (allowedOrigins.length === 0 || allowedOrigins.includes('*')) {
+      return cb(null, true);
+    }
+    
     const normalizedOrigin = origin.replace(/\/$/, '');
-    if (allowedOrigins.includes(normalizedOrigin) || allowedOrigins.includes('*')) {
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return cb(null, true);
+    }
+    
+    // Log CORS rejection for debugging
+    console.warn('[CORS] Rejected origin:', origin, 'Allowed origins:', allowedOrigins);
+    // In development, allow anyway but log
+    if (isDevelopment) {
       return cb(null, true);
     }
     return cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
 const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Logging middleware for debugging
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    console.log(`[${req.method}] ${req.path}`, {
+      origin: req.headers.origin,
+      host: req.headers.host,
+      query: req.query
+    });
+  }
+  next();
+});
+
+// Subdomain middleware: attaches business context if subdomain is present
+app.use(subdomainResolver);
 app.use('/api', googleAuthRouter);
 console.log('✅ Google OAuth routes registered at /api');
 
@@ -195,10 +237,22 @@ app.post('/api/book-appointment', async (req, res) => {
   try {
     const { name, service, date, time, email, phone } = req.body;
     const bookingId = `apt_${Date.now()}`;
+    // Use business context from subdomain
+    const business = req.business;
+    if (!business) {
+      return res.status(404).json({ success: false, error: 'Business not found for this subdomain.' });
+    }
+    // You can add business-specific logic here, e.g. check service availability, save appointment to business, etc.
     res.json({
       success: true,
       bookingId,
-      message: `Appointment booked successfully!`,
+      business: {
+        id: business.id,
+        name: business.name,
+        subdomain: business.subdomain,
+        email: business.email,
+      },
+      message: `Appointment booked successfully for ${business.name}!`,
       details: { name, service, date, time, email, phone }
     });
   } catch (error) {
@@ -815,8 +869,10 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
 app.get('/api/confirm-appointment', requireDb, async (req, res) => {
   try {
     const { token } = req.query;
+    console.log('[confirm-appointment GET] Received request with token:', token ? `${token.substring(0, 10)}...` : 'none');
 
     if (!token) {
+      console.log('[confirm-appointment GET] No token provided');
       return res.status(400).json({
         success: false,
         error: 'Confirmation token is required'
@@ -824,13 +880,21 @@ app.get('/api/confirm-appointment', requireDb, async (req, res) => {
     }
 
     // Find appointment with this token
+    console.log('[confirm-appointment GET] Querying database for appointment with token...');
     const { data: appointment, error: findError } = await supabase
       .from('appointments')
       .select('id, confirmation_status, confirmation_token_expires, customer_id, service_id, business_id, date, name, email')
       .eq('confirmation_token', token)
       .single();
+    
+    console.log('[confirm-appointment GET] Query result:', { 
+      found: !!appointment, 
+      error: findError?.message,
+      appointmentId: appointment?.id 
+    });
 
     if (findError || !appointment) {
+      console.log('[confirm-appointment GET] Appointment not found or error:', findError?.message || 'No appointment found');
       return res.status(404).json({
         success: false,
         error: 'Invalid or expired confirmation token'
@@ -1247,10 +1311,21 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
+// Catch-all for unhandled API routes (must be before error handler)
+// Note: Express will handle 404s naturally, but we can add logging here if needed
+
 // Global error handler
 app.use((error, req, res, next) => {
   console.error('Unhandled Express error:', error);
   const isDev = process.env.NODE_ENV !== 'production';
+  // Handle CORS errors specifically
+  if (error.message && error.message.includes('CORS')) {
+    return res.status(403).json({
+      success: false,
+      error: 'CORS policy violation',
+      message: error.message
+    });
+  }
   res.status(error.status || 500).json({
     success: false,
     error: isDev ? error.message : 'Internal server error',

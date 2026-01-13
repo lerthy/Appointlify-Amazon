@@ -30,29 +30,38 @@ const AppointmentPage: React.FC = () => {
       setLoading(true);
       console.log('[AppointmentPage] Fetching business:', businessId);
       
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, name, description, logo, business_address')
-        .eq('id', businessId)
-        .single();
-      
-      if (error) {
-        console.error('[AppointmentPage] Error fetching business:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, name, description, logo, business_address')
+          .eq('id', businessId)
+          .single();
+        
+        if (error) {
+          console.error('[AppointmentPage] Error fetching business:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+          // If it's a "no rows" error, the business doesn't exist
+          if (error.code === 'PGRST116') {
+            console.warn('[AppointmentPage] Business not found or access denied');
+          }
+          setBusiness(null);
+        } else if (data) {
+          console.log('[AppointmentPage] Business found:', data);
+          setBusiness(data);
+        } else {
+          console.error('[AppointmentPage] No business data returned');
+          setBusiness(null);
+        }
+      } catch (err) {
+        console.error('[AppointmentPage] Unexpected error:', err);
+        setBusiness(null);
+      } finally {
+        setLoading(false);
       }
-      
-      if (data) {
-        console.log('[AppointmentPage] Business found:', data);
-        setBusiness(data);
-      } else {
-        console.error('[AppointmentPage] No business data returned');
-      }
-      
-      setLoading(false);
     };
     fetchBusiness();
   }, [businessId]);

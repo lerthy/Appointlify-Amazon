@@ -28,6 +28,33 @@ const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Upload logo first if provided
+    let logoUrl = '';
+    if (logoFile) {
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
+      if (uploadError) {
+        setError('Failed to upload logo: ' + uploadError.message);
+        setIsSubmitting(false);
+        return;
+      }
+      logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
+    }
+    // Debug: log the payload sent to Supabase
+    console.log('Payload sent to Supabase:', {
+      email: form.email,
+      password: form.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: {
+          name: form.name,
+          phone: form.phone,
+          description: form.description,
+          logo: logoUrl
+        }
+      }
+    });
     setIsSubmitting(true);
     
     if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
@@ -71,19 +98,25 @@ const RegisterPage: React.FC = () => {
       }
 
       // Register user with Supabase Auth
-      // Pass all user data via metadata - the database trigger will create the profile
+      // Only send allowed metadata fields (sanitize logoUrl and never spread form object)
+      const metadata = {
+        name: form.name,
+        phone: form.phone,
+        description: form.description,
+        logo: logoUrl
+      };
+      // Remove any accidental extra fields
+      Object.keys(metadata).forEach(key => {
+        if (!["name", "phone", "description", "logo"].includes(key)) {
+          delete metadata[key];
+        }
+      });
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            name: form.name,
-            phone: form.phone,
-            description: form.description,
-            logo: logoUrl,
-            email_verified: true
-          }
+          data: metadata
         }
       });
 

@@ -497,7 +497,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       } else if (!smsSent) {
         showNotification('Appointment booked but SMS confirmation failed. Please check your email for confirmation.', 'error');
       } else {
-        showNotification('Check your email and phone for confirmation.', 'success');
+        showNotification('Check your email and phone for confirmation.', 'success', 8000);
       }
       
       // Prepare booking confirmation data
@@ -516,16 +516,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         cancelLink
       };
 
-      // Redirect to confirmation page with booking data
-      console.log('Redirecting to booking confirmation with data:', bookingConfirmationData);
-      navigate('/booking-confirmation', { state: bookingConfirmationData });
-      
-      // Fallback: if navigation doesn't work, redirect after a short delay
-      setTimeout(() => {
-        if (window.location.pathname !== '/booking-confirmation') {
-          window.location.href = '/booking-confirmation';
-        }
-      }, 1000);
+      // Show success notification and redirect to home page
+      showNotification('Appointment booked successfully!', 'success');
+      navigate('/');
     } catch (error: any) {
       console.error('Error booking appointment:', error);
       const errorMessage = error?.message || 'Failed to book appointment. Please try again.';

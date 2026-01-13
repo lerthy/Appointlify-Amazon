@@ -18,5 +18,8 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.17"
+  },
+  "dependencies": {
+    "nodemailer": "^7.0.11"
   }
 }
