@@ -118,77 +118,119 @@ export const AppProvider: React.FC<{
     fetchBusinessId();
   }, [user?.email, user?.id]);
 
-  // Fetch business settings (DB route first, then Supabase fallback); stop retrying after DB is unavailable
+  // Optimized: Fetch all business data in a single request (parallel DB queries)
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchAllBusinessData = async () => {
       if (!businessId) return;
       if (!skipBackend) {
         try {
-          const res = await fetch(`/api/business/${businessId}/settings`);
+          const res = await fetch(`/api/business/${businessId}/data`);
           if (res.ok) {
             const json = await res.json();
-            const data = json?.settings;
-            if (data) setBusinessSettings(data);
-            return;
+            if (json?.success && json?.data) {
+              const { settings, employees: fetchedEmployees, services: fetchedServices, appointments: fetchedAppointments, customers: fetchedCustomers, reviews: fetchedReviews } = json.data;
+              
+              // Set all data from single response
+              if (settings !== undefined) setBusinessSettings(settings || null);
+              if (fetchedEmployees) {
+                const byEmail = new Map<string, Employee>();
+                fetchedEmployees.forEach((e: Employee) => byEmail.set(e.email, e));
+                setEmployees(Array.from(byEmail.values()));
+              }
+              if (fetchedServices) setServices(fetchedServices);
+              if (fetchedAppointments) setAppointments(fetchedAppointments);
+              if (fetchedCustomers) setCustomers(fetchedCustomers);
+              if (fetchedReviews) setReviews(fetchedReviews);
+              
+              console.log('[AppContext] Loaded all business data from optimized endpoint');
+              return;
+            }
           }
           setSkipBackend(true);
         } catch (_) {
           setSkipBackend(true);
         }
       }
+      
+      // Fallback to individual endpoints if optimized endpoint fails
+      fetchSettings();
+      fetchAppointments();
+      fetchEmployees();
+      fetchServices();
+      fetchCustomers();
+      fetchReviews();
+    };
+    
+    fetchAllBusinessData();
+  }, [businessId, skipBackend, user?.id]);
 
-      // Fallback: direct Supabase read when backend DB routes are unavailable
+  // Fetch business settings (fallback - used if optimized endpoint fails)
+  const fetchSettings = async () => {
+    if (!businessId) return;
+    if (!skipBackend) {
       try {
-        const { data, error } = await supabase
-          .from('business_settings')
-          .select('*')
-          .eq('business_id', businessId)
-          .order('updated_at', { ascending: false });
-
-        if (error) {
-          console.error('[AppContext] Error loading business_settings via Supabase fallback:', error);
+        const res = await fetch(`/api/business/${businessId}/settings`);
+        if (res.ok) {
+          const json = await res.json();
+          const data = json?.settings;
+          setBusinessSettings(data || null);
           return;
         }
-
-        const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
-        setBusinessSettings(row ? (row as unknown as BusinessSettings) : null);
-      } catch (err) {
-        console.error('[AppContext] Exception in Supabase fallback for business_settings:', err);
+        setSkipBackend(true);
+      } catch (_) {
+        setSkipBackend(true);
       }
-    };
-    fetchSettings();
-  }, [businessId, skipBackend]);
+    }
 
-  // Fetch appointments (DB route first; on failure, mark skip and use Supabase fallback)
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!businessId) return;
-      if (!skipBackend) {
-        try {
-          const res = await fetch(`/api/business/${businessId}/appointments`);
-          if (res.ok) {
-            const json = await res.json();
-            setAppointments(json?.appointments || []);
-            return;
-          }
-          setSkipBackend(true);
-        } catch (_) {
-          setSkipBackend(true);
-        }
+    // Fallback: direct Supabase read when backend DB routes are unavailable
+    try {
+      const { data, error } = await supabase
+        .from('business_settings')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.error('[AppContext] Error loading business_settings via Supabase fallback:', error);
+        setBusinessSettings(null);
+        return;
       }
 
-      // Fallback: direct Supabase
+      const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+      setBusinessSettings(row ? (row as unknown as BusinessSettings) : null);
+    } catch (err) {
+      console.error('[AppContext] Exception in Supabase fallback for business_settings:', err);
+      setBusinessSettings(null);
+    }
+  };
+
+  // Fetch appointments (fallback - used if optimized endpoint fails)
+  const fetchAppointments = async () => {
+    if (!businessId) return;
+    if (!skipBackend) {
       try {
-        const { data } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('business_id', businessId)
-          .order('date', { ascending: true });
-        setAppointments((data as unknown as Appointment[]) || []);
-      } catch (_) {}
-    };
-    fetchAppointments();
-  }, [businessId, skipBackend]);
+        const res = await fetch(`/api/business/${businessId}/appointments`);
+        if (res.ok) {
+          const json = await res.json();
+          setAppointments(json?.appointments || []);
+          return;
+        }
+        setSkipBackend(true);
+      } catch (_) {
+        setSkipBackend(true);
+      }
+    }
+
+    // Fallback: direct Supabase
+    try {
+      const { data } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('date', { ascending: true });
+      setAppointments((data as unknown as Appointment[]) || []);
+    } catch (_) {}
+  };
 
   // Real-time subscription for appointments (only when enabled)
   useEffect(() => {
@@ -251,69 +293,39 @@ export const AppProvider: React.FC<{
     };
   }, [businessId, enableRealtime]);
 
-  // Fetch customers from backend
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const res = await fetch('/api/customers');
-        if (!res.ok) return;
-        const json = await res.json();
-        setCustomers(json?.customers || []);
-      } catch (_) {}
+  // Fetch customers (fallback - used if optimized endpoint fails)
+  const fetchCustomers = async () => {
+    try {
+      const res = await fetch('/api/customers');
+      if (!res.ok) return;
+      const json = await res.json();
+      setCustomers(json?.customers || []);
+    } catch (_) {}
+  };
+
+  // Fetch employees (fallback - used if optimized endpoint fails)
+  const fetchEmployees = async () => {
+    const effectiveBusinessId = businessId || user?.id || null;
+    if (!effectiveBusinessId) return;
+
+    // Helper to scope any employee list to the current business
+    const setScopedEmployees = (list: Employee[]) => {
+      const scoped = list.filter(e => e.business_id === effectiveBusinessId);
+      const byEmail = new Map<string, Employee>();
+      scoped.forEach(e => byEmail.set(e.email, e));
+      setEmployees(Array.from(byEmail.values()));
     };
-    fetchCustomers();
-  }, [businessId]);
 
-  // Fetch employees (backend first, then Supabase fallback; skip backend after failure)
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      const effectiveBusinessId = businessId || user?.id || null;
-      if (!effectiveBusinessId) return;
-
-      // Helper to scope any employee list to the current business
-      const setScopedEmployees = (list: Employee[]) => {
-        const scoped = list.filter(e => e.business_id === effectiveBusinessId);
-        const byEmail = new Map<string, Employee>();
-        scoped.forEach(e => byEmail.set(e.email, e));
-        setEmployees(Array.from(byEmail.values()));
-      };
-
-      if (!skipBackend) {
-        try {
-          const res = await fetch(`/api/business/${effectiveBusinessId}/employees`);
-          if (res.ok) {
-            const json = await res.json();
-            const list = (json?.employees || []) as Employee[];
-            setScopedEmployees(list);
-            return;
-          }
-          // Fallback to dev in-memory list when DB route is unavailable (e.g., 503)
-          try {
-            const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
-            if (devRes.ok) {
-              const json = await devRes.json();
-              const list = (json?.employees || []) as Employee[];
-              setScopedEmployees(list);
-              return;
-            }
-          } catch {}
-          // Mark backend as unavailable to avoid repeated 503s
-          setSkipBackend(true);
-        } catch (_) {
-          // Try dev fallback once on network/route error
-          try {
-            const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
-            if (devRes.ok) {
-              const json = await devRes.json();
-              const list = (json?.employees || []) as Employee[];
-              setScopedEmployees(list);
-              return;
-            }
-          } catch {}
-          setSkipBackend(true);
+    if (!skipBackend) {
+      try {
+        const res = await fetch(`/api/business/${effectiveBusinessId}/employees`);
+        if (res.ok) {
+          const json = await res.json();
+          const list = (json?.employees || []) as Employee[];
+          setScopedEmployees(list);
+          return;
         }
-      } else {
-        // When backend DB routes are unavailable, prefer dev in-memory endpoint first
+        // Fallback to dev in-memory list when DB route is unavailable (e.g., 503)
         try {
           const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
           if (devRes.ok) {
@@ -323,55 +335,76 @@ export const AppProvider: React.FC<{
             return;
           }
         } catch {}
-        // Secondary fallback: direct Supabase query if frontend is configured
+        // Mark backend as unavailable to avoid repeated 503s
+        setSkipBackend(true);
+      } catch (_) {
+        // Try dev fallback once on network/route error
         try {
-          const { data, error } = await supabase
-            .from('employees')
-            .select('*')
-            .eq('business_id', effectiveBusinessId)
-            .order('created_at', { ascending: false });
-          if (!error) {
-            const list = (data || []) as Employee[];
+          const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
+          if (devRes.ok) {
+            const json = await devRes.json();
+            const list = (json?.employees || []) as Employee[];
             setScopedEmployees(list);
-          }
-        } catch (_) {}
-      }
-    };
-    fetchEmployees();
-  }, [businessId, user?.id, skipBackend]);
-
-  // Fetch services (DB route first; on failure, mark skip and use Supabase fallback)
-  useEffect(() => {
-    const fetchServices = async () => {
-      if (!businessId) return;
-      if (!skipBackend) {
-        try {
-          const res = await fetch(`/api/business/${businessId}/services`);
-          if (res.ok) {
-            const json = await res.json();
-            setServices(json?.services || []);
             return;
           }
-          setSkipBackend(true);
-        } catch (_) {
-          setSkipBackend(true);
-        }
+        } catch {}
+        setSkipBackend(true);
       }
-
-      // Fallback: direct Supabase
+    } else {
+      // When backend DB routes are unavailable, prefer dev in-memory endpoint first
       try {
-        const { data } = await supabase
-          .from('services')
+        const devRes = await fetch(`/api/employees?businessId=${encodeURIComponent(effectiveBusinessId)}`);
+        if (devRes.ok) {
+          const json = await devRes.json();
+          const list = (json?.employees || []) as Employee[];
+          setScopedEmployees(list);
+          return;
+        }
+      } catch {}
+      // Secondary fallback: direct Supabase query if frontend is configured
+      try {
+        const { data, error } = await supabase
+          .from('employees')
           .select('*')
-          .eq('business_id', businessId)
-          .order('name');
-        setServices((data as unknown as Service[]) || []);
+          .eq('business_id', effectiveBusinessId)
+          .order('created_at', { ascending: false });
+        if (!error) {
+          const list = (data || []) as Employee[];
+          setScopedEmployees(list);
+        }
       } catch (_) {}
-    };
-    fetchServices();
-  }, [businessId, skipBackend]);
+    }
+  };
 
-  // Fetch reviews from backend
+  // Fetch services (fallback - used if optimized endpoint fails)
+  const fetchServices = async () => {
+    if (!businessId) return;
+    if (!skipBackend) {
+      try {
+        const res = await fetch(`/api/business/${businessId}/services`);
+        if (res.ok) {
+          const json = await res.json();
+          setServices(json?.services || []);
+          return;
+        }
+        setSkipBackend(true);
+      } catch (_) {
+        setSkipBackend(true);
+      }
+    }
+
+    // Fallback: direct Supabase
+    try {
+      const { data } = await supabase
+        .from('services')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('name');
+      setServices((data as unknown as Service[]) || []);
+    } catch (_) {}
+  };
+
+  // Fetch reviews (fallback - used if optimized endpoint fails)
   const fetchReviews = async () => {
     try {
       const res = await fetch('/api/reviews?approved=true');
@@ -380,10 +413,6 @@ export const AppProvider: React.FC<{
       setReviews(json?.reviews || []);
     } catch (_) {}
   };
-
-  useEffect(() => {
-    fetchReviews();
-  }, []);
 
   // Update analytics when appointments change
   useEffect(() => {

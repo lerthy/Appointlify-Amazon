@@ -92,13 +92,17 @@ const LoginPage: React.FC = () => {
         }
 
         userData = newProfile;
+
+        // Create default business settings for new user
+        const { createDefaultBusinessSettings } = await import('../utils/createDefaultBusinessSettings');
+        await createDefaultBusinessSettings(newProfile.id, newProfile.name || 'Business');
       }
 
       // Log in the user
       login(userData);
       setIsSubmitting(false);
-      console.log('[LoginPage] Login successful, redirecting to homepage (/)');
-      navigate('/');
+      console.log('[LoginPage] Login successful, redirecting to dashboard');
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
       const message = err instanceof Error ? err.message : 'An error occurred during login';

@@ -141,6 +141,43 @@ export async function getOrCreateUserProfile(authUser, overrides = {}) {
     .single();
 
   if (error) throw error;
+
+  // Create default business settings for new user
+  try {
+    const defaultWorkingHours = [
+      { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+      { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+      { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+      { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+      { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+      { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+      { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
+    ];
+
+    const settingsPayload = {
+      business_id: data.id,
+      name: data.name || 'Business',
+      working_hours: defaultWorkingHours,
+      blocked_dates: [],
+      breaks: [],
+      appointment_duration: 30
+    };
+
+    const { error: settingsError } = await supabase
+      .from('business_settings')
+      .insert([settingsPayload]);
+
+    if (settingsError) {
+      console.warn('[getOrCreateUserProfile] Failed to create default business settings:', settingsError.message);
+      // Don't throw - user profile was created successfully, settings can be created later
+    } else {
+      console.log('[getOrCreateUserProfile] Created default business settings for user:', data.id);
+    }
+  } catch (settingsErr) {
+    console.warn('[getOrCreateUserProfile] Error creating business settings:', settingsErr.message);
+    // Don't throw - user profile was created successfully
+  }
+
   return data;
 }
 

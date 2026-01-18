@@ -806,21 +806,47 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 // Get all businesses
 app.get('/api/businesses', requireDb, async (req, res) => {
   try {
-    console.log('[GET /api/businesses] Fetching all businesses...');
-    const { data, error } = await supabase!
+    console.log('[GET /api/businesses] Fetching completed businesses with single query...');
+    
+    // Use a single query approach: get distinct business_ids from each table and find intersection
+    const [employeesResult, servicesResult, settingsResult] = await Promise.all([
+      supabase!.from('employees').select('business_id').not('business_id', 'is', null),
+      supabase!.from('services').select('business_id').not('business_id', 'is', null),
+      supabase!.from('business_settings').select('business_id').not('business_id', 'is', null)
+    ]);
+    
+    if (employeesResult.error) throw employeesResult.error;
+    if (servicesResult.error) throw servicesResult.error;
+    if (settingsResult.error) throw settingsResult.error;
+    
+    // Extract unique business_ids from each result
+    const businessIdsWithEmployees = new Set((employeesResult.data || []).map((e: any) => e.business_id));
+    const businessIdsWithServices = new Set((servicesResult.data || []).map((s: any) => s.business_id));
+    const businessIdsWithSettings = new Set((settingsResult.data || []).map((bs: any) => bs.business_id));
+    
+    // Find intersection: businesses that have all three
+    const validBusinessIds = Array.from(businessIdsWithEmployees).filter(id => 
+      businessIdsWithServices.has(id) && businessIdsWithSettings.has(id)
+    );
+    
+    if (validBusinessIds.length === 0) {
+      console.log('[GET /api/businesses] No businesses found with employees, services, and settings');
+      return res.json({ success: true, businesses: [] });
+    }
+    
+    // Fetch business details for valid business IDs in a single query
+    const { data: businesses, error: businessesError } = await supabase!
       .from('users')
-      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
-
-    if (error) {
-      console.error('[GET /api/businesses] Error:', error);
-      throw error;
+      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role')
+      .in('id', validBusinessIds);
+    
+    if (businessesError) {
+      console.error('[GET /api/businesses] Error:', businessesError);
+      throw businessesError;
     }
 
-    // Filter for businesses (role='business' or null, since default is business)
-    const businesses = data || [];
-
-    console.log(`[GET /api/businesses] Success: Found ${businesses.length} businesses (from ${data?.length || 0} total users)`);
-    return res.json({ success: true, businesses });
+    console.log(`[GET /api/businesses] Success: Found ${businesses?.length || 0} completed businesses`);
+    return res.json({ success: true, businesses: businesses || [] });
   } catch (error: any) {
     console.error('[GET /api/businesses] Handler error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch businesses', details: error.message });

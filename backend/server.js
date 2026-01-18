@@ -557,58 +557,47 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 
 app.get('/api/businesses', requireDb, async (req, res) => {
   try {
-    console.log('[GET /api/businesses] Fetching all businesses...');
+    console.log('[GET /api/businesses] Fetching completed businesses with single query...');
     
-    // Get all users
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role');
+    // Use a single query with Postgres to find businesses that have employees, services, and settings
+    // We'll use Supabase's RPC capability or fetch distinct business_ids and find intersection
     
-    if (usersError) throw usersError;
+    // Get distinct business_ids from each table
+    const [employeesResult, servicesResult, settingsResult] = await Promise.all([
+      supabase.from('employees').select('business_id').not('business_id', 'is', null),
+      supabase.from('services').select('business_id').not('business_id', 'is', null),
+      supabase.from('business_settings').select('business_id').not('business_id', 'is', null)
+    ]);
     
-    // For each business, check if they have at least 1 employee and 1 service
-    const completedBusinesses = [];
+    if (employeesResult.error) throw employeesResult.error;
+    if (servicesResult.error) throw servicesResult.error;
+    if (settingsResult.error) throw settingsResult.error;
     
-    for (const business of users || []) {
-      // Check for employees
-      const { data: employees, error: empError } = await supabase
-        .from('employees')
-        .select('id')
-        .eq('business_id', business.id)
-        .limit(1);
-      
-      // Check for services
-      const { data: services, error: servError } = await supabase
-        .from('services')
-        .select('id')
-        .eq('business_id', business.id)
-        .limit(1);
-      
-      const hasEmployees = !empError && employees?.length > 0;
-      const hasServices = !servError && services?.length > 0;
-      
-      console.log(`[GET /api/businesses] Business "${business.name}" (${business.id}):`, {
-        employees: hasEmployees ? employees.length : 0,
-        services: hasServices ? services.length : 0,
-        empError: empError ? empError.message : 'none',
-        servError: servError ? servError.message : 'none',
-        willInclude: hasEmployees && hasServices
-      });
-      
-      if (empError) console.error(`[GET /api/businesses] Employee check error for ${business.id}:`, empError);
-      if (servError) console.error(`[GET /api/businesses] Service check error for ${business.id}:`, servError);
-      
-      // Only include businesses with at least 1 employee AND 1 service
-      if (hasEmployees && hasServices) {
-        completedBusinesses.push(business);
-        console.log(`[GET /api/businesses] ✅ Including "${business.name}"`);
-      } else {
-        console.log(`[GET /api/businesses] ❌ Excluding "${business.name}" - employees: ${hasEmployees}, services: ${hasServices}`);
-      }
+    // Extract unique business_ids from each result
+    const businessIdsWithEmployees = new Set((employeesResult.data || []).map(e => e.business_id));
+    const businessIdsWithServices = new Set((servicesResult.data || []).map(s => s.business_id));
+    const businessIdsWithSettings = new Set((settingsResult.data || []).map(bs => bs.business_id));
+    
+    // Find intersection: businesses that have all three
+    const validBusinessIds = Array.from(businessIdsWithEmployees).filter(id => 
+      businessIdsWithServices.has(id) && businessIdsWithSettings.has(id)
+    );
+    
+    if (validBusinessIds.length === 0) {
+      console.log('[GET /api/businesses] No businesses found with employees, services, and settings');
+      return res.json({ success: true, businesses: [] });
     }
     
-    console.log(`[GET /api/businesses] Returning ${completedBusinesses.length} completed businesses (out of ${users?.length || 0} total)`);
-    return res.json({ success: true, businesses: completedBusinesses });
+    // Fetch business details for valid business IDs in a single query
+    const { data: businesses, error: businessesError } = await supabase
+      .from('users')
+      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role')
+      .in('id', validBusinessIds);
+    
+    if (businessesError) throw businessesError;
+    
+    console.log(`[GET /api/businesses] Found ${businesses?.length || 0} completed businesses (out of ${validBusinessIds.length} valid IDs)`);
+    return res.json({ success: true, businesses: businesses || [] });
   } catch (error) {
     console.error('[GET /api/businesses] Error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch businesses' });
@@ -627,6 +616,127 @@ app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
     return res.json({ success: true, info: data || null });
   } catch (error) {
     return res.status(500).json({ success: false, error: 'Failed to fetch business info' });
+  }
+});
+
+// Optimized endpoint: fetch all business data in parallel (single request, parallel DB queries)
+app.get('/api/business/:businessId/data', requireDb, async (req, res) => {
+  try {
+    const { businessId } = req.params;
+    console.log('[GET /api/business/:businessId/data] Fetching all data for business:', businessId);
+    
+    // Fetch all data in parallel
+    const [
+      businessInfoResult,
+      settingsResult,
+      employeesResult,
+      servicesResult,
+      appointmentsResult,
+      customersResult,
+      reviewsResult
+    ] = await Promise.all([
+      // Business info
+      supabase
+        .from('users')
+        .select('id, name, description, logo, business_address')
+        .eq('id', businessId)
+        .single(),
+      
+      // Settings
+      supabase
+        .from('business_settings')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('updated_at', { ascending: false })
+        .limit(1),
+      
+      // Employees
+      supabase
+        .from('employees')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('name'),
+      
+      // Services
+      supabase
+        .from('services')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('name'),
+      
+      // Appointments
+      supabase
+        .from('appointments')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('date', { ascending: true }),
+      
+      // Customers (scoped to business via appointments)
+      supabase
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false }),
+      
+      // Reviews (approved only)
+      supabase
+        .from('reviews')
+        .select('*')
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false })
+    ]);
+    
+    // Handle business info
+    if (businessInfoResult.error && businessInfoResult.error.code !== 'PGRST116') {
+      throw businessInfoResult.error;
+    }
+    const businessInfo = businessInfoResult.data || null;
+    
+    // Handle settings (null if not found)
+    const settings = settingsResult.error && settingsResult.error.code === 'PGRST116' 
+      ? null 
+      : (Array.isArray(settingsResult.data) && settingsResult.data.length > 0 ? settingsResult.data[0] : null);
+    
+    // Handle employees
+    if (employeesResult.error) throw employeesResult.error;
+    const employees = employeesResult.data || [];
+    
+    // Handle services
+    if (servicesResult.error) throw servicesResult.error;
+    const services = servicesResult.data || [];
+    
+    // Handle appointments
+    if (appointmentsResult.error) throw appointmentsResult.error;
+    const appointments = appointmentsResult.data || [];
+    
+    // Handle customers (log error but don't fail)
+    const customers = customersResult.error ? [] : (customersResult.data || []);
+    if (customersResult.error) {
+      console.warn('[GET /api/business/:businessId/data] Customers query error:', customersResult.error.message);
+    }
+    
+    // Handle reviews (log error but don't fail)
+    const reviews = reviewsResult.error ? [] : (reviewsResult.data || []);
+    if (reviewsResult.error) {
+      console.warn('[GET /api/business/:businessId/data] Reviews query error:', reviewsResult.error.message);
+    }
+    
+    console.log(`[GET /api/business/:businessId/data] Success: info=${!!businessInfo}, settings=${!!settings}, employees=${employees.length}, services=${services.length}, appointments=${appointments.length}, customers=${customers.length}, reviews=${reviews.length}`);
+    
+    return res.json({
+      success: true,
+      data: {
+        info: businessInfo,
+        settings,
+        employees,
+        services,
+        appointments,
+        customers,
+        reviews
+      }
+    });
+  } catch (error) {
+    console.error('[GET /api/business/:businessId/data] Error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch business data' });
   }
 });
 
