@@ -1,0 +1,1457 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "search": "Search",
+    "noResults": "No results found",
+    "required": "Required",
+    "optional": "Optional",
+    "errors": {
+      "uploadFailed": "Failed to upload image",
+      "invalidAppointmentId": "Invalid appointment ID",
+      "appointmentNotFound": "Appointment not found or already cancelled.",
+      "breakEndAfterStart": "Break end time must be after start time",
+      "saveFailed": "Failed to save settings. Please try again."
+    }
+  },
+  "header": {
+    "forBusinesses": "For Businesses",
+    "forClients": "For Clients",
+    "login": "Login",
+    "register": "Register",
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "businessProfile": "Business Profile",
+    "signOut": "Sign Out",
+    "openMenu": "Open main menu",
+    "language": "Language"
+  },
+  "footer": {
+    "companyDescription": "Making appointment booking simple and convenient for both businesses and customers.",
+    "contactUs": "Contact Us",
+    "moreInfo": "More Information",
+    "aboutUs": "About Us",
+    "services": "Services",
+    "contact": "Contact",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "allRightsReserved": "All rights reserved.",
+    "monFri": "Mon-Fri, 9am-6pm CET"
+  },
+  "home": {
+    "hero": {
+      "badge": "AI-Powered Appointment Booking Platform",
+      "title": "Time's Ticking,",
+      "titleHighlight": "Start Clicking.",
+      "subtitle": "Because every moment you save opens doors to greater opportunities."
+    },
+    "forBusinesses": {
+      "title": "For Businesses",
+      "headline": "Grow Your Business on Autopilot",
+      "description": "Join thousands of businesses using Appointly to save time, increase revenue, and delight customers with seamless booking experiences.",
+      "card1Title": "Save 10+ Hours Weekly",
+      "card1Description": "Automate appointment scheduling, reminders, and confirmations. Focus on what matters—serving your customers.",
+      "card1Feature": "Automated workflows",
+      "card2Title": "Boost Revenue by 40%",
+      "card2Description": "Reduce no-shows with smart reminders. Fill gaps with intelligent rebooking. Maximize every appointment slot.",
+      "card2Feature": "More bookings, less gaps",
+      "card3Title": "10x Your Visibility",
+      "card3Description": "Get discovered by thousands of clients actively searching for your services. Stand out with ratings and reviews.",
+      "card3Feature": "Featured listings",
+      "testimonialsTitle": "What Business Owners Say",
+      "testimonial1Content": "Appointly transformed our business! We've saved 15 hours per week and increased bookings by 35%.",
+      "testimonial1Name": "Sarah Johnson",
+      "testimonial1Role": "Fitness Studio Owner",
+      "testimonial2Content": "The automated reminders cut our no-shows in half. Our revenue has never been better!",
+      "testimonial2Name": "Mike Chen",
+      "testimonial2Role": "Spa Manager",
+      "testimonial3Content": "Professional, reliable, and incredibly user-friendly. Our patients love the convenience!",
+      "testimonial3Name": "Emily Rodriguez",
+      "testimonial3Role": "Dental Practice Owner",
+      "stat1Value": "92%",
+      "stat1Label": "Client Retention",
+      "stat2Value": "40%",
+      "stat2Label": "Fewer No-Shows",
+      "stat3Value": "24/7",
+      "stat3Label": "Online Booking",
+      "stat4Value": "500+",
+      "stat4Label": "Active Businesses",
+      "ctaButton": "Join Appointly Today - FREE",
+      "ctaSubtext": "No credit card required • Setup in 5 minutes"
+    },
+    "forClients": {
+      "title": "For Clients",
+      "headline": "Book Your Perfect Appointment in Seconds",
+      "description": "Discover and book appointments with top-rated businesses instantly. No phone calls, no waiting—just seamless booking.",
+      "searchPlaceholder": "Search for services or businesses (e.g., 'hair salon', 'dentist', 'yoga')...",
+      "instantBookingTitle": "Instant Booking",
+      "instantBookingDesc": "Book 24/7 in under 30 seconds. No phone calls needed.",
+      "smartRemindersTitle": "Smart Reminders",
+      "smartRemindersDesc": "Never miss an appointment with automated notifications.",
+      "verifiedReviewsTitle": "Verified Reviews",
+      "verifiedReviewsDesc": "Read real reviews from verified customers before booking.",
+      "searchResults": "Search Results",
+      "allBusinesses": "All Businesses",
+      "businessFound": "business",
+      "businessesFound": "businesses",
+      "found": "found",
+      "loadingBusinesses": "Loading businesses...",
+      "noBusinessesFound": "No businesses found matching your search.",
+      "tryDifferentSearch": "Try a different search term!",
+      "bookAppointment": "Book Appointment"
+    }
+  },
+  "login": {
+    "title": "Welcome Back!",
+    "subtitle": "Sign in to access your personalized dashboard and explore new features.",
+    "quote": "Empowering your journey, one login at a time.",
+    "signInTitle": "Sign in to your account",
+    "continueWithGoogle": "Continue with Google",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "Email address",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Password",
+    "signInButton": "Sign in",
+    "signingIn": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "googleCalendarNote": "Grant access so we may sync thy bookings with thine own Google Calendar (optional now, available later in Settings).",
+    "forgotPassword": "Forgot password?",
+    "clickToReset": "Click to reset",
+    "errors": {
+      "fillBoth": "Please enter both email and password.",
+      "verifyEmail": "Please verify your email address before logging in. Check your inbox for the verification link.",
+      "invalidCredentials": "Invalid email or password.",
+      "profileError": "Failed to create user profile. Please contact support."
+    }
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Join Appointly today",
+    "quote": "Start your journey with us.",
+    "signUpWithGoogle": "Sign up with Google",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "Your phone number",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Repeat your password",
+    "descriptionLabel": "Company Description",
+    "descriptionPlaceholder": "Describe your company",
+    "logoLabel": "Company Logo",
+    "uploadFile": "Upload a file",
+    "changeFile": "Change file",
+    "dragAndDrop": "or drag and drop",
+    "fileTypes": "PNG, JPG, GIF up to 10MB",
+    "createAccountButton": "Create Account",
+    "creatingAccount": "Creating account...",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "googleCalendarNote": "Grant access so we may sync thy bookings with thine own Google Calendar (optional during setup).",
+    "successMessage": "Registration successful! Please check your email to verify your account. You must verify your email before you can log in.",
+    "errors": {
+      "fillAllFields": "Please fill in all fields.",
+      "passwordsNoMatch": "Passwords do not match.",
+      "accountExists": "An account with this email already exists. Please sign in instead.",
+      "logoUploadFailed": "Failed to upload logo: ",
+      "createAccountFailed": "Failed to create account. Please try again."
+    }
+  },
+  "forgotPassword": {
+    "title": "Forgot your password?",
+    "subtitle": "Enter your email to receive a reset link.",
+    "quote": "We never disclose whether an email exists.",
+    "backToSignIn": "Back to sign in",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "Enter your email address",
+    "sendResetLink": "Send reset link",
+    "sending": "Sending...",
+    "successMessage": "If an account exists for that email, a reset link has been sent.",
+    "errors": {
+      "enterEmail": "Please enter your email address.",
+      "invalidEmail": "Please enter a valid email address.",
+      "tooManyRequests": "Too many requests. Please wait before trying again.",
+      "networkError": "Network error. Please check your connection and try again."
+    }
+  },
+  "profile": {
+    "title": "Business Profile",
+    "loginRequired": "Please log in to edit your profile.",
+    "nameLabel": "Business Name",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "websiteLabel": "Website",
+    "categoryLabel": "Category",
+    "selectCategory": "Select a category",
+    "ownerNameLabel": "Owner Name",
+    "descriptionLabel": "Description",
+    "addressLabel": "Business Address",
+    "logoLabel": "Business Logo",
+    "currentLogo": "Current Logo",
+    "changeLogo": "Change Logo",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "changePassword": "Change Password",
+    "categories": {
+      "healthWellness": "Health & Wellness",
+      "beautySpa": "Beauty & Spa",
+      "fitness": "Fitness",
+      "education": "Education",
+      "professionalServices": "Professional Services",
+      "medical": "Medical",
+      "legal": "Legal",
+      "consulting": "Consulting",
+      "automotive": "Automotive",
+      "homeServices": "Home Services",
+      "entertainment": "Entertainment",
+      "other": "Other"
+    },
+    "messages": {
+      "updateSuccess": "Profile updated successfully!",
+      "updateFailed": "Failed to update profile",
+      "uploadFailed": "Failed to upload logo: ",
+      "serverError": "Backend server error. Please ensure the backend server is running.",
+      "networkError": "Network error. Please try again."
+    },
+    "passwordModal": {
+      "title": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "submit": "Change Password",
+      "submitting": "Changing...",
+      "fillAllFields": "Please fill in all fields.",
+      "passwordsNoMatch": "New passwords do not match.",
+      "incorrectCurrent": "Current password is incorrect.",
+      "success": "Password changed successfully!",
+      "emailNotFound": "User email not found. Please reload the page.",
+      "unexpectedError": "An unexpected error occurred."
+    }
+  },
+  "dashboard": {
+    "title": "Business Dashboard",
+    "businessInfo": "Business Information",
+    "setupWarning": {
+      "title": "Complete Your Business Setup",
+      "description": "To appear on the homepage and allow customers to book appointments, you need:",
+      "addEmployee": "At least 1 employee -",
+      "addEmployeeLink": "Add employee now",
+      "addService": "At least 1 service -",
+      "addServiceLink": "Add service now"
+    },
+    "tabs": {
+      "appointments": "Appointments",
+      "employees": "Employees",
+      "services": "Services",
+      "analytics": "Analytics",
+      "settings": "Settings"
+    },
+    "stats": {
+      "todayAppointments": "Today's Appointments",
+      "totalAppointments": "Total Appointments",
+      "totalEmployees": "Total Employees",
+      "totalServices": "Total Services"
+    }
+  },
+  "appointments": {
+    "title": "Appointments",
+    "noAppointments": "No appointments found",
+    "bookNow": "Book Now",
+    "status": {
+      "scheduled": "Scheduled",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "details": {
+      "date": "Date",
+      "time": "Time",
+      "service": "Service",
+      "employee": "Employee",
+      "customer": "Customer",
+      "phone": "Phone",
+      "email": "Email",
+      "notes": "Notes",
+      "duration": "Duration",
+      "price": "Price",
+      "minutes": "minutes"
+    }
+  },
+  "booking": {
+    "title": "Book Appointment",
+    "businessNotFound": "Business Not Found",
+    "selectBusinessMessage": "Please select a business from the home page to book an appointment.",
+    "backToHome": "Back to Home",
+    "loadingBusiness": "Loading business info...",
+    "location": "Location",
+    "form": {
+      "yourName": "Your Name",
+      "namePlaceholder": "Enter your full name",
+      "phone": "Phone Number",
+      "phonePlaceholder": "Enter your phone number",
+      "email": "Email Address",
+      "emailPlaceholder": "Enter your email address",
+      "selectService": "Select Service",
+      "chooseSservice": "Choose a service",
+      "selectEmployee": "Select Staff Member",
+      "chooseEmployee": "Choose a staff member",
+      "anyAvailable": "Any available",
+      "selectDate": "Select Date",
+      "selectTime": "Select Time",
+      "chooseTime": "Choose a time slot",
+      "notes": "Additional Notes",
+      "notesPlaceholder": "Any special requests or notes...",
+      "bookAppointment": "Book Appointment",
+      "booking": "Booking..."
+    },
+    "errors": {
+      "nameRequired": "Name is required",
+      "phoneRequired": "Phone number is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Please enter a valid email address",
+      "serviceRequired": "Please select a service",
+      "employeeRequired": "Please select a staff member",
+      "dateRequired": "Please select a date",
+      "timeRequired": "Please select a time"
+    },
+    "businessClosed": "Business is closed for the selected date"
+  },
+  "appointmentForm": {
+    "labels": {
+      "service": "Service",
+      "employee": "Employee",
+      "date": "Date",
+      "time": "Time",
+      "fullName": "Full Name",
+      "phone": "Phone Number",
+      "email": "Email Address",
+      "notes": "Notes (Optional)"
+    },
+    "placeholders": {
+      "selectService": "Select a service",
+      "selectEmployee": "Select an employee",
+      "selectDate": "Select a date",
+      "selectTime": "Select a time",
+      "enterName": "Enter your full name",
+      "enterPhone": "+383 44 123 456",
+      "enterEmail": "your.email@example.com",
+      "enterNotes": "Any special requests or notes..."
+    },
+    "buttons": {
+      "bookAppointment": "Book Appointment",
+      "bookingAppointment": "Booking Appointment...",
+      "businessClosedToday": "Business Closed Today",
+      "goBack": "Go Back"
+    },
+    "emptyStates": {
+      "appointmentBooking": "Appointment Booking",
+      "loadingSettings": "Loading business settings...",
+      "noAvailableDates": "No Available Dates",
+      "noAvailableDatesMessage": "There are no available dates at this time. Please try again later or contact the business directly.",
+      "noServicesAvailable": "No Services Available",
+      "noServicesAvailableMessage": "No services are currently available. Please contact the business directly.",
+      "noEmployeesAvailable": "No Employees Available",
+      "noEmployeesAvailableMessage": "No employees are currently available. Please contact the business directly."
+    },
+    "validation": {
+      "nameRequired": "Full name is required",
+      "phoneRequired": "Phone number is required",
+      "phoneInvalid": "Please enter a valid phone number (at least 9 digits)",
+      "emailRequired": "Email address is required",
+      "emailInvalid": "Please enter a valid email address",
+      "serviceRequired": "Please select a service",
+      "employeeRequired": "Please select an employee",
+      "dateRequired": "Please select a date",
+      "timeRequired": "Please select a time"
+    },
+    "errors": {
+      "slotBooked": "This time slot was just booked. Please select another time.",
+      "loadSlotsFailed": "Failed to load available time slots",
+      "loadBusinessFailed": "Failed to load business settings",
+      "bookingFailed": "Failed to book appointment. Please try again."
+    },
+    "notifications": {
+      "success": "Appointment booked successfully!",
+      "emailFailed": "Appointment booked but email confirmation failed. Please check your email address.",
+      "smsFailed": "Appointment booked but SMS confirmation failed. Please check your email for confirmation.",
+      "checkConfirmation": "Check your email and phone for confirmation."
+    }
+  },
+  "about": {
+    "title": "About",
+    "titleHighlight": "Appointly-ks",
+    "subtitle": "We're a passionate team of developers, designers, and innovators dedicated to creating exceptional appointment booking experiences that drive real business results.",
+    "ourStory": {
+      "title": "Our Story",
+      "p1": "It all started in late 2024, in the heart of Prishtina, Kosovo. Five passionate developers sat in a small café, frustrated by the endless phone calls and missed appointments they witnessed businesses struggling with every day. \"There has to be a better way,\" said Etrit, and that spark of an idea would soon become Appointly-ks.",
+      "p2": "What began as late-night coding sessions and endless cups of coffee quickly evolved into something bigger. Lerdi brought his expertise in AI integration, dreaming of a chatbot that could handle bookings as naturally as a human receptionist. Fatlum, Jasin, and Marjan worked tirelessly on building a rock-solid backend that could handle thousands of appointments without breaking a sweat.",
+      "p3": "We started with a simple question:",
+      "p3Highlight": "\"What if booking an appointment was as easy as sending a text?\"",
+      "p3End": "Months of development, countless iterations, and hundreds of cups of coffee later, we had our answer. Appointly-ks was born – a platform that doesn't just schedule appointments, but transforms how businesses connect with their customers.",
+      "p4": "Today, we're proud to serve businesses across Kosovo and beyond, helping them save time, reduce no-shows, and focus on what they do best. But we're just getting started. Every day, we're working to make Appointly-ks smarter, faster, and more intuitive. Because for us, this isn't just a project – it's our mission to make scheduling effortless for everyone."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "description": "To empower businesses of all sizes with intuitive scheduling tools that save time, reduce no-shows, and enhance customer satisfaction. We believe every minute saved on scheduling is a minute gained for what truly matters – serving your customers."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "description": "To become the most trusted appointment management platform in the region, known for innovation, reliability, and exceptional user experience. We're building a future where scheduling is so seamless, it becomes invisible."
+    },
+    "values": {
+      "passionDriven": "Passion-Driven",
+      "passionDesc": "We love what we do and it shows in every feature we deliver.",
+      "innovationFirst": "Innovation First",
+      "innovationDesc": "Staying ahead with AI and cutting-edge scheduling technology.",
+      "clientFocused": "Client-Focused",
+      "clientDesc": "Your success is our success. We build lasting partnerships.",
+      "qualityExcellence": "Quality Excellence",
+      "qualityDesc": "Uncompromising standards in every line of code."
+    },
+    "milestones": {
+      "title": "Our Journey",
+      "2024": "Appointly-ks founded in Prishtina with a vision to transform appointment booking",
+      "2025": "Launched AI-powered chatbot and serving businesses across Kosovo",
+      "future": "Making Appointly-ks the most trusted appointment management platform in the region"
+    },
+    "team": {
+      "title": "Meet Our Team"
+    }
+  },
+  "services": {
+    "title": "Our",
+    "titleHighlight": "Services",
+    "subtitle": "Comprehensive appointment management solutions tailored to your business needs. From concept to deployment, we've got you covered.",
+    "smartBooking": {
+      "title": "Smart Appointment Booking",
+      "description": "Streamline your booking process with our intuitive calendar system. Customers can book appointments 24/7 with just a few clicks.",
+      "features": {
+        "realTime": "Real-time Availability",
+        "calendar": "Calendar Integration",
+        "recurring": "Recurring Appointments",
+        "multiLocation": "Multi-location Support",
+        "timezone": "Time Zone Management",
+        "confirmations": "Booking Confirmations"
+      }
+    },
+    "reminders": {
+      "title": "Automated Reminders",
+      "description": "Reduce no-shows with automated SMS and email reminders sent to customers before their appointments.",
+      "features": {
+        "email": "Email Notifications",
+        "sms": "SMS Reminders",
+        "templates": "Customizable Templates",
+        "multiple": "Multiple Reminder Options",
+        "auto": "Auto-scheduling",
+        "followUp": "Follow-up Messages"
+      }
+    },
+    "customerMgmt": {
+      "title": "Customer Management",
+      "description": "Keep track of your customer relationships with comprehensive profiles and appointment history.",
+      "features": {
+        "database": "Customer Database",
+        "history": "Appointment History",
+        "notes": "Notes & Preferences",
+        "contacts": "Contact Management",
+        "analytics": "Customer Analytics",
+        "export": "Export & Reports"
+      }
+    },
+    "analyticsReports": {
+      "title": "Analytics & Reports",
+      "description": "Make data-driven decisions with detailed insights into your business performance and customer behavior.",
+      "features": {
+        "booking": "Booking Analytics",
+        "revenue": "Revenue Tracking",
+        "customer": "Customer Insights",
+        "performance": "Performance Metrics",
+        "dashboards": "Visual Dashboards",
+        "export": "Export Reports"
+      }
+    },
+    "aiChatbot": {
+      "title": "AI-Powered Chatbot",
+      "description": "Provide instant support to your customers with our intelligent chatbot that can answer questions and help with bookings.",
+      "features": {
+        "availability": "24/7 Availability",
+        "nlp": "Natural Language Processing",
+        "booking": "Booking Assistance",
+        "faq": "FAQ Automation",
+        "multiLang": "Multi-language Support",
+        "learning": "Learning Capabilities"
+      }
+    },
+    "integrations": {
+      "title": "Integration Ready",
+      "description": "Connect with your existing tools and workflows through our API and integration capabilities.",
+      "features": {
+        "calendar": "Calendar Sync",
+        "payment": "Payment Processing",
+        "crm": "CRM Integration",
+        "api": "API Access",
+        "webhook": "Webhook Support",
+        "thirdParty": "Third-party Apps"
+      }
+    },
+    "additional": {
+      "timeManagement": {
+        "title": "Time Management",
+        "description": "Optimize your schedule with smart time slot management."
+      },
+      "security": {
+        "title": "Security & Privacy",
+        "description": "Enterprise-grade security protecting your data."
+      },
+      "mobile": {
+        "title": "Mobile Responsive",
+        "description": "Beautiful experience on all devices."
+      },
+      "multiLanguage": {
+        "title": "Multi-language",
+        "description": "Support for multiple languages and regions."
+      }
+    },
+    "whatsIncluded": "What's Included:",
+    "technologies": "Technologies:"
+  },
+  "contact": {
+    "title": "Get In",
+    "titleHighlight": "Touch",
+    "subtitle": "Ready to transform your appointment booking experience? Let's discuss your needs and explore how we can help you achieve your goals.",
+    "form": {
+      "title": "Send us a Message",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "John Doe",
+      "email": "Email Address",
+      "emailPlaceholder": "john@example.com",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+383 45 378 957",
+      "subject": "Subject",
+      "selectSubject": "Select a subject",
+      "subjects": {
+        "general": "General Inquiry",
+        "support": "Technical Support",
+        "sales": "Sales & Pricing",
+        "demo": "Request a Demo",
+        "feedback": "Feedback",
+        "partnership": "Partnership Opportunities"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Tell us how we can help you...",
+      "sendMessage": "Send Message",
+      "sending": "Sending...",
+      "successTitle": "Message Sent Successfully!",
+      "successMessage": "Thank you for contacting us. We'll get back to you as soon as possible.",
+      "sendAnother": "Send Another Message"
+    },
+    "info": {
+      "emailUs": "Email Us",
+      "emailDesc": "Send us an email anytime",
+      "callUs": "Call Us",
+      "callDesc": "Mon-Fri, 9:00 AM - 6:00 PM CET",
+      "visitUs": "Visit Us",
+      "visitDesc": "Come say hello at our office",
+      "workingHours": "Working Hours",
+      "workingDesc": "Central European Time",
+      "weekendClosed": "Weekend: Closed"
+    }
+  },
+  "employees": {
+    "title": "Employees",
+    "description": "Manage your business employees and their schedules",
+    "addEmployee": "Add Employee",
+    "editEmployee": "Edit Employee",
+    "addNewEmployee": "Add New Employee",
+    "updateEmployee": "Update Employee",
+    "editDescription": "Update the employee details below",
+    "addDescription": "Fill in the employee details below",
+    "name": "Full Name",
+    "namePlaceholder": "Enter employee name",
+    "email": "Email",
+    "emailPlaceholder": "employee@example.com",
+    "phone": "Phone",
+    "phonePlaceholder": "+1 234 567 8900",
+    "role": "Role",
+    "rolePlaceholder": "e.g., Stylist, Therapist",
+    "services": "Services",
+    "noEmployees": "No employees added yet",
+    "deleteConfirm": "Are you sure you want to delete this employee?",
+    "imageUrl": "Employee Photo",
+    "workingHours": "Working Hours",
+    "closed": "Closed",
+    "open": "Open",
+    "opens": "Opens",
+    "closes": "Closes",
+    "save": "Save Employee",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete Employee",
+    "deleteDescription": "Are you sure you want to delete this employee? This action cannot be undone.",
+    "success": {
+      "added": "Employee added successfully!",
+      "updated": "Employee updated successfully!",
+      "deleted": "Employee deleted successfully!"
+    },
+    "errors": {
+      "fillRequired": "Please fill in all required fields.",
+      "businessLoading": "Business is still loading. Please try again in a moment.",
+      "saveFailed": "Failed to save employee. Please try again.",
+      "deleteFailed": "Failed to delete employee. Please try again."
+    }
+  },
+  "servicesManagement": {
+    "title": "Services",
+    "subtitle": "Manage your business services",
+    "addService": "Add Service",
+    "editService": "Edit Service",
+    "addNewService": "Add New Service",
+    "updateService": "Update Service",
+    "editDescription": "Update the service details below",
+    "addDescription": "Create a new service for your business",
+    "name": "Service Name",
+    "namePlaceholder": "e.g., Haircut, Massage, Consultation",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe what this service includes...",
+    "duration": "Duration (minutes)",
+    "price": "Price (USD)",
+    "icon": "Service Icon",
+    "noServices": "No services added yet",
+    "deleteConfirm": "Are you sure you want to delete this service?",
+    "save": "Save Service",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete Service",
+    "deleteDescription": "Are you sure you want to delete this service? This action cannot be undone.",
+    "selectIcon": "Select Icon",
+    "success": {
+      "added": "Service added successfully!",
+      "updated": "Service updated successfully!",
+      "deleted": "Service deleted successfully!"
+    },
+    "errors": {
+      "fillRequired": "Please fill in all required fields with valid values.",
+      "noBusinessId": "Business ID not found. Please refresh the page and try again.",
+      "saveFailed": "Failed to save service. Please try again.",
+      "deleteFailed": "Failed to delete service. Please try again.",
+      "invalidDuration": "Duration must be a positive number.",
+      "invalidPrice": "Price must be a valid number."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "workingHours": {
+      "title": "Working Hours",
+      "day": "Day",
+      "open": "Open",
+      "close": "Close",
+      "closed": "Closed"
+    },
+    "breaks": {
+      "title": "Breaks",
+      "addBreak": "Add Break",
+      "start": "Start",
+      "end": "End",
+      "noBreaks": "No breaks added"
+    },
+    "blockedDates": {
+      "title": "Blocked Dates",
+      "addDate": "Add Date",
+      "selectDate": "Select date",
+      "noBlockedDates": "No blocked dates"
+    },
+    "calendar": {
+      "title": "Calendar Integration",
+      "connected": "Google Calendar Connected",
+      "connectedDesc": "Your appointments will sync with Google Calendar",
+      "notConnected": "Connect Google Calendar",
+      "notConnectedDesc": "Sync your appointments with Google Calendar",
+      "connect": "Connect Calendar",
+      "disconnect": "Disconnect",
+      "connecting": "Connecting...",
+      "needsMigration": "Calendar needs reconnection",
+      "reconnect": "Reconnect Calendar"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "emailNotifications": "Email Notifications",
+      "smsNotifications": "SMS Notifications"
+    },
+    "saveSettings": "Save Settings",
+    "saving": "Saving...",
+    "saved": "Settings saved successfully!"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "overview": "Overview",
+    "appointments": "Appointments",
+    "revenue": "Revenue",
+    "customers": "Customers",
+    "noData": "No data",
+    "performanceMetrics": "Performance Metrics",
+    "peakHours": "Peak Hours",
+    "employeeStatistics": "Employee Statistics",
+    "appointmentsPerEmployee": "Appointments per Employee",
+    "noEmployeeData": "No employee data available",
+    "serviceDistribution": "Service Distribution",
+    "noServiceData": "No service data available",
+    "popularDays": "Popular Days",
+    "noDayData": "No day data available",
+    "popularHours": "Popular Hours",
+    "noHourData": "No hour data available",
+    "period": {
+      "today": "Today",
+      "week": "This Week",
+      "month": "This Month",
+      "year": "This Year"
+    },
+    "stats": {
+      "totalAppointments": "Total Appointments",
+      "activeAppointments": "Active Appointments",
+      "completionRate": "Completion Rate",
+      "totalEmployees": "Total Employees",
+      "totalServices": "Total Services",
+      "customersServed": "Customers Served"
+    },
+    "charts": {
+      "serviceDistribution": "Service Distribution",
+      "dailyDistribution": "Daily Distribution",
+      "hourlyDistribution": "Peak Hours",
+      "employeeDistribution": "By Employee",
+      "pie": "Pie",
+      "bars": "Bars"
+    },
+    "days": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    }
+  },
+  "cancelAppointment": {
+    "title": "Cancel Appointment",
+    "confirmCancel": "Are you sure you want to cancel this appointment?",
+    "cancelButton": "Cancel Appointment",
+    "cancelling": "Cancelling...",
+    "success": "Appointment cancelled successfully.",
+    "alreadyCancelled": "This appointment has already been cancelled",
+    "loading": "Loading appointment...",
+    "loadingDescription": "Please wait while we fetch your appointment details.",
+    "notFound": "Appointment Not Found",
+    "cannotCancel": "Cannot cancel - cancellation window expired",
+    "cannotCancelButton": "Cannot Cancel (outside 1 hour of booking)",
+    "withinOneHour": "You can only cancel within 1 hour of booking",
+    "cannotCancelTitle": "Cannot Cancel Appointment",
+    "cannotCancelDescription": "Appointments can only be cancelled within 1 hour of booking.",
+    "createdTimeAgo": "This appointment was created {{hours}} hour(s) ago.",
+    "editAppointment": "Edit Appointment",
+    "editDetails": "Edit Appointment Details",
+    "editDescription": "Update your appointment information below.",
+    "saveChanges": "Save Changes",
+    "cancelEdit": "Cancel Edit",
+    "backToHome": "Return to Home",
+    "appointmentDetails": "Appointment Details",
+    "appointmentCancelled": "Appointment Cancelled",
+    "successCancelledMessage": "Your appointment has been successfully cancelled.",
+    "redirectingMessage": "You will be redirected to the home page shortly.",
+    "serviceDetails": "Service Details",
+    "customerInformation": "Customer Information",
+    "serviceProvider": "Service Provider",
+    "bookingInformation": "Booking Information",
+    "actions": "Actions",
+    "labels": {
+      "service": "Service",
+      "date": "Date",
+      "time": "Time",
+      "duration": "Duration",
+      "price": "Price",
+      "description": "Description",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "customerId": "Customer ID",
+      "role": "Role",
+      "appointmentId": "Appointment ID",
+      "created": "Created",
+      "reminderSent": "Reminder Sent",
+      "notes": "Notes",
+      "customerName": "Customer Name"
+    },
+    "notSpecified": "Not specified",
+    "notProvided": "Not provided",
+    "notAvailable": "Not available",
+    "yes": "Yes",
+    "no": "No",
+    "minutes": "minutes",
+    "notesPlaceholder": "Add any special requests or notes...",
+    "updateSuccess": "Appointment updated successfully.",
+    "updateFailed": "Failed to update appointment. Please try again.",
+    "cancelFailed": "Failed to cancel appointment. Please try again.",
+    "cancelNotAllowed": "Cannot cancel appointment - cancellations are allowed only within 1 hour of booking."
+  },
+  "verifyEmail": {
+    "title": "Email Verification",
+    "verifying": "Verifying your email address...",
+    "success": "Email Verified Successfully!",
+    "successMessage": "Your email has been verified. You can now sign in to your account.",
+    "alreadyVerified": "Already Verified",
+    "alreadyVerifiedMessage": "This email has already been verified.",
+    "failed": "Verification Failed",
+    "failedMessage": "We couldn't verify your email. The link may have expired or is invalid.",
+    "goToLogin": "Go to Login",
+    "registerNewAccount": "Register New Account",
+    "error": "Failed to verify email. Please try again.",
+    "redirecting": "Redirecting to login..."
+  },
+  "resetPassword": {
+    "title": "Set a new password",
+    "subtitle": "Choose a strong password you don't use elsewhere",
+    "securityNote": "Your security matters",
+    "securityTip": "We recommend using a password that's at least 12 characters long with a mix of letters, numbers, and symbols.",
+    "backToSignIn": "Back to sign in",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "resetButton": "Reset Password",
+    "resetting": "Resetting...",
+    "strength": {
+      "label": "Password strength",
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
+    },
+    "requirements": {
+      "minLength": "At least 8 characters",
+      "uppercase": "At least one uppercase letter",
+      "lowercase": "At least one lowercase letter",
+      "number": "At least one number",
+      "specialChar": "At least one special character"
+    },
+    "errors": {
+      "minLength": "Password must be at least 8 characters",
+      "mismatch": "Passwords don't match",
+      "missingToken": "Password reset token is missing",
+      "generic": "An error occurred. Please try again.",
+      "invalidToken": "Invalid or missing reset token. Please request a new password reset link.",
+      "enterPassword": "Please enter a new password.",
+      "letterAndNumber": "Password must contain at least one letter and one number.",
+      "networkError": "Network error. Please check your connection and try again.",
+      "linkExpired": "Unable to reset password. The link may have expired."
+    },
+    "success": "Password reset successfully! Redirecting to login..."
+  },
+  "appointmentPage": {
+    "businessNotFound": "Business Not Found",
+    "selectBusiness": "Please select a business from the home page to book an appointment.",
+    "backToHome": "Back to Home",
+    "loading": "Loading business info...",
+    "back": "Back",
+    "bookAppointment": "Book an Appointment",
+    "selectService": "Select a Service",
+    "selectDate": "Select a Date",
+    "selectTime": "Select a Time",
+    "yourInfo": "Your Information",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "notes": "Notes (optional)",
+    "confirmBooking": "Confirm Booking",
+    "booking": "Booking...",
+    "noServicesAvailable": "No services currently available",
+    "noTimeSlotsAvailable": "No time slots available for this date",
+    "minutes": "min",
+    "serviceSummary": "Service Summary",
+    "total": "Total"
+  },
+  "bookingConfirmation": {
+    "loading": "Loading booking confirmation...",
+    "notFound": "Booking Not Found",
+    "notFoundMessage": "We couldn't find the booking details. Please try again or contact support.",
+    "backToHome": "Back to Home",
+    "confirmed": "Booking Confirmed!",
+    "successMessage": "Your appointment has been successfully scheduled.",
+    "confirmationSent": "A confirmation email has been sent to your email address.",
+    "bookingDetails": "Booking Details",
+    "service": "Service",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "price": "Price",
+    "business": "Business",
+    "employee": "With",
+    "yourInfo": "Your Information",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "notes": "Notes",
+    "confirmationNumber": "Confirmation Number",
+    "addToCalendar": "Add to Calendar",
+    "bookAnother": "Book Another Appointment",
+    "minutes": "minutes"
+  },
+  "confirmAppointment": {
+    "title": "Appointment Confirmation",
+    "loading": "Processing your confirmation...",
+    "confirming": "Confirming your appointment...",
+    "success": "Appointment Confirmed!",
+    "successMessage": "Your appointment has been confirmed successfully.",
+    "alreadyConfirmed": "Already Confirmed",
+    "alreadyConfirmedMessage": "This appointment has already been confirmed.",
+    "expired": "Link Expired",
+    "expiredMessage": "This confirmation link has expired.",
+    "error": "Confirmation Failed",
+    "errorMessage": "We couldn't confirm your appointment. Please try again or contact support.",
+    "noToken": "No confirmation token provided",
+    "appointmentDetails": "Appointment Details",
+    "viewDashboard": "View Dashboard",
+    "backToHome": "Back to Home"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "backToHome": "Back to Home",
+    "sections": {
+      "introduction": {
+        "title": "1. Introduction",
+        "content": "Welcome to Appointly-ks (\"we,\" \"our,\" or \"us\"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our appointment booking platform."
+      },
+      "informationCollected": {
+        "title": "2. Information We Collect",
+        "personalInfoTitle": "Personal Information",
+        "personalInfoDesc": "We collect information that you provide directly to us, including:",
+        "personalInfoItems": [
+          "Name, email address, and phone number",
+          "Business information (for business accounts)",
+          "Appointment details and preferences",
+          "Payment information (processed securely through third-party payment processors)",
+          "Communications with us, including customer support inquiries"
+        ],
+        "autoCollectedTitle": "Automatically Collected Information",
+        "autoCollectedItems": [
+          "Device information (IP address, browser type, operating system)",
+          "Usage data (pages visited, time spent, features used)",
+          "Cookies and similar tracking technologies",
+          "Location data (with your permission)"
+        ]
+      },
+      "howWeUse": {
+        "title": "3. How We Use Your Information",
+        "intro": "We use the information we collect to:",
+        "items": [
+          "Provide, maintain, and improve our appointment booking services",
+          "Process appointments and send confirmations",
+          "Send automated notifications via email and SMS",
+          "Provide customer support and respond to inquiries",
+          "Process payments and prevent fraud",
+          "Analyze usage patterns to enhance user experience",
+          "Send marketing communications (with your consent)",
+          "Comply with legal obligations",
+          "Improve our AI-powered features and recommendations"
+        ]
+      },
+      "sharing": {
+        "title": "4. Information Sharing and Disclosure",
+        "intro": "We may share your information with:",
+        "items": [
+          "Service Providers: Third-party companies that help us operate our platform",
+          "Business Partners: When you book appointments with businesses using our platform",
+          "Legal Requirements: When required by law or to protect our rights",
+          "Business Transfers: In connection with a merger, acquisition, or sale of assets"
+        ],
+        "noSell": "We do not sell your personal information to third parties."
+      },
+      "security": {
+        "title": "5. Data Security",
+        "content": "We implement appropriate technical and organizational security measures to protect your personal information, including encryption, secure servers, and regular security audits. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security."
+      },
+      "rights": {
+        "title": "6. Your Rights and Choices",
+        "intro": "You have the right to:",
+        "items": [
+          "Access and receive a copy of your personal information",
+          "Correct or update your information",
+          "Delete your account and personal information",
+          "Opt-out of marketing communications",
+          "Disable cookies through your browser settings",
+          "Object to or restrict certain data processing activities"
+        ],
+        "contactInfo": "To exercise these rights, please contact us at"
+      },
+      "retention": {
+        "title": "7. Data Retention",
+        "content": "We retain your personal information for as long as necessary to provide our services, comply with legal obligations, resolve disputes, and enforce our agreements. When you delete your account, we will delete or anonymize your information within 30 days, except where retention is required by law."
+      },
+      "international": {
+        "title": "8. International Data Transfers",
+        "content": "Your information may be transferred to and processed in countries other than your country of residence. We ensure appropriate safeguards are in place to protect your information in accordance with applicable data protection laws."
+      },
+      "children": {
+        "title": "9. Children's Privacy",
+        "content": "Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us immediately."
+      },
+      "changes": {
+        "title": "10. Changes to This Privacy Policy",
+        "content": "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the \"Last updated\" date. We encourage you to review this Privacy Policy periodically."
+      },
+      "contact": {
+        "title": "11. Contact Us",
+        "intro": "If you have any questions about this Privacy Policy or our privacy practices, please contact us:",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address"
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated",
+    "backToHome": "Back to Home",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "content": "By accessing and using Appointly-ks (\"Service,\" \"Platform,\" \"we,\" \"us,\" or \"our\"), you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service."
+      },
+      "description": {
+        "title": "2. Description of Service",
+        "intro": "Appointly-ks is an AI-powered appointment booking SaaS platform that enables businesses to manage appointments, employees, and services while allowing customers to book appointments online. Our Service includes:",
+        "items": [
+          "Business dashboard and management tools",
+          "Employee and service management",
+          "Appointment scheduling and notifications",
+          "AI-powered chat assistance",
+          "Analytics and reporting features",
+          "Customer booking interface"
+        ]
+      },
+      "accounts": {
+        "title": "3. User Accounts",
+        "registrationTitle": "Registration",
+        "registrationIntro": "To use certain features, you must register for an account. You agree to:",
+        "registrationItems": [
+          "Provide accurate, current, and complete information",
+          "Maintain and update your information to keep it accurate",
+          "Maintain the security of your password and account",
+          "Notify us immediately of any unauthorized use",
+          "Be responsible for all activities under your account"
+        ],
+        "accountTypesTitle": "Account Types",
+        "businessAccount": "Business Accounts: For businesses offering appointment-based services",
+        "customerAccount": "Customer Accounts: For individuals booking appointments"
+      },
+      "acceptableUse": {
+        "title": "4. Acceptable Use Policy",
+        "intro": "You agree NOT to:",
+        "items": [
+          "Use the Service for any illegal or unauthorized purpose",
+          "Violate any laws in your jurisdiction",
+          "Infringe on intellectual property rights",
+          "Transmit harmful code, viruses, or malware",
+          "Interfere with or disrupt the Service",
+          "Attempt to gain unauthorized access to our systems",
+          "Harass, abuse, or harm other users",
+          "Scrape, copy, or reproduce content without permission",
+          "Create fake or misleading appointments",
+          "Use automated systems to access the Service excessively"
+        ]
+      },
+      "appointments": {
+        "title": "5. Appointments and Bookings",
+        "forBusinessesTitle": "For Businesses",
+        "forBusinessesItems": [
+          "You are responsible for managing your calendar and availability",
+          "You must honor confirmed appointments or provide reasonable notice of cancellation",
+          "You must provide accurate service descriptions and pricing",
+          "You are responsible for the quality of services provided"
+        ],
+        "forCustomersTitle": "For Customers",
+        "forCustomersItems": [
+          "You must provide accurate information when booking",
+          "You must arrive on time or provide notice of cancellation",
+          "You agree to the business's cancellation and refund policies",
+          "You are responsible for any fees or charges incurred"
+        ]
+      },
+      "payment": {
+        "title": "6. Payment Terms",
+        "intro": "For business accounts:",
+        "items": [
+          "Subscription fees are billed according to your selected plan",
+          "All fees are non-refundable except as required by law",
+          "We may change pricing with 30 days' notice",
+          "Payment processing is handled by third-party providers",
+          "You authorize us to charge your payment method on file",
+          "Late payments may result in service suspension"
+        ]
+      },
+      "intellectualProperty": {
+        "title": "7. Intellectual Property",
+        "content1": "The Service, including all content, features, and functionality, is owned by Appointly-ks and is protected by international copyright, trademark, and other intellectual property laws.",
+        "content2": "You retain ownership of content you create or upload, but grant us a license to use, store, and display it as necessary to provide the Service."
+      },
+      "privacyData": {
+        "title": "8. Privacy and Data Protection",
+        "content": "Your privacy is important to us. Our collection and use of personal information is described in our Privacy Policy. By using the Service, you consent to our data practices as described in the Privacy Policy."
+      },
+      "disclaimers": {
+        "title": "9. Disclaimers and Limitations of Liability",
+        "asIsTitle": "Service \"As Is\"",
+        "asIsContent": "The Service is provided \"as is\" and \"as available\" without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.",
+        "limitationTitle": "Limitation of Liability",
+        "limitationContent": "To the maximum extent permitted by law, Appointly-ks shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the Service."
+      },
+      "indemnification": {
+        "title": "10. Indemnification",
+        "content": "You agree to indemnify, defend, and hold harmless Appointly-ks and its officers, directors, employees, and agents from any claims, liabilities, damages, losses, and expenses arising from your use of the Service or violation of these Terms."
+      },
+      "termination": {
+        "title": "11. Termination",
+        "content": "We may terminate or suspend your account and access to the Service at any time, with or without cause, and with or without notice. Upon termination, your right to use the Service will immediately cease."
+      },
+      "governingLaw": {
+        "title": "12. Governing Law",
+        "content": "These Terms shall be governed by and construed in accordance with the laws of Kosovo, without regard to its conflict of law provisions."
+      },
+      "contact": {
+        "title": "13. Contact Us",
+        "intro": "If you have any questions about these Terms of Service, please contact us:",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address"
+      }
+    }
+  },
+  "cookies": {
+    "title": "Cookie Policy",
+    "lastUpdated": "Last updated",
+    "backToHome": "Back to Home",
+    "sections": {
+      "whatAreCookies": {
+        "title": "1. What Are Cookies?",
+        "content": "Cookies are small text files that are placed on your device (computer, smartphone, or tablet) when you visit our website. They are widely used to make websites work more efficiently and provide information to the owners of the site. Appointly-ks uses cookies to enhance your experience and improve our services."
+      },
+      "howWeUse": {
+        "title": "2. How We Use Cookies",
+        "intro": "We use cookies for several important reasons:",
+        "items": [
+          "To keep you signed in to your account",
+          "To remember your preferences and settings",
+          "To understand how you use our platform",
+          "To improve the performance and functionality of our services",
+          "To provide personalized content and recommendations",
+          "To analyze traffic and user behavior",
+          "To enhance security and prevent fraud"
+        ]
+      },
+      "typesOfCookies": {
+        "title": "3. Types of Cookies We Use",
+        "essential": {
+          "title": "Essential Cookies",
+          "content": "These cookies are necessary for the website to function properly. They enable core functionality such as security, network management, and accessibility. You cannot opt-out of these cookies.",
+          "items": [
+            "Session Cookies: Keep you logged in during your visit",
+            "Authentication Cookies: Verify your identity and access rights",
+            "Security Cookies: Protect against fraudulent activity"
+          ]
+        },
+        "performance": {
+          "title": "Performance and Analytics Cookies",
+          "content": "These cookies collect information about how visitors use our website, such as which pages are visited most often and if error messages are received. This helps us improve how our website works.",
+          "items": [
+            "Google Analytics: Tracks website usage and generates statistics",
+            "Performance Monitoring: Identifies technical issues and errors",
+            "Usage Tracking: Analyzes feature adoption and user behavior"
+          ]
+        },
+        "functionality": {
+          "title": "Functionality Cookies",
+          "content": "These cookies allow our website to remember choices you make and provide enhanced, personalized features.",
+          "items": [
+            "Preference Cookies: Remember your settings and preferences",
+            "Language Cookies: Store your language selection",
+            "Display Cookies: Remember your display preferences (theme, layout)"
+          ]
+        },
+        "targeting": {
+          "title": "Targeting and Advertising Cookies",
+          "content": "These cookies may be set through our site by our advertising partners to build a profile of your interests and show you relevant content.",
+          "items": [
+            "Marketing Cookies: Track your visits across websites",
+            "Social Media Cookies: Enable sharing on social platforms",
+            "Retargeting Cookies: Show relevant ads on other websites"
+          ]
+        }
+      },
+      "thirdParty": {
+        "title": "4. Third-Party Cookies",
+        "intro": "We may use third-party services that set their own cookies. These services include:",
+        "items": [
+          "Google Analytics: For website analytics and insights",
+          "Payment Processors: For secure payment processing",
+          "Email Services: For sending transactional emails",
+          "Social Media Platforms: For social sharing and login features",
+          "AI Services: For powering our AI chat assistance"
+        ],
+        "note": "These third parties have their own privacy policies and cookie policies. We recommend reviewing them."
+      },
+      "duration": {
+        "title": "5. Cookie Duration",
+        "sessionTitle": "Session Cookies",
+        "sessionContent": "These temporary cookies are deleted when you close your browser. They help maintain your session while browsing our website.",
+        "persistentTitle": "Persistent Cookies",
+        "persistentContent": "These cookies remain on your device for a set period (ranging from days to years) or until you delete them. They help us recognize you when you return to our website."
+      },
+      "managing": {
+        "title": "6. Managing Your Cookie Preferences",
+        "browserTitle": "Browser Settings",
+        "browserIntro": "Most web browsers allow you to control cookies through their settings. You can:",
+        "browserItems": [
+          "View what cookies are stored and delete them individually",
+          "Block third-party cookies",
+          "Block cookies from specific websites",
+          "Block all cookies",
+          "Delete all cookies when you close your browser"
+        ],
+        "browserInstructions": "To manage cookies in popular browsers:",
+        "chromeInstructions": "Chrome: Settings → Privacy and security → Cookies and other site data",
+        "firefoxInstructions": "Firefox: Options → Privacy & Security → Cookies and Site Data",
+        "safariInstructions": "Safari: Preferences → Privacy → Manage Website Data",
+        "edgeInstructions": "Edge: Settings → Cookies and site permissions → Cookies and data stored",
+        "optOutTitle": "Opt-Out Tools",
+        "optOutContent": "You can opt-out of specific tracking services"
+      },
+      "contact": {
+        "title": "7. Contact Us",
+        "intro": "If you have any questions about our Cookie Policy, please contact us:",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address"
+      }
+    }
+  },
+  "aiChatbot": {
+    "demoTitle": "AI Chatbot Demo",
+    "poweredBy": "Powered by OpenAI",
+    "bookingAssistant": "Salon & Spa Booking Assistant",
+    "heroTitle": "Experience AI-Powered Booking",
+    "heroSubtitle": "Our intelligent chatbot uses OpenAI's GPT-3.5 Turbo to provide natural, conversational booking experiences. Click the chat bubble to see it in action!",
+    "instantResponses": "Instant Responses",
+    "aiPowered": "AI-Powered",
+    "available247": "24/7 Available",
+    "features": {
+      "naturalConversation": {
+        "title": "Natural Conversation",
+        "description": "Chat naturally with our AI assistant. No complex forms or rigid interfaces - just talk like you would to a real person."
+      },
+      "smartUnderstanding": {
+        "title": "Smart Understanding",
+        "description": "Our AI understands context, remembers your preferences, and can handle complex booking requests with ease."
+      },
+      "instantBooking": {
+        "title": "Instant Booking",
+        "description": "Once you provide all the details, the AI can book your appointment immediately. No waiting, no delays."
+      }
+    },
+    "availableServices": "Available Services",
+    "availableTimeSlots": "Available Time Slots",
+    "minutes": "minutes",
+    "tryItNow": "Try It Now",
+    "clickChatBubble": "Click the chat bubble in the bottom right corner"
+  },
+  "chatWidget": {
+    "title": "Chattly",
+    "subtitle": "Your AI Chat Assistant",
+    "welcomeMessage": "Hello! I'm your AI booking assistant for Appointly. I can help you book appointments with various businesses. Would you like to start booking an appointment?",
+    "placeholder": "Type your message...",
+    "aiTyping": "AI is typing...",
+    "poweredBy": "Powered by Appointly AI Assistant",
+    "errorMessage": "I'm having trouble reaching the AI service. Retrying with a local fallback...",
+    "noResponse": "Sorry, I could not generate a response."
+  },
+  "reviewForm": {
+    "title": "Share Your Experience",
+    "subtitle": "Your feedback helps us improve our service",
+    "ratingLabel": "How would you rate your experience?",
+    "ratingLabels": {
+      "poor": "Poor",
+      "fair": "Fair",
+      "good": "Good",
+      "veryGood": "Very Good",
+      "excellent": "Excellent"
+    },
+    "yourName": "Your Name",
+    "namePlaceholder": "Enter your full name",
+    "emailAddress": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "reviewTitle": "Review Title",
+    "titlePlaceholder": "Summarize your experience in a few words",
+    "yourReview": "Your Review",
+    "reviewPlaceholder": "Share your experience in detail. What did you like? What could be improved?",
+    "characters": "characters",
+    "submitReview": "Submit Review",
+    "submitting": "Submitting...",
+    "cancel": "Cancel",
+    "fillAllFields": "Please fill in all fields and select a rating",
+    "successMessage": "Thank you for your review! It has been submitted successfully.",
+    "failedToCreate": "Failed to create customer: ",
+    "failedToSubmit": "Failed to submit review: "
+  },
+  "realtimeStatus": {
+    "liveUpdatesActive": "Live updates active",
+    "connecting": "Connecting..."
+  },
+  "businessAiChat": {
+    "title": "Business AI Chat",
+    "placeholder": "Ask something like: What are my popular days?",
+    "askButton": "Ask",
+    "asking": "Asking…",
+    "thinking": "Thinking…",
+    "responseWillAppear": "The response will appear here.",
+    "somethingWentWrong": "Something went wrong"
+  },
+  "googleOAuth": {
+    "signingIn": "Signing you in…",
+    "processingAccount": "We're finalizing your account with Google.",
+    "calendarAccess": "Grant Google Calendar access so we may sync your bookings with your calendar.",
+    "grantAccess": "Grant Google Calendar access",
+    "requestingPermission": "Requesting permission…",
+    "maybeLater": "Maybe later",
+    "oauthFailed": "OAuth processing failed"
+  },
+  "payment": {
+    "title": "Complete Your Payment",
+    "forPlan": "for {{plan}} Plan",
+    "subtitle": "Enter your payment details to proceed with your selected plan.",
+    "goBack": "Go Back",
+    "paymentDetails": "Payment Details",
+    "cardholderName": "Cardholder Name",
+    "cardNumber": "Card Number",
+    "expiryDate": "Expiry Date",
+    "cvc": "CVC",
+    "completePayment": "Complete Payment",
+    "loading": "Loading...",
+    "errors": {
+      "invalidPlan": "Invalid plan selected.",
+      "userNotFound": "User not found. Please ensure you are logged in correctly.",
+      "updateFailed": "Failed to update payment plan. Please try again.",
+      "genericError": "Error updating payment plan. Please try again.",
+      "loginRequired": "Please log in to proceed with payment.",
+      "fetchFailed": "Failed to fetch payment status. Please try again."
+    },
+    "success": "Payment plan updated successfully!"
+  },
+  "appointmentManagement": {
+    "title": "Appointment Management",
+    "searchPlaceholder": "Search appointments...",
+    "filterByEmployee": "Filter by employee",
+    "allEmployees": "All Employees",
+    "teamSchedule": "Team schedule",
+    "quickOverview": "Quick overview",
+    "today": "Today",
+    "selectedDay": "Selected day",
+    "appointments": "appointments",
+    "employee": "Employee",
+    "totalUpcoming": "total upcoming appointments",
+    "appointmentsFor": "Appointments for",
+    "result": "result",
+    "results": "results",
+    "matchingSearch": "matching search",
+    "unknownService": "Unknown Service",
+    "unknownEmployee": "Unknown Employee",
+    "notes": "Notes",
+    "viewMode": {
+      "month": "Month",
+      "week": "Week"
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "noShow": "No Show",
+      "pastDue": "Past Due"
+    },
+    "actions": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "complete": "Complete",
+      "message": "Message",
+      "noShow": "No Show",
+      "view": "View Details"
+    },
+    "dialogs": {
+      "confirmTitle": "Confirm Appointment",
+      "confirmDescription": "Are you sure you want to confirm this appointment? This will send a confirmation message to the customer.",
+      "cancelTitle": "Cancel Appointment",
+      "cancelDescription": "Are you sure you want to cancel this appointment? This will send a cancellation message to the customer.",
+      "cancelAppointment": "Cancel Appointment",
+      "keepAppointment": "Keep Appointment",
+      "messageTitle": "Send Message",
+      "messageDescription": "Send a custom message to the customer:",
+      "messagePlaceholder": "Enter your message...",
+      "sendMessage": "Send Message"
+    },
+    "noAppointments": "No appointments scheduled for this date.",
+    "appointmentDetails": "Appointment Details"
+  },
+  "reviews": {
+    "title": "Leave a Review",
+    "rating": "Rating",
+    "ratingRequired": "Please select a rating",
+    "titleLabel": "Review Title",
+    "titlePlaceholder": "Give your review a title...",
+    "contentLabel": "Your Review",
+    "contentPlaceholder": "Share your experience...",
+    "nameLabel": "Your Name",
+    "namePlaceholder": "Enter your name",
+    "emailLabel": "Your Email",
+    "emailPlaceholder": "Enter your email",
+    "submit": "Submit Review",
+    "submitting": "Submitting...",
+    "success": "Thank you for your review!",
+    "errors": {
+      "fillAll": "Please fill in all fields and select a rating",
+      "submitFailed": "Failed to submit review. Please try again."
+    },
+    "stars": {
+      "1": "Poor",
+      "2": "Fair",
+      "3": "Good",
+      "4": "Very Good",
+      "5": "Excellent"
+    }
+  },
+  "imageUpload": {
+    "upload": "Upload a file",
+    "change": "Change file",
+    "dragDrop": "or drag and drop",
+    "uploading": "Uploading...",
+    "remove": "Remove image",
+    "clickToUpload": "Click to upload image",
+    "noImage": "No image",
+    "fileTypes": "PNG, JPG, WebP up to 5MB"
+  },
+  "alertDialog": {
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabaseClient';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
@@ -10,6 +11,7 @@ const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/pub
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '' });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
@@ -35,7 +37,7 @@ const RegisterPage: React.FC = () => {
       const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
       if (uploadError) {
-        setError('Failed to upload logo: ' + uploadError.message);
+        setError(t('register.errors.logoUploadFailed') + uploadError.message);
         setIsSubmitting(false);
         return;
       }
@@ -58,13 +60,13 @@ const RegisterPage: React.FC = () => {
     setIsSubmitting(true);
     
     if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
-      setError('Please fill in all fields.');
+      setError(t('register.errors.fillAllFields'));
       setIsSubmitting(false);
       return;
     }
     
     if (form.password !== form.confirm) {
-      setError('Passwords do not match.');
+      setError(t('register.errors.passwordsNoMatch'));
       setIsSubmitting(false);
       return;
     }
@@ -78,7 +80,7 @@ const RegisterPage: React.FC = () => {
         .maybeSingle();
       
       if (existingUser) {
-        setError('An account with this email already exists. Please sign in instead.');
+        setError(t('register.errors.accountExists'));
         setIsSubmitting(false);
         return;
       }
@@ -90,7 +92,7 @@ const RegisterPage: React.FC = () => {
         const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
         const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
         if (uploadError) {
-          setError('Failed to upload logo: ' + uploadError.message);
+          setError(t('register.errors.logoUploadFailed') + uploadError.message);
           setIsSubmitting(false);
           return;
         }
@@ -127,7 +129,7 @@ const RegisterPage: React.FC = () => {
       }
 
       if (!authData.user) {
-        setError('Failed to create account. Please try again.');
+        setError(t('register.errors.createAccountFailed'));
         setIsSubmitting(false);
         return;
       }
@@ -143,7 +145,7 @@ const RegisterPage: React.FC = () => {
       console.log('[Registration] ✅ User profile will be created automatically by database trigger');
 
       setIsSubmitting(false);
-      alert('Registration successful! Please check your email to verify your account. You must verify your email before you can log in.');
+      alert(t('register.successMessage'));
       navigate('/login');
     } catch (err) {
       console.error('Registration error:', err);
@@ -181,9 +183,9 @@ const RegisterPage: React.FC = () => {
       <AuthPageTransition>
         <SplitAuthLayout
           logoUrl={LOGO_URL}
-          title="Create Account"
-          subtitle="Join Appointly today"
-          quote="Start your journey with us."
+          title={t('register.title')}
+          subtitle={t('register.subtitle')}
+          quote={t('register.quote')}
           reverse
         >
           <button
@@ -202,87 +204,87 @@ const RegisterPage: React.FC = () => {
               disabled={isSubmitting}
             >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-              Sign up with Google
+              {t('register.signUpWithGoogle')}
             </button>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Name</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.nameLabel')}</label>
               <input
                 type="text"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
-                placeholder="Your name"
+                placeholder={t('register.namePlaceholder')}
                 autoComplete="name"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Email</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.emailLabel')}</label>
               <input
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
-                placeholder="you@example.com"
+                placeholder={t('register.emailPlaceholder')}
                 autoComplete="email"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Phone</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.phoneLabel')}</label>
               <input
                 type="tel"
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
-                placeholder="Your phone number"
+                placeholder={t('register.phonePlaceholder')}
                 autoComplete="tel"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Password</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.passwordLabel')}</label>
               <input
                 type="password"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
-                placeholder="Create a password"
+                placeholder={t('register.passwordPlaceholder')}
                 autoComplete="new-password"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Confirm Password</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.confirmPasswordLabel')}</label>
               <input
                 type="password"
                 name="confirm"
                 value={form.confirm}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
-                placeholder="Repeat your password"
+                placeholder={t('register.confirmPasswordPlaceholder')}
                 autoComplete="new-password"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Company Description</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.descriptionLabel')}</label>
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black transition-all resize-none text-sm"
-                placeholder="Describe your company"
+                placeholder={t('register.descriptionPlaceholder')}
                 required
                 rows={2}
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Company Logo</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.logoLabel')}</label>
               <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${
                 logoFile 
                   ? 'border-green-500 bg-green-50' 
@@ -325,7 +327,7 @@ const RegisterPage: React.FC = () => {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <p className="text-[10px] text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                      <p className="text-[10px] text-gray-500">{t('register.fileTypes')}</p>
                     </>
                   )}
                   <div className="flex text-xs text-gray-600">
@@ -333,7 +335,7 @@ const RegisterPage: React.FC = () => {
                       htmlFor="file-upload"
                       className="relative cursor-pointer bg-white rounded font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 px-1"
                     >
-                      <span>{logoFile ? 'Change file' : 'Upload a file'}</span>
+                      <span>{logoFile ? t('register.changeFile') : t('register.uploadFile')}</span>
                       <input
                         id="file-upload"
                         name="file-upload"
@@ -343,7 +345,7 @@ const RegisterPage: React.FC = () => {
                         className="sr-only"
                       />
                     </label>
-                    {!logoFile && <p className="pl-1">or drag and drop</p>}
+                    {!logoFile && <p className="pl-1">{t('register.dragAndDrop')}</p>}
                   </div>
                 </div>
               </div>
@@ -364,25 +366,25 @@ const RegisterPage: React.FC = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Creating account...
+                  {t('register.creatingAccount')}
                 </span>
               ) : (
-                'Create Account'
+                t('register.createAccountButton')
               )}
             </button>
           </form>
           <div className="mt-4 text-center">
             <p className="text-gray-600 text-xs">
-              Already have an account?{' '}
+              {t('register.alreadyHaveAccount')}{' '}
               <button
                 className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline transition-colors"
                 onClick={() => navigate('/login')}
               >
-                Sign in
+                {t('register.signIn')}
               </button>
             </p>
             <p className="text-[11px] text-gray-500">
-              Grant access so we may sync thy bookings with thine own Google Calendar (optional during setup).
+              {t('register.googleCalendarNote')}
             </p>
           </div>
         </SplitAuthLayout>

@@ -5,6 +5,7 @@ import Input from '../ui/Input';
 import { Card } from '../ui/Card';
 import { supabase } from '../../utils/supabaseClient';
 import { useNotification } from '../../context/NotificationContext';
+import { useTranslation } from 'react-i18next';
 
 interface ReviewFormProps {
   businessId?: string;
@@ -35,6 +36,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   const [customerEmail, setCustomerEmail] = useState(initialCustomerEmail);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showNotification } = useNotification();
+  const { t } = useTranslation();
 
   // If no specific businessId is provided, we'll use a default platform review
   const effectiveBusinessId = businessId || '550e8400-e29b-41d4-a716-446655440000'; // Default business ID for platform reviews
@@ -59,7 +61,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
     e.preventDefault();
     
     if (!isFormValid()) {
-      showNotification('Please fill in all fields and select a rating', 'error');
+      showNotification(t('reviewForm.fillAllFields'), 'error');
       return;
     }
 
@@ -92,7 +94,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
             .single();
 
           if (customerError) {
-            throw new Error('Failed to create customer: ' + customerError.message);
+            throw new Error(t('reviewForm.failedToCreate') + customerError.message);
           }
           
           customer_id = newCustomer.id;
@@ -115,10 +117,10 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
         });
 
       if (reviewError) {
-        throw new Error('Failed to submit review: ' + reviewError.message);
+        throw new Error(t('reviewForm.failedToSubmit') + reviewError.message);
       }
 
-      showNotification('Thank you for your review! It has been submitted successfully.', 'success');
+      showNotification(t('reviewForm.successMessage'), 'success');
       
       // Reset form
       setRating(0);
@@ -149,15 +151,15 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
           <div className="flex justify-center mb-4">
             <MessageSquare className="w-12 h-12 text-indigo-600" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Share Your Experience</h2>
-          <p className="text-gray-600">Your feedback helps us improve our service</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('reviewForm.title')}</h2>
+          <p className="text-gray-600">{t('reviewForm.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Rating Section */}
           <div className="text-center">
             <label className="block text-lg font-semibold text-gray-700 mb-4">
-              How would you rate your experience?
+              {t('reviewForm.ratingLabel')}
             </label>
             <div className="flex justify-center space-x-2 mb-2">
               {[1, 2, 3, 4, 5].map((value) => (
@@ -181,11 +183,11 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
             </div>
             {rating > 0 && (
               <p className="text-sm text-gray-600">
-                {rating === 1 && "Poor"}
-                {rating === 2 && "Fair"}
-                {rating === 3 && "Good"}
-                {rating === 4 && "Very Good"}
-                {rating === 5 && "Excellent"}
+                {rating === 1 && t('reviewForm.ratingLabels.poor')}
+                {rating === 2 && t('reviewForm.ratingLabels.fair')}
+                {rating === 3 && t('reviewForm.ratingLabels.good')}
+                {rating === 4 && t('reviewForm.ratingLabels.veryGood')}
+                {rating === 5 && t('reviewForm.ratingLabels.excellent')}
               </p>
             )}
           </div>
@@ -195,26 +197,26 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <User className="w-4 h-4 inline mr-2" />
-                Your Name
+                {t('reviewForm.yourName')}
               </label>
               <Input
                 type="text"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Enter your full name"
+                placeholder={t('reviewForm.namePlaceholder')}
                 required
                 disabled={!!initialCustomerName}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                {t('reviewForm.emailAddress')}
               </label>
               <Input
                 type="email"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder={t('reviewForm.emailPlaceholder')}
                 required
                 disabled={!!initialCustomerEmail}
               />
@@ -224,34 +226,34 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
           {/* Review Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Review Title
+              {t('reviewForm.reviewTitle')}
             </label>
             <Input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Summarize your experience in a few words"
+              placeholder={t('reviewForm.titlePlaceholder')}
               maxLength={100}
               required
             />
-            <p className="text-xs text-gray-500 mt-1">{title.length}/100 characters</p>
+            <p className="text-xs text-gray-500 mt-1">{title.length}/100 {t('reviewForm.characters')}</p>
           </div>
 
           {/* Review Content */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Your Review
+              {t('reviewForm.yourReview')}
             </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share your experience in detail. What did you like? What could be improved?"
+              placeholder={t('reviewForm.reviewPlaceholder')}
               rows={5}
               maxLength={1000}
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
             />
-            <p className="text-xs text-gray-500 mt-1">{content.length}/1000 characters</p>
+            <p className="text-xs text-gray-500 mt-1">{content.length}/1000 {t('reviewForm.characters')}</p>
           </div>
 
           {/* Action Buttons */}
@@ -264,12 +266,12 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Submitting...
+                  {t('reviewForm.submitting')}
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Submit Review
+                  {t('reviewForm.submitReview')}
                 </>
               )}
             </Button>
@@ -282,7 +284,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
                 className="flex-1 sm:flex-none sm:px-8"
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('reviewForm.cancel')}
               </Button>
             )}
           </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle, Calendar, Clock, User, Phone, Mail } from 'lucide-react';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
@@ -21,6 +22,7 @@ interface BookingConfirmationData {
 }
 
 const BookingConfirmationPage: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [bookingData, setBookingData] = useState<BookingConfirmationData | null>(null);
@@ -69,7 +71,7 @@ const BookingConfirmationPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading booking confirmation...</p>
+          <p className="text-gray-600">{t('bookingConfirmation.loading')}</p>
         </div>
       </div>
     );
@@ -79,10 +81,10 @@ const BookingConfirmationPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Booking Not Found</h2>
-          <p className="text-gray-600 mb-6">We couldn't find the booking details.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('bookingConfirmation.notFound')}</h2>
+          <p className="text-gray-600 mb-6">{t('bookingConfirmation.notFoundMessage')}</p>
           <Button onClick={() => navigate('/')}>
-            Back to Home
+            {t('bookingConfirmation.backToHome')}
           </Button>
         </div>
       </div>
@@ -119,10 +121,10 @@ const BookingConfirmationPage: React.FC = () => {
               <CheckCircle className="w-14 h-14 sm:w-16 sm:h-16 text-green-600" />
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
-              Booking Confirmed!
+              {t('bookingConfirmation.confirmed')}
             </h1>
             <p className="text-lg sm:text-xl text-gray-700 font-medium max-w-md mx-auto">
-              Your appointment has been successfully scheduled
+              {t('bookingConfirmation.successMessage')}
             </p>
           </div>
 
@@ -151,7 +153,7 @@ const BookingConfirmationPage: React.FC = () => {
               <div className="flex items-center p-4 bg-blue-50 rounded-lg">
                 <Calendar className="w-5 h-5 text-blue-600 mr-3" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Date</p>
+                  <p className="text-sm font-medium text-gray-500">{t('bookingConfirmation.date')}</p>
                   <p className="text-lg font-semibold text-gray-900">{formatDate(bookingData.appointmentDate)}</p>
                 </div>
               </div>
@@ -159,7 +161,7 @@ const BookingConfirmationPage: React.FC = () => {
               <div className="flex items-center p-4 bg-green-50 rounded-lg">
                 <Clock className="w-5 h-5 text-green-600 mr-3" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Time</p>
+                  <p className="text-sm font-medium text-gray-500">{t('bookingConfirmation.time')}</p>
                   <p className="text-lg font-semibold text-gray-900">{formatTime(bookingData.appointmentTime)}</p>
                 </div>
               </div>
@@ -167,7 +169,7 @@ const BookingConfirmationPage: React.FC = () => {
               <div className="flex items-center p-4 bg-purple-50 rounded-lg">
                 <User className="w-5 h-5 text-purple-600 mr-3" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Customer</p>
+                  <p className="text-sm font-medium text-gray-500">{t('bookingConfirmation.name')}</p>
                   <p className="text-lg font-semibold text-gray-900">{bookingData.customerName}</p>
                 </div>
               </div>
@@ -175,7 +177,7 @@ const BookingConfirmationPage: React.FC = () => {
               <div className="flex items-center p-4 bg-orange-50 rounded-lg">
                 <Phone className="w-5 h-5 text-orange-600 mr-3" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Phone</p>
+                  <p className="text-sm font-medium text-gray-500">{t('bookingConfirmation.phone')}</p>
                   <p className="text-lg font-semibold text-gray-900">{bookingData.customerPhone}</p>
                 </div>
               </div>
@@ -183,7 +185,7 @@ const BookingConfirmationPage: React.FC = () => {
               <div className="flex items-center p-4 bg-indigo-50 rounded-lg">
                 <Mail className="w-5 h-5 text-indigo-600 mr-3" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Email</p>
+                  <p className="text-sm font-medium text-gray-500">{t('bookingConfirmation.email')}</p>
                   <p className="text-lg font-semibold text-gray-900">{bookingData.customerEmail}</p>
                 </div>
               </div>
@@ -191,17 +193,17 @@ const BookingConfirmationPage: React.FC = () => {
 
             {/* Booking Summary */}
             <div className="mt-6 p-4 sm:p-6 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Summary</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('bookingConfirmation.bookingDetails')}</h3>
               <div className="flex justify-between items-center">
-                <span className="text-sm sm:text-base text-gray-600">Duration:</span>
-                <span className="text-sm sm:text-base font-semibold">{bookingData.duration} minutes</span>
+                <span className="text-sm sm:text-base text-gray-600">{t('bookingConfirmation.duration')}:</span>
+                <span className="text-sm sm:text-base font-semibold">{bookingData.duration} {t('bookingConfirmation.minutes')}</span>
               </div>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-sm sm:text-base text-gray-600">Price:</span>
+                <span className="text-sm sm:text-base text-gray-600">{t('bookingConfirmation.price')}:</span>
                 <span className="text-sm sm:text-base font-semibold text-green-600">${bookingData.price.toFixed(2)}</span>
               </div>
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-sm sm:text-base text-gray-600 mb-2">Booking ID:</p>
+                <p className="text-sm sm:text-base text-gray-600 mb-2">{t('bookingConfirmation.confirmationNumber')}:</p>
                 <p className="font-mono text-xs sm:text-sm text-gray-800 bg-white px-3 py-2 rounded border border-gray-200 break-all">{bookingData.appointmentId}</p>
               </div>
             </div>
@@ -211,22 +213,21 @@ const BookingConfirmationPage: React.FC = () => {
                 onClick={() => navigate('/')}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Back to Home
+                {t('bookingConfirmation.backToHome')}
               </Button>
               <Button
                 onClick={() => window.open(bookingData.cancelLink, '_blank')}
                 variant="outline"
                 className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
               >
-                Cancel Booking
+                {t('cancelAppointment.cancelButton')}
               </Button>
             </div>
           </div>
 
           {/* Additional Information */}
           <div className="mt-8 text-center text-sm text-gray-500">
-            <p className="mb-2">A confirmation email has been sent to {bookingData.customerEmail}</p>
-            <p>You'll receive a reminder 24 hours before your appointment</p>
+            <p className="mb-2">{t('bookingConfirmation.confirmationSent')}</p>
           </div>
         </div>
       </main>

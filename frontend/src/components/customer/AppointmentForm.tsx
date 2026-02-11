@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Phone, Mail, Calendar, Clock, FileText, Users, Briefcase, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../ui/Input';
@@ -18,6 +19,7 @@ interface AppointmentFormProps {
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
+  const { t } = useTranslation();
   const { businessSettings, addAppointment, addCustomer, services, employees } = useApp();
   const { showNotification } = useNotification();
   const { user } = useAuth();
@@ -142,7 +144,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         if (json?.info) setBusiness(json.info);
       } catch (err) {
         console.error('Error fetching business:', err);
-        showNotification('Failed to load business information. Please try again.', 'error');
+        showNotification(t('appointmentForm.errors.loadBusinessFailed'), 'error');
       }
     };
     fetchBusiness();
@@ -186,7 +188,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       } catch (err) {
         console.error('Error fetching booked slots:', err);
         if (formData.employee_id && formData.date && businessId) {
-          showNotification('Failed to load available time slots. Please try again.', 'error');
+          showNotification(t('appointmentForm.errors.loadSlotsFailed'), 'error');
         }
         setBookedAppointments([]);
       }
@@ -320,35 +322,35 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     const newErrors: Record<string, string> = {};
     
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = t('appointmentForm.validation.nameRequired');
     }
     
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = t('appointmentForm.validation.phoneRequired');
     } else if (!/^\+?[\d\s\-\(\)]+$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
+      newErrors.phone = t('appointmentForm.validation.phoneInvalid');
     }
     
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('appointmentForm.validation.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = t('appointmentForm.validation.emailInvalid');
     }
     
     if (!formData.service_id) {
-      newErrors.service_id = 'Please select a service';
+      newErrors.service_id = t('appointmentForm.validation.serviceRequired');
     }
     
     if (!formData.employee_id) {
-      newErrors.employee_id = 'Please select an employee';
+      newErrors.employee_id = t('appointmentForm.validation.employeeRequired');
     }
     
     if (!formData.date) {
-      newErrors.date = 'Please select a date';
+      newErrors.date = t('appointmentForm.validation.dateRequired');
     }
     
     if (!formData.time) {
-      newErrors.time = 'Please select a time';
+      newErrors.time = t('appointmentForm.validation.timeRequired');
     }
     
     setErrors(newErrors);
@@ -409,7 +411,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         });
         
         if (hasOverlap) {
-          setErrors(prev => ({ ...prev, form: 'This time slot is already booked. Please choose another time.' }));
+          setErrors(prev => ({ ...prev, form: t('appointmentForm.errors.slotBooked') }));
           return;
         }
       }
@@ -493,11 +495,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       });
 
       if (!emailSent) {
-        showNotification('Appointment booked but email confirmation failed. Please check your email address.', 'error');
+        showNotification(t('appointmentForm.notifications.emailFailed'), 'error');
       } else if (!smsSent) {
-        showNotification('Appointment booked but SMS confirmation failed. Please check your email for confirmation.', 'error');
+        showNotification(t('appointmentForm.notifications.smsFailed'), 'error');
       } else {
-        showNotification('Check your email and phone for confirmation.', 'success', 8000);
+        showNotification(t('appointmentForm.notifications.checkConfirmation'), 'success', 8000);
       }
       
       // Prepare booking confirmation data
@@ -517,11 +519,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       };
 
       // Show success notification and redirect to home page
-      showNotification('Appointment booked successfully!', 'success');
+      showNotification(t('appointmentForm.notifications.success'), 'success');
       navigate('/');
     } catch (error: any) {
       console.error('Error booking appointment:', error);
-      const errorMessage = error?.message || 'Failed to book appointment. Please try again.';
+      const errorMessage = error?.message || t('appointmentForm.errors.bookingFailed');
       setErrors(prev => ({ ...prev, form: errorMessage }));
       showNotification(errorMessage, 'error');
     } finally {
@@ -533,10 +535,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return (
       <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Appointment Booking</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{t('appointmentForm.emptyStates.appointmentBooking')}</h2>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-gray-600 text-sm sm:text-base">Loading business settings...</div>
+          <div className="text-center text-gray-600 text-sm sm:text-base">{t('appointmentForm.emptyStates.loadingSettings')}</div>
         </CardContent>
       </Card>
     );
@@ -546,11 +548,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return (
       <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">No Available Dates</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{t('appointmentForm.emptyStates.noAvailableDates')}</h2>
         </CardHeader>
         <CardContent>
           <div className="text-center text-gray-600 text-sm sm:text-base">
-            No available dates found for the next 14 days. Please contact the business directly.
+            {t('appointmentForm.emptyStates.noAvailableDatesMessage')}
           </div>
         </CardContent>
         <CardFooter>
@@ -561,7 +563,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             className="w-full text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
+            {t('appointmentForm.buttons.goBack')}
           </Button>
         </CardFooter>
       </Card>
@@ -572,11 +574,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return (
       <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">No Services Available</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{t('appointmentForm.emptyStates.noServicesAvailable')}</h2>
         </CardHeader>
         <CardContent>
           <div className="text-center text-gray-600 text-sm sm:text-base">
-            No services are currently available. Please contact the business directly.
+            {t('appointmentForm.emptyStates.noServicesAvailableMessage')}
           </div>
         </CardContent>
         <CardFooter>
@@ -587,7 +589,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             className="w-full text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
+            {t('appointmentForm.buttons.goBack')}
           </Button>
         </CardFooter>
       </Card>
@@ -598,11 +600,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return (
       <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">No Employees Available</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{t('appointmentForm.emptyStates.noEmployeesAvailable')}</h2>
         </CardHeader>
         <CardContent>
           <div className="text-center text-gray-600 text-sm sm:text-base">
-            No employees are currently available. Please contact the business directly.
+            {t('appointmentForm.emptyStates.noEmployeesAvailableMessage')}
           </div>
         </CardContent>
         <CardFooter>
@@ -613,7 +615,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             className="w-full text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
+            {t('appointmentForm.buttons.goBack')}
           </Button>
         </CardFooter>
       </Card>
@@ -635,7 +637,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
               <Briefcase className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-              Service
+              {t('appointmentForm.labels.service')}
             </label>
             <Select
               name="service_id"
@@ -647,7 +649,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               error={errors.service_id}
               required
               options={[
-                { value: '', label: 'Select a service' },
+                { value: '', label: t('appointmentForm.placeholders.selectService') },
                 ...businessServices.map((service) => ({
                   value: service.id,
                   label: `${service.name} - $${service.price} (${service.duration} min)`,
@@ -660,7 +662,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
               <Users className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-              Employee
+              {t('appointmentForm.labels.employee')}
             </label>
             <Select
               name="employee_id"
@@ -672,7 +674,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               error={errors.employee_id}
               required
               options={[
-                { value: '', label: 'Select an employee' },
+                { value: '', label: t('appointmentForm.placeholders.selectEmployee') },
                 ...businessEmployees.map((employee) => ({
                   value: employee.id,
                   label: `${employee.name} (${employee.role})`,
@@ -688,7 +690,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               <div className="col-span-1 sm:col-span-1">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                   <Calendar className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                  Date
+                  {t('appointmentForm.labels.date')}
                 </label>
                 <Select
                   name="date"
@@ -700,7 +702,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                   error={errors.date}
                   required
                   options={[
-                    { value: '', label: 'Select a date' },
+                    { value: '', label: t('appointmentForm.placeholders.selectDate') },
                     ...availableDates.map((date) => ({
                       value: date.toISOString().split('T')[0],
                       label: date.toLocaleDateString('en-US', {
@@ -718,7 +720,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               <div className="col-span-1 sm:col-span-1">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                   <Clock className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                  Time
+                  {t('appointmentForm.labels.time')}
                 </label>
                 <Select
                   name="time"
@@ -730,7 +732,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                   error={errors.time}
                   required
                   options={[
-                    { value: '', label: 'Select a time' },
+                    { value: '', label: t('appointmentForm.placeholders.selectTime') },
                     ...availableTimeSlots.map((slot) => ({
                       value: slot,
                       label: slot,
@@ -745,14 +747,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
               <User className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-              Full Name
+              {t('appointmentForm.labels.fullName')}
             </label>
             <Input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Enter your full name"
+              placeholder={t('appointmentForm.placeholders.enterName')}
               error={errors.name}
               required
             />
@@ -762,14 +764,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           <div className="col-span-1 sm:col-span-1">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
               <Phone className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-              Phone Number
+              {t('appointmentForm.labels.phone')}
             </label>
             <Input
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="+383 44 123 456"
+              placeholder={t('appointmentForm.placeholders.enterPhone')}
               error={errors.phone}
               required
             />
@@ -779,14 +781,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           <div className="col-span-1 sm:col-span-2">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
               <Mail className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-              Email Address
+              {t('appointmentForm.labels.email')}
             </label>
             <Input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="your.email@example.com"
+              placeholder={t('appointmentForm.placeholders.enterEmail')}
               error={errors.email}
               required
             />
@@ -796,13 +798,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           <div className="col-span-1 sm:col-span-2">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
               <FileText className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-              Notes (Optional)
+              {t('appointmentForm.labels.notes')}
             </label>
             <textarea
               name="notes"
               value={formData.notes}
               onChange={handleChange}
-              placeholder="Any special requests or notes..."
+              placeholder={t('appointmentForm.placeholders.enterNotes')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none outline-none focus:border-blue-500 text-sm sm:text-base"
               rows={3}
             />
@@ -816,10 +818,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
             className="flex-1 text-sm sm:text-base outline-none focus:ring-0 focus:ring-offset-0 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
           >
             {isSubmitting
-              ? 'Booking Appointment...'
+              ? t('appointmentForm.buttons.bookingAppointment')
               : isBusinessClosedToday()
-              ? 'Business Closed Today'
-              : 'Book Appointment'}
+              ? t('appointmentForm.buttons.businessClosedToday')
+              : t('appointmentForm.buttons.bookAppointment')}
           </Button>
         </CardFooter>
       </form>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Users, Calendar, BarChart2, Settings as SettingsIcon, Briefcase, AlertCircle } from 'lucide-react';
 import Tabs from '../ui/Tabs';
 import AppointmentManagement from './AppointmentManagement';
@@ -12,6 +13,7 @@ import { useAuth } from '../../context/AuthContext';
 const Dashboard: React.FC = () => {
   const { appointments, analytics, employees, services, refreshAppointments } = useApp();
   const { } = useAuth();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('appointments');
   
 
@@ -59,11 +61,11 @@ const Dashboard: React.FC = () => {
   }).length;
 
   const dashboardTabs = [
-    { id: 'appointments', label: 'Appointments', icon: <Calendar size={18} />, content: <AppointmentManagement /> },
-    { id: 'employees', label: 'Employees', icon: <Users size={18} />, content: <EmployeeManagement /> },
-    { id: 'services', label: 'Services', icon: <Briefcase size={18} />, content: <ServiceManagement /> },
-    { id: 'analytics', label: 'Analytics', icon: <BarChart2 size={18} />, content: <Analytics /> },
-    { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} />, content: <Settings /> },
+    { id: 'appointments', label: t('dashboard.tabs.appointments'), icon: <Calendar size={18} />, content: <AppointmentManagement /> },
+    { id: 'employees', label: t('dashboard.tabs.employees'), icon: <Users size={18} />, content: <EmployeeManagement /> },
+    { id: 'services', label: t('dashboard.tabs.services'), icon: <Briefcase size={18} />, content: <ServiceManagement /> },
+    { id: 'analytics', label: t('dashboard.tabs.analytics'), icon: <BarChart2 size={18} />, content: <Analytics /> },
+    { id: 'settings', label: t('dashboard.tabs.settings'), icon: <SettingsIcon size={18} />, content: <Settings /> },
   ];
 
   
@@ -85,32 +87,32 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="ml-3 flex-1">
                 <h3 className="text-sm font-medium text-amber-800">
-                  Complete Your Business Setup
+                  {t('dashboard.setupWarning.title')}
                 </h3>
                 <div className="mt-2 text-sm text-amber-700">
                   <p className="mb-2">
-                    To appear on the homepage and allow customers to book appointments, you need:
+                    {t('dashboard.setupWarning.description')}
                   </p>
                   <ul className="list-disc list-inside space-y-1">
                     {needsEmployees && (
                       <li>
-                        At least 1 employee -{' '}
+                        {t('dashboard.setupWarning.addEmployee')}{' '}
                         <button
                           onClick={() => setActiveTab('employees')}
                           className="font-medium underline hover:text-amber-900"
                         >
-                          Add employee now
+                          {t('dashboard.setupWarning.addEmployeeLink')}
                         </button>
                       </li>
                     )}
                     {needsServices && (
                       <li>
-                        At least 1 service -{' '}
+                        {t('dashboard.setupWarning.addService')}{' '}
                         <button
                           onClick={() => setActiveTab('services')}
                           className="font-medium underline hover:text-amber-900"
                         >
-                          Add service now
+                          {t('dashboard.setupWarning.addServiceLink')}
                         </button>
                       </li>
                     )}
@@ -150,7 +152,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
-                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Total Appointments</dt>
+                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">{t('dashboard.stats.totalAppointments')}</dt>
                     <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{totalAppointments}</div>
                     </dd>
@@ -167,7 +169,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
-                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Today's Appointments</dt>
+                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">{t('dashboard.stats.todayAppointments')}</dt>
                     <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{todayAppointments.length}</div>
                     </dd>
@@ -184,7 +186,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
-                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Employees</dt>
+                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">{t('dashboard.tabs.employees')}</dt>
                     <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{employees.length}</div>
                     </dd>
@@ -201,7 +203,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
-                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">Services</dt>
+                    <dt className="text-xs sm:text-sm font-semibold text-gray-500 truncate">{t('dashboard.tabs.services')}</dt>
                     <dd className="flex items-baseline justify-center sm:justify-start">
                       <div className="text-2xl sm:text-3xl font-bold text-gray-900">{services.length}</div>
                     </dd>

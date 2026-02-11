@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 
 const VerifyEmailPage: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
@@ -53,14 +55,14 @@ const VerifyEmailPage: React.FC = () => {
       <Card className="w-full max-w-md">
         <CardHeader>
           <h1 className="text-2xl font-bold text-center text-gray-900">
-            Email Verification
+            {t('verifyEmail.title')}
           </h1>
         </CardHeader>
         <CardContent className="flex flex-col items-center">
           {status === 'verifying' && (
             <>
               <Loader className="w-16 h-16 text-indigo-600 animate-spin mb-4" />
-              <p className="text-gray-600 text-center">Verifying your email address...</p>
+              <p className="text-gray-600 text-center">{t('verifyEmail.verifying')}</p>
             </>
           )}
 
@@ -68,17 +70,16 @@ const VerifyEmailPage: React.FC = () => {
             <>
               <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Email Verified Successfully!
+                {t('verifyEmail.success')}
               </h2>
               <p className="text-gray-600 text-center mb-6">
-                Your email address <span className="font-semibold">{email}</span> has been verified.
-                You can now log in to your account.
+                {t('verifyEmail.successMessage')}
               </p>
               <Button
                 onClick={() => navigate('/login')}
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
               >
-                Go to Login
+                {t('verifyEmail.goToLogin')}
               </Button>
             </>
           )}
@@ -87,16 +88,16 @@ const VerifyEmailPage: React.FC = () => {
             <>
               <CheckCircle className="w-16 h-16 text-blue-500 mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Already Verified
+                {t('verifyEmail.alreadyVerified')}
               </h2>
               <p className="text-gray-600 text-center mb-6">
-                {message}. You can log in to your account.
+                {t('verifyEmail.alreadyVerifiedMessage')}
               </p>
               <Button
                 onClick={() => navigate('/login')}
                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
               >
-                Go to Login
+                {t('verifyEmail.goToLogin')}
               </Button>
             </>
           )}
@@ -105,10 +106,10 @@ const VerifyEmailPage: React.FC = () => {
             <>
               <XCircle className="w-16 h-16 text-red-500 mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Verification Failed
+                {t('verifyEmail.failed')}
               </h2>
               <p className="text-gray-600 text-center mb-6">
-                {message}
+                {t('verifyEmail.failedMessage')}
               </p>
               <div className="flex flex-col gap-3 w-full">
                 <Button
@@ -116,13 +117,13 @@ const VerifyEmailPage: React.FC = () => {
                   variant="outline"
                   className="w-full"
                 >
-                  Go to Login
+                  {t('verifyEmail.goToLogin')}
                 </Button>
                 <Button
                   onClick={() => navigate('/register')}
                   className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                 >
-                  Register New Account
+                  {t('verifyEmail.registerNewAccount')}
                 </Button>
               </div>
             </>

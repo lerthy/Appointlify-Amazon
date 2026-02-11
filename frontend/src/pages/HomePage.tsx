@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Calendar, 
   Clock, 
@@ -40,6 +41,7 @@ const heroImages = [
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [filteredBusinesses, setFilteredBusinesses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,14 +149,14 @@ const HomePage: React.FC = () => {
               {/* Main Headline */}
               <div className="mb-4 inline-flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
                 <Sparkles className="w-4 h-4 text-yellow-400 mr-2" />
-                <span className="text-white text-sm font-medium">AI-Powered Appointment Booking Platform</span>
+                <span className="text-white text-sm font-medium">{t('home.hero.badge')}</span>
               </div>
               
               <h1 className="text-4xl md:text-6xl font-extrabold mb-5 text-white leading-tight">
-                Time's Ticking,
+                {t('home.hero.title')}
                 <br />
                 <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                  Start Clicking.
+                  {t('home.hero.titleHighlight')}
                 </span>
               </h1>
               {/* <div className='flex flex-row justify-space-between width-full'>
@@ -167,7 +169,7 @@ const HomePage: React.FC = () => {
               </div> */}
               {/* <p></p> */}
               {/* Dual CTAs */}
-              <p className="text-lg md:text-xl text-slate-200 mb-3 leading-relaxed max-w-3xl mx-auto">Because every moment you save opens doors to greater opportunities.</p>
+              <p className="text-lg md:text-xl text-slate-200 mb-3 leading-relaxed max-w-3xl mx-auto">{t('home.hero.subtitle')}</p>
             </div>
           </Container>
         </div>
@@ -194,13 +196,13 @@ const HomePage: React.FC = () => {
           <div className="text-center mb-16">
             <div className="inline-flex items-center bg-indigo-100 px-4 py-2 rounded-full mb-4">
               <Users className="w-5 h-5 text-indigo-600 mr-2" />
-              <span className="text-indigo-800 font-semibold">For Businesses</span>
+              <span className="text-indigo-800 font-semibold">{t('home.forBusinesses.title')}</span>
             </div>
             <h2 className="text-5xl font-extrabold mb-6 text-gray-900">
-              Grow Your Business on Autopilot
+              {t('home.forBusinesses.headline')}
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              Join thousands of businesses using Appointly to save time, increase revenue, and delight customers with seamless booking experiences.
+              {t('home.forBusinesses.description')}
             </p>
           </div>
 
@@ -211,13 +213,13 @@ const HomePage: React.FC = () => {
               {/* <div className="bg-indigo-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
                 <Clock className="w-8 h-8 text-indigo-600" />
               </div> */}
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">Save 10+ Hours Weekly</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">{t('home.forBusinesses.card1Title')}</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Automate appointment scheduling, reminders, and confirmations. Focus on what matters—serving your customers.
+                {t('home.forBusinesses.card1Description')}
               </p>
               <div className="flex items-center text-indigo-600 font-semibold">
                 <Zap className="w-5 h-5 mr-2" />
-                <span>Automated workflows</span>
+                <span>{t('home.forBusinesses.card1Feature')}</span>
               </div>
             </div>
 
@@ -226,13 +228,13 @@ const HomePage: React.FC = () => {
               {/* <div className="bg-green-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
                 <TrendingUp className="w-8 h-8 text-green-600" />
               </div> */}
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">Boost Revenue by 40%</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">{t('home.forBusinesses.card2Title')}</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Reduce no-shows with smart reminders. Fill gaps with intelligent rebooking. Maximize every appointment slot.
+                {t('home.forBusinesses.card2Description')}
               </p>
               <div className="flex items-center text-green-600 font-semibold">
                 <DollarSign className="w-5 h-5 mr-2" />
-                <span>More bookings, less gaps</span>
+                <span>{t('home.forBusinesses.card2Feature')}</span>
               </div>
             </div>
 
@@ -241,13 +243,13 @@ const HomePage: React.FC = () => {
               {/* <div className="bg-blue-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
                 <Eye className="w-8 h-8 text-blue-600" />
               </div> */}
-              <h3 className="text-2xl font-bold mb-4 text-gray-900">10x Your Visibility</h3>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">{t('home.forBusinesses.card3Title')}</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Get discovered by thousands of clients actively searching for your services. Stand out with ratings and reviews.
+                {t('home.forBusinesses.card3Description')}
               </p>
               <div className="flex items-center text-blue-600 font-semibold">
                 <Award className="w-5 h-5 mr-2" />
-                <span>Featured listings</span>
+                <span>{t('home.forBusinesses.card3Feature')}</span>
               </div>
             </div>
           </div>
@@ -255,25 +257,25 @@ const HomePage: React.FC = () => {
 
           {/* Testimonials for Businesses */}
           <div className="max-w-6xl mx-auto mb-12">
-            <h3 className="text-3xl font-bold text-center mb-8 text-gray-900">What Business Owners Say</h3>
+            <h3 className="text-3xl font-bold text-center mb-8 text-gray-900">{t('home.forBusinesses.testimonialsTitle')}</h3>
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  name: "Sarah Johnson",
-                  role: "Fitness Studio Owner",
-                  content: "Appointly transformed our business! We've saved 15 hours per week and increased bookings by 35%.",
+                  name: t('home.forBusinesses.testimonial1Name'),
+                  role: t('home.forBusinesses.testimonial1Role'),
+                  content: t('home.forBusinesses.testimonial1Content'),
                   rating: 5
                 },
                 {
-                  name: "Mike Chen",
-                  role: "Spa Manager",
-                  content: "The automated reminders cut our no-shows in half. Our revenue has never been better!",
+                  name: t('home.forBusinesses.testimonial2Name'),
+                  role: t('home.forBusinesses.testimonial2Role'),
+                  content: t('home.forBusinesses.testimonial2Content'),
                   rating: 5
                 },
                 {
-                  name: "Emily Rodriguez",
-                  role: "Dental Practice Owner",
-                  content: "Professional, reliable, and incredibly user-friendly. Our patients love the convenience!",
+                  name: t('home.forBusinesses.testimonial3Name'),
+                  role: t('home.forBusinesses.testimonial3Role'),
+                  content: t('home.forBusinesses.testimonial3Content'),
                   rating: 5
                 }
               ].map((testimonial, index) => (
@@ -294,20 +296,20 @@ const HomePage: React.FC = () => {
           {/* Stats for Businesses */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto mb-12">
             <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-indigo-600 mb-2">92%</div>
-              <div className="text-gray-600 font-medium">Client Retention</div>
+              <div className="text-4xl font-extrabold text-indigo-600 mb-2">{t('home.forBusinesses.stat1Value')}</div>
+              <div className="text-gray-600 font-medium">{t('home.forBusinesses.stat1Label')}</div>
             </div>
             <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-green-600 mb-2">40%</div>
-              <div className="text-gray-600 font-medium">Fewer No-Shows</div>
+              <div className="text-4xl font-extrabold text-green-600 mb-2">{t('home.forBusinesses.stat2Value')}</div>
+              <div className="text-gray-600 font-medium">{t('home.forBusinesses.stat2Label')}</div>
             </div>
             <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-blue-600 mb-2">24/7</div>
-              <div className="text-gray-600 font-medium">Online Booking</div>
+              <div className="text-4xl font-extrabold text-blue-600 mb-2">{t('home.forBusinesses.stat3Value')}</div>
+              <div className="text-gray-600 font-medium">{t('home.forBusinesses.stat3Label')}</div>
             </div>
             <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-orange-600 mb-2">500+</div>
-              <div className="text-gray-600 font-medium">Active Businesses</div>
+              <div className="text-4xl font-extrabold text-orange-600 mb-2">{t('home.forBusinesses.stat4Value')}</div>
+              <div className="text-gray-600 font-medium">{t('home.forBusinesses.stat4Label')}</div>
             </div>
           </div>
 
@@ -319,10 +321,10 @@ const HomePage: React.FC = () => {
               onClick={() => navigate('/register')}
             >
               <Users className="mr-2 w-5 h-5" />
-              Join Appointly Today - FREE
+              {t('home.forBusinesses.ctaButton')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
-            <p className="mt-3 text-gray-600 text-sm">No credit card required • Setup in 5 minutes</p>
+            <p className="mt-3 text-gray-600 text-sm">{t('home.forBusinesses.ctaSubtext')}</p>
           </div>
         </Container>
       </section>
@@ -333,13 +335,13 @@ const HomePage: React.FC = () => {
           <div className="text-center mb-16">
             <div className="inline-flex items-center bg-blue-100 px-4 py-2 rounded-full mb-4">
               <Calendar className="w-5 h-5 text-blue-600 mr-2" />
-              <span className="text-blue-800 font-semibold">For Clients</span>
+              <span className="text-blue-800 font-semibold">{t('home.forClients.title')}</span>
             </div>
             <h2 className="text-5xl font-extrabold mb-6 text-gray-900">
-              Book Your Perfect Appointment in Seconds
+              {t('home.forClients.headline')}
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              Discover and book appointments with top-rated businesses instantly. No phone calls, no waiting—just seamless booking.
+              {t('home.forClients.description')}
             </p>
           </div>
 
@@ -349,7 +351,7 @@ const HomePage: React.FC = () => {
               <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search for services or businesses (e.g., 'hair salon', 'dentist', 'yoga')..."
+                placeholder={t('home.forClients.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-16 pr-6 py-5 text-lg rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all shadow-lg"
@@ -363,44 +365,44 @@ const HomePage: React.FC = () => {
               <div className="bg-blue-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-7 h-7 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Instant Booking</h3>
-              <p className="text-gray-600">Book 24/7 in under 30 seconds. No phone calls needed.</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">{t('home.forClients.instantBookingTitle')}</h3>
+              <p className="text-gray-600">{t('home.forClients.instantBookingDesc')}</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-lg text-center">
               <div className="bg-green-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-7 h-7 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Smart Reminders</h3>
-              <p className="text-gray-600">Never miss an appointment with automated notifications.</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">{t('home.forClients.smartRemindersTitle')}</h3>
+              <p className="text-gray-600">{t('home.forClients.smartRemindersDesc')}</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-lg text-center">
               <div className="bg-indigo-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="w-7 h-7 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Verified Reviews</h3>
-              <p className="text-gray-600">Read real reviews from verified customers before booking.</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">{t('home.forClients.verifiedReviewsTitle')}</h3>
+              <p className="text-gray-600">{t('home.forClients.verifiedReviewsDesc')}</p>
             </div>
           </div>
 
           {/* All Businesses */}
           <div className="mb-12">
             <h3 className="text-3xl font-bold text-center mb-4 text-gray-900">
-              {searchQuery ? 'Search Results' : 'All Businesses'}
+              {searchQuery ? t('home.forClients.searchResults') : t('home.forClients.allBusinesses')}
             </h3>
             <p className="text-center text-gray-600 mb-10">
-              {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'business' : 'businesses'} found
+              {filteredBusinesses.length} {filteredBusinesses.length === 1 ? t('home.forClients.businessFound') : t('home.forClients.businessesFound')} {t('home.forClients.found')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {loading ? (
                 <div className="col-span-3 text-center text-gray-500 py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  Loading businesses...
+                  {t('home.forClients.loadingBusinesses')}
                 </div>
               ) : filteredBusinesses.length === 0 ? (
                 <div className="col-span-3 text-center text-gray-500 py-12">
                   <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg">No businesses found matching your search.</p>
-                  <p className="text-sm">Try a different search term!</p>
+                  <p className="text-lg">{t('home.forClients.noBusinessesFound')}</p>
+                  <p className="text-sm">{t('home.forClients.tryDifferentSearch')}</p>
                 </div>
               ) : (
                 filteredBusinesses.map((business) => (
@@ -439,7 +441,7 @@ const HomePage: React.FC = () => {
                         size="md"
                       >
                         <Calendar className="mr-2 w-5 h-5" />
-                        Book Appointment
+                        {t('home.forClients.bookAppointment')}
                         {/* <ArrowRight className="ml-2 w-4 h-4" /> */}
                       </Button>
                     </div>

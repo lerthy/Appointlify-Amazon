@@ -1,18 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 
 const CookiePolicy: React.FC = () => {
+  const { t } = useTranslation();
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <Link to="/" className="inline-flex items-center text-purple-600 hover:text-purple-800 mb-6">
           <ArrowLeft size={20} className="mr-2" />
-          Back to Home
+          {t('cookies.backToHome')}
         </Link>
         
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Cookie Policy</h1>
-        <p className="text-gray-600 mb-8">Last updated: {new Date().toLocaleDateString()}</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('cookies.title')}</h1>
+        <p className="text-gray-600 mb-8">{t('cookies.lastUpdated')}: {new Date().toLocaleDateString()}</p>
 
         <div className="bg-white rounded-lg shadow-sm p-8 space-y-6">
           <section>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabaseClient';
 import { extractCoordinates, isValidCoordinates } from '../utils/coordinates';
@@ -7,6 +8,7 @@ import { MapPin, Phone, Globe, Briefcase, User, CheckCircle, XCircle } from 'luc
 
 const ProfilePage: React.FC = () => {
   const { user, login } = useAuth();
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -48,18 +50,18 @@ const ProfilePage: React.FC = () => {
   }, [user]);
 
   const categories = [
-    'Health & Wellness',
-    'Beauty & Spa',
-    'Fitness',
-    'Education',
-    'Professional Services',
-    'Medical',
-    'Legal',
-    'Consulting',
-    'Automotive',
-    'Home Services',
-    'Entertainment',
-    'Other'
+    { key: 'healthWellness', value: 'Health & Wellness' },
+    { key: 'beautySpa', value: 'Beauty & Spa' },
+    { key: 'fitness', value: 'Fitness' },
+    { key: 'education', value: 'Education' },
+    { key: 'professionalServices', value: 'Professional Services' },
+    { key: 'medical', value: 'Medical' },
+    { key: 'legal', value: 'Legal' },
+    { key: 'consulting', value: 'Consulting' },
+    { key: 'automotive', value: 'Automotive' },
+    { key: 'homeServices', value: 'Home Services' },
+    { key: 'entertainment', value: 'Entertainment' },
+    { key: 'other', value: 'Other' }
   ];
 
   // Auto-hide notification after 3 seconds
@@ -96,7 +98,7 @@ const ProfilePage: React.FC = () => {
   };
 
   if (!user) {
-    return <div className="p-8 text-center text-red-600 font-bold">Please log in to edit your profile.</div>;
+    return <div className="p-8 text-center text-red-600 font-bold">{t('profile.loginRequired')}</div>;
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -178,7 +180,7 @@ const ProfilePage: React.FC = () => {
 
       // Update context/localStorage with the updated user data
       login(result.user);
-      showToast('Profile updated successfully!', 'success');
+      showToast(t('profile.messages.updateSuccess'), 'success');
       setIsSubmitting(false);
     } catch (fetchError: any) {
       console.error('Profile update error:', fetchError);
@@ -204,20 +206,19 @@ const ProfilePage: React.FC = () => {
     setPwSuccess('');
 
     if (!pwForm.current || !pwForm.new || !pwForm.confirm) {
-      setPwError('Please fill in all fields.');
+      setPwError(t('profile.passwordModal.fillAllFields'));
       setPwSubmitting(false);
       return;
     }
 
     if (pwForm.new !== pwForm.confirm) {
-      setPwError('New passwords do not match.');
+      setPwError(t('profile.passwordModal.passwordsNoMatch'));
       setPwSubmitting(false);
       return;
     }
 
     if (!user?.email) {
-      setPwError('User email not found. Please reload the page.');
-      setPwSubmitting(false);
+      setPwError(t('profile.passwordModal.emailNotFound'));
       return;
     }
 
@@ -229,7 +230,7 @@ const ProfilePage: React.FC = () => {
       });
 
       if (signInError) {
-        setPwError('Current password is incorrect.');
+        setPwError(t('profile.passwordModal.incorrectCurrent'));
         setPwSubmitting(false);
         return;
       }
@@ -245,11 +246,11 @@ const ProfilePage: React.FC = () => {
         return;
       }
 
-      setPwSuccess('Password changed successfully!');
+      setPwSuccess(t('profile.passwordModal.success'));
       setPwForm({ current: '', new: '', confirm: '' });
       setShowPasswordModal(false);
     } catch (err: any) {
-      setPwError('An unexpected error occurred.');
+      setPwError(t('profile.passwordModal.unexpectedError'));
       console.error('Password change error:', err);
     } finally {
       setPwSubmitting(false);
@@ -265,7 +266,7 @@ const ProfilePage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column - Profile Information */}
               <div className="bg-white rounded-2xl shadow-2xl p-8">
-                <h2 className="text-2xl font-extrabold text-center text-gray-900 mb-2 tracking-tight">Edit Profile</h2>
+                <h2 className="text-2xl font-extrabold text-center text-gray-900 mb-2 tracking-tight">{t('profile.title')}</h2>
                 <div className="flex justify-center mb-6">
                   <label htmlFor="logo-upload" className="relative cursor-pointer group">
                     {logoFile ? (
@@ -278,21 +279,21 @@ const ProfilePage: React.FC = () => {
                       </div>
                     )}
                     <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200">Change</span>
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200">{t('profile.changeLogo')}</span>
                   </label>
                 </div>
                 <hr className="mb-6 border-indigo-100" />
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Name</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">{t('profile.nameLabel')}</label>
                     <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">{t('profile.emailLabel')}</label>
                     <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">{t('profile.descriptionLabel')}</label>
                     <textarea name="description" value={form.description} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100 resize-none" rows={5} />
                   </div>
 
@@ -302,14 +303,14 @@ const ProfilePage: React.FC = () => {
                       className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-violet-600 hover:to-indigo-600 text-white font-semibold py-3 px-4 rounded-lg text-sm sm:text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow-md hover:shadow-lg"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? 'Saving...' : 'Save Changes'}
+                      {isSubmitting ? t('profile.saving') : t('profile.saveChanges')}
                     </button>
                     <button
                       type="button"
                       className="flex-1 bg-white hover:bg-indigo-50 text-indigo-700 font-semibold py-3 px-4 rounded-lg text-sm sm:text-base transition-all duration-200 border-2 border-indigo-300 hover:border-indigo-500 shadow-sm hover:shadow-md"
                       onClick={() => setShowPasswordModal(true)}
                     >
-                      Change Password
+                      {t('profile.changePassword')}
                     </button>
                   </div>
                 </div>
@@ -319,13 +320,13 @@ const ProfilePage: React.FC = () => {
               <div className="bg-white rounded-2xl shadow-2xl p-8">
                 <h2 className="text-2xl font-extrabold text-gray-900 mb-6 tracking-tight flex items-center">
                   <Briefcase className="mr-2" size={24} />
-                  Business Information
+                  {t('dashboard.businessInfo')}
                 </h2>
                 <div className="space-y-5">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
                       <User className="w-4 h-4 mr-1" />
-                      Owner Name
+                      {t('profile.ownerNameLabel')}
                     </label>
                     <input
                       type="text"
@@ -340,7 +341,7 @@ const ProfilePage: React.FC = () => {
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
                       <Phone className="w-4 h-4 mr-1" />
-                      Phone Number
+                      {t('profile.phoneLabel')}
                     </label>
                     <input
                       type="tel"
@@ -355,7 +356,7 @@ const ProfilePage: React.FC = () => {
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
-                      Address
+                      {t('profile.addressLabel')}
                     </label>
                     <input
                       type="text"
@@ -394,7 +395,7 @@ const ProfilePage: React.FC = () => {
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
                       <Globe className="w-4 h-4 mr-1" />
-                      Website
+                      {t('profile.websiteLabel')}
                     </label>
                     <input
                       type="url"
@@ -409,7 +410,7 @@ const ProfilePage: React.FC = () => {
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
                       <Briefcase className="w-4 h-4 mr-1" />
-                      Category
+                      {t('profile.categoryLabel')}
                     </label>
                     <select
                       name="category"
@@ -417,10 +418,10 @@ const ProfilePage: React.FC = () => {
                       onChange={handleChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
                     >
-                      <option value="">Select a category</option>
+                      <option value="">{t('profile.selectCategory')}</option>
                       {categories.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
+                        <option key={cat.key} value={cat.value}>
+                          {t(`profile.categories.${cat.key}`)}
                         </option>
                       ))}
                     </select>
@@ -458,24 +459,24 @@ const ProfilePage: React.FC = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white w-full max-w-md rounded-xl shadow-xl p-6 relative">
             <button onClick={() => setShowPasswordModal(false)} className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Change Password</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">{t('profile.passwordModal.title')}</h3>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Current Password</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">{t('profile.passwordModal.currentPassword')}</label>
                 <input type="password" name="current" value={pwForm.current} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">New Password</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">{t('profile.passwordModal.newPassword')}</label>
                 <input type="password" name="new" value={pwForm.new} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Confirm New Password</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">{t('profile.passwordModal.confirmPassword')}</label>
                 <input type="password" name="confirm" value={pwForm.confirm} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
               </div>
               {pwError && <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">{pwError}</div>}
               {pwSuccess && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{pwSuccess}</div>}
               <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={pwSubmitting}>
-                {pwSubmitting ? 'Changing...' : 'Change Password'}
+                {pwSubmitting ? t('profile.passwordModal.submitting') : t('profile.passwordModal.submit')}
               </button>
             </form>
           </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Calendar, 
   Clock, 
@@ -19,88 +20,90 @@ import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 
 const ServicesPage: React.FC = () => {
+  const { t } = useTranslation();
+
   const mainServices = [
     {
       icon: Calendar,
-      title: 'Smart Appointment Booking',
-      description: 'Streamline your booking process with our intuitive calendar system. Customers can book appointments 24/7 with just a few clicks.',
+      title: t('services.smartBooking.title'),
+      description: t('services.smartBooking.description'),
       features: [
-        'Real-time Availability',
-        'Calendar Integration',
-        'Recurring Appointments',
-        'Multi-location Support',
-        'Time Zone Management',
-        'Booking Confirmations'
+        t('services.smartBooking.features.realTime'),
+        t('services.smartBooking.features.calendar'),
+        t('services.smartBooking.features.recurring'),
+        t('services.smartBooking.features.multiLocation'),
+        t('services.smartBooking.features.timezone'),
+        t('services.smartBooking.features.confirmations')
       ],
       technologies: ['React', 'Node.js', 'PostgreSQL', 'Supabase'],
     },
     {
       icon: Bell,
-      title: 'Automated Reminders',
-      description: 'Reduce no-shows with automated SMS and email reminders sent to customers before their appointments.',
+      title: t('services.reminders.title'),
+      description: t('services.reminders.description'),
       features: [
-        'Email Notifications',
-        'SMS Reminders',
-        'Customizable Templates',
-        'Multiple Reminder Options',
-        'Auto-scheduling',
-        'Follow-up Messages'
+        t('services.reminders.features.email'),
+        t('services.reminders.features.sms'),
+        t('services.reminders.features.templates'),
+        t('services.reminders.features.multiple'),
+        t('services.reminders.features.auto'),
+        t('services.reminders.features.followUp')
       ],
       technologies: ['Twilio', 'SendGrid', 'Node.js', 'Cron Jobs'],
     },
     {
       icon: Users,
-      title: 'Customer Management',
-      description: 'Keep track of your customer relationships with comprehensive profiles and appointment history.',
+      title: t('services.customerMgmt.title'),
+      description: t('services.customerMgmt.description'),
       features: [
-        'Customer Database',
-        'Appointment History',
-        'Notes & Preferences',
-        'Contact Management',
-        'Customer Analytics',
-        'Export & Reports'
+        t('services.customerMgmt.features.database'),
+        t('services.customerMgmt.features.history'),
+        t('services.customerMgmt.features.notes'),
+        t('services.customerMgmt.features.contacts'),
+        t('services.customerMgmt.features.analytics'),
+        t('services.customerMgmt.features.export')
       ],
       technologies: ['Supabase', 'PostgreSQL', 'React', 'TypeScript'],
     },
     {
       icon: BarChart3,
-      title: 'Analytics & Reports',
-      description: 'Make data-driven decisions with detailed insights into your business performance and customer behavior.',
+      title: t('services.analyticsReports.title'),
+      description: t('services.analyticsReports.description'),
       features: [
-        'Booking Analytics',
-        'Revenue Tracking',
-        'Customer Insights',
-        'Performance Metrics',
-        'Visual Dashboards',
-        'Export Reports'
+        t('services.analyticsReports.features.booking'),
+        t('services.analyticsReports.features.revenue'),
+        t('services.analyticsReports.features.customer'),
+        t('services.analyticsReports.features.performance'),
+        t('services.analyticsReports.features.dashboards'),
+        t('services.analyticsReports.features.export')
       ],
       technologies: ['Chart.js', 'React', 'PostgreSQL', 'Data Visualization'],
     },
     {
       icon: MessageSquare,
-      title: 'AI-Powered Chatbot',
-      description: 'Provide instant support to your customers with our intelligent chatbot that can answer questions and help with bookings.',
+      title: t('services.aiChatbot.title'),
+      description: t('services.aiChatbot.description'),
       features: [
-        '24/7 Availability',
-        'Natural Language Processing',
-        'Booking Assistance',
-        'FAQ Automation',
-        'Multi-language Support',
-        'Learning Capabilities'
+        t('services.aiChatbot.features.availability'),
+        t('services.aiChatbot.features.nlp'),
+        t('services.aiChatbot.features.booking'),
+        t('services.aiChatbot.features.faq'),
+        t('services.aiChatbot.features.multiLang'),
+        t('services.aiChatbot.features.learning')
       ],
       technologies: ['OpenAI', 'Python', 'React', 'WebSockets'],
     },
     {
       icon: Zap,
-      title: 'Integration Ready',
-      description: 'Connect with your existing tools and workflows through our API and integration capabilities.',
+      title: t('services.integrations.title'),
+      description: t('services.integrations.description'),
       features: [
-        'Calendar Sync',
-        'Payment Processing',
-        'CRM Integration',
-        'API Access',
-        'Webhook Support',
-        'Third-party Apps'
+        t('services.integrations.features.calendar'),
+        t('services.integrations.features.payment'),
+        t('services.integrations.features.crm'),
+        t('services.integrations.features.api'),
+        t('services.integrations.features.webhook'),
+        t('services.integrations.features.thirdParty')
       ],
       technologies: ['REST API', 'GraphQL', 'OAuth', 'Stripe'],
     },
@@ -109,23 +112,23 @@ const ServicesPage: React.FC = () => {
   const additionalServices = [
     {
       icon: Clock,
-      title: 'Time Management',
-      description: 'Optimize your schedule with smart time slot management.',
+      title: t('services.additional.timeManagement.title'),
+      description: t('services.additional.timeManagement.description'),
     },
     {
       icon: Shield,
-      title: 'Security & Privacy',
-      description: 'Enterprise-grade security protecting your data.',
+      title: t('services.additional.security.title'),
+      description: t('services.additional.security.description'),
     },
     {
       icon: Smartphone,
-      title: 'Mobile Responsive',
-      description: 'Beautiful experience on all devices.',
+      title: t('services.additional.mobile.title'),
+      description: t('services.additional.mobile.description'),
     },
     {
       icon: Globe,
-      title: 'Multi-language',
-      description: 'Support for multiple languages and regions.',
+      title: t('services.additional.multiLanguage.title'),
+      description: t('services.additional.multiLanguage.description'),
     },
   ];
 
@@ -142,11 +145,10 @@ const ServicesPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              Our <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Services</span>
+              {t('services.title')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{t('services.titleHighlight')}</span>
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              Comprehensive appointment management solutions tailored to your business needs. 
-              From concept to deployment, we've got you covered.
+              {t('services.subtitle')}
             </p>
           </div>
         </div>

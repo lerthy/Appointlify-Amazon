@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, CheckCircle, XCircle, MessageSquare, User, Briefcase } from 'lucide-react';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -9,16 +10,17 @@ import { sendAppointmentCancellation } from '../../utils/emailService';
 import AlertDialog from '../ui/AlertDialog';
 import RealtimeStatus from '../shared/RealtimeStatus';
 
-// Badge variants for appointment statuses
-const statusVariants: Record<string, { variant: string; label: string }> = {
-  'scheduled': { variant: 'primary', label: 'Scheduled' },
-  'confirmed': { variant: 'secondary', label: 'Confirmed' },
-  'completed': { variant: 'success', label: 'Completed' },
-  'cancelled': { variant: 'danger', label: 'Cancelled' },
-  'no-show': { variant: 'warning', label: 'No Show' }
+// Badge variants for appointment statuses (labels will be translated in component)
+const statusVariants: Record<string, { variant: string; labelKey: string }> = {
+  'scheduled': { variant: 'primary', labelKey: 'appointmentManagement.status.scheduled' },
+  'confirmed': { variant: 'secondary', labelKey: 'appointmentManagement.status.confirmed' },
+  'completed': { variant: 'success', labelKey: 'appointmentManagement.status.completed' },
+  'cancelled': { variant: 'danger', labelKey: 'appointmentManagement.status.cancelled' },
+  'no-show': { variant: 'warning', labelKey: 'appointmentManagement.status.noShow' }
 };
 
 const AppointmentManagement: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     appointments, 
     customers, 
@@ -246,9 +248,9 @@ const AppointmentManagement: React.FC = () => {
     const customerEmail = customer ? customer.email : appointment.email;
 
     // Service and employee info
-    const serviceName = service ? service.name : 'Unknown Service';
+    const serviceName = service ? service.name : t('appointmentManagement.unknownService');
     const servicePrice = service ? `$${service.price}` : '';
-    const employeeName = employee ? employee.name : 'Unknown Employee';
+    const employeeName = employee ? employee.name : t('appointmentManagement.unknownEmployee');
     const employeeRole = employee ? employee.role : '';
 
     return (
@@ -276,11 +278,11 @@ const AppointmentManagement: React.FC = () => {
                 <div className="flex gap-2 items-center shrink-0">
                   {isPastDue && (
                     <Badge variant="warning">
-                      Past Due
+                      {t('appointmentManagement.status.pastDue')}
                     </Badge>
                   )}
                   <Badge variant={statusVariants[appointment.status]?.variant as any}>
-                    {statusVariants[appointment.status]?.label}
+                    {t(statusVariants[appointment.status]?.labelKey)}
                   </Badge>
                 </div>
               </div>
@@ -321,7 +323,7 @@ const AppointmentManagement: React.FC = () => {
               
               {appointment.notes && (
                 <div className="mt-3 text-xs md:text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                  <p className="font-medium mb-1">Notes:</p>
+                  <p className="font-medium mb-1">{t('appointmentManagement.notes')}:</p>
                   <p>{appointment.notes}</p>
                 </div>
               )}
@@ -337,7 +339,7 @@ const AppointmentManagement: React.FC = () => {
                     className="w-full md:w-auto touch-manipulation"
                     onClick={() => openConfirmDialog(appointment.id)}
                   >
-                    Confirm
+                    {t('appointmentManagement.actions.confirm')}
                   </Button>
                   <Button
                     variant="outline"
@@ -346,7 +348,7 @@ const AppointmentManagement: React.FC = () => {
                     onClick={() => openMessageDialog(appointment.id)}
                     icon={<MessageSquare size={16} />}
                   >
-                    Message
+                    {t('appointmentManagement.actions.message')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -355,7 +357,7 @@ const AppointmentManagement: React.FC = () => {
                     onClick={() => openCancelDialog(appointment.id)}
                     icon={<XCircle size={16} />}
                   >
-                    Cancel
+                    {t('appointmentManagement.actions.cancel')}
                   </Button>
                 </div>
               )}
@@ -369,7 +371,7 @@ const AppointmentManagement: React.FC = () => {
                     onClick={() => handleMarkCompleted(appointment.id)}
                     icon={<CheckCircle size={16} />}
                   >
-                    Complete
+                    {t('appointmentManagement.actions.complete')}
                   </Button>
                   <Button
                     variant="outline"
@@ -378,7 +380,7 @@ const AppointmentManagement: React.FC = () => {
                     onClick={() => openMessageDialog(appointment.id)}
                     icon={<MessageSquare size={16} />}
                   >
-                    Message
+                    {t('appointmentManagement.actions.message')}
                   </Button>
                   <Button
                     variant="danger"
@@ -387,26 +389,26 @@ const AppointmentManagement: React.FC = () => {
                     onClick={() => handleMarkNoShow(appointment.id)}
                     icon={<XCircle size={16} />}
                   >
-                    No Show
+                    {t('appointmentManagement.actions.noShow')}
                   </Button>
                 </div>
               )}
               
               {appointment.status === 'completed' && (
                 <div className="text-sm text-green-600 font-medium">
-                  ✓ Completed
+                  ✓ {t('appointmentManagement.status.completed')}
                 </div>
               )}
               
               {appointment.status === 'cancelled' && (
                 <div className="text-sm text-red-600 font-medium">
-                  ✗ Cancelled
+                  ✗ {t('appointmentManagement.status.cancelled')}
                 </div>
               )}
               
               {appointment.status === 'no-show' && (
                 <div className="text-sm text-orange-600 font-medium">
-                  ⚠ No Show
+                  ⚠ {t('appointmentManagement.status.noShow')}
                 </div>
               )}
             </div>
@@ -428,17 +430,17 @@ const AppointmentManagement: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 pt-3 pb-4">
             <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-blue-500" />
-              Team schedule
+              {t('appointmentManagement.teamSchedule')}
             </h3>
             <label className="block text-xs font-medium text-gray-500 mb-2">
-              Filter by employee
+              {t('appointmentManagement.filterByEmployee')}
             </label>
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white outline-none text-sm"
             >
-              <option value="all">All employees</option>
+              <option value="all">{t('appointmentManagement.allEmployees')}</option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.id}>
                   {employee.name} ({employee.role})
@@ -447,19 +449,19 @@ const AppointmentManagement: React.FC = () => {
             </select>
 
             <div className="mt-4 text-xs text-gray-500 space-y-1">
-              <p className="font-semibold text-gray-700">Quick overview</p>
+              <p className="font-semibold text-gray-700">{t('appointmentManagement.quickOverview')}</p>
               <p>
-                Today:{" "}
+                {t('appointmentManagement.today')}:{" "}
                 <span className="font-semibold text-gray-900">
                   {getAppointmentsForDate(new Date()).length}{" "}
-                  appointments
+                  {t('appointmentManagement.appointments')}
                 </span>
               </p>
               <p>
-                Selected day:{" "}
+                {t('appointmentManagement.selectedDay')}:{" "}
                 <span className="font-semibold text-gray-900">
                   {appointmentsForSelectedDate.length}{" "}
-                  appointments
+                  {t('appointmentManagement.appointments')}
                 </span>
               </p>
             </div>
@@ -473,14 +475,14 @@ const AppointmentManagement: React.FC = () => {
             <div className="w-full max-w-xs">
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 <User className="inline h-3 w-3 mr-1 text-blue-500" />
-                Employee
+                {t('appointmentManagement.employee')}
               </label>
               <select
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
                 className="w-full max-w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white outline-none text-xs"
               >
-                <option value="all">All employees</option>
+                <option value="all">{t('appointmentManagement.allEmployees')}</option>
                 {employees.map((employee) => (
                   <option key={employee.id} value={employee.id}>
                     {employee.name}
@@ -526,7 +528,7 @@ const AppointmentManagement: React.FC = () => {
                   }}
                   className="px-3 py-2 text-xs font-medium rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 transition-colors"
                 >
-                  Today
+                  {t('appointmentManagement.today')}
                 </button>
 
                 <button
@@ -557,7 +559,7 @@ const AppointmentManagement: React.FC = () => {
                     {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </h2>
                   <p className="text-xs text-gray-500">
-                    {appointments.length} total upcoming appointments
+                    {appointments.length} {t('appointmentManagement.totalUpcoming')}
                   </p>
                 </div>
               </div>
@@ -579,7 +581,7 @@ const AppointmentManagement: React.FC = () => {
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`}
                   >
-                    Week
+                    {t('appointmentManagement.viewMode.week')}
                   </button>
                   <button
                     type="button"
@@ -590,7 +592,7 @@ const AppointmentManagement: React.FC = () => {
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`}
                   >
-                    Month
+                    {t('appointmentManagement.viewMode.month')}
                   </button>
                 </div>
 
@@ -600,7 +602,7 @@ const AppointmentManagement: React.FC = () => {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search appointments..."
+                    placeholder={t('appointmentManagement.searchPlaceholder')}
                     className="w-full md:w-56 pl-8 pr-3 py-1.5 text-xs md:text-sm border border-gray-200 rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <svg
@@ -757,7 +759,7 @@ const AppointmentManagement: React.FC = () => {
       <div>
         <h3 className="text-lg font-semibold mb-2 flex flex-wrap items-baseline gap-2">
           <span>
-            Appointments for {selectedDate.toLocaleDateString('en-US', { 
+            {t('appointmentManagement.appointmentsFor')} {selectedDate.toLocaleDateString('en-US', { 
             weekday: 'long', 
             year: 'numeric', 
             month: 'long', 
@@ -771,7 +773,7 @@ const AppointmentManagement: React.FC = () => {
           )}
           <span className="text-sm font-normal text-gray-500">
             {' '}
-            ({filteredAppointments.length} result{filteredAppointments.length === 1 ? '' : 's'}{searchTerm ? ' matching search' : ''})
+            ({filteredAppointments.length} {filteredAppointments.length === 1 ? t('appointmentManagement.result') : t('appointmentManagement.results')}{searchTerm ? ` ${t('appointmentManagement.matchingSearch')}` : ''})
           </span>
         </h3>
         
@@ -779,7 +781,7 @@ const AppointmentManagement: React.FC = () => {
           <Card>
             <CardContent className="p-8 text-center text-gray-500">
               <Calendar size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>No appointments scheduled for this date.</p>
+              <p>{t('appointmentManagement.noAppointments')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -794,10 +796,10 @@ const AppointmentManagement: React.FC = () => {
         isOpen={confirmDialog}
         onCancel={() => setConfirmDialog(false)}
         onConfirm={handleConfirmAppointment}
-        title="Confirm Appointment"
-        description="Are you sure you want to confirm this appointment? This will send a confirmation message to the customer."
-        confirmLabel="Confirm"
-        cancelLabel="Cancel"
+        title={t('appointmentManagement.dialogs.confirmTitle')}
+        description={t('appointmentManagement.dialogs.confirmDescription')}
+        confirmLabel={t('appointmentManagement.actions.confirm')}
+        cancelLabel={t('appointmentManagement.actions.cancel')}
       />
 
       {/* Cancellation Dialog */}
@@ -805,10 +807,10 @@ const AppointmentManagement: React.FC = () => {
         isOpen={cancelDialog}
         onCancel={() => setCancelDialog(false)}
         onConfirm={handleCancelAppointment}
-        title="Cancel Appointment"
-        description="Are you sure you want to cancel this appointment? This will send a cancellation message to the customer."
-        confirmLabel="Cancel Appointment"
-        cancelLabel="Keep Appointment"
+        title={t('appointmentManagement.dialogs.cancelTitle')}
+        description={t('appointmentManagement.dialogs.cancelDescription')}
+        confirmLabel={t('appointmentManagement.dialogs.cancelAppointment')}
+        cancelLabel={t('appointmentManagement.dialogs.keepAppointment')}
         variant="danger"
       />
 
@@ -817,17 +819,17 @@ const AppointmentManagement: React.FC = () => {
         isOpen={messageDialog}
         onCancel={() => setMessageDialog(false)}
         onConfirm={handleSendMessage}
-        title="Send Message"
-        description="Send a custom message to the customer:"
-        confirmLabel="Send Message"
-        cancelLabel="Cancel"
+        title={t('appointmentManagement.dialogs.messageTitle')}
+        description={t('appointmentManagement.dialogs.messageDescription')}
+        confirmLabel={t('appointmentManagement.dialogs.sendMessage')}
+        cancelLabel={t('appointmentManagement.actions.cancel')}
       />
       {messageDialog && (
         <div className="mt-2">
           <textarea
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            placeholder="Enter your message..."
+            placeholder={t('appointmentManagement.dialogs.messagePlaceholder')}
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows={4}
           />

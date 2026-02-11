@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../utils/supabaseClient';
 import { useNotification } from '../../context/NotificationContext';
 import { Card, CardHeader, CardContent } from '../ui/Card';
@@ -48,6 +49,7 @@ interface AppointmentData {
 }
 
 const CancelAppointment: React.FC = () => {
+  const { t } = useTranslation();
   const { appointmentId } = useParams<{ appointmentId: string }>();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
@@ -65,7 +67,7 @@ const CancelAppointment: React.FC = () => {
   useEffect(() => {
     const fetchAppointment = async () => {
       if (!appointmentId) {
-        setError('Invalid appointment ID');
+        setError(t('common.errors.invalidAppointmentId'));
         return;
       }
 
@@ -96,14 +98,14 @@ const CancelAppointment: React.FC = () => {
           notes: data.notes,
         });
       } catch (err) {
-        setError('Appointment not found or already cancelled.');
+        setError(t('common.errors.appointmentNotFound'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchAppointment();
-  }, [appointmentId]);
+  }, [appointmentId, t]);
 
   const isWithinOneHourOfCreation = () => {
     if (!appointment?.created_at) return false;
@@ -118,7 +120,7 @@ const CancelAppointment: React.FC = () => {
 
   const handleCancel = async () => {
     if (!isWithinOneHourOfCreation()) {
-      showNotification('Cannot cancel appointment - cancellations are allowed only within 1 hour of booking.', 'error');
+      showNotification(t('cancelAppointment.cancelNotAllowed'), 'error');
       return;
     }
 
@@ -132,10 +134,10 @@ const CancelAppointment: React.FC = () => {
       if (error) throw error;
 
       setCancelled(true);
-      showNotification('Appointment cancelled successfully.', 'success');
+      showNotification(t('cancelAppointment.success'), 'success');
       setTimeout(() => navigate('/'), 3000);
     } catch (err) {
-      showNotification('Failed to cancel appointment. Please try again.', 'error');
+      showNotification(t('cancelAppointment.cancelFailed'), 'error');
     } finally {
       setCancelling(false);
     }
@@ -153,9 +155,9 @@ const CancelAppointment: React.FC = () => {
 
       setAppointment(prev => prev ? { ...prev, ...editData } : null);
       setIsEditing(false);
-      showNotification('Appointment updated successfully.', 'success');
+      showNotification(t('cancelAppointment.updateSuccess'), 'success');
     } catch (err) {
-      showNotification('Failed to update appointment. Please try again.', 'error');
+      showNotification(t('cancelAppointment.updateFailed'), 'error');
     } finally {
       setSaving(false);
     }
@@ -205,8 +207,8 @@ const CancelAppointment: React.FC = () => {
         <Card className="w-full max-w-2xl">
           <CardContent className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <h3 className="text-lg font-semibold text-gray-700">Loading appointment...</h3>
-            <p className="text-gray-500 mt-2">Please wait while we fetch your appointment details.</p>
+            <h3 className="text-lg font-semibold text-gray-700">{t('cancelAppointment.loading')}</h3>
+            <p className="text-gray-500 mt-2">{t('cancelAppointment.loadingDescription')}</p>
           </CardContent>
         </Card>
       </div>
@@ -225,7 +227,7 @@ const CancelAppointment: React.FC = () => {
                 </svg>
               </div>
               <div className="ml-3">
-                <h2 className="text-xl font-bold text-red-800">Appointment Not Found</h2>
+                <h2 className="text-xl font-bold text-red-800">{t('cancelAppointment.notFound')}</h2>
               </div>
             </div>
           </CardHeader>
@@ -233,7 +235,7 @@ const CancelAppointment: React.FC = () => {
             <div className="text-center">
               <p className="text-red-600 mb-6">{error}</p>
               <Button onClick={() => navigate('/')} variant="primary">
-                Return to Home
+                {t('cancelAppointment.backToHome')}
               </Button>
             </div>
           </CardContent>
@@ -254,14 +256,14 @@ const CancelAppointment: React.FC = () => {
                 </svg>
               </div>
               <div className="ml-3">
-                <h2 className="text-xl font-bold text-green-800">Appointment Cancelled</h2>
+                <h2 className="text-xl font-bold text-green-800">{t('cancelAppointment.appointmentCancelled')}</h2>
               </div>
             </div>
           </CardHeader>
           <CardContent className="py-8">
             <div className="text-center">
-              <p className="text-green-600 mb-6">Your appointment has been successfully cancelled.</p>
-              <p className="text-gray-500">You will be redirected to the home page shortly.</p>
+              <p className="text-green-600 mb-6">{t('cancelAppointment.successCancelledMessage')}</p>
+              <p className="text-gray-500">{t('cancelAppointment.redirectingMessage')}</p>
             </div>
           </CardContent>
         </Card>
@@ -283,7 +285,7 @@ const CancelAppointment: React.FC = () => {
                 <svg className="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <h2 className="text-2xl font-bold">Appointment Details</h2>
+                <h2 className="text-2xl font-bold">{t('cancelAppointment.appointmentDetails')}</h2>
               </div>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment?.status || '')}`}>
                 {appointment?.status?.toUpperCase()}
@@ -301,18 +303,18 @@ const CancelAppointment: React.FC = () => {
                       <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Service Details
+                      {t('cancelAppointment.serviceDetails')}
                     </h3>
                     <div className="space-y-2">
-                      <p><span className="font-medium">Service:</span> {appointment?.service?.name || appointment?.name || 'Not specified'}</p>
-                      <p><span className="font-medium">Date:</span> {formattedDate}</p>
-                      <p><span className="font-medium">Time:</span> {formattedTime}</p>
-                      <p><span className="font-medium">Duration:</span> {appointment?.duration || 0} minutes</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.service')}:</span> {appointment?.service?.name || appointment?.name || t('cancelAppointment.notSpecified')}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.date')}:</span> {formattedDate}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.time')}:</span> {formattedTime}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.duration')}:</span> {appointment?.duration || 0} {t('cancelAppointment.minutes')}</p>
                       {appointment?.service?.price && (
-                        <p><span className="font-medium">Price:</span> ${appointment.service.price}</p>
+                        <p><span className="font-medium">{t('cancelAppointment.labels.price')}:</span> ${appointment.service.price}</p>
                       )}
                       {appointment?.service?.description && (
-                        <p><span className="font-medium">Description:</span> {appointment.service.description}</p>
+                        <p><span className="font-medium">{t('cancelAppointment.labels.description')}:</span> {appointment.service.description}</p>
                       )}
                     </div>
                   </div>
@@ -322,14 +324,14 @@ const CancelAppointment: React.FC = () => {
                       <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      Customer Information
+                      {t('cancelAppointment.customerInformation')}
                     </h3>
                     <div className="space-y-2">
-                      <p><span className="font-medium">Name:</span> {appointment?.name || appointment?.customer?.name || 'Not provided'}</p>
-                      <p><span className="font-medium">Email:</span> {appointment?.email || appointment?.customer?.email || 'Not provided'}</p>
-                      <p><span className="font-medium">Phone:</span> {appointment?.phone || appointment?.customer?.phone || 'Not provided'}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.name')}:</span> {appointment?.name || appointment?.customer?.name || t('cancelAppointment.notProvided')}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.email')}:</span> {appointment?.email || appointment?.customer?.email || t('cancelAppointment.notProvided')}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.phone')}:</span> {appointment?.phone || appointment?.customer?.phone || t('cancelAppointment.notProvided')}</p>
                       {appointment?.customer_id && (
-                        <p><span className="font-medium">Customer ID:</span> {appointment.customer_id}</p>
+                        <p><span className="font-medium">{t('cancelAppointment.labels.customerId')}:</span> {appointment.customer_id}</p>
                       )}
                     </div>
                   </div>
@@ -340,13 +342,13 @@ const CancelAppointment: React.FC = () => {
                         <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        Service Provider
+                        {t('cancelAppointment.serviceProvider')}
                       </h3>
                       <div className="space-y-2">
-                        <p><span className="font-medium">Name:</span> {appointment.employee.name}</p>
-                        <p><span className="font-medium">Role:</span> {appointment.employee.role}</p>
-                        <p><span className="font-medium">Email:</span> {appointment.employee.email}</p>
-                        <p><span className="font-medium">Phone:</span> {appointment.employee.phone}</p>
+                        <p><span className="font-medium">{t('cancelAppointment.labels.name')}:</span> {appointment.employee.name}</p>
+                        <p><span className="font-medium">{t('cancelAppointment.labels.role')}:</span> {appointment.employee.role}</p>
+                        <p><span className="font-medium">{t('cancelAppointment.labels.email')}:</span> {appointment.employee.email}</p>
+                        <p><span className="font-medium">{t('cancelAppointment.labels.phone')}:</span> {appointment.employee.phone}</p>
                       </div>
                     </div>
                   )}
@@ -356,12 +358,12 @@ const CancelAppointment: React.FC = () => {
                       <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Booking Information
+                      {t('cancelAppointment.bookingInformation')}
                     </h3>
                     <div className="space-y-2">
-                      <p><span className="font-medium">Appointment ID:</span> {appointment?.id}</p>
-                      <p><span className="font-medium">Created:</span> {appointment?.created_at ? formatDate(appointment.created_at) : 'Not available'}</p>
-                      <p><span className="font-medium">Reminder Sent:</span> {appointment?.reminder_sent ? 'Yes' : 'No'}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.appointmentId')}:</span> {appointment?.id}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.created')}:</span> {appointment?.created_at ? formatDate(appointment.created_at) : t('cancelAppointment.notAvailable')}</p>
+                      <p><span className="font-medium">{t('cancelAppointment.labels.reminderSent')}:</span> {appointment?.reminder_sent ? t('cancelAppointment.yes') : t('cancelAppointment.no')}</p>
                     </div>
                   </div>
 
@@ -371,7 +373,7 @@ const CancelAppointment: React.FC = () => {
                         <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Notes
+                        {t('cancelAppointment.labels.notes')}
                       </h3>
                       <p className="text-gray-700">{appointment.notes}</p>
                     </div>
@@ -385,10 +387,10 @@ const CancelAppointment: React.FC = () => {
                         <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
-                        <h3 className="text-lg font-semibold text-red-800">Cannot Cancel Appointment</h3>
+                        <h3 className="text-lg font-semibold text-red-800">{t('cancelAppointment.cannotCancelTitle')}</h3>
                       </div>
-                      <p className="text-red-700 mb-2">Appointments can only be cancelled within 1 hour of booking.</p>
-                      <p className="text-red-700 font-medium">This appointment was created {hoursSinceCreation} hour(s) ago.</p>
+                      <p className="text-red-700 mb-2">{t('cancelAppointment.cannotCancelDescription')}</p>
+                      <p className="text-red-700 font-medium">{t('cancelAppointment.createdTimeAgo', { hours: hoursSinceCreation })}</p>
                     </div>
                   )}
 
@@ -397,7 +399,7 @@ const CancelAppointment: React.FC = () => {
                       <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Actions
+                      {t('cancelAppointment.actions')}
                     </h3>
                     <div className="space-y-3">
                       <Button 
@@ -410,7 +412,7 @@ const CancelAppointment: React.FC = () => {
                           </svg>
                         }
                       >
-                        Edit Appointment
+                        {t('cancelAppointment.editAppointment')}
                       </Button>
                       
                       <Button 
@@ -426,8 +428,8 @@ const CancelAppointment: React.FC = () => {
                         }
                       >
                         {withinOneHourOfCreation 
-                          ? 'Cancel Appointment'
-                          : 'Cannot Cancel (outside 1 hour of booking)'}
+                          ? t('cancelAppointment.cancelButton')
+                          : t('cancelAppointment.cannotCancelButton')}
                       </Button>
                     </div>
                   </div>
@@ -441,28 +443,28 @@ const CancelAppointment: React.FC = () => {
                     <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                    Edit Appointment Details
+                    {t('cancelAppointment.editDetails')}
                   </h3>
-                  <p className="text-blue-700">Update your appointment information below.</p>
+                  <p className="text-blue-700">{t('cancelAppointment.editDescription')}</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <Input
-                      label="Customer Name"
+                      label={t('cancelAppointment.labels.customerName')}
                       value={editData.name || ''}
                       onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
                     />
                     
                     <Input
-                      label="Email"
+                      label={t('cancelAppointment.labels.email')}
                       type="email"
                       value={editData.email || ''}
                       onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
                     />
                     
                     <Input
-                      label="Phone"
+                      label={t('cancelAppointment.labels.phone')}
                       type="tel"
                       value={editData.phone || ''}
                       onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
@@ -471,7 +473,7 @@ const CancelAppointment: React.FC = () => {
 
                   <div className="space-y-4">
                     <Input
-                      label="Date"
+                      label={t('cancelAppointment.labels.date')}
                       type="date"
                       value={editData.date ? new Date(editData.date).toISOString().split('T')[0] : ''}
                       onChange={(e) => {
@@ -482,7 +484,7 @@ const CancelAppointment: React.FC = () => {
                     />
                     
                     <Input
-                      label="Time"
+                      label={t('cancelAppointment.labels.time')}
                       type="time"
                       value={editData.date ? new Date(editData.date).toTimeString().split(' ')[0] : ''}
                       onChange={(e) => {
@@ -496,14 +498,14 @@ const CancelAppointment: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes
+                    {t('cancelAppointment.labels.notesSection')}
                   </label>
                   <textarea
                     className="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     rows={4}
                     value={editData.notes || ''}
                     onChange={(e) => setEditData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Add any special requests or notes..."
+                    placeholder={t('cancelAppointment.notesPlaceholder')}
                   />
                 </div>
 
@@ -518,7 +520,7 @@ const CancelAppointment: React.FC = () => {
                       </svg>
                     }
                   >
-                    Save Changes
+                    {t('cancelAppointment.saveChanges')}
                   </Button>
                   
                   <Button 
@@ -530,7 +532,7 @@ const CancelAppointment: React.FC = () => {
                       </svg>
                     }
                   >
-                    Cancel Edit
+                    {t('cancelAppointment.cancelEdit')}
                   </Button>
                 </div>
               </div>

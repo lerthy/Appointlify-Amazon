@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { mockAiService } from '../../utils/mockAiService';
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   id: string;
@@ -17,11 +18,12 @@ interface AIChatbotProps {
 }
 
 const AIChatbot: React.FC<AIChatbotProps> = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Hello! I'm your AI booking assistant for Appointly. I can help you book appointments with various businesses. Would you like to start booking an appointment?`,
+      content: t('chatWidget.welcomeMessage'),
       sender: 'assistant',
       timestamp: new Date()
     }
@@ -79,7 +81,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
       }
 
       const data = await res.json();
-      const aiText = data?.message || 'Sorry, I could not generate a response.';
+      const aiText = data?.message || t('chatWidget.noResponse');
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -93,7 +95,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm having trouble reaching the AI service. Retrying with a local fallback...",
+        content: t('chatWidget.errorMessage'),
         sender: 'assistant',
         timestamp: new Date()
       };
@@ -160,8 +162,8 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
           {/* Header */}
           <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-t-2xl flex justify-between items-center">
             <div>
-              <h3 className="font-bold">Chattly</h3>
-              <p className="text-sm opacity-90">Your AI Chat Assistant</p>
+              <h3 className="font-bold">{t('chatWidget.title')}</h3>
+              <p className="text-sm opacity-90">{t('chatWidget.subtitle')}</p>
             </div>
             <button
               onClick={handleClose}
@@ -198,7 +200,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
                 <div className="bg-gray-100 text-gray-800 p-3 rounded-lg rounded-bl-none max-w-[80%]">
                   <div className="flex items-center space-x-2">
                     <Loader2 size={16} className="animate-spin" />
-                    <span className="text-sm">AI is typing...</span>
+                    <span className="text-sm">{t('chatWidget.aiTyping')}</span>
                   </div>
                 </div>
               </div>
@@ -215,7 +217,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
+                placeholder={t('chatWidget.placeholder')}
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent max-w-[85%]"
                 disabled={isLoading}
               />
@@ -229,7 +231,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Powered by Appointly AI Assistant
+              {t('chatWidget.poweredBy')}
             </p>
           </div>
         </div>

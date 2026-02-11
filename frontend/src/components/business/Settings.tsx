@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, AlertCircle, Clock, Link2, ShieldAlert } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { Card, CardHeader, CardContent } from '../ui/Card';
@@ -20,6 +21,7 @@ type WorkingHour = {
 };
 
 const Settings: React.FC = () => {
+  const { t } = useTranslation();
   const { businessSettings, updateBusinessSettings } = useApp();
   const [workingDays, setWorkingDays] = useState<WorkingDayMap>({
     Monday: true,
@@ -137,7 +139,7 @@ const Settings: React.FC = () => {
       return;
     }
     if (breakStart >= breakEnd) {
-      setError('Break end time must be after start time');
+      setError(t('common.errors.breakEndAfterStart'));
       
       return;
     }

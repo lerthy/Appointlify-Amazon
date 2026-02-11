@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
@@ -9,6 +10,7 @@ const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/pub
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { login } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -24,7 +26,7 @@ const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     
     if (!form.email || !form.password) {
-      setError('Please enter both email and password.');
+      setError(t('login.errors.fillBoth'));
       setIsSubmitting(false);
       return;
     }
@@ -38,9 +40,9 @@ const LoginPage: React.FC = () => {
 
       if (signInError) {
         if (signInError.message.includes('Email not confirmed')) {
-          setError('Please verify your email address before logging in. Check your inbox for the verification link.');
+          setError(t('login.errors.verifyEmail'));
         } else if (signInError.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password.');
+          setError(t('login.errors.invalidCredentials'));
         } else {
           setError(signInError.message);
         }
@@ -49,7 +51,7 @@ const LoginPage: React.FC = () => {
       }
 
       if (!authData.user) {
-        setError('Invalid email or password.');
+        setError(t('login.errors.invalidCredentials'));
         setIsSubmitting(false);
         return;
       }
@@ -57,7 +59,7 @@ const LoginPage: React.FC = () => {
       // Check if email is confirmed
       if (!authData.user.email_confirmed_at) {
         await supabase.auth.signOut();
-        setError('Please verify your email address before logging in. Check your inbox for the verification link.');
+        setError(t('login.errors.verifyEmail'));
         setIsSubmitting(false);
         return;
       }
@@ -86,7 +88,7 @@ const LoginPage: React.FC = () => {
 
         if (createError) {
           console.error('Error creating profile:', createError);
-          setError('Failed to create user profile. Please contact support.');
+          setError(t('login.errors.profileError'));
           setIsSubmitting(false);
           return;
         }
@@ -141,9 +143,9 @@ const LoginPage: React.FC = () => {
       <AuthPageTransition>
         <SplitAuthLayout
           logoUrl={LOGO_URL}
-          title="Welcome Back!"
-          subtitle="Sign in to access your personalized dashboard and explore new features."
-          quote="Empowering your journey, one login at a time."
+          title={t('login.title')}
+          subtitle={t('login.subtitle')}
+          quote={t('login.quote')}
         >
           <button
             onClick={() => navigate('/')}
@@ -153,7 +155,7 @@ const LoginPage: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">Sign in to your account</h2>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">{t('login.signInTitle')}</h2>
           <button
             type="button"
             onClick={handleGoogleLogin}
@@ -161,31 +163,31 @@ const LoginPage: React.FC = () => {
             disabled={isSubmitting}
           >
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-            Continue with Google
+            {t('login.continueWithGoogle')}
           </button>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Email address</label>
+              <label className="block text-xs font-medium text-gray-700">{t('login.emailLabel')}</label>
               <input
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
-                placeholder="Email address"
+                placeholder={t('login.emailPlaceholder')}
                 autoComplete="email"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Password</label>
+              <label className="block text-xs font-medium text-gray-700">{t('login.passwordLabel')}</label>
               <input
                 type="password"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
-                placeholder="Password"
+                placeholder={t('login.passwordPlaceholder')}
                 autoComplete="current-password"
                 required
               />
@@ -206,33 +208,33 @@ const LoginPage: React.FC = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Signing in...
+                  {t('login.signingIn')}
                 </span>
               ) : (
-                'Sign in'
+                t('login.signInButton')
               )}
             </button>
           </form>
           <div className="mt-4 text-center space-y-1">
             <p className="text-gray-600 text-xs">
-              Don't have an account?{' '}
+              {t('login.noAccount')}{' '}
               <button
                 className="text-purple-600 hover:text-purple-700 font-medium hover:underline transition-colors"
                 onClick={() => navigate('/register')}
               >
-                Sign up
+                {t('login.signUp')}
               </button>
             </p>
             <p className="text-[11px] text-gray-500">
-              Grant access so we may sync thy bookings with thine own Google Calendar (optional now, available later in Settings).
+              {t('login.googleCalendarNote')}
             </p>
             <p className="text-indigo-700 text-xs">
-              Forgot password?{' '}
+              {t('login.forgotPassword')}{' '}
               <button
                 className="underline cursor-pointer"
                 onClick={() => navigate('/forgot-password')}
               >
-                Click to reset
+                {t('login.clickToReset')}
               </button>
             </p>
           </div>

@@ -1,0 +1,1466 @@
+{
+  "common": {
+    "loading": "Duke u ngarkuar...",
+    "error": "Gabim",
+    "success": "Sukses",
+    "submit": "Dërgo",
+    "cancel": "Anulo",
+    "save": "Ruaj",
+    "delete": "Fshi",
+    "edit": "Redakto",
+    "close": "Mbyll",
+    "back": "Kthehu",
+    "next": "Tjetri",
+    "yes": "Po",
+    "no": "Jo",
+    "search": "Kërko",
+    "noResults": "Nuk u gjetën rezultate",
+    "required": "E detyrueshme",
+    "optional": "Opsionale",
+    "errors": {
+      "uploadFailed": "Dështoi ngarkimi i imazhit",
+      "invalidAppointmentId": "ID e terminit e pavlefshme",
+      "appointmentNotFound": "Termini nuk u gjet ose është anuluar.",
+      "breakEndAfterStart": "Koha e përfundimit të pushimit duhet të jetë pas kohës së fillimit",
+      "saveFailed": "Dështoi ruajtja e cilësimeve. Ju lutem provoni përsëri."
+    }
+  },
+  "header": {
+    "forBusinesses": "Për Biznese",
+    "forClients": "Për Klientë",
+    "login": "Hyr",
+    "register": "Regjistrohu",
+    "home": "Kryefaqja",
+    "dashboard": "Paneli",
+    "profile": "Profili",
+    "businessProfile": "Profili i Biznesit",
+    "signOut": "Dil",
+    "openMenu": "Hap menunë kryesore",
+    "language": "Gjuha"
+  },
+  "footer": {
+    "companyDescription": "Duke e bërë rezervimin e termineve të thjeshtë dhe të përshtatshëm për bizneset dhe klientët.",
+    "contactUs": "Na Kontaktoni",
+    "moreInfo": "Më Shumë Informacione",
+    "aboutUs": "Rreth Nesh",
+    "services": "Shërbimet",
+    "contact": "Kontakti",
+    "privacyPolicy": "Politika e Privatësisë",
+    "termsOfService": "Kushtet e Shërbimit",
+    "cookiePolicy": "Politika e Cookie-ve",
+    "allRightsReserved": "Të gjitha të drejtat e rezervuara.",
+    "monFri": "Hën-Pre, 9:00-18:00 CET"
+  },
+  "home": {
+    "hero": {
+      "badge": "Platformë Rezervimi me Inteligjencë Artificiale",
+      "title": "Koha Po Iku,",
+      "titleHighlight": "Fillo të Klikosh.",
+      "subtitle": "Sepse çdo moment që kurseni hap dyert për mundësi më të mëdha."
+    },
+    "forBusinesses": {
+      "title": "Për Biznese",
+      "headline": "Rritni Biznesin Tuaj Automatikisht",
+      "description": "Bashkohuni mijëra bizneseve që përdorin Appointly për të kursyer kohë, rritur të ardhurat dhe kënaqur klientët me përvoja rezervimi pa probleme.",
+      "card1Title": "Kurse 10+ Orë në Javë",
+      "card1Description": "Automatizo takimet, kujtesat dhe konfirmimet. Fokusohu në atë që ka rëndësi—shërbimi ndaj klientëve.",
+      "card1Feature": "Punë e automatizuar",
+      "card2Title": "Rrit të Ardhurat me 40%",
+      "card2Description": "Ul mosprezencën me kujtesa të zgjuara. Mbush boshllëqet me rirezervim inteligjent. Maksimizo çdo slot termini.",
+      "card2Feature": "Më shumë rezervime, më pak boshllëqe",
+      "card3Title": "10x Dukshmërinë Tuaj",
+      "card3Description": "Zbulohuni nga mijëra klientë që kërkojnë aktivisht shërbimet tuaja. Dallohuni me vlerësime dhe komente.",
+      "card3Feature": "Listime të promovuara",
+      "testimonialsTitle": "Çfarë Thonë Pronarët e Bizneseve",
+      "testimonial1Content": "Appointly e transformoi biznesin tonë! Kemi kursyer 15 orë në javë dhe rritur rezervimet me 35%.",
+      "testimonial1Name": "Sara Gashi",
+      "testimonial1Role": "Pronare e Studios së Fitnesit",
+      "testimonial2Content": "Kujtesat e automatizuara i ulën mosprezencën në gjysmë. Të ardhurat tona nuk kanë qenë kurrë më mirë!",
+      "testimonial2Name": "Arben Hoxha",
+      "testimonial2Role": "Menaxher i SPA-së",
+      "testimonial3Content": "Profesionale, e besueshme dhe jashtëzakonisht e lehtë për t'u përdorur. Pacientët tanë e duan komoditetin!",
+      "testimonial3Name": "Emi Krasniqi",
+      "testimonial3Role": "Pronare e Klinikës Dentare",
+      "stat1Value": "92%",
+      "stat1Label": "Mbajtja e Klientëve",
+      "stat2Value": "40%",
+      "stat2Label": "Më Pak Mosprezencë",
+      "stat3Value": "24/7",
+      "stat3Label": "Rezervim Online",
+      "stat4Value": "500+",
+      "stat4Label": "Biznese Aktive",
+      "ctaButton": "Bashkohu Appointly Sot - FALAS",
+      "ctaSubtext": "Nuk kërkohet kartë krediti • Konfigurim në 5 minuta"
+    },
+    "forClients": {
+      "title": "Për Klientë",
+      "headline": "Rezervo Terminin Tuaj Perfekt në Sekonda",
+      "description": "Zbulo dhe rezervo termine me bizneset më të vlerësuara menjëherë. Pa thirrje telefonike, pa pritje—vetëm rezervim pa probleme.",
+      "searchPlaceholder": "Kërko shërbime ose biznese (p.sh., 'sallone flokësh', 'dentist', 'joga')...",
+      "instantBookingTitle": "Rezervim i Menjëhershëm",
+      "instantBookingDesc": "Rezervo 24/7 në më pak se 30 sekonda. Pa nevojë për thirrje telefonike.",
+      "smartRemindersTitle": "Kujtesa të Zgjuara",
+      "smartRemindersDesc": "Mos humb asnjë termin me njoftime automatike.",
+      "verifiedReviewsTitle": "Komente të Verifikuara",
+      "verifiedReviewsDesc": "Lexo komente reale nga klientë të verifikuar para se të rezervosh.",
+      "searchResults": "Rezultatet e Kërkimit",
+      "allBusinesses": "Të Gjitha Bizneset",
+      "businessFound": "biznes",
+      "businessesFound": "biznese",
+      "found": "u gjetën",
+      "loadingBusinesses": "Duke ngarkuar bizneset...",
+      "noBusinessesFound": "Nuk u gjetën biznese që përputhen me kërkimin tuaj.",
+      "tryDifferentSearch": "Provoni një term tjetër kërkimi!",
+      "bookAppointment": "Rezervo Termin"
+    }
+  },
+  "login": {
+    "title": "Mirësevini Përsëri!",
+    "subtitle": "Hyni për të aksesuar panelin tuaj të personalizuar dhe eksploruar veçori të reja.",
+    "quote": "Duke fuqizuar udhëtimin tuaj, një hyrje në një kohë.",
+    "signInTitle": "Hyni në llogarinë tuaj",
+    "continueWithGoogle": "Vazhdo me Google",
+    "emailLabel": "Adresa e email-it",
+    "emailPlaceholder": "Adresa e email-it",
+    "passwordLabel": "Fjalëkalimi",
+    "passwordPlaceholder": "Fjalëkalimi",
+    "signInButton": "Hyr",
+    "signingIn": "Duke u kyçur...",
+    "noAccount": "Nuk keni llogari?",
+    "signUp": "Regjistrohu",
+    "googleCalendarNote": "Jepni akses që të mund të sinkronizojmë rezervimet tuaja me Google Calendar (opsionale tani, e disponueshme më vonë në Cilësimet).",
+    "forgotPassword": "Keni harruar fjalëkalimin?",
+    "clickToReset": "Klikoni për të rivendosur",
+    "errors": {
+      "fillBoth": "Ju lutem shkruani email-in dhe fjalëkalimin.",
+      "verifyEmail": "Ju lutem verifikoni adresën tuaj të email-it para se të hyni. Kontrolloni kutinë tuaj për linkun e verifikimit.",
+      "invalidCredentials": "Email ose fjalëkalim i pavlefshëm.",
+      "profileError": "Dështoi krijimi i profilit të përdoruesit. Ju lutem kontaktoni suportin."
+    }
+  },
+  "register": {
+    "title": "Krijo Llogari",
+    "subtitle": "Bashkohu Appointly sot",
+    "quote": "Filloni udhëtimin tuaj me ne.",
+    "signUpWithGoogle": "Regjistrohu me Google",
+    "nameLabel": "Emri i Biznesit",
+    "namePlaceholder": "Emri i biznesit tuaj",
+    "emailLabel": "Email",
+    "emailPlaceholder": "ju@shembull.com",
+    "phoneLabel": "Telefoni",
+    "phonePlaceholder": "Numri juaj i telefonit",
+    "passwordLabel": "Fjalëkalimi",
+    "passwordPlaceholder": "Krijoni një fjalëkalim",
+    "confirmPasswordLabel": "Konfirmo Fjalëkalimin",
+    "confirmPasswordPlaceholder": "Përsëritni fjalëkalimin tuaj",
+    "descriptionLabel": "Përshkrimi i Kompanisë",
+    "descriptionPlaceholder": "Përshkruani kompaninë tuaj",
+    "logoLabel": "Logoja e Kompanisë",
+    "uploadFile": "Ngarko një skedar",
+    "changeFile": "Ndrysho skedarin",
+    "dragAndDrop": "ose tërhiqni dhe lëshoni",
+    "fileTypes": "PNG, JPG, GIF deri në 10MB",
+    "createAccountButton": "Krijo Llogari",
+    "creatingAccount": "Duke krijuar llogarinë...",
+    "alreadyHaveAccount": "Keni tashmë një llogari?",
+    "signIn": "Hyni",
+    "googleCalendarNote": "Jepni akses që të mund të sinkronizojmë rezervimet tuaja me Google Calendar (opsionale gjatë konfigurimit).",
+    "successMessage": "Regjistrimi u krye me sukses! Ju lutem kontrolloni email-in tuaj për të verifikuar llogarinë. Duhet ta verifikoni email-in para se të mund të hyni.",
+    "errors": {
+      "fillAllFields": "Ju lutem plotësoni të gjitha fushat.",
+      "passwordsNoMatch": "Fjalëkalimet nuk përputhen.",
+      "accountExists": "Ekziston tashmë një llogari me këtë email. Ju lutem hyni.",
+      "logoUploadFailed": "Dështoi ngarkimi i logos: ",
+      "createAccountFailed": "Dështoi krijimi i llogarisë. Ju lutem provoni përsëri."
+    }
+  },
+  "forgotPassword": {
+    "title": "Keni harruar fjalëkalimin?",
+    "subtitle": "Shkruani email-in tuaj për të marrë linkun e rivendosjes.",
+    "quote": "Ne nuk zbulojmë kurrë nëse ekziston një email.",
+    "backToSignIn": "Kthehu te hyrja",
+    "emailLabel": "Adresa e email-it",
+    "emailPlaceholder": "Shkruani adresën tuaj të email-it",
+    "sendResetLink": "Dërgo linkun e rivendosjes",
+    "sending": "Duke dërguar...",
+    "successMessage": "Nëse ekziston një llogari për atë email, një link rivendosjeje është dërguar.",
+    "errors": {
+      "enterEmail": "Ju lutem shkruani adresën tuaj të email-it.",
+      "invalidEmail": "Ju lutem shkruani një adresë email të vlefshme.",
+      "tooManyRequests": "Shumë kërkesa. Ju lutem prisni para se të provoni përsëri.",
+      "networkError": "Gabim rrjeti. Ju lutem kontrolloni lidhjen tuaj dhe provoni përsëri."
+    }
+  },
+  "profile": {
+    "title": "Profili i Biznesit",
+    "loginRequired": "Ju lutem hyni për të redaktuar profilin tuaj.",
+    "nameLabel": "Emri i Biznesit",
+    "emailLabel": "Email",
+    "phoneLabel": "Telefoni",
+    "websiteLabel": "Faqja e Internetit",
+    "categoryLabel": "Kategoria",
+    "selectCategory": "Zgjidhni një kategori",
+    "ownerNameLabel": "Emri i Pronarit",
+    "descriptionLabel": "Përshkrimi",
+    "addressLabel": "Adresa e Biznesit",
+    "logoLabel": "Logoja e Biznesit",
+    "currentLogo": "Logoja Aktuale",
+    "changeLogo": "Ndrysho Logon",
+    "saveChanges": "Ruaj Ndryshimet",
+    "saving": "Duke ruajtur...",
+    "changePassword": "Ndrysho Fjalëkalimin",
+    "categories": {
+      "healthWellness": "Shëndet & Mirëqenie",
+      "beautySpa": "Bukuri & SPA",
+      "fitness": "Fitnes",
+      "education": "Edukim",
+      "professionalServices": "Shërbime Profesionale",
+      "medical": "Mjekësor",
+      "legal": "Ligjor",
+      "consulting": "Konsulencë",
+      "automotive": "Automobila",
+      "homeServices": "Shërbime Shtëpiake",
+      "entertainment": "Argëtim",
+      "other": "Tjetër"
+    },
+    "messages": {
+      "updateSuccess": "Profili u përditësua me sukses!",
+      "updateFailed": "Dështoi përditësimi i profilit",
+      "uploadFailed": "Dështoi ngarkimi i logos: ",
+      "serverError": "Gabim i serverit backend. Ju lutem sigurohuni që serveri backend është duke punuar.",
+      "networkError": "Gabim rrjeti. Ju lutem provoni përsëri."
+    },
+    "passwordModal": {
+      "title": "Ndrysho Fjalëkalimin",
+      "currentPassword": "Fjalëkalimi Aktual",
+      "newPassword": "Fjalëkalimi i Ri",
+      "confirmPassword": "Konfirmo Fjalëkalimin e Ri",
+      "submit": "Ndrysho Fjalëkalimin",
+      "submitting": "Duke ndryshuar...",
+      "fillAllFields": "Ju lutem plotësoni të gjitha fushat.",
+      "passwordsNoMatch": "Fjalëkalimet e reja nuk përputhen.",
+      "incorrectCurrent": "Fjalëkalimi aktual është i pasaktë.",
+      "success": "Fjalëkalimi u ndryshua me sukses!",
+      "emailNotFound": "Email-i i përdoruesit nuk u gjet. Ju lutem rifreskoni faqen.",
+      "unexpectedError": "Ndodhi një gabim i papritur."
+    }
+  },
+  "dashboard": {
+    "title": "Paneli i Biznesit",
+    "businessInfo": "Informacioni i Biznesit",
+    "setupWarning": {
+      "title": "Përfundoni Konfigurimin e Biznesit Tuaj",
+      "description": "Për të shfaqur në faqen kryesore dhe lejuar klientët të rezervojnë termine, ju duhet:",
+      "addEmployee": "Të paktën 1 punonjës -",
+      "addEmployeeLink": "Shto punonjës tani",
+      "addService": "Të paktën 1 shërbim -",
+      "addServiceLink": "Shto shërbim tani"
+    },
+    "tabs": {
+      "appointments": "Terminet",
+      "employees": "Punonjësit",
+      "services": "Shërbimet",
+      "analytics": "Analitika",
+      "settings": "Cilësimet"
+    },
+    "stats": {
+      "todayAppointments": "Terminet e Sotme",
+      "totalAppointments": "Totali i Termineve",
+      "totalEmployees": "Totali i Punonjësve",
+      "totalServices": "Totali i Shërbimeve"
+    }
+  },
+  "appointments": {
+    "title": "Terminet",
+    "noAppointments": "Nuk u gjetën termine",
+    "bookNow": "Rezervo Tani",
+    "status": {
+      "scheduled": "I Planifikuar",
+      "confirmed": "I Konfirmuar",
+      "completed": "I Përfunduar",
+      "cancelled": "I Anuluar"
+    },
+    "details": {
+      "date": "Data",
+      "time": "Ora",
+      "service": "Shërbimi",
+      "employee": "Punonjësi",
+      "customer": "Klienti",
+      "phone": "Telefoni",
+      "email": "Email",
+      "notes": "Shënimet",
+      "duration": "Kohëzgjatja",
+      "price": "Çmimi",
+      "minutes": "minuta"
+    }
+  },
+  "booking": {
+    "title": "Rezervo Termin",
+    "businessNotFound": "Biznesi Nuk u Gjet",
+    "selectBusinessMessage": "Ju lutem zgjidhni një biznes nga faqja kryesore për të rezervuar një termin.",
+    "backToHome": "Kthehu në Kryefaqe",
+    "loadingBusiness": "Duke ngarkuar informacionin e biznesit...",
+    "location": "Vendndodhja",
+    "form": {
+      "yourName": "Emri Juaj",
+      "namePlaceholder": "Shkruani emrin tuaj të plotë",
+      "phone": "Numri i Telefonit",
+      "phonePlaceholder": "Shkruani numrin tuaj të telefonit",
+      "email": "Adresa e Email-it",
+      "emailPlaceholder": "Shkruani adresën tuaj të email-it",
+      "selectService": "Zgjidhni Shërbimin",
+      "chooseSservice": "Zgjidhni një shërbim",
+      "selectEmployee": "Zgjidhni Punonjësin",
+      "chooseEmployee": "Zgjidhni një punonjës",
+      "anyAvailable": "Cilido i disponueshëm",
+      "selectDate": "Zgjidhni Datën",
+      "selectTime": "Zgjidhni Orën",
+      "chooseTime": "Zgjidhni një slot kohor",
+      "notes": "Shënime Shtesë",
+      "notesPlaceholder": "Ndonjë kërkesë speciale ose shënim...",
+      "bookAppointment": "Rezervo Terminin",
+      "booking": "Duke rezervuar..."
+    },
+    "errors": {
+      "nameRequired": "Emri është i detyrueshëm",
+      "phoneRequired": "Numri i telefonit është i detyrueshëm",
+      "emailRequired": "Email-i është i detyrueshëm",
+      "invalidEmail": "Ju lutem shkruani një adresë email të vlefshme",
+      "serviceRequired": "Ju lutem zgjidhni një shërbim",
+      "employeeRequired": "Ju lutem zgjidhni një punonjës",
+      "dateRequired": "Ju lutem zgjidhni një datë",
+      "timeRequired": "Ju lutem zgjidhni një orë"
+    },
+    "businessClosed": "Biznesi është i mbyllur për datën e zgjedhur"
+  },
+  "appointmentForm": {
+    "labels": {
+      "service": "Shërbimi",
+      "employee": "Punonjësi",
+      "date": "Data",
+      "time": "Ora",
+      "fullName": "Emri i Plotë",
+      "phone": "Numri i Telefonit",
+      "email": "Adresa e Email-it",
+      "notes": "Shënime (Opsionale)"
+    },
+    "placeholders": {
+      "selectService": "Zgjidhni një shërbim",
+      "selectEmployee": "Zgjidhni një punonjës",
+      "selectDate": "Zgjidhni një datë",
+      "selectTime": "Zgjidhni një orë",
+      "enterName": "Shkruani emrin tuaj të plotë",
+      "enterPhone": "+383 44 123 456",
+      "enterEmail": "email.juaj@shembull.com",
+      "enterNotes": "Ndonjë kërkesë e veçantë ose shënim..."
+    },
+    "buttons": {
+      "bookAppointment": "Rezervo Termin",
+      "bookingAppointment": "Duke Rezervuar...",
+      "businessClosedToday": "Biznesi i Mbyllur Sot",
+      "goBack": "Kthehu Prapa"
+    },
+    "emptyStates": {
+      "appointmentBooking": "Rezervimi i Terminit",
+      "loadingSettings": "Duke ngarkuar cilësimet e biznesit...",
+      "noAvailableDates": "Nuk Ka Data të Disponueshme",
+      "noAvailableDatesMessage": "Nuk ka data të disponueshme në këtë kohë. Ju lutem provoni përsëri më vonë ose kontaktoni biznesin drejtpërdrejt.",
+      "noServicesAvailable": "Nuk Ka Shërbime të Disponueshme",
+      "noServicesAvailableMessage": "Nuk ka shërbime të disponueshme momentalisht. Ju lutem kontaktoni biznesin drejtpërdrejt.",
+      "noEmployeesAvailable": "Nuk Ka Punonjës të Disponueshëm",
+      "noEmployeesAvailableMessage": "Nuk ka punonjës të disponueshëm momentalisht. Ju lutem kontaktoni biznesin drejtpërdrejt."
+    },
+    "validation": {
+      "nameRequired": "Emri i plotë është i nevojshëm",
+      "phoneRequired": "Numri i telefonit është i nevojshëm",
+      "phoneInvalid": "Ju lutem shkruani një numër telefoni të vlefshëm (së paku 9 shifra)",
+      "emailRequired": "Adresa e email-it është e nevojshme",
+      "emailInvalid": "Ju lutem shkruani një adresë email të vlefshme",
+      "serviceRequired": "Ju lutem zgjidhni një shërbim",
+      "employeeRequired": "Ju lutem zgjidhni një punonjës",
+      "dateRequired": "Ju lutem zgjidhni një datë",
+      "timeRequired": "Ju lutem zgjidhni një orë"
+    },
+    "errors": {
+      "slotBooked": "Kjo orë sapo u rezervua. Ju lutem zgjidhni një orë tjetër.",
+      "loadSlotsFailed": "Dështoi ngarkimi i orareve të disponueshme",
+      "loadBusinessFailed": "Dështoi ngarkimi i cilësimeve të biznesit",
+      "bookingFailed": "Dështoi rezervimi i terminit. Ju lutem provoni përsëri."
+    },
+    "notifications": {
+      "success": "Termini u rezervua me sukses!",
+      "emailFailed": "Termini u rezervua por konfirmimi me email dështoi. Ju lutem kontrolloni adresën tuaj të email-it.",
+      "smsFailed": "Termini u rezervua por konfirmimi me SMS dështoi. Ju lutem kontrolloni email-in tuaj për konfirmim.",
+      "checkConfirmation": "Kontrolloni email-in dhe telefonin tuaj për konfirmim."
+    }
+  },
+  "about": {
+    "title": "Rreth",
+    "titleHighlight": "Appointly-ks",
+    "subtitle": "Jemi një ekip i pasionuar zhvilluesish, dizajnerësh dhe inovatorësh të përkushtuar për të krijuar përvojë të jashtëzakonshme rezervimi terminesh që sjellin rezultate reale biznesi.",
+    "ourStory": {
+      "title": "Historia Jonë",
+      "p1": "Filloi gjithçka në fund të vitit 2024, në zemër të Prishtinës, Kosovë. Pesë zhvillues të pasionuar u ulën në një kafene të vogël, të frustruar nga thirrjet e pafundme telefonike dhe terminet e humbura që i shihnin bizneset duke luftuar çdo ditë. \"Duhet të ketë një mënyrë më të mirë,\" tha Etriti, dhe ajo shkëndijë ideje do të bëhej së shpejti Appointly-ks.",
+      "p2": "Ajo që filloi si sesione kodimi natën vonë dhe filxhanë kafeje të pafund u evoluua shpejt në diçka më të madhe. Lerdi solli ekspertizën e tij në integrimin e AI-së, duke ëndërruar për një chatbot që mund t'i trajtonte rezervimet aq natyrshëm sa një recepsioniste njerëzore. Fatlumi, Jasini dhe Marjani punuan pa pushim për të ndërtuar një backend të fortë që mund të trajtonte mijëra termine pa u lodhur.",
+      "p3": "Filluam me një pyetje të thjeshtë:",
+      "p3Highlight": "\"Po sikur rezervimi i një termini të ishte aq i lehtë sa dërgimi i një mesazhi?\"",
+      "p3End": "Muaj zhvillimi, përsëritje të panumërta dhe qindra filxhanë kafeje më vonë, kishim përgjigjen tonë. Appointly-ks lindi – një platformë që nuk planifikon vetëm termine, por transformon mënyrën si bizneset lidhen me klientët e tyre.",
+      "p4": "Sot, jemi krenarë që shërbejmë biznese në të gjithë Kosovën dhe më gjerë, duke i ndihmuar të kursejnë kohë, ulin mosprezencën dhe fokusohen në atë që bëjnë më mirë. Por sapo kemi filluar. Çdo ditë, po punojmë për ta bërë Appointly-ks më të zgjuar, më të shpejtë dhe më intuitiv. Sepse për ne, kjo nuk është thjesht një projekt – është misioni ynë për ta bërë planifikimin pa mundim për të gjithë."
+    },
+    "mission": {
+      "title": "Misioni Ynë",
+      "description": "Të fuqizojmë bizneset e të gjitha madhësive me mjete planifikimi intuitive që kursejnë kohë, ulin mosprezencën dhe rrisin kënaqësinë e klientëve. Besojmë se çdo minutë e kursyer në planifikim është një minutë e fituar për atë që ka vërtet rëndësi – shërbimi ndaj klientëve tuaj."
+    },
+    "vision": {
+      "title": "Vizioni Ynë",
+      "description": "Të bëhemi platforma më e besuar e menaxhimit të termineve në rajon, e njohur për inovacion, besueshmëri dhe përvojë të jashtëzakonshme përdoruesi. Po ndërtojmë një të ardhme ku planifikimi është aq pa probleme sa bëhet i padukshëm."
+    },
+    "values": {
+      "passionDriven": "I Udhëhequr nga Pasioni",
+      "passionDesc": "E duam atë që bëjmë dhe kjo duket në çdo veçori që ofrojmë.",
+      "innovationFirst": "Inovacioni i Pari",
+      "innovationDesc": "Duke qëndruar përpara me AI dhe teknologji planifikimi të avancuar.",
+      "clientFocused": "I Fokusuar te Klienti",
+      "clientDesc": "Suksesi juaj është suksesi ynë. Ndërtojmë partneritete të qëndrueshme.",
+      "qualityExcellence": "Ekselencë Cilësore",
+      "qualityDesc": "Standarde pa kompromis në çdo rresht kodi."
+    },
+    "milestones": {
+      "title": "Udhëtimi Ynë",
+      "2024": "Appointly-ks u themelua në Prishtinë me një vizion për të transformuar rezervimin e termineve",
+      "2025": "Lançuam chatbot me AI dhe shërbejmë biznese në të gjithë Kosovën",
+      "future": "Duke e bërë Appointly-ks platformën më të besuar të menaxhimit të termineve në rajon"
+    },
+    "team": {
+      "title": "Njihuni me Ekipin Tonë"
+    }
+  },
+  "services": {
+    "title": "Shërbimet",
+    "titleHighlight": "Tona",
+    "subtitle": "Zgjidhje gjithëpërfshirëse të menaxhimit të termineve të përshtatura për nevojat e biznesit tuaj. Nga koncepti te zbatimi, ne ju mbulojmë.",
+    "smartBooking": {
+      "title": "Rezervim i Zgjuar Terminesh",
+      "description": "Thjeshtoni procesin tuaj të rezervimit me sistemin tonë intuitiv të kalendarit. Klientët mund të rezervojnë termine 24/7 me vetëm disa klikime.",
+      "features": {
+        "realTime": "Disponueshmëri në Kohë Reale",
+        "calendar": "Integrim Kalendari",
+        "recurring": "Termine të Përsëritura",
+        "multiLocation": "Mbështetje Shumë-Vendndodhjesh",
+        "timezone": "Menaxhim i Zonave Kohore",
+        "confirmations": "Konfirmime Rezervimi"
+      }
+    },
+    "reminders": {
+      "title": "Kujtesa Automatike",
+      "description": "Ulni mosprezencën me kujtesa automatike SMS dhe email që dërgohen te klientët para termineve të tyre.",
+      "features": {
+        "email": "Njoftime Email",
+        "sms": "Kujtesa SMS",
+        "templates": "Shabllone të Personalizueshme",
+        "multiple": "Opsione të Shumëfishta Kujtesash",
+        "auto": "Auto-planifikim",
+        "followUp": "Mesazhe Ndjekëse"
+      }
+    },
+    "customerMgmt": {
+      "title": "Menaxhimi i Klientëve",
+      "description": "Mbani gjurmët e marrëdhënieve me klientët me profile gjithëpërfshirëse dhe histori terminesh.",
+      "features": {
+        "database": "Databazë Klientësh",
+        "history": "Histori Terminesh",
+        "notes": "Shënime & Preferenca",
+        "contacts": "Menaxhim Kontaktesh",
+        "analytics": "Analitikë Klientësh",
+        "export": "Eksport & Raporte"
+      }
+    },
+    "analyticsReports": {
+      "title": "Analitikë & Raporte",
+      "description": "Merrni vendime të bazuara në të dhëna me njohuri të detajuara për performancën e biznesit dhe sjelljen e klientëve.",
+      "features": {
+        "booking": "Analitikë Rezervimesh",
+        "revenue": "Ndjekje e të Ardhurave",
+        "customer": "Njohuri mbi Klientët",
+        "performance": "Metrika Performimi",
+        "dashboards": "Panele Vizuale",
+        "export": "Eksport Raportesh"
+      }
+    },
+    "aiChatbot": {
+      "title": "Chatbot me AI",
+      "description": "Ofroni mbështetje të menjëhershme klientëve tuaj me chatbot-in tonë inteligjent që mund të përgjigjet pyetjeve dhe ndihmojë me rezervimet.",
+      "features": {
+        "availability": "Disponueshmëri 24/7",
+        "nlp": "Përpunim i Gjuhës Natyrore",
+        "booking": "Ndihmë në Rezervime",
+        "faq": "Automatizim FAQ",
+        "multiLang": "Mbështetje Shumëgjuhëshe",
+        "learning": "Aftësi Mësimi"
+      }
+    },
+    "integrations": {
+      "title": "Gati për Integrime",
+      "description": "Lidhuni me mjetet dhe punëflukset tuaja ekzistuese përmes API-së dhe aftësive tona të integrimit.",
+      "features": {
+        "calendar": "Sinkronizim Kalendari",
+        "payment": "Përpunim Pagesash",
+        "crm": "Integrim CRM",
+        "api": "Akses API",
+        "webhook": "Mbështetje Webhook",
+        "thirdParty": "Aplikacione Palësh të Treta"
+      }
+    },
+    "additional": {
+      "timeManagement": {
+        "title": "Menaxhimi i Kohës",
+        "description": "Optimizoni orarin tuaj me menaxhim të zgjuar të sloteve kohore."
+      },
+      "security": {
+        "title": "Siguri & Privatësi",
+        "description": "Siguri në nivel enterprise që mbron të dhënat tuaja."
+      },
+      "mobile": {
+        "title": "I Përshtatshëm për Celular",
+        "description": "Përvojë e bukur në të gjitha pajisjet."
+      },
+      "multiLanguage": {
+        "title": "Shumëgjuhësh",
+        "description": "Mbështetje për gjuhë dhe rajone të shumta."
+      }
+    },
+    "whatsIncluded": "Çfarë Përfshihet:",
+    "technologies": "Teknologjitë:"
+  },
+  "contact": {
+    "title": "Na",
+    "titleHighlight": "Kontaktoni",
+    "subtitle": "Gati për të transformuar përvojën tuaj të rezervimit të termineve? Le të diskutojmë nevojat tuaja dhe eksplorojmë si mund t'ju ndihmojmë të arrini qëllimet tuaja.",
+    "form": {
+      "title": "Na Dërgoni një Mesazh",
+      "fullName": "Emri i Plotë",
+      "fullNamePlaceholder": "Filan Fisteku",
+      "email": "Adresa e Email-it",
+      "emailPlaceholder": "filan@shembull.com",
+      "phone": "Numri i Telefonit",
+      "phonePlaceholder": "+383 45 378 957",
+      "subject": "Tema",
+      "selectSubject": "Zgjidhni një temë",
+      "subjects": {
+        "general": "Pyetje e Përgjithshme",
+        "support": "Mbështetje Teknike",
+        "sales": "Shitje & Çmime",
+        "demo": "Kërko një Demo",
+        "feedback": "Feedback",
+        "partnership": "Mundësi Partneriteti"
+      },
+      "message": "Mesazhi",
+      "messagePlaceholder": "Na tregoni si mund t'ju ndihmojmë...",
+      "sendMessage": "Dërgo Mesazhin",
+      "sending": "Duke dërguar...",
+      "successTitle": "Mesazhi u Dërgua me Sukses!",
+      "successMessage": "Faleminderit që na kontaktuat. Do t'ju kthehemi sa më shpejt të jetë e mundur.",
+      "sendAnother": "Dërgo një Mesazh Tjetër"
+    },
+    "info": {
+      "emailUs": "Na Dërgoni Email",
+      "emailDesc": "Na dërgoni email kurdo",
+      "callUs": "Na Telefononi",
+      "callDesc": "Hën-Pre, 9:00 - 18:00 CET",
+      "visitUs": "Na Vizitoni",
+      "visitDesc": "Ejani thoni përshëndetje në zyrën tonë",
+      "workingHours": "Orari i Punës",
+      "workingDesc": "Ora e Europës Qendrore",
+      "weekendClosed": "Fundjavë: Mbyllur"
+    }
+  },
+  "employees": {
+    "title": "Punonjësit",
+    "description": "Menaxhoni punonjësit e biznesit tuaj dhe oraret e tyre",
+    "addEmployee": "Shto Punonjës",
+    "editEmployee": "Redakto Punonjësin",
+    "addNewEmployee": "Shto Punonjës të Ri",
+    "updateEmployee": "Përditëso Punonjësin",
+    "editDescription": "Përditësoni detajet e punonjësit më poshtë",
+    "addDescription": "Plotësoni detajet e punonjësit më poshtë",
+    "name": "Emri i Plotë",
+    "namePlaceholder": "Shkruani emrin e punonjësit",
+    "email": "Email",
+    "emailPlaceholder": "punonjes@shembull.com",
+    "phone": "Telefoni",
+    "phonePlaceholder": "+383 44 123 456",
+    "role": "Roli",
+    "rolePlaceholder": "p.sh., Stilist, Terapist",
+    "services": "Shërbimet",
+    "noEmployees": "Nuk ka punonjës të shtuar ende",
+    "deleteConfirm": "Jeni të sigurt që doni të fshini këtë punonjës?",
+    "imageUrl": "Foto e Punonjësit",
+    "workingHours": "Oraret e Punës",
+    "closed": "Mbyllur",
+    "open": "Hapur",
+    "opens": "Hapet",
+    "closes": "Mbyllet",
+    "save": "Ruaj Punonjësin",
+    "saving": "Duke ruajtur...",
+    "cancel": "Anulo",
+    "deleteTitle": "Fshi Punonjësin",
+    "deleteDescription": "Jeni të sigurt që doni të fshini këtë punonjës? Ky veprim nuk mund të zhbëhet.",
+    "success": {
+      "added": "Punonjësi u shtua me sukses!",
+      "updated": "Punonjësi u përditësua me sukses!",
+      "deleted": "Punonjësi u fshi me sukses!"
+    },
+    "errors": {
+      "fillRequired": "Ju lutem plotësoni të gjitha fushat e detyrueshme.",
+      "businessLoading": "Biznesi ende po ngarkohet. Ju lutem provoni përsëri pas një çasti.",
+      "saveFailed": "Dështoi ruajtja e punonjësit. Ju lutem provoni përsëri.",
+      "deleteFailed": "Dështoi fshirja e punonjësit. Ju lutem provoni përsëri."
+    }
+  },
+  "servicesManagement": {
+    "title": "Shërbimet",
+    "subtitle": "Menaxhoni shërbimet e biznesit tuaj",
+    "addService": "Shto Shërbim",
+    "editService": "Redakto Shërbimin",
+    "addNewService": "Shto Shërbim të Ri",
+    "updateService": "Përditëso Shërbimin",
+    "editDescription": "Përditësoni detajet e shërbimit më poshtë",
+    "addDescription": "Krijoni një shërbim të ri për biznesin tuaj",
+    "name": "Emri i Shërbimit",
+    "namePlaceholder": "p.sh., Prerje flokësh, Masazh, Konsultim",
+    "description": "Përshkrimi",
+    "descriptionPlaceholder": "Përshkruani se çfarë përfshin ky shërbim...",
+    "duration": "Kohëzgjatja (minuta)",
+    "price": "Çmimi (EUR)",
+    "icon": "Ikona e Shërbimit",
+    "noServices": "Nuk ka shërbime të shtuara ende",
+    "deleteConfirm": "Jeni të sigurt që doni të fshini këtë shërbim?",
+    "save": "Ruaj Shërbimin",
+    "saving": "Duke ruajtur...",
+    "cancel": "Anulo",
+    "deleteTitle": "Fshi Shërbimin",
+    "deleteDescription": "Jeni të sigurt që doni të fshini këtë shërbim? Ky veprim nuk mund të zhbëhet.",
+    "selectIcon": "Zgjidhni Ikonën",
+    "success": {
+      "added": "Shërbimi u shtua me sukses!",
+      "updated": "Shërbimi u përditësua me sukses!",
+      "deleted": "Shërbimi u fshi me sukses!"
+    },
+    "errors": {
+      "fillRequired": "Ju lutem plotësoni të gjitha fushat e detyrueshme me vlera të vlefshme.",
+      "noBusinessId": "ID e biznesit nuk u gjet. Ju lutem rifreskoni faqen dhe provoni përsëri.",
+      "saveFailed": "Dështoi ruajtja e shërbimit. Ju lutem provoni përsëri.",
+      "deleteFailed": "Dështoi fshirja e shërbimit. Ju lutem provoni përsëri.",
+      "invalidDuration": "Kohëzgjatja duhet të jetë një numër pozitiv.",
+      "invalidPrice": "Çmimi duhet të jetë një numër i vlefshëm."
+    }
+  },
+  "settings": {
+    "title": "Cilësimet",
+    "workingHours": {
+      "title": "Oraret e Punës",
+      "day": "Dita",
+      "open": "Hapja",
+      "close": "Mbyllja",
+      "closed": "Mbyllur"
+    },
+    "breaks": {
+      "title": "Pushimet",
+      "addBreak": "Shto Pushim",
+      "start": "Fillimi",
+      "end": "Mbarimi",
+      "noBreaks": "Nuk ka pushime të shtuara"
+    },
+    "blockedDates": {
+      "title": "Datat e Bllokuara",
+      "addDate": "Shto Datë",
+      "selectDate": "Zgjidhni datën",
+      "noBlockedDates": "Nuk ka data të bllokuara"
+    },
+    "calendar": {
+      "title": "Integrimi i Kalendarit",
+      "connected": "Google Calendar i Lidhur",
+      "connectedDesc": "Terminet tuaja do të sinkronizohen me Google Calendar",
+      "notConnected": "Lidh Google Calendar",
+      "notConnectedDesc": "Sinkronizoni terminet me Google Calendar",
+      "connect": "Lidh Kalendarin",
+      "disconnect": "Shkëput",
+      "connecting": "Duke u lidhur...",
+      "needsMigration": "Kalendari ka nevojë për rilidhje",
+      "reconnect": "Rilidh Kalendarin"
+    },
+    "notifications": {
+      "title": "Njoftimet",
+      "emailNotifications": "Njoftime Email",
+      "smsNotifications": "Njoftime SMS"
+    },
+    "saveSettings": "Ruaj Cilësimet",
+    "saving": "Duke ruajtur...",
+    "saved": "Cilësimet u ruajtën me sukses!"
+  },
+  "analytics": {
+    "title": "Analitika",
+    "overview": "Përmbledhje",
+    "appointments": "Terminet",
+    "revenue": "Të Ardhurat",
+    "customers": "Klientët",
+    "noData": "Asnjë e dhënë",
+    "performanceMetrics": "Metrikat e Performancës",
+    "peakHours": "Orët e Pikut",
+    "employeeStatistics": "Statistikat e Punonjësve",
+    "appointmentsPerEmployee": "Terminet për Punonjës",
+    "noEmployeeData": "Nuk ka të dhëna për punonjësit",
+    "serviceDistribution": "Shpërndarja sipas Shërbimit",
+    "noServiceData": "Nuk ka të dhëna për shërbimet",
+    "popularDays": "Ditët më të Populluara",
+    "noDayData": "Nuk ka të dhëna për ditët",
+    "popularHours": "Orët më të Populluara",
+    "noHourData": "Nuk ka të dhëna për orët",
+    "period": {
+      "today": "Sot",
+      "week": "Kjo Javë",
+      "month": "Ky Muaj",
+      "year": "Ky Vit"
+    },
+    "stats": {
+      "totalAppointments": "Terminet Totale",
+      "activeAppointments": "Terminet Aktive",
+      "completionRate": "Përqindja e Përfundimit",
+      "totalEmployees": "Punonjësit Total",
+      "totalServices": "Shërbimet Totale",
+      "customersServed": "Klientët e Shërbyer"
+    },
+    "charts": {
+      "serviceDistribution": "Shpërndarja sipas Shërbimit",
+      "dailyDistribution": "Shpërndarja Ditore",
+      "hourlyDistribution": "Orët e Pikut",
+      "employeeDistribution": "Sipas Punonjësit",
+      "pie": "Grafik",
+      "bars": "Shtylla"
+    },
+    "days": {
+      "sunday": "E Diel",
+      "monday": "E Hënë",
+      "tuesday": "E Martë",
+      "wednesday": "E Mërkurë",
+      "thursday": "E Enjte",
+      "friday": "E Premte",
+      "saturday": "E Shtunë"
+    }
+  },
+  "cancelAppointment": {
+    "title": "Anulo Terminin",
+    "confirmCancel": "Jeni të sigurt që doni të anuloni këtë termin?",
+    "cancelButton": "Anulo Terminin",
+    "cancelling": "Duke anuluar...",
+    "success": "Termini u anulua me sukses.",
+    "alreadyCancelled": "Ky termin është anuluar tashmë",
+    "loading": "Duke ngarkuar terminin...",
+    "loadingDescription": "Ju lutem prisni ndërsa marrim detajet e terminit tuaj.",
+    "notFound": "Termini Nuk u Gjet",
+    "cannotCancel": "Nuk mund të anuloni - dritarja e anulimit ka skaduar",
+    "cannotCancelButton": "Nuk Mund të Anuloni (jashtë 1 ore nga rezervimi)",
+    "withinOneHour": "Mund të anuloni vetëm brenda 1 ore nga rezervimi",
+    "cannotCancelTitle": "Nuk Mund të Anuloni Terminin",
+    "cannotCancelDescription": "Terminet mund të anulohen vetëm brenda 1 ore nga rezervimi.",
+    "createdTimeAgo": "Ky termin u krijua {{hours}} orë më parë.",
+    "editAppointment": "Redakto Terminin",
+    "editDetails": "Redakto Detajet e Terminit",
+    "editDescription": "Përditësoni informacionin e terminit tuaj më poshtë.",
+    "saveChanges": "Ruaj Ndryshimet",
+    "cancelEdit": "Anulo Redaktimin",
+    "backToHome": "Kthehu në Faqen Kryesore",
+    "appointmentDetails": "Detajet e Terminit",
+    "appointmentCancelled": "Termini u Anulua",
+    "successCancelledMessage": "Termini juaj u anulua me sukses.",
+    "redirectingMessage": "Do të ridrejtoheni në faqen kryesore së shpejti.",
+    "serviceDetails": "Detajet e Shërbimit",
+    "customerInformation": "Informacioni i Klientit",
+    "serviceProvider": "Punonjësi i Shërbimit",
+    "bookingInformation": "Informacioni i Rezervimit",
+    "actions": "Veprimet",
+    "labels": {
+      "service": "Shërbimi",
+      "date": "Data",
+      "time": "Ora",
+      "duration": "Kohëzgjatja",
+      "price": "Çmimi",
+      "description": "Përshkrimi",
+      "name": "Emri",
+      "email": "Email",
+      "phone": "Telefoni",
+      "customerId": "ID e Klientit",
+      "role": "Roli",
+      "appointmentId": "ID e Terminit",
+      "created": "Krijuar",
+      "reminderSent": "Kujtesa u Dërgua",
+      "notes": "Shënime",
+      "customerName": "Emri i Klientit"
+    },
+    "notSpecified": "Nuk është specifikuar",
+    "notProvided": "Nuk është dhënë",
+    "notAvailable": "Nuk është i disponueshëm",
+    "yes": "Po",
+    "no": "Jo",
+    "minutes": "minuta",
+    "notesPlaceholder": "Shtoni ndonjë kërkesë të veçantë ose shënim...",
+    "updateSuccess": "Termini u përditësua me sukses.",
+    "updateFailed": "Dështoi përditësimi i terminit. Ju lutem provoni përsëri.",
+    "cancelFailed": "Dështoi anulimi i terminit. Ju lutem provoni përsëri.",
+    "cancelNotAllowed": "Nuk mund të anuloni terminin - anulimet lejohen vetëm brenda 1 ore nga rezervimi."
+  },
+  "verifyEmail": {
+    "title": "Verifikimi i Email-it",
+    "verifying": "Duke verifikuar adresën tuaj të email-it...",
+    "success": "Email-i u Verifikua me Sukses!",
+    "successMessage": "Email-i juaj është verifikuar. Tani mund të identifikoheni në llogarinë tuaj.",
+    "alreadyVerified": "Tashmë i Verifikuar",
+    "alreadyVerifiedMessage": "Ky email është verifikuar tashmë.",
+    "failed": "Verifikimi Dështoi",
+    "failedMessage": "Nuk mundëm të verifikojmë email-in tuaj. Linku mund të ketë skaduar ose është i pavlefshëm.",
+    "goToLogin": "Shko te Hyrja",
+    "registerNewAccount": "Regjistro Llogari të Re",
+    "error": "Dështoi verifikimi i email-it. Ju lutem provoni përsëri.",
+    "redirecting": "Duke ju ridrejtuar te hyrja..."
+  },
+  "resetPassword": {
+    "title": "Vendosni një fjalëkalim të ri",
+    "subtitle": "Zgjidhni një fjalëkalim të fortë që nuk e përdorni diku tjetër",
+    "securityNote": "Siguria juaj ka rëndësi",
+    "securityTip": "Ju rekomandojmë të përdorni një fjalëkalim me të paktën 12 karaktere me përzierje shkronjash, numrash dhe simbolesh.",
+    "backToSignIn": "Kthehu te hyrja",
+    "newPassword": "Fjalëkalimi i ri",
+    "confirmPassword": "Konfirmo fjalëkalimin",
+    "resetButton": "Rivendos Fjalëkalimin",
+    "resetting": "Duke rivendosur...",
+    "strength": {
+      "label": "Fuqia e fjalëkalimit",
+      "weak": "I dobët",
+      "fair": "I mjaftueshëm",
+      "good": "I mirë",
+      "strong": "I fortë"
+    },
+    "requirements": {
+      "minLength": "Të paktën 8 karaktere",
+      "uppercase": "Të paktën një shkronjë të madhe",
+      "lowercase": "Të paktën një shkronjë të vogël",
+      "number": "Të paktën një numër",
+      "specialChar": "Të paktën një karakter special"
+    },
+    "errors": {
+      "minLength": "Fjalëkalimi duhet të ketë të paktën 8 karaktere",
+      "mismatch": "Fjalëkalimet nuk përputhen",
+      "missingToken": "Tokeni i rivendosjes së fjalëkalimit mungon",
+      "generic": "Ndodhi një gabim. Ju lutem provoni përsëri.",
+      "invalidToken": "Token i pavlefshëm ose që mungon. Ju lutem kërkoni një link të ri për rivendosjen e fjalëkalimit.",
+      "enterPassword": "Ju lutem shkruani një fjalëkalim të ri.",
+      "letterAndNumber": "Fjalëkalimi duhet të përmbajë të paktën një shkronjë dhe një numër.",
+      "networkError": "Gabim rrjeti. Ju lutem kontrolloni lidhjen tuaj dhe provoni përsëri.",
+      "linkExpired": "Nuk mund të rivendoset fjalëkalimi. Linku mund të ketë skaduar."
+    },
+    "success": "Fjalëkalimi u rivendos me sukses! Duke ju ridrejtuar te hyrja..."
+  },
+  "appointmentPage": {
+    "businessNotFound": "Biznesi Nuk u Gjet",
+    "selectBusiness": "Ju lutem zgjidhni një biznes nga faqja kryesore për të rezervuar një termin.",
+    "backToHome": "Kthehu në Faqen Kryesore",
+    "loading": "Duke ngarkuar informacionin e biznesit...",
+    "back": "Prapa",
+    "bookAppointment": "Rezervo një Termin",
+    "selectService": "Zgjidhni një Shërbim",
+    "selectDate": "Zgjidhni një Datë",
+    "selectTime": "Zgjidhni një Orë",
+    "yourInfo": "Informacionet Tuaja",
+    "name": "Emri",
+    "email": "Email-i",
+    "phone": "Telefoni",
+    "notes": "Shënime (opsionale)",
+    "confirmBooking": "Konfirmo Rezervimin",
+    "booking": "Duke rezervuar...",
+    "noServicesAvailable": "Nuk ka shërbime të disponueshme aktualisht",
+    "noTimeSlotsAvailable": "Nuk ka orare të disponueshme për këtë datë",
+    "minutes": "min",
+    "serviceSummary": "Përmbledhja e Shërbimit",
+    "total": "Totali"
+  },
+  "bookingConfirmation": {
+    "loading": "Duke ngarkuar konfirmimin e rezervimit...",
+    "notFound": "Rezervimi Nuk u Gjet",
+    "notFoundMessage": "Nuk mundëm të gjejmë detajet e rezervimit. Ju lutem provoni përsëri ose kontaktoni mbështetjen.",
+    "backToHome": "Kthehu në Faqen Kryesore",
+    "confirmed": "Rezervimi u Konfirmua!",
+    "successMessage": "Termini juaj u planifikua me sukses.",
+    "confirmationSent": "Një email konfirmimi u dërgua në adresën tuaj të email-it.",
+    "bookingDetails": "Detajet e Rezervimit",
+    "service": "Shërbimi",
+    "date": "Data",
+    "time": "Ora",
+    "duration": "Kohëzgjatja",
+    "price": "Çmimi",
+    "business": "Biznesi",
+    "employee": "Me",
+    "yourInfo": "Informacionet Tuaja",
+    "name": "Emri",
+    "email": "Email-i",
+    "phone": "Telefoni",
+    "notes": "Shënime",
+    "confirmationNumber": "Numri i Konfirmimit",
+    "addToCalendar": "Shto në Kalendar",
+    "bookAnother": "Rezervo një Termin Tjetër",
+    "minutes": "minuta"
+  },
+  "confirmAppointment": {
+    "title": "Konfirmimi i Terminit",
+    "loading": "Duke procesuar konfirmimin tuaj...",
+    "confirming": "Duke konfirmuar terminin tuaj...",
+    "success": "Termini u Konfirmua!",
+    "successMessage": "Termini juaj u konfirmua me sukses.",
+    "alreadyConfirmed": "Tashmë i Konfirmuar",
+    "alreadyConfirmedMessage": "Ky termin është konfirmuar tashmë.",
+    "expired": "Linku Skadoi",
+    "expiredMessage": "Ky link konfirmimi ka skaduar.",
+    "error": "Konfirmimi Dështoi",
+    "errorMessage": "Nuk mundëm të konfirmojmë terminin tuaj. Ju lutem provoni përsëri ose kontaktoni mbështetjen.",
+    "noToken": "Nuk u ofrua token konfirmimi",
+    "appointmentDetails": "Detajet e Terminit",
+    "viewDashboard": "Shiko Panelin",
+    "backToHome": "Kthehu në Faqen Kryesore"
+  },
+  "privacy": {
+    "title": "Politika e Privatësisë",
+    "lastUpdated": "Përditësuar së fundi",
+    "backToHome": "Kthehu në Faqen Kryesore",
+    "sections": {
+      "introduction": {
+        "title": "1. Hyrje",
+        "content": "Mirë se vini në Appointly-ks (\"ne,\" \"jonë,\" ose \"na\"). Jemi të përkushtuar për të mbrojtur informacionin tuaj personal dhe të drejtën tuaj për privatësi. Kjo Politikë e Privatësisë shpjegon si mbledhim, përdorim, zbulojmë dhe mbrojmë informacionin tuaj kur përdorni platformën tonë të rezervimit të termineve."
+      },
+      "informationCollected": {
+        "title": "2. Informacioni që Mbledhim",
+        "personalInfoTitle": "Informacioni Personal",
+        "personalInfoDesc": "Ne mbledhim informacion që na e jepni drejtpërdrejt, duke përfshirë:",
+        "personalInfoItems": [
+          "Emri, adresa email dhe numri i telefonit",
+          "Informacioni i biznesit (për llogaritë e biznesit)",
+          "Detajet dhe preferencat e termineve",
+          "Informacioni i pagesës (procesuar në mënyrë të sigurt përmes procesuesve të palëve të treta)",
+          "Komunikimet me ne, përfshirë pyetjet e mbështetjes së klientit"
+        ],
+        "autoCollectedTitle": "Informacioni i Mbledhur Automatikisht",
+        "autoCollectedItems": [
+          "Informacioni i pajisjes (adresa IP, lloji i shfletuesit, sistemi operativ)",
+          "Të dhënat e përdorimit (faqet e vizituara, koha e kaluar, veçoritë e përdorura)",
+          "Cookie-t dhe teknologjitë e ngjashme të gjurmimit",
+          "Të dhënat e vendndodhjes (me lejen tuaj)"
+        ]
+      },
+      "howWeUse": {
+        "title": "3. Si e Përdorim Informacionin Tuaj",
+        "intro": "Ne përdorim informacionin që mbledhim për të:",
+        "items": [
+          "Ofruar, mirëmbajtur dhe përmirësuar shërbimet tona të rezervimit të termineve",
+          "Procesuar terminet dhe dërguar konfirmime",
+          "Dërguar njoftime automatike përmes email-it dhe SMS-it",
+          "Ofruar mbështetje për klientët dhe iu përgjigjur pyetjeve",
+          "Procesuar pagesat dhe parandaluar mashtrimin",
+          "Analizuar modelet e përdorimit për të përmirësuar përvojën e përdoruesit",
+          "Dërguar komunikime marketingu (me pëlqimin tuaj)",
+          "Përmbushur detyrimet ligjore",
+          "Përmirësuar veçoritë dhe rekomandimet tona të fuqizuara nga AI"
+        ]
+      },
+      "sharing": {
+        "title": "4. Ndarja dhe Zbulimi i Informacionit",
+        "intro": "Ne mund të ndajmë informacionin tuaj me:",
+        "items": [
+          "Ofruesit e Shërbimeve: Kompanitë e palëve të treta që na ndihmojnë të operojmë platformën tonë",
+          "Partnerët e Biznesit: Kur rezervoni termine me bizneset që përdorin platformën tonë",
+          "Kërkesat Ligjore: Kur kërkohet nga ligji ose për të mbrojtur të drejtat tona",
+          "Transferimet e Biznesit: Në lidhje me bashkim, blerje ose shitje të aseteve"
+        ],
+        "noSell": "Ne nuk e shesim informacionin tuaj personal palëve të treta."
+      },
+      "security": {
+        "title": "5. Siguria e të Dhënave",
+        "content": "Ne zbatojmë masa të përshtatshme teknike dhe organizative të sigurisë për të mbrojtur informacionin tuaj personal, duke përfshirë enkriptimin, serverët e sigurt dhe auditimet e rregullta të sigurisë. Megjithatë, asnjë metodë transmetimi përmes internetit nuk është 100% e sigurt, dhe ne nuk mund të garantojmë siguri absolute."
+      },
+      "rights": {
+        "title": "6. Të Drejtat dhe Zgjedhjet Tuaja",
+        "intro": "Ju keni të drejtë të:",
+        "items": [
+          "Aksesoni dhe merrni një kopje të informacionit tuaj personal",
+          "Korrigjoni ose përditësoni informacionin tuaj",
+          "Fshini llogarinë tuaj dhe informacionin personal",
+          "Refuzoni komunikimet e marketingut",
+          "Çaktivizoni cookie-t përmes cilësimeve të shfletuesit tuaj",
+          "Kundërshtoni ose kufizoni aktivitete të caktuara të procesimit të të dhënave"
+        ],
+        "contactInfo": "Për të ushtruar këto të drejta, ju lutem na kontaktoni në"
+      },
+      "retention": {
+        "title": "7. Ruajtja e të Dhënave",
+        "content": "Ne e ruajmë informacionin tuaj personal për aq kohë sa është e nevojshme për të ofruar shërbimet tona, përmbushur detyrimet ligjore, zgjidhur mosmarrëveshjet dhe zbatuar marrëveshjet tona. Kur fshini llogarinë tuaj, ne do të fshijmë ose anonimizojmë informacionin tuaj brenda 30 ditëve, përveç kur ruajtja kërkohet nga ligji."
+      },
+      "international": {
+        "title": "8. Transferimet Ndërkombëtare të të Dhënave",
+        "content": "Informacioni juaj mund të transferohet dhe procesohet në vende të tjera përveç vendit tuaj të rezidencës. Ne sigurojmë që mbrojtjet e përshtatshme të jenë në fuqi për të mbrojtur informacionin tuaj në përputhje me ligjet e aplikueshme për mbrojtjen e të dhënave."
+      },
+      "children": {
+        "title": "9. Privatësia e Fëmijëve",
+        "content": "Shërbimet tona nuk janë të destinuara për individë nën moshën 18 vjeç. Ne nuk mbledhim me vetëdije informacion personal nga fëmijët. Nëse besoni se kemi mbledhur informacion nga një fëmijë, ju lutem na kontaktoni menjëherë."
+      },
+      "changes": {
+        "title": "10. Ndryshimet në Këtë Politikë të Privatësisë",
+        "content": "Ne mund ta përditësojmë këtë Politikë të Privatësisë herë pas here. Do t'ju njoftojmë për çdo ndryshim duke postuar Politikën e re të Privatësisë në këtë faqe dhe duke përditësuar datën \"Përditësuar së fundi\". Ju inkurajojmë të shqyrtoni këtë Politikë të Privatësisë periodikisht."
+      },
+      "contact": {
+        "title": "11. Na Kontaktoni",
+        "intro": "Nëse keni ndonjë pyetje rreth kësaj Politike të Privatësisë ose praktikave tona të privatësisë, ju lutem na kontaktoni:",
+        "email": "Email",
+        "phone": "Telefon",
+        "address": "Adresa"
+      }
+    }
+  },
+  "terms": {
+    "title": "Kushtet e Shërbimit",
+    "lastUpdated": "Përditësuar së fundi",
+    "backToHome": "Kthehu në Faqen Kryesore",
+    "sections": {
+      "acceptance": {
+        "title": "1. Pranimi i Kushteve",
+        "content": "Duke aksesuar dhe përdorur Appointly-ks (\"Shërbimi,\" \"Platforma,\" \"ne,\" \"na,\" ose \"jonë\"), ju pranoni dhe pajtoheni të jeni të lidhur nga këto Kushte të Shërbimit. Nëse nuk pajtoheni me këto kushte, ju lutem mos e përdorni Shërbimin tonë."
+      },
+      "description": {
+        "title": "2. Përshkrimi i Shërbimit",
+        "intro": "Appointly-ks është një platformë SaaS e rezervimit të termineve e fuqizuar nga AI që u mundëson bizneseve të menaxhojnë terminet, punonjësit dhe shërbimet ndërsa u lejon klientëve të rezervojnë termine online. Shërbimi ynë përfshin:",
+        "items": [
+          "Panelin dhe mjetet e menaxhimit të biznesit",
+          "Menaxhimin e punonjësve dhe shërbimeve",
+          "Planifikimin e termineve dhe njoftimet",
+          "Asistencën e chat-it të fuqizuar nga AI",
+          "Veçoritë e analitikës dhe raportimit",
+          "Ndërfaqen e rezervimit të klientëve"
+        ]
+      },
+      "accounts": {
+        "title": "3. Llogaritë e Përdoruesve",
+        "registrationTitle": "Regjistrimi",
+        "registrationIntro": "Për të përdorur veçori të caktuara, duhet të regjistroheni për një llogari. Ju pajtoheni të:",
+        "registrationItems": [
+          "Ofroni informacion të saktë, aktual dhe të plotë",
+          "Mirëmbani dhe përditësoni informacionin tuaj për ta mbajtur të saktë",
+          "Mirëmbani sigurinë e fjalëkalimit dhe llogarisë tuaj",
+          "Na njoftoni menjëherë për çdo përdorim të paautorizuar",
+          "Jeni përgjegjës për të gjitha aktivitetet nën llogarinë tuaj"
+        ],
+        "accountTypesTitle": "Llojet e Llogarive",
+        "businessAccount": "Llogaritë e Biznesit: Për bizneset që ofrojnë shërbime me bazë terminesh",
+        "customerAccount": "Llogaritë e Klientëve: Për individët që rezervojnë termine"
+      },
+      "acceptableUse": {
+        "title": "4. Politika e Përdorimit të Pranueshëm",
+        "intro": "Ju pajtoheni që NUK do të:",
+        "items": [
+          "Përdorni Shërbimin për ndonjë qëllim të paligjshëm ose të paautorizuar",
+          "Shkelni ndonjë ligj në juridiksionin tuaj",
+          "Cenoni të drejtat e pronësisë intelektuale",
+          "Transmetoni kod të dëmshëm, viruse ose malware",
+          "Ndërhyni ose prishni Shërbimin",
+          "Përpiqeni të fitoni akses të paautorizuar në sistemet tona",
+          "Ngacmoni, abuzoni ose dëmtoni përdorues të tjerë",
+          "Rrëmbeni, kopjoni ose riprodhoni përmbajtje pa leje",
+          "Krijoni termine të rreme ose mashtruese",
+          "Përdorni sisteme të automatizuara për të aksesuar Shërbimin në mënyrë të tepruar"
+        ]
+      },
+      "appointments": {
+        "title": "5. Terminet dhe Rezervimet",
+        "forBusinessesTitle": "Për Bizneset",
+        "forBusinessesItems": [
+          "Jeni përgjegjës për menaxhimin e kalendarit dhe disponueshmërisë tuaj",
+          "Duhet të respektoni terminet e konfirmuara ose të ofroni njoftim të arsyeshëm anulimi",
+          "Duhet të ofroni përshkrime dhe çmime të sakta të shërbimeve",
+          "Jeni përgjegjës për cilësinë e shërbimeve të ofruara"
+        ],
+        "forCustomersTitle": "Për Klientët",
+        "forCustomersItems": [
+          "Duhet të ofroni informacion të saktë kur rezervoni",
+          "Duhet të arrini në kohë ose të ofroni njoftim anulimi",
+          "Pajtoheni me politikat e anulimit dhe rimbursimit të biznesit",
+          "Jeni përgjegjës për çdo tarifë ose detyrim të shkaktuar"
+        ]
+      },
+      "payment": {
+        "title": "6. Kushtet e Pagesës",
+        "intro": "Për llogaritë e biznesit:",
+        "items": [
+          "Tarifat e abonimit faturohen sipas planit tuaj të zgjedhur",
+          "Të gjitha tarifat janë të parikthyeshme përveç siç kërkohet nga ligji",
+          "Ne mund të ndryshojmë çmimet me 30 ditë njoftim",
+          "Procesimi i pagesave trajtohet nga ofrues të palëve të treta",
+          "Ju na autorizoni të ngarkojmë metodën tuaj të pagesës në dosje",
+          "Pagesat e vonuara mund të rezultojnë në pezullim të shërbimit"
+        ]
+      },
+      "intellectualProperty": {
+        "title": "7. Pronësia Intelektuale",
+        "content1": "Shërbimi, duke përfshirë të gjithë përmbajtjen, veçoritë dhe funksionalitetin, është në pronësi të Appointly-ks dhe mbrohet nga ligjet ndërkombëtare të të drejtës së autorit, markës tregtare dhe pronësisë intelektuale.",
+        "content2": "Ju mbani pronësinë e përmbajtjes që krijoni ose ngarkoni, por na jepni një licencë për ta përdorur, ruajtur dhe shfaqur siç është e nevojshme për të ofruar Shërbimin."
+      },
+      "privacyData": {
+        "title": "8. Privatësia dhe Mbrojtja e të Dhënave",
+        "content": "Privatësia juaj është e rëndësishme për ne. Mbledhja dhe përdorimi ynë i informacionit personal përshkruhet në Politikën tonë të Privatësisë. Duke përdorur Shërbimin, ju pëlqeni praktikat tona të të dhënave siç përshkruhen në Politikën e Privatësisë."
+      },
+      "disclaimers": {
+        "title": "9. Mohime dhe Kufizime të Përgjegjësisë",
+        "asIsTitle": "Shërbimi \"Siç Është\"",
+        "asIsContent": "Shërbimi ofrohet \"siç është\" dhe \"siç është i disponueshëm\" pa garanci të ndonjë lloji, qoftë të shprehura ose të nënkuptuara, duke përfshirë por pa u kufizuar në garancitë e tregtueshmërisë, përshtatshmërisë për një qëllim të veçantë, ose mos-cenimit.",
+        "limitationTitle": "Kufizimi i Përgjegjësisë",
+        "limitationContent": "Në masën maksimale të lejuar nga ligji, Appointly-ks nuk do të jetë përgjegjës për ndonjë dëm indirekt, incidental, të veçantë, pasojues, ose ndëshkues, ose ndonjë humbje fitimesh ose të ardhurave, qoftë të shkaktuara drejtpërdrejt ose indirekt, ose ndonjë humbje të dhënash, përdorimi, emri të mirë, ose humbjeve të tjera të paprekshme që rezultojnë nga përdorimi juaj i Shërbimit."
+      },
+      "indemnification": {
+        "title": "10. Dëmshpërblimi",
+        "content": "Ju pajtoheni të dëmshpërbleni, mbroni dhe mbani të padëmshëm Appointly-ks dhe oficerët, drejtorët, punonjësit dhe agjentët e tij nga çdo pretendim, detyrime, dëme, humbje dhe shpenzime që lindin nga përdorimi juaj i Shërbimit ose shkelja e këtyre Kushteve."
+      },
+      "termination": {
+        "title": "11. Përfundimi",
+        "content": "Ne mund të përfundojmë ose pezullojmë llogarinë tuaj dhe aksesin në Shërbim në çdo kohë, me ose pa shkak, dhe me ose pa njoftim. Pas përfundimit, e drejta juaj për të përdorur Shërbimin do të ndërpritet menjëherë."
+      },
+      "governingLaw": {
+        "title": "12. Ligji në Fuqi",
+        "content": "Këto Kushte do të qeverisen dhe interpretohen në përputhje me ligjet e Kosovës, pa marrë parasysh dispozitat e konfliktit të ligjit të saj."
+      },
+      "contact": {
+        "title": "13. Na Kontaktoni",
+        "intro": "Nëse keni ndonjë pyetje rreth këtyre Kushteve të Shërbimit, ju lutem na kontaktoni:",
+        "email": "Email",
+        "phone": "Telefon",
+        "address": "Adresa"
+      }
+    }
+  },
+  "cookies": {
+    "title": "Politika e Cookie-ve",
+    "lastUpdated": "Përditësuar së fundi",
+    "backToHome": "Kthehu në Faqen Kryesore",
+    "sections": {
+      "whatAreCookies": {
+        "title": "1. Çfarë Janë Cookie-t?",
+        "content": "Cookie-t janë skedarë të vegjël teksti që vendosen në pajisjen tuaj (kompjuter, smartphone, ose tablet) kur vizitoni faqen tonë të internetit. Ato përdoren gjerësisht për të bërë faqet e internetit të funksionojnë më efiçentisht dhe për të ofruar informacion pronarëve të faqes. Appointly-ks përdor cookie për të përmirësuar përvojën tuaj dhe për të përmirësuar shërbimet tona."
+      },
+      "howWeUse": {
+        "title": "2. Si i Përdorim Cookie-t",
+        "intro": "Ne përdorim cookie për disa arsye të rëndësishme:",
+        "items": [
+          "Për t'ju mbajtur të identifikuar në llogarinë tuaj",
+          "Për të mbajtur mend preferencat dhe cilësimet tuaja",
+          "Për të kuptuar si e përdorni platformën tonë",
+          "Për të përmirësuar performancën dhe funksionalitetin e shërbimeve tona",
+          "Për të ofruar përmbajtje dhe rekomandime të personalizuara",
+          "Për të analizuar trafikun dhe sjelljen e përdoruesve",
+          "Për të përmirësuar sigurinë dhe parandaluar mashtrimin"
+        ]
+      },
+      "typesOfCookies": {
+        "title": "3. Llojet e Cookie-ve që Përdorim",
+        "essential": {
+          "title": "Cookie-t Esenciale",
+          "content": "Këto cookie janë të nevojshme që faqja e internetit të funksionojë si duhet. Ato mundësojnë funksionalitetin bazë si siguria, menaxhimi i rrjetit dhe aksesueshmëria. Ju nuk mund të refuzoni këto cookie.",
+          "items": [
+            "Cookie-t e Sesionit: Ju mbajnë të identifikuar gjatë vizitës tuaj",
+            "Cookie-t e Autentifikimit: Verifikojnë identitetin dhe të drejtat tuaja të aksesit",
+            "Cookie-t e Sigurisë: Mbrojnë kundër aktivitetit mashtrues"
+          ]
+        },
+        "performance": {
+          "title": "Cookie-t e Performancës dhe Analitikës",
+          "content": "Këto cookie mbledhin informacion rreth asaj se si vizitorët përdorin faqen tonë të internetit, si cilat faqe vizitohen më shpesh dhe nëse merren mesazhe gabimi. Kjo na ndihmon të përmirësojmë si funksionon faqja jonë e internetit.",
+          "items": [
+            "Google Analytics: Gjurmon përdorimin e faqes së internetit dhe gjeneron statistika",
+            "Monitorimi i Performancës: Identifikon probleme teknike dhe gabime",
+            "Gjurmimi i Përdorimit: Analizon adoptimin e veçorive dhe sjelljen e përdoruesve"
+          ]
+        },
+        "functionality": {
+          "title": "Cookie-t e Funksionalitetit",
+          "content": "Këto cookie lejojnë faqen tonë të internetit të mbajë mend zgjedhjet që bëni dhe ofrojnë veçori të zgjeruara, të personalizuara.",
+          "items": [
+            "Cookie-t e Preferencave: Mbajnë mend cilësimet dhe preferencat tuaja",
+            "Cookie-t e Gjuhës: Ruajnë zgjedhjen tuaj të gjuhës",
+            "Cookie-t e Shfaqjes: Mbajnë mend preferencat tuaja të shfaqjes (tema, paraqitja)"
+          ]
+        },
+        "targeting": {
+          "title": "Cookie-t e Synimit dhe Reklamimit",
+          "content": "Këto cookie mund të vendosen përmes faqes sonë nga partnerët tanë të reklamimit për të ndërtuar një profil të interesave tuaja dhe për t'ju shfaqur përmbajtje relevante.",
+          "items": [
+            "Cookie-t e Marketingut: Gjurmojnë vizitat tuaja nëpër faqe interneti",
+            "Cookie-t e Mediave Sociale: Mundësojnë ndarjen në platformat sociale",
+            "Cookie-t e Risynimit: Shfaqin reklama relevante në faqe të tjera interneti"
+          ]
+        }
+      },
+      "thirdParty": {
+        "title": "4. Cookie-t e Palëve të Treta",
+        "intro": "Ne mund të përdorim shërbime të palëve të treta që vendosin cookie-t e tyre. Këto shërbime përfshijnë:",
+        "items": [
+          "Google Analytics: Për analitikën dhe njohuritë e faqes së internetit",
+          "Procesuesit e Pagesave: Për procesimin e sigurt të pagesave",
+          "Shërbimet e Email-it: Për dërgimin e email-eve transaksionale",
+          "Platformat e Mediave Sociale: Për veçoritë e ndarjes sociale dhe hyrjes",
+          "Shërbimet e AI: Për fuqizimin e asistencës sonë të chat-it AI"
+        ],
+        "note": "Këto palë të treta kanë politikat e tyre të privatësisë dhe cookie-ve. Ju rekomandojmë t'i shqyrtoni ato."
+      },
+      "duration": {
+        "title": "5. Kohëzgjatja e Cookie-ve",
+        "sessionTitle": "Cookie-t e Sesionit",
+        "sessionContent": "Këto cookie të përkohshme fshihen kur mbyllni shfletuesin tuaj. Ato ndihmojnë të mbajnë sesionin tuaj ndërsa shfletoni faqen tonë të internetit.",
+        "persistentTitle": "Cookie-t e Përhershme",
+        "persistentContent": "Këto cookie mbeten në pajisjen tuaj për një periudhë të caktuar (që varion nga ditë në vite) ose derisa t'i fshini. Ato na ndihmojnë t'ju njohin kur ktheheni në faqen tonë të internetit."
+      },
+      "managing": {
+        "title": "6. Menaxhimi i Preferencave Tuaja të Cookie-ve",
+        "browserTitle": "Cilësimet e Shfletuesit",
+        "browserIntro": "Shumica e shfletuesve të uebit ju lejojnë të kontrolloni cookie-t përmes cilësimeve të tyre. Ju mund të:",
+        "browserItems": [
+          "Shihni cilat cookie janë ruajtur dhe t'i fshini individualisht",
+          "Bllokoni cookie-t e palëve të treta",
+          "Bllokoni cookie-t nga faqe specifike interneti",
+          "Bllokoni të gjitha cookie-t",
+          "Fshini të gjitha cookie-t kur mbyllni shfletuesin tuaj"
+        ],
+        "browserInstructions": "Për të menaxhuar cookie-t në shfletuesit popullarë:",
+        "chromeInstructions": "Chrome: Cilësimet → Privatësia dhe siguria → Cookie-t dhe të dhënat e tjera të faqes",
+        "firefoxInstructions": "Firefox: Opsionet → Privatësia & Siguria → Cookie-t dhe të Dhënat e Faqes",
+        "safariInstructions": "Safari: Preferencat → Privatësia → Menaxho të Dhënat e Faqes së Internetit",
+        "edgeInstructions": "Edge: Cilësimet → Cookie-t dhe lejet e faqes → Cookie-t dhe të dhënat e ruajtura",
+        "optOutTitle": "Mjetet e Refuzimit",
+        "optOutContent": "Ju mund të refuzoni shërbimet specifike të gjurmimit"
+      },
+      "contact": {
+        "title": "7. Na Kontaktoni",
+        "intro": "Nëse keni ndonjë pyetje rreth Politikës sonë të Cookie-ve, ju lutem na kontaktoni:",
+        "email": "Email",
+        "phone": "Telefon",
+        "address": "Adresa"
+      }
+    }
+  },
+  "aiChatbot": {
+    "demoTitle": "Demo e Chatbot-it AI",
+    "poweredBy": "Fuqizuar nga OpenAI",
+    "bookingAssistant": "Asistenti i Rezervimit për Sallon & Spa",
+    "heroTitle": "Përjetoni Rezervimin e Fuqizuar nga AI",
+    "heroSubtitle": "Chatbot-i ynë inteligjent përdor GPT-3.5 Turbo të OpenAI për të ofruar përvoja rezervimi natyrore, bisedore. Klikoni flluskën e chat-it për ta parë në veprim!",
+    "instantResponses": "Përgjigje të Menjëhershme",
+    "aiPowered": "I Fuqizuar nga AI",
+    "available247": "I Disponueshëm 24/7",
+    "features": {
+      "naturalConversation": {
+        "title": "Bisedë Natyrore",
+        "description": "Bisedoni natyrshëm me asistentin tonë AI. Pa forma komplekse ose ndërfaqe të ngurta - thjesht flisni si do të bënit me një person të vërtetë."
+      },
+      "smartUnderstanding": {
+        "title": "Kuptim i Zgjuar",
+        "description": "AI-ja jonë kupton kontekstin, mban mend preferencat tuaja, dhe mund të trajtojë kërkesa komplekse rezervimi me lehtësi."
+      },
+      "instantBooking": {
+        "title": "Rezervim i Menjëhershëm",
+        "description": "Pasi të ofroni të gjitha detajet, AI-ja mund të rezervojë terminin tuaj menjëherë. Pa pritje, pa vonesa."
+      }
+    },
+    "availableServices": "Shërbimet e Disponueshme",
+    "availableTimeSlots": "Oraret e Disponueshme",
+    "minutes": "minuta",
+    "tryItNow": "Provoje Tani",
+    "clickChatBubble": "Klikoni flluskën e chat-it në këndin e poshtëm djathtas"
+  },
+  "chatWidget": {
+    "title": "Chattly",
+    "subtitle": "Asistenti Juaj AI për Chat",
+    "welcomeMessage": "Përshëndetje! Unë jam asistenti juaj AI për rezervime në Appointly. Mund t'ju ndihmoj të rezervoni termine me biznese të ndryshme. A dëshironi të filloni rezervimin e një termini?",
+    "placeholder": "Shkruani mesazhin tuaj...",
+    "aiTyping": "AI po shkruan...",
+    "poweredBy": "Mundësuar nga Appointly AI Assistant",
+    "errorMessage": "Kam vështirësi të lidhem me shërbimin AI. Duke provuar me një alternativë lokale...",
+    "noResponse": "Na vjen keq, nuk munda të gjeneroj një përgjigje."
+  },
+  "reviewForm": {
+    "title": "Ndani Përvojën Tuaj",
+    "subtitle": "Feedback-u juaj na ndihmon të përmirësojmë shërbimin tonë",
+    "ratingLabel": "Si do ta vlerësonit përvojën tuaj?",
+    "ratingLabels": {
+      "poor": "Dobët",
+      "fair": "Mesatar",
+      "good": "Mirë",
+      "veryGood": "Shumë Mirë",
+      "excellent": "Shkëlqyeshëm"
+    },
+    "yourName": "Emri Juaj",
+    "namePlaceholder": "Shkruani emrin tuaj të plotë",
+    "emailAddress": "Adresa e Email-it",
+    "emailPlaceholder": "Shkruani email-in tuaj",
+    "reviewTitle": "Titulli i Vlerësimit",
+    "titlePlaceholder": "Përmbledhni përvojën tuaj me disa fjalë",
+    "yourReview": "Vlerësimi Juaj",
+    "reviewPlaceholder": "Ndani përvojën tuaj në detaje. Çfarë ju pëlqeu? Çfarë mund të përmirësohet?",
+    "characters": "karaktere",
+    "submitReview": "Dërgo Vlerësimin",
+    "submitting": "Duke dërguar...",
+    "cancel": "Anulo",
+    "fillAllFields": "Ju lutem plotësoni të gjitha fushat dhe zgjidhni një vlerësim",
+    "successMessage": "Faleminderit për vlerësimin tuaj! Është dërguar me sukses.",
+    "failedToCreate": "Dështoi krijimi i klientit: ",
+    "failedToSubmit": "Dështoi dërgimi i vlerësimit: "
+  },
+  "realtimeStatus": {
+    "liveUpdatesActive": "Përditësimet live aktive",
+    "connecting": "Duke u lidhur..."
+  },
+  "businessAiChat": {
+    "title": "Chat AI për Biznes",
+    "placeholder": "Pyetni diçka si: Cilat janë ditët e mia popullare?",
+    "askButton": "Pyet",
+    "asking": "Duke pyetur…",
+    "thinking": "Duke menduar…",
+    "responseWillAppear": "Përgjigja do të shfaqet këtu.",
+    "somethingWentWrong": "Diçka shkoi keq"
+  },
+  "googleOAuth": {
+    "signingIn": "Duke ju identifikuar…",
+    "processingAccount": "Po finalizojmë llogarinë tuaj me Google.",
+    "calendarAccess": "Jepni akses në Google Calendar që të sinkronizojmë rezervimet tuaja me kalendarin tuaj.",
+    "grantAccess": "Jep akses në Google Calendar",
+    "requestingPermission": "Duke kërkuar leje…",
+    "maybeLater": "Ndoshta më vonë",
+    "oauthFailed": "Procesimi i OAuth dështoi"
+  },
+  "payment": {
+    "title": "Përfundoni Pagesën Tuaj",
+    "forPlan": "për Planin {{plan}}",
+    "subtitle": "Shkruani detajet tuaja të pagesës për të vazhduar me planin e zgjedhur.",
+    "goBack": "Kthehu Prapa",
+    "paymentDetails": "Detajet e Pagesës",
+    "cardholderName": "Emri i Mbajtësit të Kartës",
+    "cardNumber": "Numri i Kartës",
+    "expiryDate": "Data e Skadimit",
+    "cvc": "CVC",
+    "completePayment": "Përfundo Pagesën",
+    "loading": "Duke ngarkuar...",
+    "errors": {
+      "invalidPlan": "Plani i zgjedhur është i pavlefshëm.",
+      "userNotFound": "Përdoruesi nuk u gjet. Ju lutem sigurohuni që jeni identifikuar saktë.",
+      "updateFailed": "Dështoi përditësimi i planit të pagesës. Ju lutem provoni përsëri.",
+      "genericError": "Gabim gjatë përditësimit të planit të pagesës. Ju lutem provoni përsëri.",
+      "loginRequired": "Ju lutem identifikohuni për të vazhduar me pagesën.",
+      "fetchFailed": "Dështoi marrja e statusit të pagesës. Ju lutem provoni përsëri."
+    },
+    "success": "Plani i pagesës u përditësua me sukses!"
+  },
+  "appointmentManagement": {
+    "title": "Menaxhimi i Termineve",
+    "searchPlaceholder": "Kërko termine...",
+    "filterByEmployee": "Filtro sipas punonjësit",
+    "allEmployees": "Të Gjithë Punonjësit",
+    "teamSchedule": "Orari i ekipit",
+    "quickOverview": "Përmbledhje e shpejtë",
+    "today": "Sot",
+    "selectedDay": "Dita e zgjedhur",
+    "appointments": "termine",
+    "employee": "Punonjësi",
+    "totalUpcoming": "termine të ardhshme në total",
+    "appointmentsFor": "Termine për",
+    "result": "rezultat",
+    "results": "rezultate",
+    "matchingSearch": "që përputhen me kërkimin",
+    "unknownService": "Shërbim i Panjohur",
+    "unknownEmployee": "Punonjës i Panjohur",
+    "notes": "Shënime",
+    "viewMode": {
+      "month": "Muaji",
+      "week": "Java"
+    },
+    "status": {
+      "scheduled": "I Programuar",
+      "confirmed": "I Konfirmuar",
+      "completed": "I Përfunduar",
+      "cancelled": "I Anuluar",
+      "noShow": "Nuk u Paraqit",
+      "pastDue": "I Vonuar"
+    },
+    "actions": {
+      "confirm": "Konfirmo",
+      "cancel": "Anulo",
+      "complete": "Përfundo",
+      "message": "Mesazh",
+      "noShow": "Nuk u Paraqit",
+      "view": "Shiko Detajet"
+    },
+    "dialogs": {
+      "confirmTitle": "Konfirmo Terminin",
+      "confirmDescription": "Jeni të sigurt që doni të konfirmoni këtë termin? Kjo do të dërgojë një mesazh konfirmimi te klienti.",
+      "cancelTitle": "Anulo Terminin",
+      "cancelDescription": "Jeni të sigurt që doni të anuloni këtë termin? Kjo do të dërgojë një mesazh anulimi te klienti.",
+      "cancelAppointment": "Anulo Terminin",
+      "keepAppointment": "Mbaj Terminin",
+      "messageTitle": "Dërgo Mesazh",
+      "messageDescription": "Dërgo një mesazh të personalizuar te klienti:",
+      "messagePlaceholder": "Shkruani mesazhin tuaj...",
+      "sendMessage": "Dërgo Mesazhin"
+    },
+    "noAppointments": "Asnjë termin i programuar për këtë datë.",
+    "appointmentDetails": "Detajet e Terminit"
+  },
+  "aiChatbotComponent": {
+    "greeting": "Përshëndetje! Unë jam asistenti juaj AI për rezervime në Appointly. Mund t'ju ndihmoj të rezervoni termine me biznese të ndryshme. Dëshironi të filloni rezervimin e një termini?",
+    "placeholder": "Shkruani mesazhin tuaj...",
+    "send": "Dërgo",
+    "connecting": "Duke u lidhur...",
+    "retry": "Duke riprovuar me fallback lokal...",
+    "error": "Kam vështirësi në arritjen e shërbimit AI.",
+    "close": "Mbyll chat-in"
+  },
+  "reviews": {
+    "title": "Lini një Koment",
+    "rating": "Vlerësimi",
+    "ratingRequired": "Ju lutem zgjidhni një vlerësim",
+    "titleLabel": "Titulli i Komentit",
+    "titlePlaceholder": "Jepni një titull komentit tuaj...",
+    "contentLabel": "Komenti Juaj",
+    "contentPlaceholder": "Ndani përvojën tuaj...",
+    "nameLabel": "Emri Juaj",
+    "namePlaceholder": "Shkruani emrin tuaj",
+    "emailLabel": "Email-i Juaj",
+    "emailPlaceholder": "Shkruani email-in tuaj",
+    "submit": "Dërgo Komentin",
+    "submitting": "Duke dërguar...",
+    "success": "Faleminderit për komentin tuaj!",
+    "errors": {
+      "fillAll": "Ju lutem plotësoni të gjitha fushat dhe zgjidhni një vlerësim",
+      "submitFailed": "Dështoi dërgimi i komentit. Ju lutem provoni përsëri."
+    },
+    "stars": {
+      "1": "I dobët",
+      "2": "Mjaft mirë",
+      "3": "Mirë",
+      "4": "Shumë Mirë",
+      "5": "Shkëlqyeshëm"
+    }
+  },
+  "imageUpload": {
+    "upload": "Ngarko një skedar",
+    "change": "Ndrysho skedarin",
+    "dragDrop": "ose tërhiq dhe lësho",
+    "uploading": "Duke ngarkuar...",
+    "remove": "Hiq imazhin",
+    "clickToUpload": "Kliko për të ngarkuar imazhin",
+    "noImage": "Pa imazh",
+    "fileTypes": "PNG, JPG, WebP deri në 5MB"
+  },
+  "alertDialog": {
+    "confirm": "Konfirmo",
+    "cancel": "Anulo"
+  }
+}

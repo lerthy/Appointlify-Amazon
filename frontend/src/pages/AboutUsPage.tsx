@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Users, Target, Rocket, Heart, Lightbulb, Award } from 'lucide-react';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
@@ -14,6 +15,7 @@ interface TeamMember {
 }
 
 const AboutUsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   useEffect(() => {
@@ -88,30 +90,30 @@ const AboutUsPage: React.FC = () => {
   const values = [
     {
       icon: Heart,
-      title: 'Passion-Driven',
-      description: 'We love what we do and it shows in every feature we deliver.',
+      title: t('about.values.passionDriven'),
+      description: t('about.values.passionDesc'),
     },
     {
       icon: Lightbulb,
-      title: 'Innovation First',
-      description: 'Staying ahead with AI and cutting-edge scheduling technology.',
+      title: t('about.values.innovationFirst'),
+      description: t('about.values.innovationDesc'),
     },
     {
       icon: Users,
-      title: 'Client-Focused',
-      description: 'Your success is our success. We build lasting partnerships.',
+      title: t('about.values.clientFocused'),
+      description: t('about.values.clientDesc'),
     },
     {
       icon: Award,
-      title: 'Quality Excellence',
-      description: 'Uncompromising standards in every line of code.',
+      title: t('about.values.qualityExcellence'),
+      description: t('about.values.qualityDesc'),
     },
   ];
 
   const milestones = [
-    { year: '2024', event: 'Appointly-ks founded in Prishtina with a vision to transform appointment booking' },
-    { year: '2025', event: 'Launched AI-powered chatbot and serving businesses across Kosovo' },
-    { year: 'Future', event: 'Making Appointly-ks the most trusted appointment management platform in the region' },
+    { year: '2024', event: t('about.milestones.2024') },
+    { year: '2025', event: t('about.milestones.2025') },
+    { year: 'Future', event: t('about.milestones.future') },
   ];
 
   return (
@@ -127,10 +129,10 @@ const AboutUsPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              About <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Appointly-ks</span>
+              {t('about.title')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{t('about.titleHighlight')}</span>
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              We're a passionate team of developers, designers, and innovators dedicated to creating exceptional appointment booking experiences that drive real business results.
+              {t('about.subtitle')}
             </p>
           </div>
         </div>
@@ -140,30 +142,19 @@ const AboutUsPage: React.FC = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl p-8 md:p-12 border border-indigo-100 shadow-lg">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('about.ourStory.title')}</h2>
             <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
               <p>
-                It all started in late 2024, in the heart of Prishtina, Kosovo. Five passionate developers sat in a small café, 
-                frustrated by the endless phone calls and missed appointments they witnessed businesses struggling with every day. 
-                "There has to be a better way," said Etrit, and that spark of an idea would soon become Appointly-ks.
+                {t('about.ourStory.p1')}
               </p>
               <p>
-                What began as late-night coding sessions and endless cups of coffee quickly evolved into something bigger. 
-                Lerdi brought his expertise in AI integration, dreaming of a chatbot that could handle bookings as naturally as 
-                a human receptionist. Fatlum, Jasin, and Marjan worked tirelessly on building a rock-solid backend that could 
-                handle thousands of appointments without breaking a sweat.
+                {t('about.ourStory.p2')}
               </p>
               <p>
-                We started with a simple question: <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-semibold">"What if booking an appointment 
-                was as easy as sending a text?"</span> Months of development, countless iterations, and hundreds of cups of coffee 
-                later, we had our answer. Appointly-ks was born – a platform that doesn't just schedule appointments, but transforms 
-                how businesses connect with their customers.
+                {t('about.ourStory.p3')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-semibold">{t('about.ourStory.p3Highlight')}</span> {t('about.ourStory.p3End')}
               </p>
               <p>
-                Today, we're proud to serve businesses across Kosovo and beyond, helping them save time, reduce no-shows, and 
-                focus on what they do best. But we're just getting started. Every day, we're working to make Appointly-ks smarter, 
-                faster, and more intuitive. Because for us, this isn't just a project – it's our mission to make scheduling 
-                effortless for everyone.
+                {t('about.ourStory.p4')}
               </p>
             </div>
           </div>
@@ -179,12 +170,10 @@ const AboutUsPage: React.FC = () => {
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
                   <Target className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">Our Mission</h2>
+                <h2 className="text-3xl font-bold text-gray-900">{t('about.mission.title')}</h2>
               </div>
               <p className="text-lg text-gray-700 leading-relaxed">
-                To empower businesses of all sizes with intuitive scheduling tools that save time, reduce no-shows, 
-                and enhance customer satisfaction. We believe every minute saved on scheduling is a minute gained 
-                for what truly matters – serving your customers.
+                {t('about.mission.description')}
               </p>
             </div>
 
@@ -193,12 +182,10 @@ const AboutUsPage: React.FC = () => {
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
                   <Rocket className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">Our Vision</h2>
+                <h2 className="text-3xl font-bold text-gray-900">{t('about.vision.title')}</h2>
               </div>
               <p className="text-lg text-gray-700 leading-relaxed">
-                To become the most trusted appointment management platform in the region, known for innovation, 
-                reliability, and exceptional user experience. We're building a future where scheduling is so 
-                seamless, it becomes invisible – just part of how business gets done.
+                {t('about.vision.description')}
               </p>
             </div>
           </div>
@@ -238,7 +225,7 @@ const AboutUsPage: React.FC = () => {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Meet Our Team</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('about.team.title')}</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
               The talented individuals behind Appointly-ks's success.
             </p>
@@ -300,7 +287,7 @@ const AboutUsPage: React.FC = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Our Journey</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('about.milestones.title')}</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
               Key milestones in our growth and evolution as a company.
             </p>

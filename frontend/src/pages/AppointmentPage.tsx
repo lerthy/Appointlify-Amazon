@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AppointmentForm from '../components/customer/AppointmentForm';
 import Container from '../components/ui/Container';
 import Header from '../components/shared/Header';
@@ -17,6 +18,7 @@ const fadeUp = {
 };
 
 const AppointmentPage: React.FC = () => {
+  const { t } = useTranslation();
   const { businessId } = useParams<{ businessId?: string }>();
   const navigate = useNavigate();
   const [business, setBusiness] = useState<any>(null);
@@ -87,13 +89,13 @@ const AppointmentPage: React.FC = () => {
     return (
       <Container maxWidth="md">
         <div className="py-16 text-center">
-          <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
-          <p className="mb-6">Please select a business from the home page to book an appointment.</p>
+          <h2 className="text-2xl font-bold mb-4">{t('appointmentPage.businessNotFound')}</h2>
+          <p className="mb-6">{t('appointmentPage.selectBusiness')}</p>
           <button
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
             onClick={() => navigate('/')}
           >
-            Back to Home
+            {t('appointmentPage.backToHome')}
           </button>
         </div>
       </Container>
@@ -103,7 +105,7 @@ const AppointmentPage: React.FC = () => {
   if (loading) {
     return (
       <Container maxWidth="md">
-        <div className="py-16 text-center text-gray-500">Loading business info...</div>
+        <div className="py-16 text-center text-gray-500">{t('appointmentPage.loading')}</div>
       </Container>
     );
   }
@@ -112,13 +114,13 @@ const AppointmentPage: React.FC = () => {
     return (
       <Container maxWidth="md">
         <div className="py-16 text-center">
-          <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
-          <p className="mb-6">Please select a business from the home page to book an appointment.</p>
+          <h2 className="text-2xl font-bold mb-4">{t('appointmentPage.businessNotFound')}</h2>
+          <p className="mb-6">{t('appointmentPage.selectBusiness')}</p>
           <button
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
             onClick={() => navigate('/')}
           >
-            Back to Home
+            {t('appointmentPage.backToHome')}
           </button>
         </div>
       </Container>
@@ -141,7 +143,7 @@ const AppointmentPage: React.FC = () => {
                 animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
               >
                 <ArrowLeft className="w-5 h-5 mr-1" />
-                <span>Back</span>
+                <span>{t('appointmentPage.back')}</span>
               </motion.button>
 
               {/* Two Column Layout: Form on Left, Map on Right */}

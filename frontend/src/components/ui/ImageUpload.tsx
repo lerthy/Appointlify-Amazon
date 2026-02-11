@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { uploadToStorage, generateImagePath } from '../../utils/storageService';
 
 interface ImageUploadProps {
@@ -19,6 +20,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   disabled = false,
   employeeId
 }) => {
+  const { t } = useTranslation();
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +46,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
       onChange(uploadResult.url!);
     } catch (err) {
-      setError('Failed to upload image');
+      setError(t('common.errors.uploadFailed'));
     } finally {
       setIsUploading(false);
     }
@@ -104,7 +106,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             {isUploading ? (
               <div className="space-y-2">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-sm text-gray-600">Uploading...</p>
+                <p className="text-sm text-gray-600">{t('imageUpload.uploading')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -113,10 +115,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-700">
-                    {disabled ? 'No image' : 'Click to upload image'}
+                    {disabled ? t('imageUpload.noImage') : t('imageUpload.clickToUpload')}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    PNG, JPG, WebP up to 5MB
+                    {t('imageUpload.fileTypes')}
                   </p>
                 </div>
               </div>

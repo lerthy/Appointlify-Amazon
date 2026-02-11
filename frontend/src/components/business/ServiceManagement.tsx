@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Briefcase, Plus, Edit, Trash2, Clock, DollarSign, FileText,
   Scissors, Heart, Zap, Star, Coffee, Car, Home, Phone, Mail, 
@@ -81,6 +82,7 @@ const getIconComponent = (iconName: string) => {
 };
 
 const ServiceManagement: React.FC = () => {
+  const { t } = useTranslation();
   const { services, addService, updateService, deleteService, businessId } = useApp();
   const { showNotification } = useNotification();
   const [isAddingService, setIsAddingService] = useState(false);
@@ -106,12 +108,12 @@ const ServiceManagement: React.FC = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.description || formData.duration <= 0 || formData.price <= 0) {
-      showNotification('Please fill in all required fields with valid values.', 'error');
+      showNotification(t('servicesManagement.errors.fillRequired'), 'error');
       return;
     }
 
     if (!businessId) {
-      showNotification('Business ID not found. Please refresh the page and try again.', 'error');
+      showNotification(t('servicesManagement.errors.noBusinessId'), 'error');
       return;
     }
 
@@ -125,7 +127,7 @@ const ServiceManagement: React.FC = () => {
           price: formData.price,
           icon: formData.icon
         });
-        showNotification('Service updated successfully!', 'success');
+        showNotification(t('servicesManagement.success.updated'), 'success');
         setEditingService(null);
       } else {
         // Add new service - use businessId from AppContext
@@ -137,14 +139,14 @@ const ServiceManagement: React.FC = () => {
           price: formData.price,
           icon: formData.icon
         });
-        showNotification('Service added successfully!', 'success');
+        showNotification(t('servicesManagement.success.added'), 'success');
       }
 
       resetForm();
       setIsAddingService(false);
     } catch (error) {
       console.error('Error saving service:', error);
-      showNotification('Failed to save service. Please try again.', 'error');
+      showNotification(t('servicesManagement.errors.saveFailed'), 'error');
     }
   };
 
@@ -176,11 +178,11 @@ const ServiceManagement: React.FC = () => {
   const handleDeleteService = async (serviceId: string) => {
     try {
       await deleteService(serviceId);
-      showNotification('Service deleted successfully!', 'success');
+      showNotification(t('servicesManagement.success.deleted'), 'success');
       setDeletingService(null);
     } catch (error) {
       console.error('Error deleting service:', error);
-      showNotification('Failed to delete service. Please try again.', 'error');
+      showNotification(t('servicesManagement.errors.deleteFailed'), 'error');
     }
   };
 
@@ -209,17 +211,17 @@ const ServiceManagement: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Services</h2>
-          <p className="text-gray-600">Manage your business services</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('servicesManagement.title')}</h2>
+          <p className="text-gray-600">{t('servicesManagement.subtitle')}</p>
         </div>
         <Button
           onClick={() => setIsAddingService(true)}
           className="flex items-center justify-center w-10 h-10 rounded-full sm:w-auto sm:h-auto sm:rounded-lg focus-outline-none focus:ring-0 focus:ring-offset-0"
-          aria-label="Add service"
+          aria-label={t('servicesManagement.addService')}
         >
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline ml-2">
-            Add Service
+            {t('servicesManagement.addService')}
           </span>
         </Button>
       </div>
@@ -282,10 +284,10 @@ const ServiceManagement: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
-                    {editingService ? 'Edit Service' : 'Add New Service'}
+                    {editingService ? t('servicesManagement.editService') : t('servicesManagement.addNewService')}
                   </h3>
                   <p className="text-gray-600 mt-1">
-                    {editingService ? 'Update the service details below' : 'Create a new service for your business'}
+                    {editingService ? t('servicesManagement.editDescription') : t('servicesManagement.addDescription')}
                   </p>
                 </div>
                 <button
@@ -306,14 +308,14 @@ const ServiceManagement: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Service Name *
+                    {t('servicesManagement.name')} *
                   </label>
                   <Input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="e.g., Haircut, Massage, Consultation"
+                    placeholder={t('servicesManagement.namePlaceholder')}
                     className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                     required
                   />
@@ -321,13 +323,13 @@ const ServiceManagement: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Description *
+                    {t('servicesManagement.description')} *
                   </label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    placeholder="Describe what this service includes..."
+                    placeholder={t('servicesManagement.descriptionPlaceholder')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none outline-none"
                     rows={3}
                     required
@@ -337,7 +339,7 @@ const ServiceManagement: React.FC = () => {
                 {/* Icon Selection */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Service Icon *
+                    {t('servicesManagement.icon')} *
                   </label>
                   <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 p-3 sm:p-4 border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-gray-50">
                     {iconOptions.map((option) => (
@@ -368,7 +370,7 @@ const ServiceManagement: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Duration (minutes) *
+                      {t('servicesManagement.duration')} *
                     </label>
                     <Input
                       type="number"
@@ -386,7 +388,7 @@ const ServiceManagement: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Price (USD) *
+                      {t('servicesManagement.price')} *
                     </label>
                     <Input
                       type="number"
@@ -416,10 +418,10 @@ const ServiceManagement: React.FC = () => {
                     }}
                     className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
-                    Cancel
+                    {t('servicesManagement.cancel')}
                   </Button>
                   <Button type="submit" className="px-6 py-2 bg-green-600 hover:bg-green-700">
-                    {editingService ? 'Update Service' : 'Add Service'}
+                    {editingService ? t('servicesManagement.updateService') : t('servicesManagement.addService')}
                   </Button>
                 </div>
               </form>
@@ -433,10 +435,10 @@ const ServiceManagement: React.FC = () => {
         isOpen={!!deletingService}
         onCancel={() => setDeletingService(null)}
         onConfirm={() => deletingService && handleDeleteService(deletingService)}
-        title="Delete Service"
-        description="Are you sure you want to delete this service? This action cannot be undone."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t('servicesManagement.deleteTitle')}
+        description={t('servicesManagement.deleteDescription')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('servicesManagement.cancel')}
         variant="danger"
       />
     </div>

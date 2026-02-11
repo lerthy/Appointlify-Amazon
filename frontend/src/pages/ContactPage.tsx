@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 
 const ContactPage: React.FC = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -36,31 +38,31 @@ const ContactPage: React.FC = () => {
   const contactInfo = [
     {
       icon: Mail,
-      title: 'Email Us',
+      title: t('contact.info.emailUs'),
       details: 'etrithasolli5@gmail.com',
       details2: 'lerdi890@gmail.com',
-      description: 'Send us an email anytime',
+      description: t('contact.info.emailDesc'),
     },
     {
       icon: Phone,
-      title: 'Call Us',
+      title: t('contact.info.callUs'),
       details: '+383 45 378 957',
       details2: '',
-      description: 'Mon-Fri, 9:00 AM - 6:00 PM CET',
+      description: t('contact.info.callDesc'),
     },
     {
       icon: MapPin,
-      title: 'Visit Us',
+      title: t('contact.info.visitUs'),
       details: 'Prishtina, 10000',
       details2: 'Prishtina, Kosovo',
-      description: 'Come say hello at our office',
+      description: t('contact.info.visitDesc'),
     },
     {
       icon: Clock,
-      title: 'Working Hours',
+      title: t('contact.info.workingHours'),
       details: 'Mon-Fri 9:00-18:00',
-      details2: 'Weekend: Closed',
-      description: 'Central European Time',
+      details2: t('contact.info.weekendClosed'),
+      description: t('contact.info.workingDesc'),
     },
   ];
 
@@ -77,11 +79,10 @@ const ContactPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              Get In <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Touch</span>
+              {t('contact.title')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{t('contact.titleHighlight')}</span>
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              Ready to transform your appointment booking experience? Let's discuss your needs 
-              and explore how we can help you achieve your goals.
+              {t('contact.subtitle')}
             </p>
           </div>
         </div>
@@ -93,27 +94,27 @@ const ContactPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Form */}
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">Send us a Message</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('contact.form.title')}</h2>
               
               {submitted ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
                   <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4 animate-pulse" />
-                  <h3 className="text-xl font-semibold text-green-900 mb-2">Message Sent Successfully!</h3>
+                  <h3 className="text-xl font-semibold text-green-900 mb-2">{t('contact.form.successTitle')}</h3>
                   <p className="text-green-700">
-                    Thank you for contacting us. We'll get back to you as soon as possible.
+                    {t('contact.form.successMessage')}
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
                     className="mt-6 text-indigo-600 hover:text-indigo-700 font-medium"
                   >
-                    Send Another Message
+                    {t('contact.form.sendAnother')}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
+                      {t('contact.form.fullName')} *
                     </label>
                     <input
                       type="text"
@@ -123,13 +124,13 @@ const ContactPage: React.FC = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
-                      placeholder="John Doe"
+                      placeholder={t('contact.form.fullNamePlaceholder')}
                     />
                   </div>
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
+                      {t('contact.form.email')} *
                     </label>
                     <input
                       type="email"
@@ -139,13 +140,13 @@ const ContactPage: React.FC = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
-                      placeholder="john@example.com"
+                      placeholder={t('contact.form.emailPlaceholder')}
                     />
                   </div>
 
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
+                      {t('contact.form.phone')}
                     </label>
                     <input
                       type="tel"
@@ -154,13 +155,13 @@ const ContactPage: React.FC = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
-                      placeholder="+383 45 378 957"
+                      placeholder={t('contact.form.phonePlaceholder')}
                     />
                   </div>
 
                   <div>
                     <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                      Subject *
+                      {t('contact.form.subject')} *
                     </label>
                     <select
                       id="subject"
@@ -170,19 +171,19 @@ const ContactPage: React.FC = () => {
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
                     >
-                      <option value="">Select a subject</option>
-                      <option value="general">General Inquiry</option>
-                      <option value="support">Technical Support</option>
-                      <option value="sales">Sales & Pricing</option>
-                      <option value="demo">Request a Demo</option>
-                      <option value="feedback">Feedback</option>
-                      <option value="partnership">Partnership Opportunities</option>
+                      <option value="">{t('contact.form.selectSubject')}</option>
+                      <option value="general">{t('contact.form.subjects.general')}</option>
+                      <option value="support">{t('contact.form.subjects.support')}</option>
+                      <option value="sales">{t('contact.form.subjects.sales')}</option>
+                      <option value="demo">{t('contact.form.subjects.demo')}</option>
+                      <option value="feedback">{t('contact.form.subjects.feedback')}</option>
+                      <option value="partnership">{t('contact.form.subjects.partnership')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                      Message *
+                      {t('contact.form.message')} *
                     </label>
                     <textarea
                       id="message"
@@ -192,7 +193,7 @@ const ContactPage: React.FC = () => {
                       required
                       rows={6}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900 resize-none"
-                      placeholder="Tell us how we can help you..."
+                      placeholder={t('contact.form.messagePlaceholder')}
                     />
                   </div>
 
@@ -204,11 +205,11 @@ const ContactPage: React.FC = () => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Sending...
+                        {t('contact.form.sending')}
                       </>
                     ) : (
                       <>
-                        Send Message
+                        {t('contact.form.sendMessage')}
                         <Send className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}

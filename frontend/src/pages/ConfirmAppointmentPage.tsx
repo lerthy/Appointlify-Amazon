@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle, Loader, Calendar, Clock, User, Briefcase, MapPin, Phone, Mail } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Header from '../components/shared/Header';
@@ -36,6 +37,7 @@ interface AppointmentDetails {
 }
 
 const ConfirmAppointmentPage: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
@@ -410,12 +412,12 @@ const ConfirmAppointmentPage: React.FC = () => {
                 <Loader className="w-10 h-10 text-indigo-600 animate-spin" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {status === 'loading' ? 'Loading' : 'Confirming'}
+                {status === 'loading' ? t('common.loading') : t('confirmAppointment.confirming')}
               </h2>
               <p className="text-gray-600">
                 {status === 'loading' 
-                  ? 'Fetching appointment details...' 
-                  : 'We\'re confirming your appointment...'}
+                  ? t('confirmAppointment.loading') 
+                  : t('confirmAppointment.confirming')}
               </p>
             </div>
           )}
@@ -426,14 +428,14 @@ const ConfirmAppointmentPage: React.FC = () => {
                 <CheckCircle className="w-12 h-12 text-green-600" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {status === 'success' ? 'Appointment Confirmed!' : 'Already Confirmed'}
+                {status === 'success' ? t('confirmAppointment.success') : t('confirmAppointment.alreadyConfirmed')}
               </h1>
-              <p className="text-gray-600 mb-6">{message || 'Your appointment is confirmed. We look forward to seeing you!'}</p>
+              <p className="text-gray-600 mb-6">{message || t('confirmAppointment.successMessage')}</p>
               <Button
                 onClick={() => navigate('/')}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg font-semibold"
               >
-                Back to Home
+                {t('confirmAppointment.backToHome')}
               </Button>
             </div>
           )}
@@ -445,7 +447,7 @@ const ConfirmAppointmentPage: React.FC = () => {
                 onClick={() => navigate('/')}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                Back to Home
+                {t('confirmAppointment.backToHome')}
               </Button>
             </>
           )}
@@ -455,13 +457,13 @@ const ConfirmAppointmentPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-4">
                 <XCircle className="w-12 h-12 text-red-500" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirmation Failed</h2>
-              <p className="text-gray-600 mb-6">{message || 'Something went wrong. Please try again later.'}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('confirmAppointment.error')}</h2>
+              <p className="text-gray-600 mb-6">{message || t('confirmAppointment.errorMessage')}</p>
               <Button
                 onClick={() => navigate('/')}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                Back to Home
+                {t('confirmAppointment.backToHome')}
               </Button>
             </div>
           )}

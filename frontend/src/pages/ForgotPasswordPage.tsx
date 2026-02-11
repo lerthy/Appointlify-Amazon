@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
@@ -7,6 +8,7 @@ const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/pub
 
 const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -23,12 +25,12 @@ const ForgotPasswordPage: React.FC = () => {
     setMessage('');
     
     if (!email.trim()) {
-      setError('Please enter your email address.');
+      setError(t('forgotPassword.errors.enterEmail'));
       return;
     }
     
     if (!validateEmail(email.trim())) {
-      setError('Please enter a valid email address.');
+      setError(t('forgotPassword.errors.invalidEmail'));
       return;
     }
     
@@ -44,16 +46,16 @@ const ForgotPasswordPage: React.FC = () => {
       const data = await response.json();
       
       if (response.ok) {
-        setMessage(data.message || 'If an account exists for that email, a reset link has been sent.');
+        setMessage(data.message || t('forgotPassword.successMessage'));
         setEmail(''); // Clear the form
       } else if (response.status === 429) {
-        setError(data.error || 'Too many requests. Please wait before trying again.');
+        setError(data.error || t('forgotPassword.errors.tooManyRequests'));
       } else {
-        setError(data.error || 'An error occurred. Please try again.');
+        setError(data.error || t('common.error'));
       }
     } catch (fetchError) {
       console.error('Network error:', fetchError);
-      setError('Network error. Please check your connection and try again.');
+      setError(t('forgotPassword.errors.networkError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -63,19 +65,19 @@ const ForgotPasswordPage: React.FC = () => {
     <AuthPageTransition>
       <SplitAuthLayout
         logoUrl={LOGO_URL}
-        title="Forgot your password?"
-        subtitle="Enter your email to receive a reset link."
-        quote="We never disclose whether an email exists."
+        title={t('forgotPassword.title')}
+        subtitle={t('forgotPassword.subtitle')}
+        quote={t('forgotPassword.quote')}
       >
         <button onClick={() => navigate('/login')} className="mb-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to sign in
+          {t('forgotPassword.backToSignIn')}
         </button>
         <form onSubmit={submit} className="space-y-3">
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-gray-700">Email address</label>
+            <label className="block text-xs font-medium text-gray-700">{t('forgotPassword.emailLabel')}</label>
             <input 
               type="email" 
               value={email} 
@@ -83,7 +85,7 @@ const ForgotPasswordPage: React.FC = () => {
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-all duration-200 ${
                 error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'
               }`}
-              placeholder="Enter your email address" 
+              placeholder={t('forgotPassword.emailPlaceholder')} 
               disabled={isSubmitting}
               autoComplete="email"
             />
@@ -91,7 +93,7 @@ const ForgotPasswordPage: React.FC = () => {
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded p-2 text-center">{error}</div>}
           {message && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{message}</div>}
           <button type="submit" className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Send reset link'}
+            {isSubmitting ? t('forgotPassword.sending') : t('forgotPassword.sendResetLink')}
           </button>
         </form>
       </SplitAuthLayout>
