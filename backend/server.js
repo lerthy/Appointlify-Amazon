@@ -1,14 +1,15 @@
 import 'reflect-metadata';
-import '../../backend/loadEnv.js';
+import './loadEnv.js';
 import express from 'express';
 import twilio from 'twilio';
 import cors from 'cors';
 import OpenAI from 'openai';
-import { supabase } from '../../backend/supabaseClient.js';
-import googleAuthRouter from '../../backend/routes/googleAuthRouter.js';
-import { startGoogleHealthMonitor } from '../../backend/services/googleHealthMonitor.js';
+import { supabase } from './supabaseClient.js';
+import googleAuthRouter from './routes/googleAuthRouter.js';
+import { subdomainResolver } from './middleware/subdomainResolver.js';
+import { startGoogleHealthMonitor } from './services/googleHealthMonitor.js';
 
-
+console.log('Supabase available at startup:', !!supabase);
 
 // Configure CORS allowlist for production
 const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:5000,http://localhost:3000')
@@ -18,21 +19,62 @@ const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 
 
 const corsOptions = {
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.length === 0) return cb(null, true);
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return cb(null, true);
+    }
+    
+    // In development, always allow localhost origins
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    if (isDevelopment) {
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return cb(null, true);
+      }
+    }
+    
+    // Check against allowed origins
+    if (allowedOrigins.length === 0 || allowedOrigins.includes('*')) {
+      return cb(null, true);
+    }
+    
     const normalizedOrigin = origin.replace(/\/$/, '');
-    if (allowedOrigins.includes(normalizedOrigin) || allowedOrigins.includes('*')) {
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return cb(null, true);
+    }
+    
+    // Log CORS rejection for debugging
+    console.warn('[CORS] Rejected origin:', origin, 'Allowed origins:', allowedOrigins);
+    // In development, allow anyway but log
+    if (isDevelopment) {
       return cb(null, true);
     }
     return cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
 const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use('/api', googleAuthRouter);
 
+// Logging middleware for debugging
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    console.log(`[${req.method}] ${req.path}`, {
+      origin: req.headers.origin,
+      host: req.headers.host,
+      query: req.query
+    });
+  }
+  next();
+});
+
+// Subdomain middleware: attaches business context if subdomain is present
+app.use(subdomainResolver);
+app.use('/api', googleAuthRouter);
+console.log('✅ Google OAuth routes registered at /api');
 
 // Lightweight in-memory store for dev when Supabase is not configured
 const hasSupabase = !!supabase;
@@ -101,15 +143,19 @@ if (accountSid && authToken && twilioPhoneNumber) {
   if (accountSid.startsWith('AC') && authToken.length > 10) {
     try {
       client = twilio(accountSid, authToken);
+      console.log('✅ Twilio client initialized');
     } catch (error) {
-      // Twilio init failed
+      console.log('⚠️ Twilio initialization failed:', error.message);
     }
+  } else {
+    console.log('⚠️ Twilio credentials appear invalid (Account SID should start with "AC")');
   }
 } else {
   const missing = [];
   if (!accountSid) missing.push('TWILIO_ACCOUNT_SID');
   if (!authToken) missing.push('TWILIO_AUTH_TOKEN');
   if (!twilioPhoneNumber) missing.push('TWILIO_PHONE_NUMBER');
+  console.log(`⚠️ Twilio not configured - missing: ${missing.join(', ')}`);
 }
 
 // OpenAI client (lazy init)
@@ -129,17 +175,17 @@ async function getMockAIResponse(messages, context) {
   const services = context?.services || [];
   const availableTimes = context?.availableTimes || [];
   const message = userMessage.toLowerCase();
-
+  
   if (/\b(hi|hello|hey|good morning|good afternoon)\b/.test(message)) {
     return `Hello! Welcome to ${businessName}. I'm here to help you book an appointment. What service would you like to schedule today?`;
   }
-
+  
   if (/\b(services|what do you offer|menu|options)\b/.test(message)) {
     const serviceList = services.map(s => `• ${s.name} - $${s.price} (${s.duration} min)`).join('\n');
-    return serviceList ? `Here are our available services:\n\n${serviceList}\n\nWhich service interests you?` :
-      'We offer various services. What type of service are you looking for?';
+    return serviceList ? `Here are our available services:\n\n${serviceList}\n\nWhich service interests you?` : 
+           'We offer various services. What type of service are you looking for?';
   }
-
+  
   return "I'm here to help you book an appointment. Tell me what service you need, when you'd like to come in, and your name!";
 }
 
@@ -148,11 +194,11 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { messages, context } = req.body;
     const useOpenAI = process.env.OPENAI_API_KEY && process.env.USE_OPENAI !== 'false';
-
+    
     if (!useOpenAI) {
       const mockResponse = await getMockAIResponse(messages, context);
-      return res.json({
-        success: true,
+      return res.json({ 
+        success: true, 
         message: mockResponse,
         provider: 'mock'
       });
@@ -161,7 +207,7 @@ app.post('/api/chat', async (req, res) => {
     const systemPrompt = `You are an intelligent booking assistant for ${context?.businessName || 'our business'}.`;
     const chatMessages = [{ role: 'system', content: systemPrompt }, ...messages];
     const openai = getOpenAI();
-
+    
     if (!openai) {
       const mockResponse = await getMockAIResponse(messages, context);
       return res.json({ success: true, message: mockResponse, provider: 'mock' });
@@ -191,10 +237,22 @@ app.post('/api/book-appointment', async (req, res) => {
   try {
     const { name, service, date, time, email, phone } = req.body;
     const bookingId = `apt_${Date.now()}`;
+    // Use business context from subdomain
+    const business = req.business;
+    if (!business) {
+      return res.status(404).json({ success: false, error: 'Business not found for this subdomain.' });
+    }
+    // You can add business-specific logic here, e.g. check service availability, save appointment to business, etc.
     res.json({
       success: true,
       bookingId,
-      message: `Appointment booked successfully!`,
+      business: {
+        id: business.id,
+        name: business.name,
+        subdomain: business.subdomain,
+        email: business.email,
+      },
+      message: `Appointment booked successfully for ${business.name}!`,
       details: { name, service, date, time, email, phone }
     });
   } catch (error) {
@@ -205,17 +263,17 @@ app.post('/api/book-appointment', async (req, res) => {
 app.post('/api/send-sms', async (req, res) => {
   try {
     if (!client) {
-      return res.status(503).json({
-        success: false,
+      return res.status(503).json({ 
+        success: false, 
         error: 'SMS service not configured',
         details: 'Twilio credentials are missing. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER environment variables.'
       });
     }
-
+    
     // Validate credentials are present
     if (!accountSid || !authToken || !twilioPhoneNumber) {
-      return res.status(503).json({
-        success: false,
+      return res.status(503).json({ 
+        success: false, 
         error: 'SMS service not fully configured',
         details: {
           hasAccountSid: !!accountSid,
@@ -224,53 +282,53 @@ app.post('/api/send-sms', async (req, res) => {
         }
       });
     }
-
+    
     const { to, message } = req.body;
-
+    
     if (!to || !message) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields: to and message'
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: to and message' 
       });
     }
-
+    
     let formattedPhone = to.replace(/\D/g, '');
     formattedPhone = formattedPhone.startsWith('+') ? formattedPhone : `+${formattedPhone}`;
-
+    
     const result = await client.messages.create({
       body: message,
       from: twilioPhoneNumber,
       to: formattedPhone
     });
-
+    
     res.json({ success: true, messageId: result.sid });
   } catch (error) {
     console.error('Error sending SMS:', error);
-
+    
     // Handle Twilio authentication errors specifically
     if (error.code === 20003) {
-      return res.status(401).json({
-        success: false,
+      return res.status(401).json({ 
+        success: false, 
         error: 'Twilio authentication failed',
         details: 'Invalid Twilio credentials. Please check your TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN environment variables.',
         code: error.code,
         moreInfo: error.moreInfo
       });
     }
-
+    
     // Handle other Twilio errors
     if (error.status && error.code) {
-      return res.status(error.status).json({
-        success: false,
+      return res.status(error.status).json({ 
+        success: false, 
         error: error.message || 'SMS sending failed',
         code: error.code,
         moreInfo: error.moreInfo
       });
     }
-
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to send SMS'
+    
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to send SMS' 
     });
   }
 });
@@ -278,18 +336,18 @@ app.post('/api/send-sms', async (req, res) => {
 app.post('/api/send-email', async (req, res) => {
   try {
     const { to, subject, html, text } = req.body;
-
+    
     if (!to || !subject || (!html && !text)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields: to, subject, and html or text'
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: to, subject, and html or text' 
       });
     }
-
+    
     // Try to send real email if Gmail credentials are configured
     const gmailUser = process.env.GMAIL_USER;
     const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
-
+    
     if (gmailUser && gmailAppPassword) {
       try {
         const nodemailer = await import('nodemailer');
@@ -300,7 +358,7 @@ app.post('/api/send-email', async (req, res) => {
             pass: gmailAppPassword
           }
         });
-
+        
         const mailOptions = {
           from: `"Appointly" <${gmailUser}>`,
           to: to,
@@ -308,29 +366,39 @@ app.post('/api/send-email', async (req, res) => {
           html: html,
           text: text || html?.replace(/<[^>]*>/g, '') || ''
         };
-
+        
         const result = await transporter.sendMail(mailOptions);
-
-        return res.json({
-          success: true,
-          messageId: result.messageId,
-          message: 'Email sent successfully'
+        console.log('✅ Email sent successfully:', result.messageId);
+        return res.json({ 
+          success: true, 
+          messageId: result.messageId, 
+          message: 'Email sent successfully' 
         });
       } catch (emailError) {
         console.error('❌ Failed to send email via Gmail:', emailError.message);
         // Fall through to simulation mode
       }
     }
-
+    
     // Fallback: Log email details (for localhost development without email config)
-
+    console.log('📧 Email would be sent (simulated):', {
+      to,
+      subject,
+      hasHtml: !!html,
+      hasText: !!text,
+      note: gmailUser && gmailAppPassword 
+        ? 'Gmail credentials configured but sending failed' 
+        : 'Set GMAIL_USER and GMAIL_APP_PASSWORD environment variables to send real emails'
+    });
+    
     const emailId = `email_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    return res.json({
-      success: true,
-      messageId: emailId,
-      message: 'Email sent (simulated - configure Gmail credentials for real emails)'
+    return res.json({ 
+      success: true, 
+      messageId: emailId, 
+      message: 'Email sent (simulated - configure Gmail credentials for real emails)' 
     });
   } catch (error) {
+    console.error('Error in /api/send-email:', error);
     return res.status(500).json({ success: false, error: 'Failed to send email' });
   }
 });
@@ -369,8 +437,8 @@ app.get('/api/business/:businessId/employees', requireDb, async (req, res) => {
 app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-
-
+    console.log('[settings GET] Fetching settings for business:', businessId);
+    
     const { data, error } = await supabase
       .from('business_settings')
       .select('*')
@@ -384,17 +452,17 @@ app.get('/api/business/:businessId/settings', requireDb, async (req, res) => {
         details: error.details,
         hint: error.hint
       });
-
+      
       // If it's a PGRST116 (no rows), return empty settings
       if (error.code === 'PGRST116') {
         return res.json({ success: true, settings: null });
       }
-
+      
       return res.status(500).json({ success: false, error: error.message || 'Failed to fetch settings' });
     }
 
     const settingsRow = Array.isArray(data) && data.length > 0 ? data[0] : null;
-
+    console.log('[settings GET] Found settings:', settingsRow ? 'yes' : 'no');
     return res.json({ success: true, settings: settingsRow });
   } catch (error) {
     console.error('[settings GET] Unexpected error:', error);
@@ -406,7 +474,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
     const updates = req.body || {};
-
+    
     const normalized = {
       working_hours: Array.isArray(updates.working_hours) ? updates.working_hours : [],
       blocked_dates: Array.isArray(updates.blocked_dates) ? updates.blocked_dates : [],
@@ -455,7 +523,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
           .eq('id', businessId)
           .maybeSingle();
         if (userRow?.name) businessName = userRow.name;
-      } catch { }
+      } catch {}
 
       const insertPayload = {
         business_id: businessId,
@@ -479,7 +547,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
       }
       dbResult = data;
     }
-
+    
     return res.json({ success: true, settings: dbResult });
   } catch (error) {
     console.error('[settings PATCH] handler error:', error);
@@ -491,7 +559,10 @@ app.get('/api/businesses', requireDb, async (req, res) => {
   try {
     console.log('[GET /api/businesses] Fetching completed businesses with single query...');
     
-    // Use a single query approach: get distinct business_ids from each table and find intersection
+    // Use a single query with Postgres to find businesses that have employees, services, and settings
+    // We'll use Supabase's RPC capability or fetch distinct business_ids and find intersection
+    
+    // Get distinct business_ids from each table
     const [employeesResult, servicesResult, settingsResult] = await Promise.all([
       supabase.from('employees').select('business_id').not('business_id', 'is', null),
       supabase.from('services').select('business_id').not('business_id', 'is', null),
@@ -520,15 +591,15 @@ app.get('/api/businesses', requireDb, async (req, res) => {
     // Fetch business details for valid business IDs in a single query
     const { data: businesses, error: businessesError } = await supabase
       .from('users')
-      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role, subdomain')
+      .select('id, name, description, logo, category, business_address, phone, owner_name, website, role')
       .in('id', validBusinessIds);
     
     if (businessesError) throw businessesError;
     
-    console.log(`[GET /api/businesses] Found ${businesses?.length || 0} completed businesses`);
+    console.log(`[GET /api/businesses] Found ${businesses?.length || 0} completed businesses (out of ${validBusinessIds.length} valid IDs)`);
     return res.json({ success: true, businesses: businesses || [] });
   } catch (error) {
-    console.error('[GET /api/businesses] Fatal error:', error);
+    console.error('[GET /api/businesses] Error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch businesses' });
   }
 });
@@ -536,192 +607,136 @@ app.get('/api/businesses', requireDb, async (req, res) => {
 app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-
-    // Check if businessId is a valid UUID
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessId);
-
-    let query = supabase
+    const { data, error } = await supabase
       .from('users')
-      .select('id, name, description, logo, subdomain, business_address');
-
-    if (isUuid) {
-      query = query.eq('id', businessId);
-    } else {
-      query = query.eq('subdomain', businessId);
-    }
-
-    const { data, error } = await query.single();
-
-    if (error) {
-      console.error('[GET /api/business/:businessId/info] Supabase error:', {
-        businessId,
-        errorCode: error.code,
-        errorMessage: error.message,
-        errorDetails: error.details,
-        errorHint: error.hint
-      });
-      
-      // Return 404 if business not found, 500 for other errors
-      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
-        return res.status(404).json({ success: false, error: 'Business not found' });
-      }
-      
-      throw error;
-    }
-    
+      .select('id, name, description, logo')
+      .eq('id', businessId)
+      .single();
+    if (error) throw error;
     return res.json({ success: true, info: data || null });
   } catch (error) {
-    console.error('[GET /api/business/:businessId/info] Unexpected error:', error);
-    return res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Failed to fetch business info',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    return res.status(500).json({ success: false, error: 'Failed to fetch business info' });
   }
 });
 
-// Email verification: GET validate token and set email_verified; POST send verification email
-app.get('/api/verify-email', async (req, res) => {
+// Optimized endpoint: fetch all business data in parallel (single request, parallel DB queries)
+app.get('/api/business/:businessId/data', requireDb, async (req, res) => {
   try {
-    const token = req.query.token;
-    if (!token) {
-      return res.status(400).json({ success: false, error: 'Verification token is required' });
+    const { businessId } = req.params;
+    console.log('[GET /api/business/:businessId/data] Fetching all data for business:', businessId);
+    
+    // Fetch all data in parallel
+    const [
+      businessInfoResult,
+      settingsResult,
+      employeesResult,
+      servicesResult,
+      appointmentsResult,
+      customersResult,
+      reviewsResult
+    ] = await Promise.all([
+      // Business info
+      supabase
+        .from('users')
+        .select('id, name, description, logo, business_address')
+        .eq('id', businessId)
+        .single(),
+      
+      // Settings
+      supabase
+        .from('business_settings')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('updated_at', { ascending: false })
+        .limit(1),
+      
+      // Employees
+      supabase
+        .from('employees')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('name'),
+      
+      // Services
+      supabase
+        .from('services')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('name'),
+      
+      // Appointments
+      supabase
+        .from('appointments')
+        .select('*')
+        .eq('business_id', businessId)
+        .order('date', { ascending: true }),
+      
+      // Customers (scoped to business via appointments)
+      supabase
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false }),
+      
+      // Reviews (approved only)
+      supabase
+        .from('reviews')
+        .select('*')
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false })
+    ]);
+    
+    // Handle business info
+    if (businessInfoResult.error && businessInfoResult.error.code !== 'PGRST116') {
+      throw businessInfoResult.error;
     }
-    if (!supabase) {
-      return res.status(503).json({ success: false, error: 'Database not configured' });
+    const businessInfo = businessInfoResult.data || null;
+    
+    // Handle settings (null if not found)
+    const settings = settingsResult.error && settingsResult.error.code === 'PGRST116' 
+      ? null 
+      : (Array.isArray(settingsResult.data) && settingsResult.data.length > 0 ? settingsResult.data[0] : null);
+    
+    // Handle employees
+    if (employeesResult.error) throw employeesResult.error;
+    const employees = employeesResult.data || [];
+    
+    // Handle services
+    if (servicesResult.error) throw servicesResult.error;
+    const services = servicesResult.data || [];
+    
+    // Handle appointments
+    if (appointmentsResult.error) throw appointmentsResult.error;
+    const appointments = appointmentsResult.data || [];
+    
+    // Handle customers (log error but don't fail)
+    const customers = customersResult.error ? [] : (customersResult.data || []);
+    if (customersResult.error) {
+      console.warn('[GET /api/business/:businessId/data] Customers query error:', customersResult.error.message);
     }
-    const { data: user, error: findError } = await supabase
-      .from('users')
-      .select('id, email, auth_user_id, email_verified, email_verification_token_expires')
-      .eq('email_verification_token', token)
-      .single();
-    if (findError || !user) {
-      return res.status(404).json({ success: false, error: 'Invalid or expired verification token' });
+    
+    // Handle reviews (log error but don't fail)
+    const reviews = reviewsResult.error ? [] : (reviewsResult.data || []);
+    if (reviewsResult.error) {
+      console.warn('[GET /api/business/:businessId/data] Reviews query error:', reviewsResult.error.message);
     }
-    if (user.email_verified) {
-      return res.status(200).json({
-        success: true,
-        message: 'Email already verified',
-        alreadyVerified: true,
-        email: user.email,
-      });
-    }
-    const expires = user.email_verification_token_expires ? new Date(user.email_verification_token_expires) : null;
-    if (expires && expires < new Date()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Verification token has expired. Please request a new one.',
-        expired: true,
-      });
-    }
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        email_verified: true,
-        email_verification_token: null,
-        email_verification_token_expires: null,
-      })
-      .eq('id', user.id);
-    if (updateError) {
-      console.error('[GET /api/verify-email] Update error:', updateError);
-      return res.status(500).json({ success: false, error: 'Failed to verify email' });
-    }
-    if (user.auth_user_id) {
-      try {
-        await supabase.auth.admin.updateUserById(user.auth_user_id, { email_confirm: true });
-      } catch (authErr) {
-        console.warn('[GET /api/verify-email] Supabase auth confirm:', authErr);
+    
+    console.log(`[GET /api/business/:businessId/data] Success: info=${!!businessInfo}, settings=${!!settings}, employees=${employees.length}, services=${services.length}, appointments=${appointments.length}, customers=${customers.length}, reviews=${reviews.length}`);
+    
+    return res.json({
+      success: true,
+      data: {
+        info: businessInfo,
+        settings,
+        employees,
+        services,
+        appointments,
+        customers,
+        reviews
       }
-    }
-    return res.status(200).json({
-      success: true,
-      message: 'Email verified successfully! You can now log in.',
-      email: user.email,
     });
   } catch (error) {
-    console.error('[GET /api/verify-email] Error:', error);
-    return res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-});
-
-app.post('/api/verify-email', async (req, res) => {
-  try {
-    const { email } = req.body || {};
-    if (!email || typeof email !== 'string') {
-      return res.status(400).json({ success: false, error: 'Email is required' });
-    }
-    if (!supabase) {
-      return res.status(503).json({ success: false, error: 'Database not configured' });
-    }
-    const { data: user, error: findError } = await supabase
-      .from('users')
-      .select('id, email, email_verified')
-      .eq('email', email.trim().toLowerCase())
-      .single();
-    if (findError || !user) {
-      return res.status(200).json({
-        success: true,
-        message: 'If an account with that email exists, a verification email has been sent.',
-      });
-    }
-    if (user.email_verified) {
-      return res.status(200).json({ success: true, message: 'Email is already verified' });
-    }
-    const crypto = await import('crypto');
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiry = new Date();
-    expiry.setHours(expiry.getHours() + 24);
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        email_verification_token: token,
-        email_verification_token_expires: expiry.toISOString(),
-      })
-      .eq('id', user.id);
-    if (updateError) {
-      console.error('[POST /api/verify-email] Update token error:', updateError);
-      return res.status(500).json({ success: false, error: 'Failed to send verification email' });
-    }
-    const origin = (req.headers.origin || req.headers.referer || '').toString();
-    let frontendUrl = 'http://localhost:3000';
-    if (origin.includes('appointly-ks.netlify.app')) frontendUrl = 'https://appointly-ks.netlify.app';
-    else if (origin.includes('appointly-qa.netlify.app')) frontendUrl = 'https://appointly-qa.netlify.app';
-    else if (process.env.FRONTEND_URL) frontendUrl = process.env.FRONTEND_URL.split(',')[0].trim();
-    const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #4F46E5; text-align: center;">Verify Your Email</h1>
-        <p>Thank you for registering with Appointly!</p>
-        <p>Please click the button below to verify your email address and activate your account:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${verificationLink}" style="background-color: #4F46E5; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Verify Email</a>
-        </div>
-        <p style="color: #666; font-size: 14px;">Or copy and paste this link: <a href="${verificationLink}" style="color: #4F46E5;">${verificationLink}</a></p>
-        <p style="color: #999; font-size: 12px; margin-top: 30px;">This link will expire in 24 hours.</p>
-      </div>`;
-    try {
-      const apiBase = process.env.BACKEND_URL || process.env.VITE_API_URL || 'http://localhost:5001';
-      const sendRes = await fetch(`${apiBase.replace(/\/$/, '')}/api/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: user.email,
-          subject: 'Verify Your Email - Appointly',
-          html,
-          text: `Verify your email: ${verificationLink}`,
-        }),
-      });
-      if (!sendRes.ok) console.warn('[POST /api/verify-email] Send email failed');
-    } catch (emailErr) {
-      console.warn('[POST /api/verify-email] Send email error:', emailErr);
-    }
-    return res.status(200).json({
-      success: true,
-      message: 'If an account with that email exists, a verification email has been sent.',
-    });
-  } catch (error) {
-    console.error('[POST /api/verify-email] Error:', error);
-    return res.status(500).json({ success: false, error: 'Internal server error' });
+    console.error('[GET /api/business/:businessId/data] Error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch business data' });
   }
 });
 
@@ -730,13 +745,13 @@ app.get('/api/users/by-email', async (req, res) => {
     const { email } = req.query;
     if (!email) return res.status(400).json({ success: false, error: 'email required' });
     if (!supabase) return res.json({ success: true, user: null });
-
+    
     const { data, error } = await supabase
       .from('users')
       .select('id')
       .eq('email', String(email))
       .single();
-
+    
     if (error) {
       if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
         return res.json({ success: true, user: null });
@@ -756,17 +771,17 @@ app.patch('/api/users/:id', async (req, res) => {
     const updates = req.body;
 
     if (!supabase) {
-      return res.status(503).json({
-        success: false,
-        error: 'Database not configured'
+      return res.status(503).json({ 
+        success: false, 
+        error: 'Database not configured' 
       });
     }
 
     // Validate required fields
     if (!id) {
-      return res.status(400).json({
-        success: false,
-        error: 'User ID is required'
+      return res.status(400).json({ 
+        success: false, 
+        error: 'User ID is required' 
       });
     }
 
@@ -781,31 +796,6 @@ app.patch('/api/users/:id', async (req, res) => {
     if (updates.website !== undefined) updateData.website = updates.website;
     if (updates.category !== undefined) updateData.category = updates.category;
     if (updates.owner_name !== undefined) updateData.owner_name = updates.owner_name;
-    if (updates.subdomain !== undefined) {
-      const raw = updates.subdomain;
-      const subdomain = raw === null || raw === '' ? '' : String(raw).toLowerCase().replace(/\s/g, '').replace(/[^a-z0-9-]/g, '');
-      if (subdomain && subdomain.length < 3) {
-        return res.status(400).json({
-          success: false,
-          error: 'Subdomain must be at least 3 characters',
-        });
-      }
-      if (subdomain) {
-        const { data: existing } = await supabase
-          .from('users')
-          .select('id')
-          .eq('subdomain', subdomain)
-          .neq('id', id)
-          .maybeSingle();
-        if (existing) {
-          return res.status(400).json({
-            success: false,
-            error: 'This subdomain is already taken',
-          });
-        }
-      }
-      updateData.subdomain = subdomain || null;
-    }
 
     // Update the user
     const { data, error } = await supabase
@@ -817,29 +807,29 @@ app.patch('/api/users/:id', async (req, res) => {
 
     if (error) {
       console.error('Profile update error:', error);
-      return res.status(500).json({
-        success: false,
+      return res.status(500).json({ 
+        success: false, 
         error: error.message || 'Failed to update profile',
-        details: error
+        details: error 
       });
     }
 
     if (!data) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
       });
     }
 
-    return res.json({
-      success: true,
-      user: data
+    return res.json({ 
+      success: true, 
+      user: data 
     });
   } catch (error) {
     console.error('Profile update exception:', error);
-    return res.status(500).json({
-      success: false,
-      error: error?.message || 'Failed to update profile'
+    return res.status(500).json({ 
+      success: false, 
+      error: error?.message || 'Failed to update profile' 
     });
   }
 });
@@ -864,19 +854,19 @@ app.get('/api/business/:businessId/appointmentsByDay', requireDb, async (req, re
     const { businessId } = req.params;
     const { date, employeeId } = req.query;
     if (!date) return res.status(400).json({ success: false, error: 'date required' });
-
+    
     const startOfDay = new Date(`${date}T00:00:00`);
     const endOfDay = new Date(`${date}T23:59:59`);
-
+    
     let query = supabase
       .from('appointments')
       .select('date, duration, employee_id, status')
       .eq('business_id', businessId)
       .gte('date', startOfDay.toISOString())
       .lte('date', endOfDay.toISOString());
-
+    
     if (employeeId) query = query.eq('employee_id', String(employeeId));
-
+    
     const { data, error } = await query;
     if (error) throw error;
     return res.json({ success: true, appointments: data || [] });
@@ -896,7 +886,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .eq('business_id', business_id)
       .gte('date', appointmentDate.toISOString())
       .lt('date', new Date(appointmentDate.getTime() + 60000).toISOString());
-
+    
     if (existing && existing.length > 0) {
       return res.status(409).json({ success: false, error: 'Time slot already booked' });
     }
@@ -907,7 +897,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .select('id')
       .eq('email', email)
       .single();
-
+    
     if (existingCustomer?.id) {
       customerId = existingCustomer.id;
     } else {
@@ -930,7 +920,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       finalDuration = svc?.duration || 30;
     }
 
-    const appointmentData = {
+    const appointmentData = { 
       customer_id: customerId,
       service_id,
       business_id,
@@ -958,7 +948,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
       .insert([appointmentData])
       .select('id, confirmation_token')
       .single();
-
+    
     if (insertErr) throw insertErr;
 
     // Calendar sync will happen when the customer confirms the appointment via email
@@ -989,8 +979,10 @@ app.patch('/api/appointments/:id', requireDb, async (req, res) => {
 app.get('/api/confirm-appointment', requireDb, async (req, res) => {
   try {
     const { token } = req.query;
+    console.log('[confirm-appointment GET] Received request with token:', token ? `${token.substring(0, 10)}...` : 'none');
 
     if (!token) {
+      console.log('[confirm-appointment GET] No token provided');
       return res.status(400).json({
         success: false,
         error: 'Confirmation token is required'
@@ -998,13 +990,21 @@ app.get('/api/confirm-appointment', requireDb, async (req, res) => {
     }
 
     // Find appointment with this token
+    console.log('[confirm-appointment GET] Querying database for appointment with token...');
     const { data: appointment, error: findError } = await supabase
       .from('appointments')
       .select('id, confirmation_status, confirmation_token_expires, customer_id, service_id, business_id, date, name, email')
       .eq('confirmation_token', token)
       .single();
+    
+    console.log('[confirm-appointment GET] Query result:', { 
+      found: !!appointment, 
+      error: findError?.message,
+      appointmentId: appointment?.id 
+    });
 
     if (findError || !appointment) {
+      console.log('[confirm-appointment GET] Appointment not found or error:', findError?.message || 'No appointment found');
       return res.status(404).json({
         success: false,
         error: 'Invalid or expired confirmation token'
@@ -1064,8 +1064,8 @@ app.get('/api/confirm-appointment', requireDb, async (req, res) => {
           appointmentId: fullAppointment.id,
           businessId: fullAppointment.business_id
         });
-
-        const { createCalendarEvent } = await import('../../backend/services/googleCalendarSync.js');
+        
+        const { createCalendarEvent } = await import('./services/googleCalendarSync.js');
         const calendarResult = await createCalendarEvent(fullAppointment.business_id, {
           id: fullAppointment.id,
           name: fullAppointment.name,
@@ -1077,7 +1077,7 @@ app.get('/api/confirm-appointment', requireDb, async (req, res) => {
           service_id: fullAppointment.service_id,
           employee_id: fullAppointment.employee_id,
         });
-
+        
         if (calendarResult.success) {
           console.log('[confirm-appointment] ✅ Calendar event created successfully:', {
             appointmentId: appointment.id,
@@ -1242,18 +1242,6 @@ app.get('/api/customers', async (req, res) => {
 app.post('/api/customers', requireDb, async (req, res) => {
   try {
     const { name, email, phone } = req.body;
-
-    // Check if customer exists first
-    const { data: existing } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('email', email)
-      .single();
-
-    if (existing) {
-      return res.json({ success: true, customer: existing });
-    }
-
     const { data, error } = await supabase
       .from('customers')
       .insert([{ name, email, phone }])
@@ -1329,7 +1317,6 @@ app.get('/api/employees', async (req, res) => {
 app.post('/api/employees', async (req, res) => {
   try {
     const employee = req.body;
-    console.log('[POST /api/employees] Received payload:', JSON.stringify(employee, null, 2));
 
     if (!supabase) {
       const created = { id: generateId('emp'), created_at: new Date().toISOString(), ...employee };
@@ -1342,24 +1329,10 @@ app.post('/api/employees', async (req, res) => {
       .insert([employee])
       .select()
       .single();
-    if (error) {
-      console.error('[POST /api/employees] Supabase error:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-        payload: employee
-      });
-      throw error;
-    }
+    if (error) throw error;
     return res.json({ success: true, employee: data });
   } catch (error) {
-    console.error('[POST /api/employees] Error creating employee:', error.message || error);
-    return res.status(500).json({ 
-      success: false, 
-      error: 'Failed to create employee',
-      details: error.message 
-    });
+    return res.status(500).json({ success: false, error: 'Failed to create employee' });
   }
 });
 
@@ -1381,7 +1354,7 @@ app.patch('/api/employees/:id', async (req, res) => {
       .eq('id', id)
       .select()
       .single();
-
+    
     if (error) throw error;
     return res.json({ success: true, employee: data });
   } catch (error) {
@@ -1448,10 +1421,21 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
+// Catch-all for unhandled API routes (must be before error handler)
+// Note: Express will handle 404s naturally, but we can add logging here if needed
+
 // Global error handler
 app.use((error, req, res, next) => {
   console.error('Unhandled Express error:', error);
   const isDev = process.env.NODE_ENV !== 'production';
+  // Handle CORS errors specifically
+  if (error.message && error.message.includes('CORS')) {
+    return res.status(403).json({
+      success: false,
+      error: 'CORS policy violation',
+      message: error.message
+    });
+  }
   res.status(error.status || 500).json({
     success: false,
     error: isDev ? error.message : 'Internal server error',
@@ -1459,7 +1443,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 const isServerlessEnv = Boolean(
   process.env.LAMBDA_TASK_ROOT ||
   process.env.AWS_LAMBDA_FUNCTION_NAME ||
@@ -1483,8 +1467,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 if (!isServerlessEnv) {
   const server = app.listen(PORT, () => {
-
-
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`✅ Health: http://localhost:${PORT}/health`);
   });
 
   server.on('error', (err) => {

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AppointmentForm from '../components/customer/AppointmentForm';
 import Container from '../components/ui/Container';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import { ArrowLeft } from 'lucide-react';
-// import { supabase } from '../utils/supabaseClient';
+import { supabase } from '../utils/supabaseClient';
 import { AppProvider } from '../context/AppContext';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 import { motion } from 'framer-motion';
@@ -17,7 +18,8 @@ const fadeUp = {
 };
 
 const AppointmentPage: React.FC = () => {
-  const { subdomain } = useParams<{ subdomain?: string }>();
+  const { t } = useTranslation();
+  const { businessId } = useParams<{ businessId?: string }>();
   const navigate = useNavigate();
   const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -25,70 +27,46 @@ const AppointmentPage: React.FC = () => {
   const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
-    if (!subdomain) return;
+    if (!businessId) return;
     const fetchBusiness = async () => {
       setLoading(true);
-
+      console.log('[AppointmentPage] Fetching business:', businessId);
+      
       try {
-        // This is a public endpoint, so use plain fetch
-        // In development (localhost), always use the proxy. Otherwise use VITE_API_URL if set
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const API_URL = isLocalhost ? '' : (import.meta.env.VITE_API_URL || '');
-        const apiPath = API_URL 
-          ? `${API_URL}/api/business/${subdomain}/info`
-          : `/api/business/${subdomain}/info`;
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, name, description, logo, business_address')
+          .eq('id', businessId)
+          .single();
         
-        const res = await fetch(apiPath, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!res.ok) {
-          // Try to get error details from response
-          let errorMessage = `HTTP ${res.status}: ${res.statusText}`;
-          try {
-            const errorData = await res.clone().json();
-            errorMessage = errorData.error || errorMessage;
-          } catch {
-            // If not JSON, use status text
-          }
-          throw new Error(errorMessage);
-        }
-        
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-          const text = await res.text();
-          console.error('[AppointmentPage] Non-JSON response:', {
-            contentType,
-            url: apiPath,
-            preview: text.substring(0, 200),
+        if (error) {
+          console.error('[AppointmentPage] Error fetching business:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
           });
-          throw new Error(`Expected JSON but got ${contentType}. Check if backend is running on port 5001.`);
-        }
-        
-        const json = await res.json();
-
-        if (json.success && json.info) {
-          setBusiness(json.info);
+          // If it's a "no rows" error, the business doesn't exist
+          if (error.code === 'PGRST116') {
+            console.warn('[AppointmentPage] Business not found or access denied');
+          }
+          setBusiness(null);
+        } else if (data) {
+          console.log('[AppointmentPage] Business found:', data);
+          setBusiness(data);
         } else {
-          console.error('[AppointmentPage] Business not found or error:', json.error);
+          console.error('[AppointmentPage] No business data returned');
           setBusiness(null);
         }
-      } catch (error: any) {
-        console.error('[AppointmentPage] Error fetching business:', error);
-        // Provide helpful error message
-        if (error.message?.includes('Failed to fetch') || error.message?.includes('network')) {
-          console.error('[AppointmentPage] Network error - make sure backend is running on port 5001');
-        }
+      } catch (err) {
+        console.error('[AppointmentPage] Unexpected error:', err);
         setBusiness(null);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
     fetchBusiness();
-  }, [subdomain]);
+  }, [businessId]);
 
   // Extract coordinates when business address changes
   useEffect(() => {
@@ -107,17 +85,17 @@ const AppointmentPage: React.FC = () => {
     }
   }, [business?.business_address]);
 
-  if (!subdomain) {
+  if (!businessId) {
     return (
       <Container maxWidth="md">
         <div className="py-16 text-center">
-          <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
-          <p className="mb-6">Please select a business from the home page to book an appointment.</p>
+          <h2 className="text-2xl font-bold mb-4">{t('appointmentPage.businessNotFound')}</h2>
+          <p className="mb-6">{t('appointmentPage.selectBusiness')}</p>
           <button
-            className="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-light"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
             onClick={() => navigate('/')}
           >
-            Back to Home
+            {t('appointmentPage.backToHome')}
           </button>
         </div>
       </Container>
@@ -127,7 +105,7 @@ const AppointmentPage: React.FC = () => {
   if (loading) {
     return (
       <Container maxWidth="md">
-        <div className="py-16 text-center text-gray-500">Loading business info...</div>
+        <div className="py-16 text-center text-gray-500">{t('appointmentPage.loading')}</div>
       </Container>
     );
   }
@@ -136,13 +114,13 @@ const AppointmentPage: React.FC = () => {
     return (
       <Container maxWidth="md">
         <div className="py-16 text-center">
-          <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
-          <p className="mb-6">Please select a business from the home page to book an appointment.</p>
+          <h2 className="text-2xl font-bold mb-4">{t('appointmentPage.businessNotFound')}</h2>
+          <p className="mb-6">{t('appointmentPage.selectBusiness')}</p>
           <button
-            className="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-light"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
             onClick={() => navigate('/')}
           >
-            Back to Home
+            {t('appointmentPage.backToHome')}
           </button>
         </div>
       </Container>
@@ -150,22 +128,22 @@ const AppointmentPage: React.FC = () => {
   }
 
   return (
-    <AppProvider businessIdOverride={business.id}>
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-background">
+    <AppProvider businessIdOverride={businessId}>
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
         <Header />
         <AuthPageTransition>
-          <main className="flex-grow py-4 sm:py-8 px-6">
-            <div className="max-w-[1200px] mx-auto">
+          <main className="flex-grow py-4 sm:py-8 px-4">
+            <div className="max-w-6xl mx-auto">
               {/* Back Button */}
               <motion.button
                 onClick={() => navigate(-1)}
-                className="mb-4 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
+                className="mb-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
                 type="button"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
               >
                 <ArrowLeft className="w-5 h-5 mr-1" />
-                <span>Back</span>
+                <span>{t('appointmentPage.back')}</span>
               </motion.button>
 
               {/* Two Column Layout: Form on Left, Map on Right */}
@@ -236,7 +214,7 @@ const AppointmentPage: React.FC = () => {
                           href={`https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}&zoom=17`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary hover:text-primary-light font-medium"
+                          className="text-indigo-600 hover:text-indigo-800 font-medium"
                         >
                           View larger map →
                         </a>

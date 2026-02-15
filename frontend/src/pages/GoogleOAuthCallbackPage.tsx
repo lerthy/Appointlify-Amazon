@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useGoogleOAuth } from '../hooks/useGoogleOAuth';
@@ -16,6 +17,7 @@ type AppUser = {
 };
 
 const GoogleOAuthCallbackPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
   const { showNotification } = useNotification();
@@ -73,14 +75,14 @@ const GoogleOAuthCallbackPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-4 text-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Signing you in…</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">{t('googleOAuth.signingIn')}</h1>
         {processing && (
-          <p className="text-sm text-gray-600">We&apos;re finalizing your account with Google.</p>
+          <p className="text-sm text-gray-600">{t('googleOAuth.processingAccount')}</p>
         )}
         {!processing && calendarPromptVisible && (
           <>
             <p className="text-sm text-gray-700">
-              Grant Google Calendar access so we may sync thy bookings with thine own calendar.
+              {t('googleOAuth.calendarAccess')}
             </p>
             <div className="flex flex-col gap-2 mt-4">
               <button
@@ -88,13 +90,13 @@ const GoogleOAuthCallbackPage: React.FC = () => {
                 className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-60"
                 disabled={calendarLoading}
               >
-                {calendarLoading ? 'Requesting permission…' : 'Grant Google Calendar access'}
+                {calendarLoading ? t('googleOAuth.requestingPermission') : t('googleOAuth.grantAccess')}
               </button>
               <button
                 onClick={handleSkip}
                 className="w-full border border-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition"
               >
-                Maybe later
+                {t('googleOAuth.maybeLater')}
               </button>
             </div>
           </>

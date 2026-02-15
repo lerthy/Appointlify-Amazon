@@ -8,14 +8,16 @@ interface NotificationProps {
   duration?: number;
 }
 
-const Notification: React.FC<NotificationProps> = ({ message, type, onClose, duration = 4000 }) => {
+const Notification: React.FC<NotificationProps> = ({ message, type, onClose, duration }) => {
+  // Default duration: 8 seconds for success, 4 seconds for errors
+  const defaultDuration = duration ?? (type === 'success' ? 8000 : 4000);
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
-    }, duration);
+    }, defaultDuration);
 
     return () => clearTimeout(timer);
-  }, [duration, onClose]);
+  }, [defaultDuration, onClose]);
 
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] w-[calc(100%-2rem)] sm:w-auto max-w-2xl px-4">

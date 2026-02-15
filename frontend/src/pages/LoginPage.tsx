@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
-import Button from '../components/ui/Button';
-import { useNotification } from '../context/NotificationContext';
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { login } = useAuth();
-  const { showNotification } = useNotification();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,9 +26,7 @@ const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     
     if (!form.email || !form.password) {
-      const msg = 'Please enter both email and password.';
-      setError(msg);
-      showNotification(msg, 'error');
+      setError(t('login.errors.fillBoth'));
       setIsSubmitting(false);
       return;
     }
@@ -42,77 +39,76 @@ const LoginPage: React.FC = () => {
       });
 
       if (signInError) {
-        const msg = signInError.message.includes('Email not confirmed')
-          ? 'Please verify your email address before logging in. Check your inbox for the verification link.'
-          : signInError.message.includes('Invalid login credentials')
-            ? 'Invalid email or password.'
-            : signInError.message;
-        setError(msg);
-        showNotification(msg, 'error');
+        if (signInError.message.includes('Email not confirmed')) {
+          setError(t('login.errors.verifyEmail'));
+        } else if (signInError.message.includes('Invalid login credentials')) {
+          setError(t('login.errors.invalidCredentials'));
+        } else {
+          setError(signInError.message);
+        }
         setIsSubmitting(false);
         return;
       }
 
       if (!authData.user) {
-        const msg = 'Invalid email or password.';
-        setError(msg);
-        showNotification(msg, 'error');
+        setError(t('login.errors.invalidCredentials'));
         setIsSubmitting(false);
         return;
       }
 
-      // Check if email is confirmed (Supabase)
+      // Check if email is confirmed
       if (!authData.user.email_confirmed_at) {
         await supabase.auth.signOut();
-        const msg = 'Please verify your email address before logging in. Check your inbox for the verification link.';
-        setError(msg);
-        showNotification(msg, 'error');
+        setError(t('login.errors.verifyEmail'));
         setIsSubmitting(false);
         return;
       }
 
-      // Get user profile (created automatically by database trigger during registration)
+      // Get or create user profile
       const { data: profileData, error: profileError } = await supabase
         .from('users')
         .select('*')
         .eq('auth_user_id', authData.user.id)
         .single();
 
-      // If profile doesn't exist, something went wrong - user should register
-      if (profileError || !profileData) {
-        console.error('Profile not found for authenticated user:', {
-          userId: authData.user.id,
-          email: authData.user.email,
-          error: profileError
-        });
-        await supabase.auth.signOut();
-        const msg = 'No account found. Please register first or contact support if you believe this is an error.';
-        setError(msg);
-        showNotification(msg, 'error');
-        setIsSubmitting(false);
-        return;
-      }
+      let userData = profileData;
 
-      // Enforce email verification for email signups (profile.email_verified from our DB)
-      if (profileData.email_verified === false) {
-        await supabase.auth.signOut();
-        const msg = 'Please verify your email address before logging in. Check your inbox for the verification link.';
-        setError(msg);
-        showNotification(msg, 'error');
-        setIsSubmitting(false);
-        return;
+      // If profile doesn't exist, create it
+      if (profileError || !userData) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('users')
+          .insert([{
+            auth_user_id: authData.user.id,
+            email: authData.user.email,
+            name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0],
+            signup_method: 'email'
+          }])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          setError(t('login.errors.profileError'));
+          setIsSubmitting(false);
+          return;
+        }
+
+        userData = newProfile;
+
+        // Create default business settings for new user
+        const { createDefaultBusinessSettings } = await import('../utils/createDefaultBusinessSettings');
+        await createDefaultBusinessSettings(newProfile.id, newProfile.name || 'Business');
       }
 
       // Log in the user
-      login(profileData);
+      login(userData);
       setIsSubmitting(false);
-      showNotification('Welcome back!', 'success');
-      navigate('/');
+      console.log('[LoginPage] Login successful, redirecting to dashboard');
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
       const message = err instanceof Error ? err.message : 'An error occurred during login';
       setError(message);
-      showNotification(message, 'error');
       setIsSubmitting(false);
     }
   };
@@ -138,7 +134,6 @@ const LoginPage: React.FC = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start Google login';
       setError(message);
-      showNotification(message, 'error');
       setIsSubmitting(false);
     }
   };
@@ -148,51 +143,51 @@ const LoginPage: React.FC = () => {
       <AuthPageTransition>
         <SplitAuthLayout
           logoUrl={LOGO_URL}
-          title="Welcome Back!"
-          subtitle="Sign in to access your personalized dashboard and explore new features."
-          quote="Empowering your journey, one login at a time."
+          title={t('login.title')}
+          subtitle={t('login.subtitle')}
+          quote={t('login.quote')}
         >
           <button
             onClick={() => navigate('/')}
-            className="absolute left-0 top-0 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
+            className="absolute left-0 top-0 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">Sign in to your account</h2>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">{t('login.signInTitle')}</h2>
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-4 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-4"
             disabled={isSubmitting}
           >
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-            {isSubmitting ? 'Signing in…' : 'Continue with Google'}
+            {t('login.continueWithGoogle')}
           </button>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Email address</label>
+              <label className="block text-xs font-medium text-gray-700">{t('login.emailLabel')}</label>
               <input
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder="Email address"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                placeholder={t('login.emailPlaceholder')}
                 autoComplete="email"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Password</label>
+              <label className="block text-xs font-medium text-gray-700">{t('login.passwordLabel')}</label>
               <input
                 type="password"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder="Password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                placeholder={t('login.passwordPlaceholder')}
                 autoComplete="current-password"
                 required
               />
@@ -202,36 +197,44 @@ const LoginPage: React.FC = () => {
                 {error}
               </div>
             )}
-            <Button
+            <button
               type="submit"
-              fullWidth
-              isLoading={isSubmitting}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
-            </Button>
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {t('login.signingIn')}
+                </span>
+              ) : (
+                t('login.signInButton')
+              )}
+            </button>
           </form>
           <div className="mt-4 text-center space-y-1">
             <p className="text-gray-600 text-xs">
-              Don't have an account?{' '}
+              {t('login.noAccount')}{' '}
               <button
-                className="text-primary hover:text-primary-light font-medium hover:underline transition-colors"
+                className="text-purple-600 hover:text-purple-700 font-medium hover:underline transition-colors"
                 onClick={() => navigate('/register')}
               >
-                Sign up
+                {t('login.signUp')}
               </button>
             </p>
             <p className="text-[11px] text-gray-500">
-              Grant access so we may sync thy bookings with thine own Google Calendar (optional now, available later in Settings).
+              {t('login.googleCalendarNote')}
             </p>
-            <p className="text-primary text-xs">
-              Forgot password?{' '}
+            <p className="text-indigo-700 text-xs">
+              {t('login.forgotPassword')}{' '}
               <button
                 className="underline cursor-pointer"
                 onClick={() => navigate('/forgot-password')}
               >
-                Click to reset
+                {t('login.clickToReset')}
               </button>
             </p>
           </div>

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
+import { useTranslation } from 'react-i18next';
 
 interface RealtimeStatusProps {
   businessId: string | null;
 }
 
 const RealtimeStatus: React.FC<RealtimeStatusProps> = ({ businessId }) => {
+  const { t } = useTranslation();
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [showStatus, setShowStatus] = useState<boolean>(false);
 
@@ -20,7 +22,7 @@ const RealtimeStatus: React.FC<RealtimeStatusProps> = ({ businessId }) => {
     const statusChannel = supabase
       .channel(`status_${businessId}`)
       .subscribe((status) => {
-        
+        console.log('[RealtimeStatus] Connection status:', status);
         if (status === 'SUBSCRIBED') {
           setIsConnected(true);
           setShowStatus(true);
@@ -59,12 +61,12 @@ const RealtimeStatus: React.FC<RealtimeStatusProps> = ({ businessId }) => {
       {isConnected ? (
         <>
           <Wifi className="h-4 w-4 animate-pulse" />
-          <span>Live updates active</span>
+          <span>{t('realtimeStatus.liveUpdatesActive')}</span>
         </>
       ) : (
         <>
           <WifiOff className="h-4 w-4" />
-          <span>Connecting...</span>
+          <span>{t('realtimeStatus.connecting')}</span>
         </>
       )}
     </div>

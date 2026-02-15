@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Phone, Mail, Instagram, Linkedin } from 'lucide-react';
 import { Link } from 'react-router-dom'; 
 
 const Footer: React.FC = () => {
+  const { t } = useTranslation();
   
   return (
     <footer className="bg-gray-900 text-white">
@@ -22,7 +24,7 @@ const Footer: React.FC = () => {
               <span className="text-2xl font-extrabold">Appointly-ks</span>
             </div>
             <p className="text-gray-400 text-sm">
-              Making appointment booking simple and convenient for both businesses and customers.
+              {t('footer.companyDescription')}
             </p>
             <div className="flex space-x-4">
               {/* <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -47,7 +49,7 @@ const Footer: React.FC = () => {
 
           {/* Contact Info */}
           <div className="space-y-4 flex flex-col items-center text-center md:items-start md:text-left justify-start">
-            <h3 className="text-lg font-semibold">Contact Us</h3>
+            <h3 className="text-lg font-semibold">{t('footer.contactUs')}</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
                 <MapPin size={18} className="text-gray-400 mr-3 mt-1 flex-shrink-0" />
@@ -63,7 +65,7 @@ const Footer: React.FC = () => {
                   <a href="tel:+383 45 378 957" className="text-gray-400 hover:text-white transition-colors block">
                     +383 45 378 957
                   </a>
-                  <span className="text-gray-400 text-sm block">Mon-Fri, 9am-6pm CET</span>
+                  <span className="text-gray-400 text-sm block">{t('footer.monFri')}</span>
                 </div>
               </li>
               <li className="flex items-start">
@@ -82,17 +84,17 @@ const Footer: React.FC = () => {
 
           {/* More Information */}
           <div className="space-y-4 flex flex-col items-center text-center md:items-start md:text-left">
-            <h3 className="text-lg font-semibold">More Information</h3>
+            <h3 className="text-lg font-semibold">{t('footer.moreInfo')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link>
+                <Link to="/about" className="text-gray-400 hover:text-white transition-colors">{t('footer.aboutUs')}</Link>
               </li>
               <li>
-                <Link to="/services" className="text-gray-400 hover:text-white transition-colors">Services</Link>
+                <Link to="/services" className="text-gray-400 hover:text-white transition-colors">{t('footer.services')}</Link>
               </li>
               
               <li>
-                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link>
+                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors">{t('footer.contact')}</Link>
               </li>
             </ul>
           </div>
@@ -101,12 +103,12 @@ const Footer: React.FC = () => {
           <div className="mt-12 pt-8 border-t border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center text-center">
             <p className="text-gray-400 text-sm">
-              &copy; {new Date().getFullYear()} Appointly-ks. All rights reserved.
+              &copy; {new Date().getFullYear()} Appointly-ks. {t('footer.allRightsReserved')}
             </p>
             <div className="mt-4 md:mt-0 space-x-6">
-              <Link to="/privacy-policy" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy Policy</Link>
-              <Link to="/terms-of-service" className="text-gray-400 hover:text-white text-sm transition-colors">Terms of Service</Link>
-              <Link to="/cookie-policy" className="text-gray-400 hover:text-white text-sm transition-colors">Cookie Policy</Link>
+              <Link to="/privacy-policy" className="text-gray-400 hover:text-white text-sm transition-colors">{t('footer.privacyPolicy')}</Link>
+              <Link to="/terms-of-service" className="text-gray-400 hover:text-white text-sm transition-colors">{t('footer.termsOfService')}</Link>
+              <Link to="/cookie-policy" className="text-gray-400 hover:text-white text-sm transition-colors">{t('footer.cookiePolicy')}</Link>
             </div>
           </div>
         </div>

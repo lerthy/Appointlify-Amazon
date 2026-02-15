@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Users, Target, Rocket, Heart, Lightbulb, Award } from 'lucide-react';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
@@ -14,6 +15,7 @@ interface TeamMember {
 }
 
 const AboutUsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   useEffect(() => {
@@ -88,30 +90,30 @@ const AboutUsPage: React.FC = () => {
   const values = [
     {
       icon: Heart,
-      title: 'Passion-Driven',
-      description: 'We love what we do and it shows in every feature we deliver.',
+      title: t('about.values.passionDriven'),
+      description: t('about.values.passionDesc'),
     },
     {
       icon: Lightbulb,
-      title: 'Innovation First',
-      description: 'Staying ahead with AI and cutting-edge scheduling technology.',
+      title: t('about.values.innovationFirst'),
+      description: t('about.values.innovationDesc'),
     },
     {
       icon: Users,
-      title: 'Client-Focused',
-      description: 'Your success is our success. We build lasting partnerships.',
+      title: t('about.values.clientFocused'),
+      description: t('about.values.clientDesc'),
     },
     {
       icon: Award,
-      title: 'Quality Excellence',
-      description: 'Uncompromising standards in every line of code.',
+      title: t('about.values.qualityExcellence'),
+      description: t('about.values.qualityDesc'),
     },
   ];
 
   const milestones = [
-    { year: '2024', event: 'Appointly-ks founded in Prishtina with a vision to transform appointment booking' },
-    { year: '2025', event: 'Launched AI-powered chatbot and serving businesses across Kosovo' },
-    { year: 'Future', event: 'Making Appointly-ks the most trusted appointment management platform in the region' },
+    { year: '2024', event: t('about.milestones.2024') },
+    { year: '2025', event: t('about.milestones.2025') },
+    { year: 'Future', event: t('about.milestones.future') },
   ];
 
   return (
@@ -119,18 +121,18 @@ const AboutUsPage: React.FC = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-background via-white to-background relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-indigo-50 via-white to-violet-50 relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-indigo-400/20 to-violet-400/20 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              About <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">Appointly-ks</span>
+              {t('about.title')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{t('about.titleHighlight')}</span>
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              We're a passionate team of developers, designers, and innovators dedicated to creating exceptional appointment booking experiences that drive real business results.
+              {t('about.subtitle')}
             </p>
           </div>
         </div>
@@ -139,31 +141,20 @@ const AboutUsPage: React.FC = () => {
       {/* Our Story Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-background to-background rounded-2xl p-8 md:p-12 border border-primary/20 shadow-lg">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
+          <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl p-8 md:p-12 border border-indigo-100 shadow-lg">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('about.ourStory.title')}</h2>
             <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
               <p>
-                It all started in late 2024, in the heart of Prishtina, Kosovo. Five passionate developers sat in a small café, 
-                frustrated by the endless phone calls and missed appointments they witnessed businesses struggling with every day. 
-                "There has to be a better way," said Etrit, and that spark of an idea would soon become Appointly-ks.
+                {t('about.ourStory.p1')}
               </p>
               <p>
-                What began as late-night coding sessions and endless cups of coffee quickly evolved into something bigger. 
-                Lerdi brought his expertise in AI integration, dreaming of a chatbot that could handle bookings as naturally as 
-                a human receptionist. Fatlum, Jasin, and Marjan worked tirelessly on building a rock-solid backend that could 
-                handle thousands of appointments without breaking a sweat.
+                {t('about.ourStory.p2')}
               </p>
               <p>
-                We started with a simple question: <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent font-semibold">"What if booking an appointment 
-                was as easy as sending a text?"</span> Months of development, countless iterations, and hundreds of cups of coffee 
-                later, we had our answer. Appointly-ks was born – a platform that doesn't just schedule appointments, but transforms 
-                how businesses connect with their customers.
+                {t('about.ourStory.p3')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-semibold">{t('about.ourStory.p3Highlight')}</span> {t('about.ourStory.p3End')}
               </p>
               <p>
-                Today, we're proud to serve businesses across Kosovo and beyond, helping them save time, reduce no-shows, and 
-                focus on what they do best. But we're just getting started. Every day, we're working to make Appointly-ks smarter, 
-                faster, and more intuitive. Because for us, this isn't just a project – it's our mission to make scheduling 
-                effortless for everyone.
+                {t('about.ourStory.p4')}
               </p>
             </div>
           </div>
@@ -176,29 +167,25 @@ const AboutUsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             <div>
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
                   <Target className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">Our Mission</h2>
+                <h2 className="text-3xl font-bold text-gray-900">{t('about.mission.title')}</h2>
               </div>
               <p className="text-lg text-gray-700 leading-relaxed">
-                To empower businesses of all sizes with intuitive scheduling tools that save time, reduce no-shows, 
-                and enhance customer satisfaction. We believe every minute saved on scheduling is a minute gained 
-                for what truly matters – serving your customers.
+                {t('about.mission.description')}
               </p>
             </div>
 
             <div>
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
                   <Rocket className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">Our Vision</h2>
+                <h2 className="text-3xl font-bold text-gray-900">{t('about.vision.title')}</h2>
               </div>
               <p className="text-lg text-gray-700 leading-relaxed">
-                To become the most trusted appointment management platform in the region, known for innovation, 
-                reliability, and exceptional user experience. We're building a future where scheduling is so 
-                seamless, it becomes invisible – just part of how business gets done.
+                {t('about.vision.description')}
               </p>
             </div>
           </div>
@@ -220,9 +207,9 @@ const AboutUsPage: React.FC = () => {
               return (
                 <div 
                   key={index}
-                  className="text-center p-6 bg-white border border-primary/20 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
+                  className="text-center p-6 bg-white border border-indigo-100 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform">
+                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform">
                     <Icon className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-4">{value.title}</h3>
@@ -238,7 +225,7 @@ const AboutUsPage: React.FC = () => {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Meet Our Team</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('about.team.title')}</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
               The talented individuals behind Appointly-ks's success.
             </p>
@@ -251,7 +238,7 @@ const AboutUsPage: React.FC = () => {
                 key={index}
                 className="text-center group max-w-xs"
               >
-                <div className="w-40 h-40 bg-gradient-to-br from-primary to-primary-light rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
+                <div className="w-40 h-40 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
                   {member.image ? (
                     <img 
                       src={member.image} 
@@ -263,7 +250,7 @@ const AboutUsPage: React.FC = () => {
                   )}
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-2">{member.name}</h3>
-                <p className="text-primary font-medium mb-4">{member.role}</p>
+                <p className="text-indigo-600 font-medium mb-4">{member.role}</p>
                 <p className="text-gray-700">{member.description}</p>
               </div>
             ))}
@@ -276,7 +263,7 @@ const AboutUsPage: React.FC = () => {
                 key={index}
                 className="text-center group max-w-xs"
               >
-                <div className="w-40 h-40 bg-gradient-to-br from-primary to-primary-light rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
+                <div className="w-40 h-40 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
                   {member.image ? (
                     <img 
                       src={member.image} 
@@ -288,7 +275,7 @@ const AboutUsPage: React.FC = () => {
                   )}
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-2">{member.name}</h3>
-                <p className="text-primary font-medium mb-4">{member.role}</p>
+                <p className="text-indigo-600 font-medium mb-4">{member.role}</p>
                 <p className="text-gray-700">{member.description}</p>
               </div>
             ))}
@@ -300,7 +287,7 @@ const AboutUsPage: React.FC = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Our Journey</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('about.milestones.title')}</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
               Key milestones in our growth and evolution as a company.
             </p>
@@ -312,10 +299,10 @@ const AboutUsPage: React.FC = () => {
                 className="flex items-center transition-all duration-300"
               >
                 <div className="flex-shrink-0 w-24 text-right mr-8">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">{milestone.year}</span>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{milestone.year}</span>
                 </div>
-                <div className="flex-shrink-0 w-4 h-4 bg-primary rounded-full mr-8 animate-pulse"></div>
-                <div className="flex-grow bg-gradient-to-br from-background to-background p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-primary/20">
+                <div className="flex-shrink-0 w-4 h-4 bg-indigo-600 rounded-full mr-8 animate-pulse"></div>
+                <div className="flex-grow bg-gradient-to-br from-indigo-50 to-violet-50 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-indigo-100">
                   <p className="text-gray-700">{milestone.event}</p>
                 </div>
               </div>

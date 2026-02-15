@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Users, Calendar, CheckCircle, PieChart as PieIcon, BarChart2 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardHeader, CardContent } from '../ui/Card';
@@ -7,6 +8,7 @@ import { useApp } from '../../context/AppContext';
 type ChartMode = 'pie' | 'bar';
 
 const Analytics: React.FC = () => {
+  const { t } = useTranslation();
   const { analytics, appointments, services, employees } = useApp();
   const [serviceChartMode, setServiceChartMode] = useState<ChartMode>('pie');
   const [dayChartMode, setDayChartMode] = useState<ChartMode>('pie');
@@ -70,7 +72,15 @@ const Analytics: React.FC = () => {
   
   // Calculate daily distribution
   const calculateDailyDistribution = () => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = [
+      t('analytics.days.sunday'),
+      t('analytics.days.monday'),
+      t('analytics.days.tuesday'),
+      t('analytics.days.wednesday'),
+      t('analytics.days.thursday'),
+      t('analytics.days.friday'),
+      t('analytics.days.saturday')
+    ];
     const dayCounts = Array(7).fill(0);
     
     // Count active appointments by day of week
@@ -171,7 +181,7 @@ const Analytics: React.FC = () => {
     if (!data.length) {
       return (
         <div className="flex items-center justify-center h-24 text-xs text-gray-400">
-          No data
+          {t('analytics.noData')}
         </div>
       );
     }
@@ -224,7 +234,7 @@ const Analytics: React.FC = () => {
           {/* Performance Metrics */}
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-medium">Performance Metrics</h3>
+              <h3 className="text-lg font-medium">{t('analytics.performanceMetrics')}</h3>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -232,7 +242,7 @@ const Analytics: React.FC = () => {
                 <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg sm:block sm:p-4">
                   <div className="flex items-center">
                     <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2" />
-                    <h4 className="text-xs sm:text-sm font-medium text-gray-500">Customers Served</h4>
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-500">{t('analytics.stats.customersServed')}</h4>
                   </div>
                   <p className="text-xl sm:text-2xl font-bold sm:mt-2">{analytics.customersServed}</p>
                 </div>
@@ -241,7 +251,7 @@ const Analytics: React.FC = () => {
                 <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg sm:block sm:p-4">
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500 mr-2" />
-                    <h4 className="text-xs sm:text-sm font-medium text-gray-500">Total Appointments</h4>
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-500">{t('analytics.stats.totalAppointments')}</h4>
                   </div>
                   <p className="text-xl sm:text-2xl font-bold sm:mt-2">{appointments.length}</p>
                 </div>
@@ -250,14 +260,14 @@ const Analytics: React.FC = () => {
                 <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg sm:block sm:p-4">
                   <div className="flex items-center">
                     <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mr-2" />
-                    <h4 className="text-xs sm:text-sm font-medium text-gray-500">Completion Rate</h4>
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-500">{t('analytics.stats.completionRate')}</h4>
                   </div>
                   <p className="text-xl sm:text-2xl font-bold sm:mt-2">{calculateCompletionRate()}%</p>
                 </div>
               </div>
               
               <div className="mt-6">
-                <h4 className="text-sm font-medium text-gray-500 mb-2">Peak Hours</h4>
+                <h4 className="text-sm font-medium text-gray-500 mb-2">{t('analytics.peakHours')}</h4>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="space-y-2">
                     {analytics.peakHours.slice(0, 5).map((hour, index) => (
@@ -286,7 +296,7 @@ const Analytics: React.FC = () => {
           {/* Employee Stats */}
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h3 className="text-lg font-medium">Employee Statistics</h3>
+              <h3 className="text-lg font-medium">{t('analytics.employeeStatistics')}</h3>
               <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-2 text-xs">
                 <button
                   type="button"
@@ -298,7 +308,7 @@ const Analytics: React.FC = () => {
                   }`}
                 >
                   <PieIcon className="h-3.5 w-3.5" />
-                  Pie
+                  {t('analytics.charts.pie')}
                 </button>
                 <button
                   type="button"
@@ -310,7 +320,7 @@ const Analytics: React.FC = () => {
                   }`}
                 >
                   <BarChart2 className="h-3.5 w-3.5" />
-                  Bars
+                  {t('analytics.charts.bars')}
                 </button>
               </div>
             </CardHeader>
@@ -319,7 +329,7 @@ const Analytics: React.FC = () => {
               <div className="mb-4">
                 <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-gray-500">Total Employees</p>
+                    <p className="text-xs text-gray-500">{t('analytics.stats.totalEmployees')}</p>
                     <p className="text-2xl font-bold">{employees?.length || 0}</p>
                   </div>
                   <Users className="h-8 w-8 text-indigo-500" />
@@ -329,7 +339,7 @@ const Analytics: React.FC = () => {
               {/* Appointments per Employee Chart */}
               <div>
                 <h4 className="text-sm font-medium text-gray-500 mb-3">
-                  Appointments per Employee
+                  {t('analytics.appointmentsPerEmployee')}
                 </h4>
                 {employeeChartMode === 'pie' ? (
                   appointmentsPerEmployee.length > 0 &&
@@ -368,7 +378,7 @@ const Analytics: React.FC = () => {
                     </ResponsiveContainer>
                   ) : (
                     <div className="flex items-center justify-center h-[300px] text-gray-400 text-sm">
-                      No employee data available
+                      {t('analytics.noEmployeeData')}
                     </div>
                   )
                 ) : (
@@ -391,7 +401,7 @@ const Analytics: React.FC = () => {
           {/* Service Distribution */}
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h3 className="text-lg font-medium">Service Distribution</h3>
+              <h3 className="text-lg font-medium">{t('analytics.serviceDistribution')}</h3>
               <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-2 text-xs">
                 <button
                   type="button"
@@ -403,7 +413,7 @@ const Analytics: React.FC = () => {
                   }`}
                 >
                   <PieIcon className="h-3.5 w-3.5" />
-                  Pie
+                  {t('analytics.charts.pie')}
                 </button>
                 <button
                   type="button"
@@ -415,7 +425,7 @@ const Analytics: React.FC = () => {
                   }`}
                 >
                   <BarChart2 className="h-3.5 w-3.5" />
-                  Bars
+                  {t('analytics.charts.bars')}
                 </button>
               </div>
             </CardHeader>
@@ -449,7 +459,7 @@ const Analytics: React.FC = () => {
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-gray-400 text-sm">
-                    No service data available
+                    {t('analytics.noServiceData')}
                   </div>
                 )
               ) : (
@@ -484,7 +494,7 @@ const Analytics: React.FC = () => {
           {/* Popular Days */}
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h3 className="text-lg font-medium">Popular Days</h3>
+              <h3 className="text-lg font-medium">{t('analytics.popularDays')}</h3>
               <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-2 text-xs">
                 <button
                   type="button"
@@ -496,7 +506,7 @@ const Analytics: React.FC = () => {
                   }`}
                 >
                   <PieIcon className="h-3.5 w-3.5" />
-                  Pie
+                  {t('analytics.charts.pie')}
                 </button>
                 <button
                   type="button"
@@ -508,7 +518,7 @@ const Analytics: React.FC = () => {
                   }`}
                 >
                   <BarChart2 className="h-3.5 w-3.5" />
-                  Bars
+                  {t('analytics.charts.bars')}
                 </button>
               </div>
             </CardHeader>
@@ -550,7 +560,7 @@ const Analytics: React.FC = () => {
                     </ResponsiveContainer>
                   ) : (
                     <div className="flex items-center justify-center h-[280px] text-gray-400 text-sm">
-                      No appointment data for days
+                      {t('analytics.noDayData')}
                     </div>
                   )
                 ) : (
@@ -570,7 +580,7 @@ const Analytics: React.FC = () => {
           {/* Popular Hours */}
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h3 className="text-lg font-medium">Popular Hours</h3>
+              <h3 className="text-lg font-medium">{t('analytics.popularHours')}</h3>
               <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-2 text-xs">
                 <button
                   type="button"
@@ -582,7 +592,7 @@ const Analytics: React.FC = () => {
                   }`}
                 >
                   <PieIcon className="h-3.5 w-3.5" />
-                  Pie
+                  {t('analytics.charts.pie')}
                 </button>
                 <button
                   type="button"
@@ -594,7 +604,7 @@ const Analytics: React.FC = () => {
                   }`}
                 >
                   <BarChart2 className="h-3.5 w-3.5" />
-                  Bars
+                  {t('analytics.charts.bars')}
                 </button>
               </div>
             </CardHeader>
@@ -631,7 +641,7 @@ const Analytics: React.FC = () => {
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-[280px] text-gray-400 text-sm">
-                    No hour data available
+                    {t('analytics.noHourData')}
                   </div>
                 )
               ) : (

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
 
 const ResetPasswordPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const token = params.get('token') || '';
@@ -21,9 +23,9 @@ const ResetPasswordPage: React.FC = () => {
 
   useEffect(() => {
     if (!token) {
-      setError('Invalid or missing reset token. Please request a new password reset link.');
+      setError(t('resetPassword.errors.invalidToken'));
     }
-  }, [token]);
+  }, [token, t]);
 
   const validatePassword = (password: string) => {
     const feedback: string[] = [];
@@ -32,31 +34,31 @@ const ResetPasswordPage: React.FC = () => {
     if (password.length >= 8) {
       score += 1;
     } else {
-      feedback.push('At least 8 characters');
+      feedback.push(t('resetPassword.requirements.minLength'));
     }
 
     if (/[a-z]/.test(password)) {
       score += 1;
     } else {
-      feedback.push('At least one lowercase letter');
+      feedback.push(t('resetPassword.requirements.lowercase'));
     }
 
     if (/[A-Z]/.test(password)) {
       score += 1;
     } else {
-      feedback.push('At least one uppercase letter');
+      feedback.push(t('resetPassword.requirements.uppercase'));
     }
 
     if (/\d/.test(password)) {
       score += 1;
     } else {
-      feedback.push('At least one number');
+      feedback.push(t('resetPassword.requirements.number'));
     }
 
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
       score += 1;
     } else {
-      feedback.push('At least one special character');
+      feedback.push(t('resetPassword.requirements.specialChar'));
     }
 
     return { score, feedback };
@@ -73,27 +75,27 @@ const ResetPasswordPage: React.FC = () => {
     setMessage('');
     
     if (!token) {
-      setError('Invalid or missing token. Please request a new password reset link.');
+      setError(t('resetPassword.errors.invalidToken'));
       return;
     }
 
     if (!password) {
-      setError('Please enter a new password.');
+      setError(t('resetPassword.errors.enterPassword'));
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters long.');
+      setError(t('resetPassword.errors.minLength'));
       return;
     }
 
     if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-      setError('Password must contain at least one letter and one number.');
+      setError(t('resetPassword.errors.letterAndNumber'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t('resetPassword.errors.mismatch'));
       return;
     }
 
@@ -109,16 +111,16 @@ const ResetPasswordPage: React.FC = () => {
       const data = await response.json();
       
       if (response.ok) {
-        setMessage(data.message || 'Your password has been reset successfully. Redirecting to login...');
+        setMessage(data.message || t('resetPassword.success'));
         setPassword('');
         setConfirmPassword('');
         setTimeout(() => navigate('/login'), 2000);
       } else {
-        setError(data.error || 'Unable to reset password. The link may have expired.');
+        setError(data.error || t('resetPassword.errors.linkExpired'));
       }
     } catch (fetchError) {
       console.error('Network error:', fetchError);
-      setError('Network error. Please check your connection and try again.');
+      setError(t('resetPassword.errors.networkError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -128,19 +130,19 @@ const ResetPasswordPage: React.FC = () => {
     <AuthPageTransition>
       <SplitAuthLayout
         logoUrl={LOGO_URL}
-        title="Set a new password"
-        subtitle="Choose a strong password you don\'t use elsewhere."
-        quote="Your security matters."
+        title={t('resetPassword.title')}
+        subtitle={t('resetPassword.subtitle')}
+        quote={t('resetPassword.securityNote')}
       >
         <button onClick={() => navigate('/login')} className="mb-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to sign in
+          {t('resetPassword.backToSignIn')}
         </button>
         <form onSubmit={submit} className="space-y-3">
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-gray-700">New password</label>
+            <label className="block text-xs font-medium text-gray-700">{t('resetPassword.newPassword')}</label>
             <input 
               type="password" 
               value={password} 
@@ -181,7 +183,7 @@ const ResetPasswordPage: React.FC = () => {
             )}
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-medium text-gray-700">Confirm new password</label>
+            <label className="block text-xs font-medium text-gray-700">{t('resetPassword.confirmPassword')}</label>
             <input 
               type="password" 
               value={confirmPassword} 
@@ -194,7 +196,7 @@ const ResetPasswordPage: React.FC = () => {
               autoComplete="new-password"
             />
             {confirmPassword && password !== confirmPassword && (
-              <p className="text-xs text-red-600 mt-1">Passwords do not match</p>
+              <p className="text-xs text-red-600 mt-1">{t('resetPassword.errors.mismatch')}</p>
             )}
           </div>
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded p-2 text-center">{error}</div>}
@@ -204,7 +206,7 @@ const ResetPasswordPage: React.FC = () => {
             className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl" 
             disabled={isSubmitting || !token || passwordStrength.score < 2}
           >
-            {isSubmitting ? 'Updating...' : 'Reset password'}
+            {isSubmitting ? t('resetPassword.resetting') : t('resetPassword.resetButton')}
           </button>
         </form>
       </SplitAuthLayout>

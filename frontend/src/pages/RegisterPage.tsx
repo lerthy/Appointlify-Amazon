@@ -1,77 +1,25 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabaseClient';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
-import Button from '../components/ui/Button';
-import { useNotification } from '../context/NotificationContext';
+
+// RegisterPage component for user registration
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
-
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { showNotification } = useNotification();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '', subdomain: '' });
+  const { t } = useTranslation();
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '' });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
-  const [subdomainError, setSubdomainError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-
-    if (name === 'subdomain') {
-      // Only allow alphanumeric and hyphens
-      const formattedValue = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-      setForm({ ...form, [name]: formattedValue });
-      checkSubdomain(formattedValue);
-    } else {
-      setForm({ ...form, [name]: value });
-    }
+    setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
-  };
-
-  const checkSubdomain = async (subdomain: string) => {
-    if (!subdomain) {
-      setSubdomainError('');
-      return;
-    }
-
-    if (subdomain.length < 3) {
-      setSubdomainError('Subdomain must be at least 3 characters');
-      return;
-    }
-
-    setIsCheckingSubdomain(true);
-    try {
-      // Check if subdomain exists in users table
-      // Note: This assumes there is a 'subdomain' column or we are checking against metadata if exposed 
-      // Ideally this should be a check against a specific table or RPC if RLS prevents reading users.
-      // For now, we assume we can read 'subdomain' from 'users' or a public profiles table.
-      // If 'users' table is not public, this might fail without an RPC.
-      // Assuming 'users' table has 'subdomain' column based on request context.
-      const { data, error } = await supabase
-        .from('users')
-        .select('id')
-        .eq('subdomain', subdomain)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setSubdomainError('This subdomain is already taken');
-      } else {
-        setSubdomainError('');
-      }
-    } catch (err) {
-      console.error('Error checking subdomain:', err);
-      // Don't block user if check fails, but log it
-    } finally {
-      setIsCheckingSubdomain(false);
-    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,27 +30,43 @@ const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Upload logo first if provided
+    let logoUrl = '';
+    if (logoFile) {
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
+      if (uploadError) {
+        setError(t('register.errors.logoUploadFailed') + uploadError.message);
+        setIsSubmitting(false);
+        return;
+      }
+      logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
+    }
+    // Debug: log the payload sent to Supabase
+    console.log('Payload sent to Supabase:', {
+      email: form.email,
+      password: form.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: {
+          name: form.name,
+          phone: form.phone,
+          description: form.description,
+          logo: logoUrl
+        }
+      }
+    });
     setIsSubmitting(true);
-
+    
     if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
-      setError('Please fill in all required fields.');
+      setError(t('register.errors.fillAllFields'));
       setIsSubmitting(false);
       return;
     }
-
+    
     if (form.password !== form.confirm) {
-      setError('Passwords do not match.');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (form.subdomain && subdomainError) {
-      setError('Please fix the subdomain error before continuing.');
-      setIsSubmitting(false);
-      return;
-    }
-    if (form.subdomain && form.subdomain.length < 3) {
-      setError('Subdomain must be at least 3 characters.');
+      setError(t('register.errors.passwordsNoMatch'));
       setIsSubmitting(false);
       return;
     }
@@ -114,9 +78,9 @@ const RegisterPage: React.FC = () => {
         .select('id')
         .eq('email', form.email)
         .maybeSingle();
-
+      
       if (existingUser) {
-        setError('An account with this email already exists. Please sign in instead.');
+        setError(t('register.errors.accountExists'));
         setIsSubmitting(false);
         return;
       }
@@ -128,7 +92,7 @@ const RegisterPage: React.FC = () => {
         const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
         const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, logoFile);
         if (uploadError) {
-          setError('Failed to upload logo: ' + uploadError.message);
+          setError(t('register.errors.logoUploadFailed') + uploadError.message);
           setIsSubmitting(false);
           return;
         }
@@ -136,56 +100,57 @@ const RegisterPage: React.FC = () => {
       }
 
       // Register user with Supabase Auth
-      // Pass all user data via metadata - the database trigger will create the profile
+      // Only send allowed metadata fields (sanitize logoUrl and never spread form object)
+      const metadata = {
+        name: form.name,
+        phone: form.phone,
+        description: form.description,
+        logo: logoUrl
+      };
+      // Remove any accidental extra fields
+      Object.keys(metadata).forEach(key => {
+        if (!["name", "phone", "description", "logo"].includes(key)) {
+          delete metadata[key];
+        }
+      });
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            name: form.name,
-            phone: form.phone,
-            description: form.description,
-            subdomain: form.subdomain || '',
-            logo: logoUrl,
-            email_verified: false,
-            signup_method: 'email'
-          }
+          data: metadata
         }
       });
 
       if (signUpError) {
         setError(signUpError.message);
-        showNotification(signUpError.message, 'error');
         setIsSubmitting(false);
         return;
       }
 
       if (!authData.user) {
-        setError('Failed to create account. Please try again.');
-        showNotification('Failed to create account. Please try again.', 'error');
+        setError(t('register.errors.createAccountFailed'));
         setIsSubmitting(false);
         return;
       }
 
-      // Success: trigger creates user profile. Send verification email.
-      try {
-        await fetch(`${API_BASE}/api/verify-email`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: form.email }),
-        });
-      } catch (sendErr) {
-        console.warn('Send verification email failed:', sendErr);
-      }
+      // Success! The database trigger will automatically create the user profile
+      // User needs to verify their email before they can log in
+      console.log('[Registration] ✅ Auth account created:', {
+        userId: authData.user.id,
+        email: authData.user.email,
+        emailConfirmedAt: authData.user.email_confirmed_at
+      });
+      
+      console.log('[Registration] ✅ User profile will be created automatically by database trigger');
+
       setIsSubmitting(false);
-      showNotification('Check your email to verify your account.', 'success');
+      alert(t('register.successMessage'));
       navigate('/login');
     } catch (err) {
       console.error('Registration error:', err);
       const message = err instanceof Error ? err.message : 'An error occurred during registration';
       setError(message);
-      showNotification(message, 'error');
       setIsSubmitting(false);
     }
   };
@@ -209,7 +174,6 @@ const RegisterPage: React.FC = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start Google sign up';
       setError(message);
-      showNotification(message, 'error');
       setIsSubmitting(false);
     }
   };
@@ -219,14 +183,14 @@ const RegisterPage: React.FC = () => {
       <AuthPageTransition>
         <SplitAuthLayout
           logoUrl={LOGO_URL}
-          title="Create Account"
-          subtitle="Join Appointly today"
-          quote="Start your journey with us."
+          title={t('register.title')}
+          subtitle={t('register.subtitle')}
+          quote={t('register.quote')}
           reverse
         >
           <button
             onClick={() => navigate('/')}
-            className="absolute left-0 top-0 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
+            className="absolute left-0 top-0 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -236,126 +200,96 @@ const RegisterPage: React.FC = () => {
             <button
               type="button"
               onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-2"
               disabled={isSubmitting}
             >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-              {isSubmitting ? 'Signing up…' : 'Sign up with Google'}
+              {t('register.signUpWithGoogle')}
             </button>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Business Name</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.nameLabel')}</label>
               <input
                 type="text"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder="Your business name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                placeholder={t('register.namePlaceholder')}
                 autoComplete="name"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Email</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.emailLabel')}</label>
               <input
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder="you@example.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                placeholder={t('register.emailPlaceholder')}
                 autoComplete="email"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Phone</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.phoneLabel')}</label>
               <input
                 type="tel"
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder="Your phone number"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                placeholder={t('register.phonePlaceholder')}
                 autoComplete="tel"
                 required
               />
-              <p className="text-[11px] text-gray-500 mt-0.5">Phone verification (optional, coming soon).</p>
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Password</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.passwordLabel')}</label>
               <input
                 type="password"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder="Create a password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                placeholder={t('register.passwordPlaceholder')}
                 autoComplete="new-password"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Confirm Password</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.confirmPasswordLabel')}</label>
               <input
                 type="password"
                 name="confirm"
                 value={form.confirm}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder="Repeat your password"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                placeholder={t('register.confirmPasswordPlaceholder')}
                 autoComplete="new-password"
                 required
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Subdomain</label>
-              <div className="flex rounded-lg shadow-sm">
-                <input
-                  type="text"
-                  name="subdomain"
-                  value={form.subdomain}
-                  onChange={handleChange}
-                  className={`flex-1 min-w-0 block w-full px-4 py-3 rounded-none rounded-l-lg border ${subdomainError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-black focus:ring-primary'
-                    } focus:ring-2 text-sm transition-all duration-200`}
-                  placeholder="your-company (optional)"
-                  autoComplete="off"
-                />
-                <span className="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                  .appointly-ks.com
-                </span>
-              </div>
-              {isCheckingSubdomain && (
-                <p className="text-xs text-primary mt-1">Checking availability...</p>
-              )}
-              {subdomainError && (
-                <p className="text-xs text-red-600 mt-1">{subdomainError}</p>
-              )}
-              {!subdomainError && form.subdomain && !isCheckingSubdomain && (
-                <p className="text-xs text-green-600 mt-1">
-                  Your URL: <span className="font-semibold">{form.subdomain}.appointly-ks.com</span>
-                </p>
-              )}
-              <p className="text-[11px] text-gray-500 mt-0.5">Lowercase, no spaces, unique. You can set this later in Profile.</p>
-            </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Company Description</label>
+              <label className="block text-xs font-medium text-gray-700">{t('register.descriptionLabel')}</label>
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black transition-all resize-none text-sm"
-                placeholder="Describe your company"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black transition-all resize-none text-sm"
+                placeholder={t('register.descriptionPlaceholder')}
                 required
                 rows={2}
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Company Logo</label>
-              <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${logoFile
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-300 hover:border-primary'
-                }`}>
+              <label className="block text-xs font-medium text-gray-700">{t('register.logoLabel')}</label>
+              <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${
+                logoFile 
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-gray-300 hover:border-indigo-500'
+              }`}>
                 <div className="space-y-1 text-center">
                   {logoFile ? (
                     <>
@@ -393,7 +327,7 @@ const RegisterPage: React.FC = () => {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <p className="text-[10px] text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                      <p className="text-[10px] text-gray-500">{t('register.fileTypes')}</p>
                     </>
                   )}
                   <div className="flex text-xs text-gray-600">
@@ -401,7 +335,7 @@ const RegisterPage: React.FC = () => {
                       htmlFor="file-upload"
                       className="relative cursor-pointer bg-white rounded font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 px-1"
                     >
-                      <span>{logoFile ? 'Change file' : 'Upload a file'}</span>
+                      <span>{logoFile ? t('register.changeFile') : t('register.uploadFile')}</span>
                       <input
                         id="file-upload"
                         name="file-upload"
@@ -411,7 +345,7 @@ const RegisterPage: React.FC = () => {
                         className="sr-only"
                       />
                     </label>
-                    {!logoFile && <p className="pl-1">or drag and drop</p>}
+                    {!logoFile && <p className="pl-1">{t('register.dragAndDrop')}</p>}
                   </div>
                 </div>
               </div>
@@ -421,28 +355,36 @@ const RegisterPage: React.FC = () => {
                 {error}
               </div>
             )}
-            <Button
+            <button
               type="submit"
-              fullWidth
-              isLoading={isSubmitting}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
             >
-              {isSubmitting ? 'Creating account...' : 'Create Account'}
-            </Button>
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {t('register.creatingAccount')}
+                </span>
+              ) : (
+                t('register.createAccountButton')
+              )}
+            </button>
           </form>
           <div className="mt-4 text-center">
             <p className="text-gray-600 text-xs">
-              Already have an account?{' '}
+              {t('register.alreadyHaveAccount')}{' '}
               <button
-                className="text-primary hover:text-primary-light font-medium hover:underline transition-colors"
+                className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline transition-colors"
                 onClick={() => navigate('/login')}
               >
-                Sign in
+                {t('register.signIn')}
               </button>
             </p>
             <p className="text-[11px] text-gray-500">
-              Grant access so we may sync thy bookings with thine own Google Calendar (optional during setup).
+              {t('register.googleCalendarNote')}
             </p>
           </div>
         </SplitAuthLayout>

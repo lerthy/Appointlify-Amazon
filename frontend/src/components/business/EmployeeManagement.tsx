@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Users, Plus, Edit, Trash2, Clock, User, Mail, Phone, Briefcase } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -25,13 +26,13 @@ interface EmployeeFormData {
 }
 
 const EmployeeManagement: React.FC = () => {
+  const { t } = useTranslation();
   const { employees, addEmployee, updateEmployee, deleteEmployee, businessId } = useApp();
   const { user } = useAuth();
   const { showNotification } = useNotification();
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<string | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
     email: '',
@@ -67,11 +68,10 @@ const EmployeeManagement: React.FC = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.phone || !formData.role) {
-      showNotification('Please fill in all required fields.', 'error');
+      showNotification(t('employees.errors.fillRequired'), 'error');
       return;
     }
 
-    setIsSubmitting(true);
     try {
       if (editingEmployee) {
         // Find the current employee to check if they have an old image
@@ -102,12 +102,12 @@ const EmployeeManagement: React.FC = () => {
           }
         }
         
-        showNotification('Employee updated successfully!', 'success');
+        showNotification(t('employees.success.updated'), 'success');
         setEditingEmployee(null);
       } else {
         // Ensure business is resolved before creating employee
         if (!businessId) {
-          showNotification('Business is still loading. Please try again in a moment.', 'error');
+          showNotification(t('employees.errors.businessLoading'), 'error');
           return;
         }
         // Add new employee (payload filtered in context to match DTO)
@@ -119,16 +119,14 @@ const EmployeeManagement: React.FC = () => {
           role: formData.role,
           image_url: formData.image_url || undefined
         });
-        showNotification('Employee added successfully!', 'success');
+        showNotification(t('employees.success.added'), 'success');
       }
 
       resetForm();
       setIsAddingEmployee(false);
     } catch (error) {
       console.error('Error saving employee:', error);
-      showNotification('Failed to save employee. Please try again.', 'error');
-    } finally {
-      setIsSubmitting(false);
+      showNotification(t('employees.errors.saveFailed'), 'error');
     }
   };
 
@@ -196,11 +194,11 @@ const EmployeeManagement: React.FC = () => {
         }
       }
       
-      showNotification('Employee deleted successfully!', 'success');
+      showNotification(t('employees.success.deleted'), 'success');
       setDeletingEmployee(null);
     } catch (error) {
       console.error('Error deleting employee:', error);
-      showNotification('Failed to delete employee. Please try again.', 'error');
+      showNotification(t('employees.errors.deleteFailed'), 'error');
     }
   };
 
@@ -224,18 +222,18 @@ const EmployeeManagement: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Employees</h2>
-          <p className="text-gray-600">Manage your business employees and their schedules</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('employees.title')}</h2>
+          <p className="text-gray-600">{t('employees.description')}</p>
         </div>
         <div className="flex space-x-2">
           <Button
             onClick={() => setIsAddingEmployee(true)}
             className="flex items-center justify-center w-10 h-10 rounded-full sm:w-auto sm:h-auto sm:rounded-lg focus-outline-none focus:ring-0 focus:ring-offset-0"
-            aria-label="Add employee"
+            aria-label={t('employees.addEmployee')}
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline ml-2">
-              Add Employee
+              {t('employees.addEmployee')}
             </span>
           </Button>
         </div>
@@ -306,10 +304,10 @@ const EmployeeManagement: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
-                    {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
+                    {editingEmployee ? t('employees.editEmployee') : t('employees.addNewEmployee')}
                   </h3>
                   <p className="text-gray-600 mt-1">
-                    {editingEmployee ? 'Update the employee details below' : 'Fill in the employee details below'}
+                    {editingEmployee ? t('employees.editDescription') : t('employees.addDescription')}
                   </p>
                 </div>
                 <button
@@ -331,56 +329,56 @@ const EmployeeManagement: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Full Name *
+                      {t('employees.name')} *
                     </label>
                     <Input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      placeholder="Enter employee name"
+                      placeholder={t('employees.namePlaceholder')}
                       className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Role *
+                      {t('employees.role')} *
                     </label>
                     <Input
                       type="text"
                       name="role"
                       value={formData.role}
                       onChange={handleInputChange}
-                      placeholder="e.g., Stylist, Therapist"
+                      placeholder={t('employees.rolePlaceholder')}
                       className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Email *
+                      {t('employees.email')} *
                     </label>
                     <Input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="employee@example.com"
+                      placeholder={t('employees.emailPlaceholder')}
                       className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       required
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Phone *
+                      {t('employees.phone')} *
                     </label>
                     <Input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      placeholder="+1 234 567 8900"
+                      placeholder={t('employees.phonePlaceholder')}
                       className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       required
                     />
@@ -390,7 +388,7 @@ const EmployeeManagement: React.FC = () => {
                 {/* Employee Photo */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    Employee Photo
+                    {t('employees.imageUrl')}
                   </label>
                   <ImageUpload
                     value={formData.image_url}
@@ -405,7 +403,7 @@ const EmployeeManagement: React.FC = () => {
                 <div className="space-y-4">
                   <label className="block text-sm font-semibold text-gray-700">
                     <Clock className="inline h-4 w-4 mr-2" />
-                    Working Hours
+                    {t('employees.workingHours')}
                   </label>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -416,7 +414,7 @@ const EmployeeManagement: React.FC = () => {
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-sm font-semibold text-gray-800">
-                              {hours.day}
+                              {t(`analytics.days.${hours.day.toLowerCase()}`)}
                             </span>
                             <label className="flex items-center text-xs font-medium text-gray-600">
                               <input
@@ -427,7 +425,7 @@ const EmployeeManagement: React.FC = () => {
                                 }
                                 className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                               />
-                              {hours.isClosed ? 'Closed' : 'Open'}
+                              {hours.isClosed ? t('employees.closed') : t('employees.open')}
                             </label>
                           </div>
 
@@ -435,7 +433,7 @@ const EmployeeManagement: React.FC = () => {
                             <div className="grid grid-cols-2 gap-2">
                               <div className="flex flex-col gap-1">
                                 <span className="text-[11px] font-medium text-gray-500">
-                                  Opens
+                                  {t('employees.opens')}
                                 </span>
                                 <Input
                                   type="time"
@@ -448,7 +446,7 @@ const EmployeeManagement: React.FC = () => {
                               </div>
                               <div className="flex flex-col gap-1">
                                 <span className="text-[11px] font-medium text-gray-500">
-                                  Closes
+                                  {t('employees.closes')}
                                 </span>
                                 <Input
                                   type="time"
@@ -478,10 +476,10 @@ const EmployeeManagement: React.FC = () => {
                     }}
                     className="px-6 py-2 border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
-                    Cancel
+                    {t('employees.cancel')}
                   </Button>
-                  <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting} className="px-6 py-2">
-                    {editingEmployee ? 'Update Employee' : 'Add Employee'}
+                  <Button type="submit" className="px-6 py-2 bg-blue-600 hover:bg-blue-700">
+                    {editingEmployee ? t('employees.updateEmployee') : t('employees.addEmployee')}
                   </Button>
                 </div>
               </form>
@@ -495,10 +493,10 @@ const EmployeeManagement: React.FC = () => {
         isOpen={!!deletingEmployee}
         onCancel={() => setDeletingEmployee(null)}
         onConfirm={() => deletingEmployee && handleDeleteEmployee(deletingEmployee)}
-        title="Delete Employee"
-        description="Are you sure you want to delete this employee? This action cannot be undone."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t('employees.deleteTitle')}
+        description={t('employees.deleteDescription')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('employees.cancel')}
         variant="danger"
       />
     </div>

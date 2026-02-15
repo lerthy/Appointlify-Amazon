@@ -55,6 +55,6 @@ export function startGoogleHealthMonitor() {
     return;
   }
   monitorTimer = setInterval(runHealthCheck, googleConfig.healthIntervalMs);
-
+  console.log(`[GoogleHealthMonitor] scheduled every ${googleConfig.healthIntervalMs / 1000}s`);
 }
 

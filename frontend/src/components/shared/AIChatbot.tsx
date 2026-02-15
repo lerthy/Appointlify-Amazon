@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { mockAiService } from '../../utils/mockAiService';
+import { useTranslation } from 'react-i18next';
 
 interface Message {
   id: string;
@@ -17,11 +18,12 @@ interface AIChatbotProps {
 }
 
 const AIChatbot: React.FC<AIChatbotProps> = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Hello! I'm your AI booking assistant for Appointly. I can help you book appointments with various businesses. Would you like to start booking an appointment?`,
+      content: t('chatWidget.welcomeMessage'),
       sender: 'assistant',
       timestamp: new Date()
     }
@@ -79,7 +81,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
       }
 
       const data = await res.json();
-      const aiText = data?.message || 'Sorry, I could not generate a response.';
+      const aiText = data?.message || t('chatWidget.noResponse');
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -93,7 +95,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm having trouble reaching the AI service. Retrying with a local fallback...",
+        content: t('chatWidget.errorMessage'),
         sender: 'assistant',
         timestamp: new Date()
       };
@@ -144,11 +146,11 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
           className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 cursor-pointer transform transition-transform hover:scale-110"
           onClick={() => setIsOpen(true)}
         >
-          <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white p-3 sm:p-4 rounded-full shadow-lg hover:from-[var(--primary-light)] hover:to-[var(--accent)] transition-all duration-300">
+          <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-3 sm:p-4 rounded-full shadow-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300">
             <MessageCircle size={20} className="sm:hidden" />
             <MessageCircle size={24} className="hidden sm:block" />
           </div>
-          {/* <div className="absolute -top-2 -right-2 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+          {/* <div className="absolute -top-2 -right-2 bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
             AI
           </div> */}
         </div>
@@ -158,10 +160,10 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
       {isOpen && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-6 sm:bottom-6 z-50 w-[90vw] max-w-sm h-[65vh] sm:w-96 sm:h-[500px] bg-white rounded-2xl shadow-2xl border-none flex flex-col">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white p-4 rounded-t-2xl flex justify-between items-center">
+          <div className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-4 rounded-t-2xl flex justify-between items-center">
             <div>
-              <h3 className="font-bold">Chattly</h3>
-              <p className="text-sm opacity-90">Your AI Chat Assistant</p>
+              <h3 className="font-bold">{t('chatWidget.title')}</h3>
+              <p className="text-sm opacity-90">{t('chatWidget.subtitle')}</p>
             </div>
             <button
               onClick={handleClose}
@@ -181,7 +183,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
                 <div
                   className={`max-w-[80%] p-3 rounded-lg ${
                     message.sender === 'user'
-                      ? 'bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white rounded-br-none'
+                      ? 'bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white rounded-br-none'
                       : 'bg-gray-100 text-gray-800 rounded-bl-none'
                   }`}
                 >
@@ -198,7 +200,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
                 <div className="bg-gray-100 text-gray-800 p-3 rounded-lg rounded-bl-none max-w-[80%]">
                   <div className="flex items-center space-x-2">
                     <Loader2 size={16} className="animate-spin" />
-                    <span className="text-sm">AI is typing...</span>
+                    <span className="text-sm">{t('chatWidget.aiTyping')}</span>
                   </div>
                 </div>
               </div>
@@ -215,21 +217,21 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent max-w-[85%]"
+                placeholder={t('chatWidget.placeholder')}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent max-w-[85%]"
                 disabled={isLoading}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputValue.trim()}
-                className="bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white p-2 rounded-lg hover:from-[var(--primary-light)] hover:to-[var(--accent)] transition-all duration-300 disabled:opacity-50 disabled:cursor-default min-w-[13%] m-0"
+                className="bg-gradient-to-r from-[#6A3EE8] to-[#8A4EE8] text-white p-2 rounded-lg hover:from-[#5A2ED8] hover:to-[#7A3ED8] transition-all duration-300 disabled:opacity-50 disabled:cursor-default min-w-[13%] m-0"
                 style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}
               >
                 <Send size={18} />
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Powered by Appointly AI Assistant
+              {t('chatWidget.poweredBy')}
             </p>
           </div>
         </div>

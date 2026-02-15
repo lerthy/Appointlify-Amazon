@@ -40,21 +40,21 @@ export async function authenticatedFetch<T = any>(
   try {
     // Get fresh token
     const token = await getFreshAccessToken();
-
+    
     // Make the request
     let response = await makeRequest(token);
 
     // If we get a 401 and retry is enabled, try refreshing the session once
     if (response.status === 401 && retryOn401) {
-
-
+      console.log('[authenticatedFetch] Got 401, refreshing session and retrying...');
+      
       // Force refresh the session
       const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-
+      
       if (refreshError || !refreshData.session?.access_token) {
         throw new Error('Session expired. Please log in again.');
       }
-
+      
       // Retry the request with the new token
       response = await makeRequest(refreshData.session.access_token);
     }

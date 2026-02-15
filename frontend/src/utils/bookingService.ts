@@ -101,12 +101,12 @@ export class BookingService {
 
       const availableDates: string[] = [];
       const today = new Date();
-
+      
       // Check next 30 days
       for (let i = 0; i < 30; i++) {
         const checkDate = new Date(today);
         checkDate.setDate(today.getDate() + i);
-
+        
         if (this.isDateAvailable(checkDate, settings)) {
           availableDates.push(checkDate.toISOString().split('T')[0]);
         }
@@ -124,28 +124,31 @@ export class BookingService {
     try {
       const settings = await this.getBusinessSettings();
       if (!settings) {
+        console.log('No business settings found');
         return [];
       }
 
       const selectedDate = new Date(date);
       const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-
+      console.log(`Getting available times for ${date} (${dayOfWeek})${employeeId ? ` for employee ${employeeId}` : ''}`);
+      
       // Find working hours for this day
       const daySettings = settings.working_hours.find(h => h.day === dayOfWeek);
       if (!daySettings || daySettings.isClosed) {
+        console.log(`Business is closed on ${dayOfWeek} or no settings found`);
         return [];
       }
 
-
+      console.log(`Working hours: ${daySettings.open} - ${daySettings.close}`);
 
       // Generate time slots
       const timeSlots = this.generateTimeSlots(daySettings.open, daySettings.close, serviceDuration, selectedDate);
-
-
+      console.log(`Generated time slots:`, timeSlots);
+      
       // Filter out booked times (optionally for specific employee)
       const availableSlots = await this.filterBookedSlots(date, timeSlots, serviceDuration, employeeId);
-
-
+      console.log(`Available slots after filtering:`, availableSlots);
+      
       return availableSlots;
     } catch (error) {
       console.error('Error getting available times:', error);
@@ -157,9 +160,9 @@ export class BookingService {
   async checkAvailability(date: string, time: string, serviceDuration: number = 60, employeeId?: string): Promise<boolean> {
     try {
       const availableTimes = await this.getAvailableTimes(date, serviceDuration, employeeId);
-
+      console.log(`Checking availability for ${date} at ${time}${employeeId ? ` for employee ${employeeId}` : ''}. Available times:`, availableTimes);
       const isAvailable = availableTimes.includes(time);
-
+      console.log(`Time ${time} is ${isAvailable ? 'available' : 'not available'}`);
       return isAvailable;
     } catch (error) {
       console.error('Error checking availability:', error);
@@ -172,10 +175,10 @@ export class BookingService {
     try {
       // Validate availability
       const isAvailable = await this.checkAvailability(bookingData.date, bookingData.time, 60);
-
-
+      console.log('Availability check in createAppointment:', isAvailable);
+      
       if (!isAvailable) {
-
+        console.log('⚠️ Time slot may not be available, but proceeding with booking...');
         // For now, we'll proceed with the booking even if availability check fails
         // This allows the booking to work while we debug the availability system
       }
@@ -190,16 +193,15 @@ export class BookingService {
       }
 
       // Create appointment date
-      // Create appointment date
       const appointmentDateTime = new Date(`${bookingData.date}T${bookingData.time}`);
-
+      
       // Generate confirmation token
       const confirmationToken = Array.from(window.crypto.getRandomValues(new Uint8Array(32)))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
       const tokenExpiry = new Date();
       tokenExpiry.setHours(tokenExpiry.getHours() + 48); // 48 hour expiry
-
+      
       // Create appointment
       const { data: appointment, error } = await supabase
         .from('appointments')
@@ -288,7 +290,7 @@ export class BookingService {
   // Check if date is available (not blocked, is working day)
   private isDateAvailable(date: Date, settings: BusinessSettings): boolean {
     const dateString = date.toISOString().split('T')[0];
-
+    
     // Check if date is blocked
     if (settings.blocked_dates.includes(dateString)) {
       return false;
@@ -296,8 +298,8 @@ export class BookingService {
 
     // Check if it's a working day
     const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
-    const daySettings = settings.working_hours.find(h => h.day === dayOfWeek) || false;
-
+    const daySettings = settings.working_hours.find(h => h.day === dayOfWeek) || false  ;
+    
     return daySettings && !daySettings.isClosed;
   }
 
@@ -306,36 +308,36 @@ export class BookingService {
     const slots: string[] = [];
     const open = new Date(`2000-01-01T${openTime}`);
     const close = new Date(`2000-01-01T${closeTime}`);
-
+    
     let current = new Date(open);
-
+    
     // Get current date and time to check for past slots
     const now = new Date();
     const isToday = selectedDate ? selectedDate.toDateString() === now.toDateString() : false;
-
+    
     // Add 15 minutes buffer to current time to allow reasonable booking window
     const currentTimeWithBuffer = new Date(now);
     currentTimeWithBuffer.setMinutes(currentTimeWithBuffer.getMinutes() + 15);
-
+    
     while (current < close) {
       const timeString = current.toTimeString().slice(0, 5);
-
+      
       // Skip past times if the selected date is today (with 15-minute buffer)
       if (isToday && selectedDate) {
         const slotDateTime = new Date(selectedDate);
         const [hours, minutes] = timeString.split(':').map(Number);
         slotDateTime.setHours(hours, minutes, 0, 0);
-
+        
         if (slotDateTime < currentTimeWithBuffer) {
           current.setMinutes(current.getMinutes() + duration);
           continue;
         }
       }
-
+      
       slots.push(timeString);
       current.setMinutes(current.getMinutes() + duration);
     }
-
+    
     return slots;
   }
 
@@ -362,10 +364,10 @@ export class BookingService {
       if (!existingAppointments) return timeSlots;
 
       const bookedSlots = new Set<string>();
-
+      
       existingAppointments.forEach(appointment => {
         const appointmentTime = new Date(appointment.date);
-
+        
         // Add all slots that overlap with this appointment
         for (let i = 0; i < Math.max(appointment.duration, duration); i += 30) {
           const slotTime = new Date(appointmentTime);
@@ -386,7 +388,7 @@ export class BookingService {
     try {
       const businessSettings = await this.getBusinessSettings();
       const businessName = businessSettings?.name || 'Our Business';
-
+      
       const appointmentDate = new Date(appointment.date);
       const dateString = appointmentDate.toLocaleDateString('en-US', {
         weekday: 'long',
@@ -407,7 +409,7 @@ export class BookingService {
           .select('confirmation_token')
           .eq('id', appointment.id)
           .single();
-
+        
         if (appointmentData?.confirmation_token) {
           confirmationLink = `${window.location.origin}/confirm-appointment?token=${appointmentData.confirmation_token}`;
         }
@@ -427,7 +429,7 @@ export class BookingService {
           cancel_link: `${window.location.origin}/cancel/${appointment.id}`,
           confirmation_link: confirmationLink || undefined
         });
-
+        console.log('✅ Email notification sent successfully');
       } catch (emailError) {
         console.error('❌ Email notification failed:', emailError);
         // Continue with SMS even if email fails
@@ -440,6 +442,12 @@ export class BookingService {
           to: appointment.phone,
           message: smsMessage
         });
+        
+        if (smsResult) {
+          console.log('✅ SMS notification sent successfully');
+        } else {
+          console.log('⚠️ SMS notification failed but booking continues');
+        }
       } catch (smsError) {
         console.error('❌ SMS notification failed:', smsError);
         // Continue even if SMS fails

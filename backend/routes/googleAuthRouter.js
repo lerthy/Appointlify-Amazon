@@ -40,13 +40,13 @@ function sendPopupResponse(res, payload, fallbackUrl) {
     <script>
       (function() {
         const payload = ${JSON.stringify(payload)};
-        
+        console.log('[OAuth Callback] Attempting to post message:', payload);
         let posted = false;
         if (window.opener && typeof window.opener.postMessage === 'function') {
           // Try posting to any origin first (most permissive)
           try {
             window.opener.postMessage(payload, '*');
-            
+            console.log('[OAuth Callback] Posted message to *');
             posted = true;
           } catch (err) {
             console.warn('[OAuth Callback] postMessage to * failed', err);
@@ -54,12 +54,12 @@ function sendPopupResponse(res, payload, fallbackUrl) {
           
           // Also try posting to specific allowed origins as fallback
           const origins = ${JSON.stringify(googleConfig.allowedOrigins.length ? googleConfig.allowedOrigins : [])};
-          
+          console.log('[OAuth Callback] Trying allowed origins:', origins);
           origins.forEach(origin => {
             if (!posted) {
               try {
                 window.opener.postMessage(payload, origin);
-                
+                console.log('[OAuth Callback] Posted message to', origin);
                 posted = true;
               } catch (err) {
                 console.warn('[OAuth Callback] postMessage to ' + origin + ' failed', err);
@@ -70,13 +70,13 @@ function sendPopupResponse(res, payload, fallbackUrl) {
           console.error('[OAuth Callback] No window.opener or postMessage not available');
         }
         if (posted) {
-          
+          console.log('[OAuth Callback] Message posted successfully, closing window');
           setTimeout(() => window.close(), 100);
         } else if (${JSON.stringify(Boolean(fallbackUrl))}) {
-          });
+          console.log('[OAuth Callback] Message not posted, redirecting to:', ${JSON.stringify(fallbackUrl || '/')});
           window.location.replace(${JSON.stringify(fallbackUrl || '/')});
         } else {
-          
+          console.log('[OAuth Callback] Message not posted, showing payload');
           document.body.innerHTML = '<pre>' + JSON.stringify(payload, null, 2) + '</pre>';
         }
       })();
@@ -92,8 +92,8 @@ router.get('/auth/google', launcherLimiter, attachSupabaseUser, async (req, res)
       assertGoogleConfig();
     } catch (configError) {
       console.error('[GET /auth/google] Configuration error:', configError.message);
-      return res.status(500).json({
-        success: false,
+      return res.status(500).json({ 
+        success: false, 
         error: 'Google OAuth not configured',
         details: configError.message,
         hint: 'Please set GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, and GOOGLE_OAUTH_REDIRECT_URI in your environment variables'
@@ -101,8 +101,8 @@ router.get('/auth/google', launcherLimiter, attachSupabaseUser, async (req, res)
     }
 
     // Validate redirect URI matches what's in Google Cloud Console
-
-
+    console.log('[GET /auth/google] Using redirect URI:', googleConfig.redirectUri);
+    console.log('[GET /auth/google] Allowed origins:', googleConfig.allowedOrigins);
 
     const scopeParam = (req.query.scope || 'calendar').toString();
     const scopeSet = resolveScopeSet(scopeParam);
@@ -121,12 +121,12 @@ router.get('/auth/google', launcherLimiter, attachSupabaseUser, async (req, res)
     });
 
     const url = buildGoogleAuthUrl(scopeSet, state);
-
+    console.log('[GET /auth/google] Generated OAuth URL with redirect URI:', googleConfig.redirectUri);
     res.json({ success: true, url, state });
   } catch (error) {
     console.error('[GET /auth/google] error', error);
-    res.status(500).json({
-      success: false,
+    res.status(500).json({ 
+      success: false, 
       error: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
@@ -137,12 +137,12 @@ router.get('/auth/google/callback', async (req, res) => {
   const { state, code, error, error_description } = req.query;
   const session = consumeOAuthSession(state);
 
-  console.log('[auth/google/callback] Received callback:', {
-    hasState: !!state,
-    hasCode: !!code,
+  console.log('[auth/google/callback] Received callback:', { 
+    hasState: !!state, 
+    hasCode: !!code, 
     hasError: !!error,
     hasSession: !!session,
-    userId: session?.userId
+    userId: session?.userId 
   });
 
   if (!session) {
@@ -164,13 +164,13 @@ router.get('/auth/google/callback', async (req, res) => {
 
   if (!code) {
     console.error('[auth/google/callback] No authorization code received');
-
+    
     // If no code but we have a userId, check if calendar is already linked
     if (session.userId) {
       try {
         const existingStatus = await fetchCalendarStatus(session.userId);
         if (existingStatus && existingStatus.status === 'linked' && existingStatus.refresh_token) {
-
+          console.log('[auth/google/callback] No code but calendar already linked, returning success');
           return sendPopupResponse(res, {
             success: true,
             scope: session.scope,
@@ -182,10 +182,10 @@ router.get('/auth/google/callback', async (req, res) => {
         console.error('[auth/google/callback] Error checking existing status:', statusErr);
       }
     }
-
-    return sendPopupResponse(res, {
-      success: false,
-      error: 'No authorization code received. If you already granted permissions, try disconnecting and reconnecting.'
+    
+    return sendPopupResponse(res, { 
+      success: false, 
+      error: 'No authorization code received. If you already granted permissions, try disconnecting and reconnecting.' 
     }, session.returnUrl);
   }
 
@@ -195,9 +195,9 @@ router.get('/auth/google/callback', async (req, res) => {
       redirectUri: googleConfig.redirectUri,
       requestedScopes: session.scopes
     });
-
+    
     const tokens = await exchangeCodeForTokens(code);
-
+    
     // Validate token exchange was successful
     if (!tokens.access_token && !tokens.id_token) {
       console.error('[auth/google/callback] Token exchange returned no usable tokens');
@@ -206,7 +206,7 @@ router.get('/auth/google/callback', async (req, res) => {
         error: 'Token exchange failed: No access token or ID token received. Please check your OAuth configuration.'
       }, session.returnUrl);
     }
-
+    
     console.log('[auth/google/callback] Token exchange successful:', {
       hasAccessToken: !!tokens.access_token,
       hasRefreshToken: !!tokens.refresh_token,
@@ -214,30 +214,30 @@ router.get('/auth/google/callback', async (req, res) => {
       scopes: tokens.scope,
       tokenType: tokens.token_type
     });
-
+    
     // Get granted scopes - use what Google returned, fallback to requested
     const scopes = tokens.scope ? tokens.scope.split(' ').filter(Boolean) : session.scopes;
-
-
+    console.log('[auth/google/callback] Granted scopes:', scopes);
+    
     // Verify we have identity scopes (required for profile)
-    const hasIdentityScopes = scopes.some(s =>
-      s === 'openid' || s === 'email' || s === 'profile' ||
+    const hasIdentityScopes = scopes.some(s => 
+      s === 'openid' || s === 'email' || s === 'profile' || 
       s.includes('openid') || s.includes('email') || s.includes('profile')
     );
-
+    
     if (!hasIdentityScopes && !tokens.id_token) {
       console.warn('[auth/google/callback] No identity scopes granted and no id_token - profile fetch may fail');
     }
-
+    
     // Try to fetch profile, but if it fails with 401, use id_token instead
     let profile;
     try {
       profile = await fetchGoogleUserProfile(tokens.access_token);
-
+      console.log('[auth/google/callback] Successfully fetched profile with access token');
     } catch (profileErr) {
       console.error('[auth/google/callback] Failed to fetch profile with access token:', profileErr.message);
-
-
+      console.log('[auth/google/callback] Attempting to get profile from id_token...');
+      
       // If access token fails, use the id_token to get user info (this is more reliable)
       if (tokens.id_token) {
         try {
@@ -275,7 +275,7 @@ router.get('/auth/google/callback', async (req, res) => {
         }, session.returnUrl);
       }
     }
-
+    
     if (!profile || !profile.email) {
       console.error('[auth/google/callback] Profile is missing required fields:', profile);
       return sendPopupResponse(res, {
@@ -295,20 +295,26 @@ router.get('/auth/google/callback', async (req, res) => {
       );
     } catch (authErr) {
       console.error('[auth/google/callback] Failed to create Supabase auth user:', authErr);
-      return sendPopupResponse(res, {
-        success: false,
-        error: `Authentication failed: ${authErr.message}`
+      return sendPopupResponse(res, { 
+        success: false, 
+        error: `Authentication failed: ${authErr.message}` 
       }, session.returnUrl);
     }
 
     // Get or create user profile in our users table
     let appUser;
     try {
-      appUser = await getOrCreateUserProfile(supabaseAuthUser, {
+      appUser = await getOrCreateUserProfile(supabaseAuthUser, { 
         signupMethod: 'google',
         name: profile.name,
       });
-
+      console.log('[auth/google/callback] User profile:', {
+        appUserId: appUser.id,
+        sessionUserId: session.userId,
+        email: appUser.email,
+        match: appUser.id === session.userId
+      });
+      
       // If session has a userId but it doesn't match the appUser, log a warning
       if (session.userId && appUser.id !== session.userId) {
         console.warn('[auth/google/callback] User ID mismatch:', {
@@ -321,12 +327,12 @@ router.get('/auth/google/callback', async (req, res) => {
       }
     } catch (profileErr) {
       console.error('[auth/google/callback] Failed to create user profile:', profileErr);
-      return sendPopupResponse(res, {
-        success: false,
-        error: `Profile creation failed: ${profileErr.message}`
+      return sendPopupResponse(res, { 
+        success: false, 
+        error: `Profile creation failed: ${profileErr.message}` 
       }, session.returnUrl);
     }
-
+    
     // Use session.userId if available (from Settings page), otherwise use appUser.id
     // This ensures we're storing tokens for the user who initiated the OAuth flow
     const targetUserId = session.userId || appUser.id;
@@ -348,7 +354,7 @@ router.get('/auth/google/callback', async (req, res) => {
     // Store calendar token ONLY if calendar scope was actually granted
     let calendarLinked = false;
     const hasCalendarScope = scopes.includes(GOOGLE_CALENDAR_SCOPE);
-
+    
     console.log('[auth/google/callback] Checking calendar scope:', {
       requestedScopes: session.scopes,
       grantedScopes: scopes,
@@ -357,7 +363,7 @@ router.get('/auth/google/callback', async (req, res) => {
       hasAccessToken: !!tokens.access_token,
       targetUserId
     });
-
+    
     if (hasCalendarScope) {
       // Verify we have a refresh token (required for offline access)
       if (!tokens.refresh_token) {
@@ -380,10 +386,10 @@ router.get('/auth/google/callback', async (req, res) => {
             scopes,
             expiresAt: tokens.expiry_date,
           });
-
+          
           await setCalendarLinkedFlag(targetUserId, true, scopeVersion);
           calendarLinked = true;
-
+          console.log('[auth/google/callback] Calendar linked for user:', targetUserId);
           await logConsentEvent({
             userId: targetUserId,
             googleSub: profile.sub,
@@ -408,7 +414,7 @@ router.get('/auth/google/callback', async (req, res) => {
         }
       }
     } else {
-
+      console.log('[auth/google/callback] Calendar scope not granted. Scopes received:', scopes);
       // Log that calendar was not granted
       await logConsentEvent({
         userId: targetUserId,
@@ -428,10 +434,10 @@ router.get('/auth/google/callback', async (req, res) => {
       userId: targetUserId, // Include user ID for frontend to verify
     };
 
-    console.log('[auth/google/callback] Sending success response:', {
-      success: responsePayload.success,
+    console.log('[auth/google/callback] Sending success response:', { 
+      success: responsePayload.success, 
       calendarLinked: responsePayload.calendarLinked,
-      userId: responsePayload.userId
+      userId: responsePayload.userId 
     });
 
     sendPopupResponse(res, responsePayload, session.returnUrl);
@@ -480,17 +486,17 @@ router.get('/integrations/google/status', requireSupabaseUser, async (req, res) 
     if (!req.appUser) {
       return res.status(401).json({ success: false, error: 'User profile not found' });
     }
-
+    
     const status = await fetchCalendarStatus(req.appUser.id);
-
+    
     const requiredVersion = computeScopeVersion(resolveScopeSet('both'));
     const needsMigration = Boolean(
       req.appUser.calendar_scope_version &&
       req.appUser.calendar_scope_version !== requiredVersion
     );
-
+    
     const linked = Boolean(status?.status === 'linked' && status?.refresh_token);
-
+    
     // Only log if there's an issue or mismatch
     if (!linked && req.appUser.calendar_linked) {
       console.warn('[GET /integrations/google/status] Calendar marked as linked but token missing:', {
@@ -500,7 +506,7 @@ router.get('/integrations/google/status', requireSupabaseUser, async (req, res) 
         hasRefreshToken: !!status?.refresh_token
       });
     }
-
+    
     res.json({
       success: true,
       status: status || null,
@@ -546,28 +552,28 @@ router.get('/integrations/google/debug', requireSupabaseUser, async (req, res) =
     if (!req.appUser) {
       return res.status(401).json({ success: false, error: 'User profile not found' });
     }
-
+    
     const { supabase } = await import('../supabaseClient.js');
-
+    
     // Check calendar tokens table
     const { data: calendarTokens, error: tokensError } = await supabase
       .from('google_calendar_tokens')
       .select('*')
       .eq('user_id', req.appUser.id);
-
+    
     // Check identity credentials
     const { data: identityCreds, error: identityError } = await supabase
       .from('google_identity_credentials')
       .select('*')
       .eq('user_id', req.appUser.id);
-
+    
     // Check user table flags
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id, email, calendar_linked, calendar_scope_version')
       .eq('id', req.appUser.id)
       .single();
-
+    
     res.json({
       success: true,
       userId: req.appUser.id,

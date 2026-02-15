@@ -1,5 +1,6 @@
 import React, { Fragment, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import Button from './Button';
 
 interface AlertDialogProps {
@@ -17,12 +18,16 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
   isOpen,
   title,
   description,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   variant = 'info'
 }) => {
+  const { t } = useTranslation();
+  const resolvedConfirmLabel = confirmLabel || t('alertDialog.confirm');
+  const resolvedCancelLabel = cancelLabel || t('alertDialog.cancel');
+  
   const variantStyles = {
     danger: {
       button: 'danger',
@@ -83,14 +88,14 @@ const AlertDialog: React.FC<AlertDialogProps> = ({
               onClick={onConfirm}
               className="w-full sm:w-auto sm:ml-3"
             >
-              {confirmLabel}
+              {resolvedConfirmLabel}
             </Button>
             <Button
               variant="outline"
               onClick={onCancel}
               className="w-full sm:w-auto"
             >
-              {cancelLabel}
+              {resolvedCancelLabel}
             </Button>
           </div>
         </div>

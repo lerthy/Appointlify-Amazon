@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, XCircle, Calendar, Clock, User, Briefcase, MapPin, Phone, Mail } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { CheckCircle, XCircle, Loader, Calendar, Clock, User, Briefcase, MapPin, Phone, Mail } from 'lucide-react';
 import Button from '../components/ui/Button';
-import Loader from '../components/ui/Loader';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import { formatDate, formatTime } from '../utils/formatters';
@@ -37,13 +37,15 @@ interface AppointmentDetails {
 }
 
 const ConfirmAppointmentPage: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
   
-  const [status, setStatus] = useState<'loading' | 'ready' | 'confirming' | 'success' | 'error' | 'already-confirmed'>('loading');
+  const [status, setStatus] = useState<'loading' | 'confirming' | 'success' | 'error' | 'already-confirmed'>('loading');
   const [message, setMessage] = useState('');
   const [appointment, setAppointment] = useState<AppointmentDetails | null>(null);
+  const hasRunRef = useRef(false);
 
   useEffect(() => {
     if (!token) {
@@ -52,15 +54,148 @@ const ConfirmAppointmentPage: React.FC = () => {
       return;
     }
 
-    const fetchAppointment = async () => {
+    // Prevent double execution in React Strict Mode
+    if (hasRunRef.current) {
+      console.log('[ConfirmAppointment] Already ran, skipping...');
+      return;
+    }
+    hasRunRef.current = true;
+
+    const autoConfirmAppointment = async () => {
       try {
         // Check if we're in development mode without local server
         const isDevelopment = import.meta.env.DEV;
         const isLocalhost = window.location.hostname === 'localhost';
+        const port = window.location.port;
         
         let endpoint: string;
         
-        if (isDevelopment && isLocalhost && window.location.port !== '8888') {
+        // Try Express server first if on localhost with a port (but not 8888 which is Netlify dev)
+        if (isDevelopment && isLocalhost && port && port !== '8888') {
+          // Use Express server endpoint for local dev (will be proxied to backend)
+          endpoint = `/api/confirm-appointment?token=${token}`;
+          console.log('[ConfirmAppointment] Using Express endpoint:', endpoint);
+        } else {
+          // Use Netlify function (production or netlify dev)
+          endpoint = `/.netlify/functions/confirm-appointment?token=${token}`;
+          console.log('[ConfirmAppointment] Using Netlify function:', endpoint);
+        }
+        
+        // Show confirming state
+        setStatus('confirming');
+        
+        // Auto-confirm via GET request
+        console.log('[ConfirmAppointment] Fetching:', endpoint);
+        const confirmResponse = await fetch(endpoint);
+        console.log('[ConfirmAppointment] Response status:', confirmResponse.status, confirmResponse.statusText);
+        console.log('[ConfirmAppointment] Response URL:', confirmResponse.url);
+        console.log('[ConfirmAppointment] Response headers:', Object.fromEntries(confirmResponse.headers.entries()));
+        
+        // Check content-type before parsing
+        const contentType = confirmResponse.headers.get('content-type');
+        const isJson = contentType && contentType.includes('application/json');
+        console.log('[ConfirmAppointment] Content-Type:', contentType, 'isJson:', isJson);
+        
+        // Check if response is ok before trying to parse JSON
+        if (!confirmResponse.ok) {
+          console.warn('[ConfirmAppointment] First attempt failed:', confirmResponse.status, confirmResponse.statusText);
+          // If 404, try the alternative endpoint
+          if (confirmResponse.status === 404 && isDevelopment && isLocalhost && port && port !== '8888') {
+            // Try Netlify function as fallback (though this won't work in local dev without netlify dev)
+            const fallbackEndpoint = `/.netlify/functions/confirm-appointment?token=${token}`;
+            console.log('[ConfirmAppointment] Trying fallback endpoint:', fallbackEndpoint);
+            const fallbackResponse = await fetch(fallbackEndpoint);
+            console.log('[ConfirmAppointment] Fallback response status:', fallbackResponse.status);
+            const fallbackContentType = fallbackResponse.headers.get('content-type');
+            const fallbackIsJson = fallbackContentType && fallbackContentType.includes('application/json');
+            
+            if (fallbackResponse.ok && fallbackIsJson) {
+              try {
+                const fallbackData = await fallbackResponse.json();
+                return handleConfirmResponse(fallbackResponse, fallbackData);
+              } catch (err) {
+                console.error('Error parsing fallback response:', err);
+              }
+            }
+          }
+          
+          // If still failing, try to get error message
+          let errorMessage = 'Confirmation endpoint not found. Please check if the server is running.';
+          if (isJson) {
+            try {
+              const errorData = await confirmResponse.json();
+              errorMessage = errorData.error || errorMessage;
+            } catch (err) {
+              console.error('Error parsing error response:', err);
+              errorMessage = confirmResponse.statusText || errorMessage;
+            }
+          } else {
+            // If it's HTML (404 page), use a more helpful message
+            errorMessage = `Endpoint not found (${confirmResponse.status}). The confirmation service may not be available. Please contact support.`;
+          }
+          
+          setStatus('error');
+          setMessage(errorMessage);
+          return;
+        }
+        
+        // Parse JSON only if content-type is JSON
+        if (!isJson) {
+          setStatus('error');
+          setMessage('Invalid response from server. Please try again or contact support.');
+          return;
+        }
+        
+        const confirmData = await confirmResponse.json();
+        
+        handleConfirmResponse(confirmResponse, confirmData);
+      } catch (error) {
+        console.error('Error confirming appointment:', error);
+        setStatus('error');
+        setMessage('An error occurred during confirmation. Please try again or contact support.');
+      }
+    };
+    
+    const handleConfirmResponse = async (response: Response, data: any) => {
+
+      if (response.ok && data.success) {
+        // Check if already confirmed
+        if (data.alreadyConfirmed) {
+          setStatus('already-confirmed');
+          setMessage('This appointment has already been confirmed');
+          // Fetch full appointment details for display
+          await fetchFullAppointmentDetails();
+        } else {
+          // Successfully confirmed, now fetch full appointment details
+          setStatus('success');
+          setMessage(data.message || 'Appointment confirmed successfully!');
+          await fetchFullAppointmentDetails();
+        }
+      } else {
+        // If confirmation failed, try to fetch details to show what went wrong
+        setStatus('error');
+        setMessage(data.error || 'Confirmation failed. Please try again or contact support.');
+        
+        // Try to fetch appointment details to check if it's expired
+        try {
+          await fetchFullAppointmentDetails();
+        } catch (err) {
+          // Ignore errors when fetching details after confirmation failure
+        }
+      }
+    };
+
+    const fetchFullAppointmentDetails = async () => {
+      try {
+        // Check if we're in development mode without local server
+        const isDevelopment = import.meta.env.DEV;
+        const isLocalhost = window.location.hostname === 'localhost';
+        const port = window.location.port;
+        
+        let endpoint: string;
+        
+        // Try Express server first if on localhost with a port (but not 8888 which is Netlify dev)
+        if (isDevelopment && isLocalhost && port && port !== '8888') {
           // Use Express server endpoint for local dev
           endpoint = '/api/confirm-appointment';
         } else {
@@ -74,73 +209,76 @@ const ConfirmAppointmentPage: React.FC = () => {
           body: JSON.stringify({ token })
         });
         
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          setAppointment(data.appointment);
+        // Check content-type before parsing
+        const contentType = response.headers.get('content-type');
+        const isJson = contentType && contentType.includes('application/json');
+        
+        // Handle 404 by trying alternative endpoint
+        if (!response.ok && response.status === 404 && isDevelopment && isLocalhost && port && port !== '8888') {
+          // Try Netlify function as fallback
+          const fallbackEndpoint = '/.netlify/functions/confirm-appointment';
+          const fallbackResponse = await fetch(fallbackEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+          });
           
-          if (data.appointment.confirmationStatus === 'confirmed') {
-            setStatus('already-confirmed');
-            setMessage('This appointment has already been confirmed');
-          } else if (data.appointment.isExpired) {
-            setStatus('error');
-            setMessage('This confirmation link has expired. Please contact the business to reschedule.');
-          } else {
-            setStatus('ready');
+          const fallbackContentType = fallbackResponse.headers.get('content-type');
+          const fallbackIsJson = fallbackContentType && fallbackContentType.includes('application/json');
+          
+          if (fallbackResponse.ok && fallbackIsJson) {
+            try {
+              const fallbackData = await fallbackResponse.json();
+              return handleAppointmentDetails(fallbackData);
+            } catch (err) {
+              console.error('Error parsing fallback appointment details:', err);
+            }
           }
-        } else {
-          setStatus('error');
-          setMessage(data.error || 'Failed to load appointment details');
         }
+        
+        if (!response.ok) {
+          console.error('Failed to fetch appointment details:', response.status, response.statusText);
+          return;
+        }
+        
+        if (!isJson) {
+          console.error('Invalid content-type for appointment details:', contentType);
+          return;
+        }
+        
+        const data = await response.json();
+        handleAppointmentDetails(data);
       } catch (error) {
-        console.error('Error fetching appointment:', error);
-        setStatus('error');
-        setMessage('An error occurred. Please try again.');
+        console.error('Error fetching appointment details:', error);
+        // Don't change status if we already have one set
+      }
+    };
+    
+    const handleAppointmentDetails = (data: any) => {
+      if (data.success) {
+        setAppointment(data.appointment);
+        
+        // Update status based on appointment state if needed
+        setStatus(prevStatus => {
+          if (data.appointment.confirmationStatus === 'confirmed' && prevStatus !== 'success' && prevStatus !== 'already-confirmed') {
+            return 'already-confirmed';
+          } else if (data.appointment.isExpired && prevStatus !== 'error') {
+            return 'error';
+          }
+          return prevStatus;
+        });
+        
+        if (data.appointment.confirmationStatus === 'confirmed') {
+          setMessage('This appointment has already been confirmed');
+        } else if (data.appointment.isExpired) {
+          setMessage('This confirmation link has expired. Please contact the business to reschedule.');
+        }
       }
     };
 
-    fetchAppointment();
+    autoConfirmAppointment();
   }, [token]);
 
-  const handleConfirm = async () => {
-    if (!token) return;
-
-    setStatus('confirming');
-
-    try {
-      // Check if we're in development mode without local server
-      const isDevelopment = import.meta.env.DEV;
-      const isLocalhost = window.location.hostname === 'localhost';
-      
-      let endpoint: string;
-      
-      if (isDevelopment && isLocalhost && window.location.port !== '8888') {
-        // Use Express server endpoint for local dev
-        endpoint = `/api/confirm-appointment?token=${token}`;
-      } else {
-        // Use Netlify function (production or netlify dev)
-        endpoint = `/.netlify/functions/confirm-appointment?token=${token}`;
-      }
-      
-      const response = await fetch(endpoint);
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setStatus('success');
-        setMessage(data.message);
-        if (data.appointment) {
-          setAppointment(prev => prev ? { ...prev, confirmationStatus: 'confirmed' } : null);
-        }
-      } else {
-        setStatus('error');
-        setMessage(data.error || 'Confirmation failed');
-      }
-    } catch (error) {
-      console.error('Error confirming appointment:', error);
-      setStatus('error');
-      setMessage('An error occurred during confirmation. Please try again.');
-    }
-  };
 
   const renderAppointmentDetails = () => {
     if (!appointment) return null;
@@ -157,7 +295,7 @@ const ConfirmAppointmentPage: React.FC = () => {
               className="w-16 h-16 rounded-full object-cover border-4 border-gray-100"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white text-2xl font-bold">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
               {(appointment.business?.name || 'B').charAt(0).toUpperCase()}
             </div>
           )}
@@ -168,16 +306,16 @@ const ConfirmAppointmentPage: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center p-4 bg-primary/10 rounded-lg">
-            <Calendar className="w-5 h-5 text-primary mr-3" />
+          <div className="flex items-center p-4 bg-indigo-50 rounded-lg">
+            <Calendar className="w-5 h-5 text-indigo-600 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-500">Date</p>
               <p className="text-lg font-semibold text-gray-900">{formatDate(appointmentDate)}</p>
             </div>
           </div>
 
-          <div className="flex items-center p-4 bg-primary/10 rounded-lg">
-            <Clock className="w-5 h-5 text-primary mr-3" />
+          <div className="flex items-center p-4 bg-purple-50 rounded-lg">
+            <Clock className="w-5 h-5 text-purple-600 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-500">Time</p>
               <p className="text-lg font-semibold text-gray-900">
@@ -186,8 +324,8 @@ const ConfirmAppointmentPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center p-4 bg-primary/10 rounded-lg">
-            <Briefcase className="w-5 h-5 text-primary mr-3" />
+          <div className="flex items-center p-4 bg-blue-50 rounded-lg">
+            <Briefcase className="w-5 h-5 text-blue-600 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-500">Service</p>
               <p className="text-lg font-semibold text-gray-900">{appointment.service?.name || 'Service'}</p>
@@ -242,7 +380,7 @@ const ConfirmAppointmentPage: React.FC = () => {
                 {appointment.business.phone && (
                   <div className="flex items-center text-sm text-gray-700">
                     <Phone className="w-4 h-4 text-gray-400 mr-2" />
-                    <a href={`tel:${appointment.business.phone}`} className="text-primary hover:underline">
+                    <a href={`tel:${appointment.business.phone}`} className="text-indigo-600 hover:underline">
                       {appointment.business.phone}
                     </a>
                   </div>
@@ -250,7 +388,7 @@ const ConfirmAppointmentPage: React.FC = () => {
                 {appointment.business.email && (
                   <div className="flex items-center text-sm text-gray-700">
                     <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                    <a href={`mailto:${appointment.business.email}`} className="text-primary hover:underline">
+                    <a href={`mailto:${appointment.business.email}`} className="text-indigo-600 hover:underline">
                       {appointment.business.email}
                     </a>
                   </div>
@@ -264,58 +402,23 @@ const ConfirmAppointmentPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
       <Header />
       <main className="flex-grow py-8 flex items-center justify-center">
         <div className="w-full max-w-2xl mx-auto px-4">
-          {status === 'loading' && (
+          {(status === 'loading' || status === 'confirming') && (
             <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
-                <Loader size="lg" />
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-full mb-4">
+                <Loader className="w-10 h-10 text-indigo-600 animate-spin" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading</h2>
-              <p className="text-gray-600">Fetching appointment details...</p>
-            </div>
-          )}
-
-          {status === 'ready' && appointment && (
-            <>
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full mb-4">
-                  <Clock className="w-10 h-10 text-yellow-600" />
-                </div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Confirm Your Appointment</h1>
-                <p className="text-gray-600">Review the details below and confirm to secure your booking.</p>
-              </div>
-              {renderAppointmentDetails()}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  onClick={handleConfirm}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Confirm Appointment
-                </Button>
-                <Button
-                  onClick={() => navigate('/')}
-                  variant="outline"
-                  className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  Back to Home
-                </Button>
-              </div>
-              <p className="text-xs text-center text-gray-500 mt-3">
-                By confirming, you acknowledge that you will attend this appointment.
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                {status === 'loading' ? t('common.loading') : t('confirmAppointment.confirming')}
+              </h2>
+              <p className="text-gray-600">
+                {status === 'loading' 
+                  ? t('confirmAppointment.loading') 
+                  : t('confirmAppointment.confirming')}
               </p>
-            </>
-          )}
-
-          {status === 'confirming' && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
-                <Loader size="lg" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Confirming</h2>
-              <p className="text-gray-600">We&apos;re confirming your appointment...</p>
             </div>
           )}
 
@@ -325,9 +428,15 @@ const ConfirmAppointmentPage: React.FC = () => {
                 <CheckCircle className="w-12 h-12 text-green-600" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {status === 'success' ? 'Appointment Confirmed!' : 'Already Confirmed'}
+                {status === 'success' ? t('confirmAppointment.success') : t('confirmAppointment.alreadyConfirmed')}
               </h1>
-              <p className="text-gray-600">{message || 'Your appointment is confirmed. We look forward to seeing you!'}</p>
+              <p className="text-gray-600 mb-6">{message || t('confirmAppointment.successMessage')}</p>
+              <Button
+                onClick={() => navigate('/')}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg font-semibold"
+              >
+                {t('confirmAppointment.backToHome')}
+              </Button>
             </div>
           )}
 
@@ -336,9 +445,9 @@ const ConfirmAppointmentPage: React.FC = () => {
               {renderAppointmentDetails()}
               <Button
                 onClick={() => navigate('/')}
-                className="w-full bg-primary hover:bg-primary-light text-white"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                Back to Home
+                {t('confirmAppointment.backToHome')}
               </Button>
             </>
           )}
@@ -348,13 +457,13 @@ const ConfirmAppointmentPage: React.FC = () => {
               <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-4">
                 <XCircle className="w-12 h-12 text-red-500" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirmation Failed</h2>
-              <p className="text-gray-600 mb-6">{message || 'Something went wrong. Please try again later.'}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('confirmAppointment.error')}</h2>
+              <p className="text-gray-600 mb-6">{message || t('confirmAppointment.errorMessage')}</p>
               <Button
                 onClick={() => navigate('/')}
-                className="w-full bg-primary hover:bg-primary-light text-white"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                Back to Home
+                {t('confirmAppointment.backToHome')}
               </Button>
             </div>
           )}

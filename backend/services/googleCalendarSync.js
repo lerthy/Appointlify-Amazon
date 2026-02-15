@@ -26,14 +26,14 @@ export async function createCalendarEvent(userId, appointment) {
       .select('confirmation_status, id')
       .eq('id', appointment.id)
       .single();
-
+    
     if (!appointmentData) {
       console.warn(`[createCalendarEvent] Appointment ${appointment.id} not found in database`);
       return { success: false, error: 'Appointment not found' };
     }
-
+    
     if (appointmentData.confirmation_status !== 'confirmed') {
-      
+      console.log(`[createCalendarEvent] Appointment ${appointment.id} is not confirmed (status: ${appointmentData.confirmation_status}). Skipping calendar sync.`);
       return { 
         success: false, 
         error: 'Appointment must be confirmed via email before syncing to calendar',
@@ -44,7 +44,7 @@ export async function createCalendarEvent(userId, appointment) {
     // Check if calendar is linked and user granted permission
     const status = await fetchCalendarStatus(userId);
     if (!status || status.status !== 'linked' || !status.refresh_token) {
-      console.log(`[createCalendarEvent] Calendar not linked for user ${ userId }`, {
+      console.log(`[createCalendarEvent] Calendar not linked for user ${userId}`, {
         hasStatus: !!status,
         statusValue: status?.status,
         hasRefreshToken: !!status?.refresh_token
@@ -58,7 +58,7 @@ export async function createCalendarEvent(userId, appointment) {
       status.scope.includes('https://www.googleapis.com/auth/calendar.events');
     
     if (!hasCalendarScope) {
-      
+      console.log(`[createCalendarEvent] Calendar scope not granted for user ${userId}`);
       return { success: false, error: 'Calendar permissions not granted. Please reconnect your calendar.' };
     }
 
@@ -92,12 +92,12 @@ export async function createCalendarEvent(userId, appointment) {
     const endDate = new Date(startDate.getTime() + (appointment.duration || 30) * 60 * 1000);
 
     const event = {
-      summary: `${ serviceName }${ employeeName ? ` with ${employeeName}` : '' } - ${ appointment.name } `,
+      summary: `${serviceName}${employeeName ? ` with ${employeeName}` : ''} - ${appointment.name}`,
       description: [
-        `Customer: ${ appointment.name } `,
-        `Email: ${ appointment.email } `,
-        `Phone: ${ appointment.phone } `,
-        appointment.notes ? `Notes: ${ appointment.notes } ` : null,
+        `Customer: ${appointment.name}`,
+        `Email: ${appointment.email}`,
+        `Phone: ${appointment.phone}`,
+        appointment.notes ? `Notes: ${appointment.notes}` : null,
       ].filter(Boolean).join('\n'),
       start: {
         dateTime: startDate.toISOString(),
@@ -121,7 +121,7 @@ export async function createCalendarEvent(userId, appointment) {
       body: JSON.stringify(event),
     });
 
-    
+    console.log(`[createCalendarEvent] Created calendar event for appointment ${appointment.id}:`, result.id);
 
     // Store the calendar event ID in the appointment record for future updates/deletions
     // Note: This field may not exist in the schema yet, so we catch and ignore errors
@@ -133,7 +133,7 @@ export async function createCalendarEvent(userId, appointment) {
     } catch (err) {
       // Field might not exist in schema - that's okay, we'll just log it
       if (err.code === '42703' || err.message?.includes('column') || err.message?.includes('does not exist')) {
-        
+        console.log('[createCalendarEvent] google_calendar_event_id column not found - skipping storage');
       } else {
         console.warn('[createCalendarEvent] Failed to store calendar event ID:', err);
       }
@@ -141,7 +141,7 @@ export async function createCalendarEvent(userId, appointment) {
 
     return { success: true, eventId: result.id };
   } catch (error) {
-    console.error(`[createCalendarEvent] Error creating calendar event for user ${ userId }: `, error);
+    console.error(`[createCalendarEvent] Error creating calendar event for user ${userId}:`, error);
     return { 
       success: false, 
       error: error.message || 'Failed to create calendar event' 
@@ -189,12 +189,12 @@ export async function updateCalendarEvent(userId, appointment, eventId) {
     const endDate = new Date(startDate.getTime() + (appointment.duration || 30) * 60 * 1000);
 
     const event = {
-      summary: `${ serviceName }${ employeeName ? ` with ${employeeName}` : '' } - ${ appointment.name } `,
+      summary: `${serviceName}${employeeName ? ` with ${employeeName}` : ''} - ${appointment.name}`,
       description: [
-        `Customer: ${ appointment.name } `,
-        `Email: ${ appointment.email } `,
-        `Phone: ${ appointment.phone } `,
-        appointment.notes ? `Notes: ${ appointment.notes } ` : null,
+        `Customer: ${appointment.name}`,
+        `Email: ${appointment.email}`,
+        `Phone: ${appointment.phone}`,
+        appointment.notes ? `Notes: ${appointment.notes}` : null,
       ].filter(Boolean).join('\n'),
       start: {
         dateTime: startDate.toISOString(),
@@ -206,14 +206,14 @@ export async function updateCalendarEvent(userId, appointment, eventId) {
       },
     };
 
-    await callGoogleCalendar(userId, `/ calendars / primary / events / ${ eventId } `, {
+    await callGoogleCalendar(userId, `/calendars/primary/events/${eventId}`, {
       method: 'PUT',
       body: JSON.stringify(event),
     });
 
     return { success: true };
   } catch (error) {
-    console.error(`[updateCalendarEvent] Error: `, error);
+    console.error(`[updateCalendarEvent] Error:`, error);
     return { success: false, error: error.message || 'Failed to update calendar event' };
   }
 }
@@ -228,13 +228,13 @@ export async function deleteCalendarEvent(userId, eventId) {
       return { success: false, error: 'Google Calendar not linked' };
     }
 
-    await callGoogleCalendar(userId, `/ calendars / primary / events / ${ eventId } `, {
+    await callGoogleCalendar(userId, `/calendars/primary/events/${eventId}`, {
       method: 'DELETE',
     });
 
     return { success: true };
   } catch (error) {
-    console.error(`[deleteCalendarEvent] Error: `, error);
+    console.error(`[deleteCalendarEvent] Error:`, error);
     return { success: false, error: error.message || 'Failed to delete calendar event' };
   }
 }

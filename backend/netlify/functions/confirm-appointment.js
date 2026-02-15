@@ -16,8 +16,9 @@ if (supabaseUrl && supabaseServiceRoleKey) {
 }
 
 export const handler = async (event, context) => {
-  // Enable CORS
+  // Enable CORS and set content type
   const headers = {
+    'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
