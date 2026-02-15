@@ -916,9 +916,15 @@ app.patch('/api/business/:businessId/settings', async (req, res) => {
     let dbResult = null;
 
     if (existing) {
+      let name = existing.name;
+      if (name == null || name === '') {
+        const { data: userRow } = await supabase.from('users').select('name').eq('id', businessId).maybeSingle();
+        name = (userRow?.name != null && userRow.name !== '') ? String(userRow.name) : 'Business';
+      }
+      const updatePayload = { ...normalized, name: String(name) };
       const { data, error } = await supabase
         .from('business_settings')
-        .update(normalized)
+        .update(updatePayload)
         .eq('id', existing.id)
         .select()
         .single();
@@ -936,12 +942,12 @@ app.patch('/api/business/:businessId/settings', async (req, res) => {
           .select('name')
           .eq('id', businessId)
           .maybeSingle();
-        if (userRow?.name) businessName = userRow.name;
+        if (userRow?.name != null && userRow.name !== '') businessName = String(userRow.name);
       } catch { }
 
       const insertPayload = {
         business_id: businessId,
-        name: businessName,
+        name: String(businessName || 'Business'),
         working_hours: normalized.working_hours,
         blocked_dates: normalized.blocked_dates,
         breaks: normalized.breaks,
