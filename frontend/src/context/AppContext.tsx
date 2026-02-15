@@ -10,6 +10,7 @@ import {
 } from '../types';
 import { useAuth } from './AuthContext';
 import { supabase } from '../utils/supabaseClient';
+import { authenticatedFetch } from '../utils/apiClient';
 
 interface AppContextType {
   appointments: Appointment[];
@@ -610,32 +611,21 @@ export const AppProvider: React.FC<{
       businessId,
       settings,
     });
-    const res = await fetch(`/api/business/${businessId}/settings`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settings),
-    });
-    const text = await res.text();
-    let json: any = null;
     try {
-      json = text ? JSON.parse(text) : null;
-    } catch (e) {
-      console.error('[updateBusinessSettings] Failed to parse JSON response:', e, {
-        raw: text,
-      });
+      const json = await authenticatedFetch<{ success?: boolean; settings?: BusinessSettings; error?: string; details?: string }>(
+        `/api/business/${businessId}/settings`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(settings),
+        }
+      );
+      console.log('[updateBusinessSettings] Success response:', json);
+      if (json?.settings) setBusinessSettings(json.settings as BusinessSettings);
+    } catch (err) {
+      console.error('[updateBusinessSettings] Backend error:', err);
+      throw err;
     }
-
-    if (!res.ok) {
-      console.error('[updateBusinessSettings] Backend error:', {
-        status: res.status,
-        statusText: res.statusText,
-        body: json ?? text,
-      });
-      throw new Error(json?.error || 'Failed to update business settings');
-    }
-
-    console.log('[updateBusinessSettings] Success response:', json);
-    if (json?.settings) setBusinessSettings(json.settings as BusinessSettings);
   };
 
   const getAppointmentById = (id: string) => {

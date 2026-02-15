@@ -22,9 +22,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize Supabase client
+// Initialize Supabase client - use service role for backend to bypass RLS (matches Netlify functions)
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 let supabase = null;
 if (supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey);
@@ -972,7 +972,7 @@ app.patch('/api/business/:businessId/settings', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

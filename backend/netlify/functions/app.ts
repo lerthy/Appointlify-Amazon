@@ -803,9 +803,15 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
     let dbResult: any = null;
 
     if (existing) {
+      let name = (existing as any).name;
+      if (!name) {
+        const { data: userRow } = await supabase!.from('users').select('name').eq('id', businessId).maybeSingle();
+        name = userRow?.name ?? 'Business';
+      }
+      const updatePayload = { ...normalized, name };
       const { data, error } = await supabase!
         .from('business_settings')
-        .update(normalized)
+        .update(updatePayload)
         .eq('id', existing.id)
         .select()
         .single();
