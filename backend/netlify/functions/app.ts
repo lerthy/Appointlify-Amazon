@@ -252,7 +252,7 @@ async function getMockAIResponse(messages: any[], context: any) {
 
   // Service inquiry
   if (/\b(services|what do you offer|menu|options)\b/.test(message)) {
-    const serviceList = services.map((s: any) => `• ${s.name} - $${s.price} (${s.duration} min)`).join('\n');
+    const serviceList = services.map((s: any) => `• ${s.name}${s.price != null ? ` - $${s.price}` : ''} (${s.duration} min)`).join('\n');
     return serviceList ? `Here are our available services:\n\n${serviceList}\n\nWhich service interests you?` :
       'We offer various services including consultations, treatments, and more. What type of service are you looking for?';
   }
@@ -386,7 +386,7 @@ const handleChat = async (req: any, res: any) => {
 You help customers book appointments in a conversational way.
 
 AVAILABLE SERVICES:
-${context?.services?.map((s: any) => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).join('\n') || 'Loading services...'}
+${context?.services?.map((s: any) => `- ${s.name}:${s.price != null ? ` $${s.price}` : ''} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).join('\n') || 'Loading services...'}
 
 AVAILABLE TIME SLOTS:
 ${context?.availableTimes?.join(', ') || 'Checking availability...'}

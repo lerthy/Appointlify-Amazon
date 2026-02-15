@@ -1086,7 +1086,7 @@ What can I help you with today? Would you like to book an appointment?`;
   
   // Service inquiry
   if (/\b(services|what do you offer|menu|options)\b/.test(message)) {
-    const serviceList = services.map(s => `• ${s.name} - $${s.price} (${s.duration} min)`).join('\n');
+    const serviceList = services.map(s => `• ${s.name}${s.price != null ? ` - $${s.price}` : ''} (${s.duration} min)`).join('\n');
     return serviceList ? `Here are our available services:\n\n${serviceList}\n\nWhich service interests you?` : 
            'We offer various services including consultations, treatments, and more. What type of service are you looking for?';
   }
@@ -1411,7 +1411,7 @@ export async function handler(event, context) {
       const businessList = dbContext.businesses.length > 0
         ? Array.from(businessServiceMap.values()).map((bizData, i) => {
             const serviceList = bizData.services.length > 0 
-              ? bizData.services.map(s => `  - ${s.name} ($${s.price}, ${s.duration} min)`).join('\n')
+              ? bizData.services.map(s => `  - ${s.name}${s.price != null ? ` ($${s.price}, ${s.duration} min)` : ` (${s.duration} min)`}`).join('\n')
               : '  - No services available';
             return `${i + 1}. ${bizData.name}${bizData.description ? ' - ' + bizData.description : ''}\n   Services:\n${serviceList}`;
           }).slice(0, 25).join('\n\n')
@@ -1573,7 +1573,7 @@ Required fields: name, business, service, date, time, email, phone.`;
     });
 
     // Create system prompt with booking context and MCP knowledge
-    const servicesByBiz = dbContext.services.map(s => `- ${s.name}: $${s.price} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).slice(0, 50).join('\n');
+    const servicesByBiz = dbContext.services.map(s => `- ${s.name}:${s.price != null ? ` $${s.price}` : ''} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).slice(0, 50).join('\n');
     
     // Create business list from database
     const businessList = dbContext.businesses.length > 0

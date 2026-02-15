@@ -97,7 +97,7 @@ const Header: React.FC = () => {
                 alt="Appointly-ks logo"
                 
               />
-              <span className="hidden sm:inline text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent opacity-100">
+              <span className="hidden sm:inline text-3xl font-extrabold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent opacity-100">
                 Appointly-ks
               </span>
             </button>
@@ -121,7 +121,7 @@ const Header: React.FC = () => {
                           }, 100);
                         }
                       }}
-                      className="text-gray-700 hover:text-purple-600 font-semibold"
+                      className="text-gray-700 hover:text-primary font-semibold"
                     >
                       <Briefcase className="h-5 w-5 mr-1" />
                       {t('header.forBusinesses')}
@@ -139,7 +139,7 @@ const Header: React.FC = () => {
                           }, 100);
                         }
                       }}
-                      className="text-gray-700 hover:text-blue-600 font-semibold"
+                      className="text-gray-700 hover:text-accent font-semibold"
                     >
                       <HeartHandshake className="h-5 w-5 mr-1" />
                       {t('header.forClients')}
@@ -156,10 +156,10 @@ const Header: React.FC = () => {
                           navigate('/');
                           setDropdownOpen(false);
                         }}
-                        className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
+                        className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
                         style={{ animationDelay: '300ms' }}
                       >
-                        <svg className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                         <span className="font-medium">{t('header.home')}</span>
@@ -172,10 +172,10 @@ const Header: React.FC = () => {
                           navigate('/dashboard');
                           setDropdownOpen(false);
                         }}
-                        className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
+                        className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
                         style={{ animationDelay: '200ms' }}
                       >
-                        <Users className="h-5 w-5 text-indigo-600" />
+                        <Users className="h-5 w-5 text-primary" />
                         <span className="font-medium">{t('header.dashboard')}</span>
                       </button>
                     )}
@@ -186,10 +186,10 @@ const Header: React.FC = () => {
                           navigate('/profile');
                           setDropdownOpen(false);
                         }}
-                        className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
+                        className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition-all duration-300 ease-out animate-slideInRight opacity-0"
                         style={{ animationDelay: '100ms' }}
                       >
-                        <User className="h-5 w-5 text-indigo-600" />
+                        <User className="h-5 w-5 text-primary" />
                         <span className="font-medium">{t('header.businessProfile')}</span>
                       </button>
                     )}
@@ -235,7 +235,7 @@ const Header: React.FC = () => {
                       }, 100);
                     }
                   }}
-                  className="text-gray-700 hover:text-purple-600 font-semibold"
+                  className="text-gray-700 hover:text-primary font-semibold"
                 >
                   <Briefcase className="h-5 w-5 mr-1" />
                   {t('header.forBusinesses')}
@@ -253,7 +253,7 @@ const Header: React.FC = () => {
                       }, 100);
                     }
                   }}
-                  className="text-gray-700 hover:text-blue-600 font-semibold"
+                  className="text-gray-700 hover:text-accent font-semibold"
                 >
                   <HeartHandshake className="h-5 w-5 mr-1" />
                   {t('header.forClients')}
@@ -276,7 +276,7 @@ const Header: React.FC = () => {
                   variant="primary"
                   size="md"
                   onClick={() => navigate('/register')}
-                  className="ml-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-0 outline-none focus:!ring-0 focus:!ring-offset-0 focus:!outline-none"
+                  className="ml-2 bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white border-0 outline-none focus:!ring-0 focus:!ring-offset-0 focus:!outline-none"
                 >
                   {t('header.register')}
                 </Button>
@@ -300,7 +300,7 @@ const Header: React.FC = () => {
                       }, 100);
                     }
                   }}
-                  className="flex items-center space-x-1 text-xs font-semibold text-indigo-600 px-3 py-1 rounded-full bg-white focus:outline-none"
+                  className="flex items-center space-x-1 text-xs font-semibold text-primary px-3 py-1 rounded-full bg-white focus:outline-none"
                 >
                   <Briefcase className="h-3.5 w-3.5" />
                   <span>{t('header.forBusinesses')}</span>
@@ -318,7 +318,7 @@ const Header: React.FC = () => {
                       }, 100);
                     }
                   }}
-                  className="flex items-center space-x-1 text-xs font-semibold text-blue-600 px-3 py-1 rounded-full bg-white focus:outline-none"
+                  className="flex items-center space-x-1 text-xs font-semibold text-accent px-3 py-1 rounded-full bg-white focus:outline-none"
                 >
                   <HeartHandshake className="h-3.5 w-3.5" />
                   <span>{t('header.forClients')}</span>
@@ -327,7 +327,7 @@ const Header: React.FC = () => {
             )}
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
               onClick={toggleMenu}
             >
               <span className="sr-only">{t('header.openMenu')}</span>
@@ -353,7 +353,7 @@ const Header: React.FC = () => {
                     navigate('/');
                     setMenuOpen(false);
                   }}
-                  className="flex items-center space-x-2 justify-start px-4 py-2 text-black font-semibold bg-white hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:text-white transition-all duration-200"
+                  className="flex items-center space-x-2 justify-start px-4 py-2 text-black font-semibold bg-white hover:bg-gradient-to-r hover:from-primary hover:to-primary-light hover:text-white transition-all duration-200"
                 >
                   <span>{t('header.home')}</span>
                 </Button>
@@ -363,7 +363,7 @@ const Header: React.FC = () => {
                     navigate('/dashboard');
                     setMenuOpen(false);
                   }}
-                  className="text-base font-semibold justify-start hover:bg-transparent hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:to-violet-600"
+                  className="text-base font-semibold justify-start hover:bg-transparent hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-primary-light"
                   fullWidth
                 >
                   {t('header.dashboard')}
@@ -374,7 +374,7 @@ const Header: React.FC = () => {
                     navigate('/profile');
                     setMenuOpen(false);
                   }}
-                  className="text-base font-semibold justify-start hover:bg-transparent hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:to-violet-600"
+                  className="text-base font-semibold justify-start hover:bg-transparent hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-primary-light"
                   fullWidth
                 >
                   {t('header.profile')}
@@ -386,7 +386,7 @@ const Header: React.FC = () => {
                     logout(() => navigate('/'));
                     setMenuOpen(false);
                   }}
-                  className="text-base font-semibold justify-start text-red-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-indigo-600 hover:to-violet-600 hover:bg-transparent"
+                  className="text-base font-semibold justify-start text-red-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary hover:to-primary-light hover:bg-transparent"
                 >
                   {t('header.signOut')}
                 </Button>
@@ -404,7 +404,7 @@ const Header: React.FC = () => {
                     navigate('/');
                     setMenuOpen(false);
                   }}
-                  className="flex items-center space-x-2 justify-start px-4 py-2 border-2 border-gray-300 text-gray-700 font-semibold bg-white hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:text-white transition-all duration-200 shadow-sm"
+                  className="flex items-center space-x-2 justify-start px-4 py-2 border-2 border-gray-300 text-gray-700 font-semibold bg-white hover:bg-gradient-to-r hover:from-primary hover:to-primary-light hover:text-white transition-all duration-200 shadow-sm"
                 >
                   <span>{t('header.home')}</span>
                 </Button>
@@ -428,7 +428,7 @@ const Header: React.FC = () => {
                     navigate('/register');
                     setMenuOpen(false);
                   }}
-                  className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 font-semibold"
+                  className="mt-2 bg-gradient-to-r from-primary to-accent hover:from-primary-light hover:to-accent text-white border-0 font-semibold"
                 >
                   {t('header.register')}
                 </Button>

@@ -168,7 +168,7 @@ Please choose a business by number or name.`;
         }
 
         const serviceList = state.availableServices
-          .map((service, index) => `${index + 1}. ${service.name} - $${service.price} (${service.duration} min)`)
+          .map((service, index) => `${index + 1}. ${service.name}${service.price != null ? ` - $${service.price}` : ''} (${service.duration} min)`)
           .join('\n');
 
         return `Great choice! ${selectedBusiness.name} offers the following services:
@@ -485,7 +485,7 @@ What time would you prefer? You can choose by number or say the time.`;
 
       return `Perfect! Let me confirm your booking details:
 
-**Service:** ${state.selectedService.name} ($${state.selectedService.price})
+**Service:** ${state.selectedService.name}${state.selectedService.price != null ? ` ($${state.selectedService.price})` : ''}
 **Business:** ${state.selectedBusiness.name}
 **Date:** ${dateString}
 **Time:** ${timeString}

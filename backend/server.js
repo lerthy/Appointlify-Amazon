@@ -181,7 +181,7 @@ async function getMockAIResponse(messages, context) {
   }
   
   if (/\b(services|what do you offer|menu|options)\b/.test(message)) {
-    const serviceList = services.map(s => `• ${s.name} - $${s.price} (${s.duration} min)`).join('\n');
+    const serviceList = services.map(s => `• ${s.name}${s.price != null ? ` - $${s.price}` : ''} (${s.duration} min)`).join('\n');
     return serviceList ? `Here are our available services:\n\n${serviceList}\n\nWhich service interests you?` : 
            'We offer various services. What type of service are you looking for?';
   }
@@ -332,6 +332,89 @@ app.post('/api/send-sms', async (req, res) => {
     });
   }
 });
+
+/**
+ * Send appointment confirmation email (fire-and-forget). Never throws.
+ * Logs success/failure with appointmentId. Used after successful appointment insert.
+ */
+async function sendAppointmentConfirmationEmail(params) {
+  const {
+    appointmentId,
+    to_name,
+    to_email,
+    appointment_date,
+    appointment_time,
+    business_name,
+    service_name,
+    cancel_link,
+    confirmation_link,
+    business_logo_url,
+  } = params;
+  try {
+    const subject = `Appointment Confirmation - ${business_name}`;
+    const logoBlock = business_logo_url
+      ? `<div style="text-align: center; padding: 24px 20px 16px;"><img src="${business_logo_url}" alt="${business_name}" style="max-width: 180px; max-height: 80px; object-fit: contain;" /></div>`
+      : '';
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><title>Appointment Confirmation</title></head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #1e3a5f; color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+          ${logoBlock}
+          <h1 style="margin: 0; font-size: 1.25rem;">Appointment Confirmation – ${business_name}</h1>
+        </div>
+        <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px;">
+          <p>Hi ${to_name},</p>
+          <p>Your appointment has been successfully booked.</p>
+          <div style="background: white; padding: 16px; margin: 16px 0; border-left: 4px solid #1e3a5f; border-radius: 4px;">
+            <p style="margin: 6px 0;"><strong>Business:</strong> ${business_name}</p>
+            ${service_name ? `<p style="margin: 6px 0;"><strong>Service:</strong> ${service_name}</p>` : ''}
+            <p style="margin: 6px 0;"><strong>Date:</strong> ${appointment_date}</p>
+            <p style="margin: 6px 0;"><strong>Time:</strong> ${appointment_time}</p>
+          </div>
+          ${confirmation_link ? `
+          <p style="text-align: center; margin: 20px 0;"><strong>Please confirm your appointment to secure your booking:</strong></p>
+          <p style="text-align: center;"><a href="${confirmation_link}" style="display: inline-block; background: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Confirm Appointment</a></p>
+          <p style="color: #666; font-size: 14px; text-align: center;">This link expires in 48 hours.</p>
+          ` : ''}
+          ${cancel_link ? `
+          <p style="margin-top: 24px; color: #666;">To cancel or manage your appointment:</p>
+          <p style="text-align: center;"><a href="${cancel_link}" style="display: inline-block; background: #4b5563; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px;">Manage Appointment</a></p>
+          ` : ''}
+          <p style="margin-top: 24px;">We look forward to seeing you!</p>
+          <p>Best regards,<br><strong>${business_name}</strong></p>
+        </div>
+        <p style="text-align: center; padding: 16px; color: #999; font-size: 12px;">Sent via Appointly booking system.</p>
+      </div>
+    </body>
+    </html>`;
+    const text = `Appointment Confirmation - ${business_name}\n\nHi ${to_name},\n\nYour appointment has been booked.\n\nBusiness: ${business_name}\n${service_name ? `Service: ${service_name}\n` : ''}Date: ${appointment_date}\nTime: ${appointment_time}\n\n${confirmation_link ? `Confirm: ${confirmation_link}\n\n` : ''}${cancel_link ? `Manage/Cancel: ${cancel_link}\n` : ''}\nBest regards,\n${business_name}`;
+
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+    if (!gmailUser || !gmailAppPassword) {
+      console.log('[appointments] Email skipped (no Gmail config), appointmentId:', appointmentId);
+      return;
+    }
+    const nodemailer = await import('nodemailer');
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: gmailUser, pass: gmailAppPassword }
+    });
+    const result = await transporter.sendMail({
+      from: `"${business_name}" <${gmailUser}>`,
+      to: to_email,
+      subject,
+      html,
+      text
+    });
+    console.log('[appointments] Email sent successfully', { appointmentId, messageId: result.messageId });
+  } catch (err) {
+    console.error('[appointments] Email failed', { appointmentId, error: err?.message || String(err) });
+  }
+}
 
 app.post('/api/send-email', async (req, res) => {
   try {
@@ -956,8 +1039,48 @@ app.post('/api/appointments', requireDb, async (req, res) => {
     
     if (insertErr) throw insertErr;
 
-    // Calendar sync will happen when the customer confirms the appointment via email
-    // See confirm-appointment.js for calendar sync on confirmation
+    console.log('[appointments] Created appointment', { appointmentId: inserted.id, business_id, email });
+
+    const baseUrl = (process.env.FRONTEND_URL || 'http://localhost:5000').split(',')[0].trim().replace(/\/$/, '');
+    const cancelLink = `${baseUrl}/cancel/${inserted.id}`;
+    const confirmationLink = inserted.confirmation_token
+      ? `${baseUrl}/confirm-appointment?token=${inserted.confirmation_token}`
+      : null;
+    const appointmentDateStr = appointmentDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    const appointmentTimeStr = appointmentDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    Promise.all([
+      supabase.from('users').select('name, logo').eq('id', business_id).single(),
+      supabase.from('services').select('name').eq('id', service_id).single()
+    ])
+      .then(([businessRes, serviceRes]) => {
+        const business_name = businessRes.data?.name || 'Business';
+        const business_logo_url = businessRes.data?.logo || null;
+        const service_name = serviceRes.data?.name || 'Service';
+        return sendAppointmentConfirmationEmail({
+          appointmentId: inserted.id,
+          to_name: name,
+          to_email: email,
+          appointment_date: appointmentDateStr,
+          appointment_time: appointmentTimeStr,
+          business_name,
+          service_name,
+          cancel_link: cancelLink,
+          confirmation_link: confirmationLink,
+          business_logo_url
+        });
+      })
+      .catch((err) => {
+        console.error('[appointments] Email send failed', { appointmentId: inserted.id, error: err?.message || String(err) });
+      });
 
     return res.json({ success: true, appointmentId: inserted.id });
   } catch (error) {
@@ -1448,7 +1571,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const isServerlessEnv = Boolean(
   process.env.LAMBDA_TASK_ROOT ||
   process.env.AWS_LAMBDA_FUNCTION_NAME ||

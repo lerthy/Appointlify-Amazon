@@ -172,7 +172,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
           <div className="p-8">
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
-                <MessageSquare className="w-12 h-12 text-indigo-600" />
+                <MessageSquare className="w-12 h-12 text-primary" />
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('reviewForm.title')}</h2>
               <p className="text-gray-600">{t('reviewForm.subtitle')}</p>
@@ -276,7 +276,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                   maxLength={1000}
                   required
                   disabled={isSubmitting}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">{content.length}/1000 {t('reviewForm.characters')}</p>
               </div>
@@ -285,7 +285,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <Button
                   type="submit"
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="flex-1 bg-primary hover:bg-primary-light text-white"
                   disabled={!isFormValid() || isSubmitting}
                 >
                   {isSubmitting ? (

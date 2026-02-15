@@ -7,7 +7,7 @@ export interface Service {
   name: string;
   description?: string;
   duration: number;
-  price: number;
+  price?: number | null;
   business_id: string;
 }
 
@@ -427,7 +427,8 @@ export class BookingService {
           business_name: businessName,
           service_name: service.name,
           cancel_link: `${window.location.origin}/cancel/${appointment.id}`,
-          confirmation_link: confirmationLink || undefined
+          confirmation_link: confirmationLink || undefined,
+          business_logo_url: (businessSettings as { logo?: string })?.logo
         });
         console.log('✅ Email notification sent successfully');
       } catch (emailError) {

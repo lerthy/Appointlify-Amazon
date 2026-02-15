@@ -190,7 +190,6 @@ const Settings: React.FC = () => {
       setTimeout(() => setSaved(false), 2000);
       
     } catch (err) {
-      console.error('=== SAVE ERROR ===', err);
       const message = err instanceof Error ? err.message : 'Failed to save settings. Please try again.';
       setError(message);
     } finally {
@@ -303,7 +302,7 @@ const Settings: React.FC = () => {
                   key={day}
                   className={`flex flex-col items-center justify-center p-2 md:p-2 border-2 rounded-lg cursor-pointer transition-all ${
                     workingDays[day as keyof typeof workingDays]
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-primary bg-primary/10'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >

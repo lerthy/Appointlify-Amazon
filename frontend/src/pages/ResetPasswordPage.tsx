@@ -134,7 +134,7 @@ const ResetPasswordPage: React.FC = () => {
         subtitle={t('resetPassword.subtitle')}
         quote={t('resetPassword.securityNote')}
       >
-        <button onClick={() => navigate('/login')} className="mb-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200">
+        <button onClick={() => navigate('/login')} className="mb-4 flex items-center text-primary hover:text-primary-light transition-colors duration-200">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -148,7 +148,7 @@ const ResetPasswordPage: React.FC = () => {
               value={password} 
               onChange={(e) => handlePasswordChange(e.target.value)} 
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-all duration-200 ${
-                error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'
+                error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary'
               }`}
               placeholder="Enter new password" 
               disabled={isSubmitting}
@@ -189,7 +189,7 @@ const ResetPasswordPage: React.FC = () => {
               value={confirmPassword} 
               onChange={(e) => setConfirmPassword(e.target.value)} 
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-all duration-200 ${
-                error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'
+                error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary'
               }`}
               placeholder="Confirm new password" 
               disabled={isSubmitting}

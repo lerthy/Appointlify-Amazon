@@ -136,7 +136,11 @@
       "verifyEmail": "Please verify your email address before logging in. Check your inbox for the verification link.",
       "invalidCredentials": "Invalid email or password.",
       "profileError": "Failed to create user profile. Please contact support."
-    }
+    },
+    "emailNotVerifiedBanner": "Your email is not verified",
+    "resendVerification": "Resend Verification",
+    "resendVerificationSent": "Verification email sent. Check your inbox.",
+    "resendVerificationFailed": "Failed to send verification email. Try again."
   },
   "register": {
     "title": "Create Account",
@@ -751,6 +755,10 @@
   "cancelAppointment": {
     "title": "Cancel Appointment",
     "confirmCancel": "Are you sure you want to cancel this appointment?",
+    "confirmCancelTitle": "Are you sure you want to cancel?",
+    "confirmCancelDescription": "This will cancel your appointment. This action cannot be undone.",
+    "yesCancel": "Yes, cancel",
+    "keepAppointment": "Keep Appointment",
     "cancelButton": "Cancel Appointment",
     "cancelling": "Cancelling...",
     "success": "Appointment cancelled successfully.",
@@ -821,7 +829,10 @@
     "goToLogin": "Go to Login",
     "registerNewAccount": "Register New Account",
     "error": "Failed to verify email. Please try again.",
-    "redirecting": "Redirecting to login..."
+    "redirecting": "Redirecting to login...",
+    "resendVerification": "Resend Verification",
+    "resendVerificationSent": "Verification email sent. Check your inbox.",
+    "resendVerificationFailed": "Failed to send verification email. Try again."
   },
   "resetPassword": {
     "title": "Set a new password",
@@ -907,7 +918,9 @@
     "confirmationNumber": "Confirmation Number",
     "addToCalendar": "Add to Calendar",
     "bookAnother": "Book Another Appointment",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "manageAppointment": "Manage Appointment",
+    "location": "Location"
   },
   "confirmAppointment": {
     "title": "Appointment Confirmation",

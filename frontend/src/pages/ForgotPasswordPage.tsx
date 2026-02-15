@@ -69,7 +69,7 @@ const ForgotPasswordPage: React.FC = () => {
         subtitle={t('forgotPassword.subtitle')}
         quote={t('forgotPassword.quote')}
       >
-        <button onClick={() => navigate('/login')} className="mb-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200">
+        <button onClick={() => navigate('/login')} className="mb-4 flex items-center text-primary hover:text-primary-light transition-colors duration-200">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -83,7 +83,7 @@ const ForgotPasswordPage: React.FC = () => {
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-all duration-200 ${
-                error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'
+                error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary'
               }`}
               placeholder={t('forgotPassword.emailPlaceholder')} 
               disabled={isSubmitting}
@@ -92,7 +92,7 @@ const ForgotPasswordPage: React.FC = () => {
           </div>
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded p-2 text-center">{error}</div>}
           {message && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{message}</div>}
-          <button type="submit" className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl" disabled={isSubmitting}>
+          <button type="submit" className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl" disabled={isSubmitting}>
             {isSubmitting ? t('forgotPassword.sending') : t('forgotPassword.sendResetLink')}
           </button>
         </form>

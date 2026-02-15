@@ -19,6 +19,13 @@ export interface Customer {
 }
 
 // Employee table - for service providers
+export interface EmployeeWorkingHoursItem {
+  day: string;
+  open: string;
+  close: string;
+  isClosed: boolean;
+}
+
 export interface Employee {
   id: string;
   business_id: string;
@@ -27,6 +34,7 @@ export interface Employee {
   phone: string;
   role: string;
   image_url?: string;
+  working_hours?: EmployeeWorkingHoursItem[];
   created_at: string;
 }
 
@@ -50,7 +58,7 @@ export interface Service {
   name: string;
   description: string;
   duration: number; // in minutes
-  price: number;
+  price?: number | null; // optional - omit from booking/confirmation when not set
   icon?: string; // Icon name from lucide-react
   created_at: string;
 }

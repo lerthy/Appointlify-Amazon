@@ -21,7 +21,7 @@ interface ServiceFormData {
   name: string;
   description: string;
   duration: number;
-  price: number;
+  price: number | null;
   icon: string;
 }
 
@@ -92,7 +92,7 @@ const ServiceManagement: React.FC = () => {
     name: '',
     description: '',
     duration: 30,
-    price: 0,
+    price: null,
     icon: 'Briefcase'
   });
 
@@ -100,14 +100,14 @@ const ServiceManagement: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ 
       ...prev, 
-      [name]: name === 'duration' || name === 'price' ? parseFloat(value) || 0 : value 
+      [name]: name === 'duration' ? parseFloat(value) || 0 : name === 'price' ? (value === '' ? null : (isNaN(parseFloat(value)) ? null : parseFloat(value))) : value 
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.description || formData.duration <= 0 || formData.price <= 0) {
+    if (!formData.name || !formData.description || formData.duration <= 0) {
       showNotification(t('servicesManagement.errors.fillRequired'), 'error');
       return;
     }
@@ -124,7 +124,7 @@ const ServiceManagement: React.FC = () => {
           name: formData.name,
           description: formData.description,
           duration: formData.duration,
-          price: formData.price,
+          price: formData.price ?? null,
           icon: formData.icon
         });
         showNotification(t('servicesManagement.success.updated'), 'success');
@@ -136,7 +136,7 @@ const ServiceManagement: React.FC = () => {
           name: formData.name,
           description: formData.description,
           duration: formData.duration,
-          price: formData.price,
+          price: formData.price ?? null,
           icon: formData.icon
         });
         showNotification(t('servicesManagement.success.added'), 'success');
@@ -155,7 +155,7 @@ const ServiceManagement: React.FC = () => {
       name: '',
       description: '',
       duration: 30,
-      price: 0,
+      price: null,
       icon: 'Briefcase'
     });
   };
@@ -167,7 +167,7 @@ const ServiceManagement: React.FC = () => {
         name: service.name,
         description: service.description,
         duration: service.duration,
-        price: service.price,
+        price: service.price ?? null,
         icon: service.icon || 'Briefcase'
       });
       setEditingService(serviceId);
@@ -199,7 +199,8 @@ const ServiceManagement: React.FC = () => {
     return `${hours}h ${remainingMinutes}m`;
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined): string => {
+    if (price == null || (typeof price === 'number' && isNaN(price))) return '';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
@@ -238,13 +239,15 @@ const ServiceManagement: React.FC = () => {
                 </div>
                                   <div className="ml-4">
                     <h3 className="font-semibold text-gray-900 text-lg mb-2">{service.name}</h3>
-                    <p className="text-lg font-bold text-green-600">{formatPrice(service.price)}</p>
+                    {service.price != null && service.price !== undefined && (
+                      <p className="text-lg font-bold text-green-600">{formatPrice(service.price)}</p>
+                    )}
                   </div>
               </div>
                               <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <button
                     onClick={() => handleEditService(service.id)}
-                    className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    className="p-2.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all duration-200"
                   >
                     <Edit className="h-4 w-4" />
                   </button>
@@ -266,10 +269,12 @@ const ServiceManagement: React.FC = () => {
                   <Clock className="h-4 w-4 mr-3 text-gray-400" />
                   <span className="font-medium">{formatDuration(service.duration)}</span>
                 </div>
-                <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                  <DollarSign className="h-4 w-4 mr-3 text-green-500" />
-                  <span className="font-bold text-green-700">{formatPrice(service.price)}</span>
-                </div>
+                {service.price != null && service.price !== undefined && (
+                  <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                    <DollarSign className="h-4 w-4 mr-3 text-green-500" />
+                    <span className="font-bold text-green-700">{formatPrice(service.price)}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -388,22 +393,23 @@ const ServiceManagement: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
-                      {t('servicesManagement.price')} *
+                      {t('servicesManagement.price')} ({t('common.optional')})
                     </label>
                     <Input
                       type="number"
                       name="price"
-                      value={formData.price}
+                      value={formData.price ?? ''}
                       onChange={handleInputChange}
                       placeholder="25.00"
                       min="0"
                       step="0.01"
                       className="border-gray-300 focus:border-green-500 focus:ring-green-500"
-                      required
                     />
-                    <p className="text-xs text-gray-500 mt-2 bg-green-50 px-3 py-1.5 rounded text-green-700">
-                      {formatPrice(formData.price)}
-                    </p>
+                    {formData.price != null && (
+                      <p className="text-xs text-gray-500 mt-2 bg-green-50 px-3 py-1.5 rounded text-green-700">
+                        {formatPrice(formData.price)}
+                      </p>
+                    )}
                   </div>
                 </div>
 

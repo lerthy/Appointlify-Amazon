@@ -121,15 +121,15 @@ const AboutUsPage: React.FC = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-50 via-white to-violet-50 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-background via-white to-background relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-indigo-400/20 to-violet-400/20 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              {t('about.title')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{t('about.titleHighlight')}</span>
+              {t('about.title')} <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">{t('about.titleHighlight')}</span>
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               {t('about.subtitle')}
@@ -141,7 +141,7 @@ const AboutUsPage: React.FC = () => {
       {/* Our Story Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl p-8 md:p-12 border border-indigo-100 shadow-lg">
+          <div className="bg-gradient-to-br from-background to-background rounded-2xl p-8 md:p-12 border border-primary/20 shadow-lg">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('about.ourStory.title')}</h2>
             <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
               <p>
@@ -151,7 +151,7 @@ const AboutUsPage: React.FC = () => {
                 {t('about.ourStory.p2')}
               </p>
               <p>
-                {t('about.ourStory.p3')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent font-semibold">{t('about.ourStory.p3Highlight')}</span> {t('about.ourStory.p3End')}
+                {t('about.ourStory.p3')} <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent font-semibold">{t('about.ourStory.p3Highlight')}</span> {t('about.ourStory.p3End')}
               </p>
               <p>
                 {t('about.ourStory.p4')}
@@ -167,7 +167,7 @@ const AboutUsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             <div>
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
                   <Target className="h-6 w-6 text-white" />
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900">{t('about.mission.title')}</h2>
@@ -179,7 +179,7 @@ const AboutUsPage: React.FC = () => {
 
             <div>
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
                   <Rocket className="h-6 w-6 text-white" />
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900">{t('about.vision.title')}</h2>
@@ -207,9 +207,9 @@ const AboutUsPage: React.FC = () => {
               return (
                 <div 
                   key={index}
-                  className="text-center p-6 bg-white border border-indigo-100 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
+                  className="text-center p-6 bg-white border border-primary/20 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform">
                     <Icon className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-4">{value.title}</h3>
@@ -238,7 +238,7 @@ const AboutUsPage: React.FC = () => {
                 key={index}
                 className="text-center group max-w-xs"
               >
-                <div className="w-40 h-40 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
+                <div className="w-40 h-40 bg-gradient-to-br from-primary to-primary-light rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
                   {member.image ? (
                     <img 
                       src={member.image} 
@@ -250,7 +250,7 @@ const AboutUsPage: React.FC = () => {
                   )}
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-2">{member.name}</h3>
-                <p className="text-indigo-600 font-medium mb-4">{member.role}</p>
+                <p className="text-primary font-medium mb-4">{member.role}</p>
                 <p className="text-gray-700">{member.description}</p>
               </div>
             ))}
@@ -263,7 +263,7 @@ const AboutUsPage: React.FC = () => {
                 key={index}
                 className="text-center group max-w-xs"
               >
-                <div className="w-40 h-40 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
+                <div className="w-40 h-40 bg-gradient-to-br from-primary to-primary-light rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
                   {member.image ? (
                     <img 
                       src={member.image} 
@@ -275,7 +275,7 @@ const AboutUsPage: React.FC = () => {
                   )}
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-2">{member.name}</h3>
-                <p className="text-indigo-600 font-medium mb-4">{member.role}</p>
+                <p className="text-primary font-medium mb-4">{member.role}</p>
                 <p className="text-gray-700">{member.description}</p>
               </div>
             ))}
@@ -299,10 +299,10 @@ const AboutUsPage: React.FC = () => {
                 className="flex items-center transition-all duration-300"
               >
                 <div className="flex-shrink-0 w-24 text-right mr-8">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{milestone.year}</span>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">{milestone.year}</span>
                 </div>
-                <div className="flex-shrink-0 w-4 h-4 bg-indigo-600 rounded-full mr-8 animate-pulse"></div>
-                <div className="flex-grow bg-gradient-to-br from-indigo-50 to-violet-50 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-indigo-100">
+                <div className="flex-shrink-0 w-4 h-4 bg-primary rounded-full mr-8 animate-pulse"></div>
+                <div className="flex-grow bg-gradient-to-br from-background to-background p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-primary/20">
                   <p className="text-gray-700">{milestone.event}</p>
                 </div>
               </div>

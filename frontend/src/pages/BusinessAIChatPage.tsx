@@ -50,7 +50,7 @@ const BusinessAIChatPage: React.FC = () => {
           onChange={(e) => setQuestion(e.target.value)}
         />
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-60"
+          className="bg-primary text-white px-4 py-2 rounded disabled:opacity-60"
           disabled={loading || !question.trim()}
         >
           {loading ? t('businessAiChat.asking') : t('businessAiChat.askButton')}

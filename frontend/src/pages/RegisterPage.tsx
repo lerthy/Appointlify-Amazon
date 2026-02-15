@@ -190,7 +190,7 @@ const RegisterPage: React.FC = () => {
         >
           <button
             onClick={() => navigate('/')}
-            className="absolute left-0 top-0 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+            className="absolute left-0 top-0 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -213,7 +213,7 @@ const RegisterPage: React.FC = () => {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder={t('register.namePlaceholder')}
                 autoComplete="name"
                 required
@@ -226,7 +226,7 @@ const RegisterPage: React.FC = () => {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder={t('register.emailPlaceholder')}
                 autoComplete="email"
                 required
@@ -239,7 +239,7 @@ const RegisterPage: React.FC = () => {
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder={t('register.phonePlaceholder')}
                 autoComplete="tel"
                 required
@@ -252,7 +252,7 @@ const RegisterPage: React.FC = () => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder={t('register.passwordPlaceholder')}
                 autoComplete="new-password"
                 required
@@ -265,7 +265,7 @@ const RegisterPage: React.FC = () => {
                 name="confirm"
                 value={form.confirm}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder={t('register.confirmPasswordPlaceholder')}
                 autoComplete="new-password"
                 required
@@ -277,7 +277,7 @@ const RegisterPage: React.FC = () => {
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black transition-all resize-none text-sm"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black transition-all resize-none text-sm"
                 placeholder={t('register.descriptionPlaceholder')}
                 required
                 rows={2}
@@ -288,7 +288,7 @@ const RegisterPage: React.FC = () => {
               <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${
                 logoFile 
                   ? 'border-green-500 bg-green-50' 
-                  : 'border-gray-300 hover:border-indigo-500'
+                  : 'border-gray-300 hover:border-primary'
               }`}>
                 <div className="space-y-1 text-center">
                   {logoFile ? (
@@ -333,7 +333,7 @@ const RegisterPage: React.FC = () => {
                   <div className="flex text-xs text-gray-600">
                     <label
                       htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 px-1"
+                      className="relative cursor-pointer bg-white rounded font-medium text-primary hover:text-primary-light focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary px-1"
                     >
                       <span>{logoFile ? t('register.changeFile') : t('register.uploadFile')}</span>
                       <input
@@ -357,7 +357,7 @@ const RegisterPage: React.FC = () => {
             )}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -377,7 +377,7 @@ const RegisterPage: React.FC = () => {
             <p className="text-gray-600 text-xs">
               {t('register.alreadyHaveAccount')}{' '}
               <button
-                className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline transition-colors"
+                className="text-primary hover:text-primary-light font-medium hover:underline transition-colors"
                 onClick={() => navigate('/login')}
               >
                 {t('register.signIn')}

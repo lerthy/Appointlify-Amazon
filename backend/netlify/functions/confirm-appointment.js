@@ -121,21 +121,22 @@ export const handler = async (event, context) => {
         throw updateError;
       }
 
-      // Sync to Google Calendar now that appointment is confirmed
-      try {
-        // Get full appointment details for calendar sync
-        const { data: fullAppointment } = await supabase
-          .from('appointments')
-          .select('id, name, email, phone, date, duration, notes, service_id, employee_id, business_id')
-          .eq('id', appointment.id)
-          .single();
+      // Sync to Google Calendar now that appointment is confirmed (never fail confirmation)
+      const calendarSyncPromise = (async () => {
+        try {
+          const { data: fullAppointment } = await supabase
+            .from('appointments')
+            .select('id, name, email, phone, date, duration, notes, service_id, employee_id, business_id')
+            .eq('id', appointment.id)
+            .single();
 
-        if (fullAppointment) {
+          if (!fullAppointment) return;
+
           console.log('[confirm-appointment] Attempting to sync appointment to Google Calendar:', {
             appointmentId: fullAppointment.id,
             businessId: fullAppointment.business_id
           });
-          
+
           const { createCalendarEvent } = await import('../../services/googleCalendarSync.js');
           const calendarResult = await createCalendarEvent(fullAppointment.business_id, {
             id: fullAppointment.id,
@@ -148,27 +149,34 @@ export const handler = async (event, context) => {
             service_id: fullAppointment.service_id,
             employee_id: fullAppointment.employee_id,
           });
-          
+
           if (calendarResult.success) {
             console.log('[confirm-appointment] ✅ Calendar event created successfully:', {
               appointmentId: appointment.id,
               eventId: calendarResult.eventId
             });
           } else {
-            console.warn('[confirm-appointment] ⚠️ Calendar sync failed (non-critical):', {
+            console.warn('[confirm-appointment] Calendar sync failed (appointment still confirmed):', {
               appointmentId: appointment.id,
               error: calendarResult.error
             });
           }
+        } catch (innerErr) {
+          console.warn('[confirm-appointment] Calendar sync failed (appointment still confirmed):', {
+            appointmentId: appointment.id,
+            error: innerErr?.message || String(innerErr),
+            stack: innerErr?.stack
+          });
         }
-      } catch (calendarErr) {
-        // Log but don't fail the confirmation if calendar sync fails
-        console.error('[confirm-appointment] ❌ Calendar sync error (non-critical):', {
+      })();
+
+      await Promise.resolve(calendarSyncPromise).catch((err) => {
+        console.error('[confirm-appointment] Calendar sync error (appointment still confirmed):', {
           appointmentId: appointment.id,
-          error: calendarErr.message,
-          stack: calendarErr.stack
+          error: err?.message || String(err),
+          stack: err?.stack
         });
-      }
+      });
 
       // Get service and business details for confirmation message
       const { data: service } = await supabase

@@ -87,7 +87,7 @@ const GoogleOAuthCallbackPage: React.FC = () => {
             <div className="flex flex-col gap-2 mt-4">
               <button
                 onClick={handleGrant}
-                className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-60"
+                className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-light transition disabled:opacity-60"
                 disabled={calendarLoading}
               >
                 {calendarLoading ? t('googleOAuth.requestingPermission') : t('googleOAuth.grantAccess')}

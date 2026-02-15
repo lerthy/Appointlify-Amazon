@@ -10,7 +10,7 @@ const Skeleton: React.FC<SkeletonProps> = ({ className = '', variant = 'default'
 
   if (variant === 'stat-card') {
     return (
-      <div className={`overflow-hidden shadow-lg rounded-xl border border-gray-200 ${className}`}>
+      <div className={`overflow-hidden shadow-md rounded-xl border border-gray-200 ${className}`}>
         <div className="px-3 py-4 sm:px-6 sm:py-6">
           <div className="flex items-center sm:flex-row flex-col sm:items-center">
             <div className={`hidden sm:block flex-shrink-0 rounded-xl p-3 sm:p-4 ${baseClasses} w-12 h-12 sm:w-14 sm:h-14`} />

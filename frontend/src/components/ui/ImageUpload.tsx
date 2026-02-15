@@ -70,7 +70,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         onClick={handleClick}
         className={`
           relative group cursor-pointer rounded-lg border-2 border-dashed transition-all duration-200
-          ${disabled ? 'border-gray-200 bg-gray-50 cursor-not-allowed' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'}
+          ${disabled ? 'border-gray-200 bg-gray-50 cursor-not-allowed' : 'border-gray-300 hover:border-primary/60 hover:bg-primary/5'}
           ${error ? 'border-red-300 bg-red-50' : ''}
         `}
       >
@@ -105,7 +105,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <div className="p-8 text-center">
             {isUploading ? (
               <div className="space-y-2">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="text-sm text-gray-600">{t('imageUpload.uploading')}</p>
               </div>
             ) : (

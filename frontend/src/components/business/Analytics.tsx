@@ -250,7 +250,7 @@ const Analytics: React.FC = () => {
                 {/* Total Appointments */}
                 <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg sm:block sm:p-4">
                   <div className="flex items-center">
-                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500 mr-2" />
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary mr-2" />
                     <h4 className="text-xs sm:text-sm font-medium text-gray-500">{t('analytics.stats.totalAppointments')}</h4>
                   </div>
                   <p className="text-xl sm:text-2xl font-bold sm:mt-2">{appointments.length}</p>
@@ -259,7 +259,7 @@ const Analytics: React.FC = () => {
                 {/* Completion Rate */}
                 <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg sm:block sm:p-4">
                   <div className="flex items-center">
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mr-2" />
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary mr-2" />
                     <h4 className="text-xs sm:text-sm font-medium text-gray-500">{t('analytics.stats.completionRate')}</h4>
                   </div>
                   <p className="text-xl sm:text-2xl font-bold sm:mt-2">{calculateCompletionRate()}%</p>
@@ -280,7 +280,7 @@ const Analytics: React.FC = () => {
                         </span>
                         <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
                           <div 
-                            className="bg-blue-600 h-2.5 rounded-full" 
+                            className="bg-primary h-2.5 rounded-full" 
                             style={{ width: `${(hour.count / analytics.peakHours[0].count) * 100}%` }}
                           />
                         </div>
@@ -303,7 +303,7 @@ const Analytics: React.FC = () => {
                   onClick={() => setEmployeeChartMode('pie')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
                     employeeChartMode === 'pie'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -315,7 +315,7 @@ const Analytics: React.FC = () => {
                   onClick={() => setEmployeeChartMode('bar')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
                     employeeChartMode === 'bar'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -332,7 +332,7 @@ const Analytics: React.FC = () => {
                     <p className="text-xs text-gray-500">{t('analytics.stats.totalEmployees')}</p>
                     <p className="text-2xl font-bold">{employees?.length || 0}</p>
                   </div>
-                  <Users className="h-8 w-8 text-indigo-500" />
+                  <Users className="h-8 w-8 text-primary" />
                 </div>
               </div>
 
@@ -408,7 +408,7 @@ const Analytics: React.FC = () => {
                   onClick={() => setServiceChartMode('pie')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
                     serviceChartMode === 'pie'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -420,7 +420,7 @@ const Analytics: React.FC = () => {
                   onClick={() => setServiceChartMode('bar')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
                     serviceChartMode === 'bar'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -501,7 +501,7 @@ const Analytics: React.FC = () => {
                   onClick={() => setDayChartMode('pie')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
                     dayChartMode === 'pie'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -513,7 +513,7 @@ const Analytics: React.FC = () => {
                   onClick={() => setDayChartMode('bar')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
                     dayChartMode === 'bar'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -587,7 +587,7 @@ const Analytics: React.FC = () => {
                   onClick={() => setHoursChartMode('pie')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
                     hoursChartMode === 'pie'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
@@ -599,7 +599,7 @@ const Analytics: React.FC = () => {
                   onClick={() => setHoursChartMode('bar')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-colors ${
                     hoursChartMode === 'bar'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-primary text-white border-primary shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                   }`}
                 >

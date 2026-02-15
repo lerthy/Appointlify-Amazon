@@ -49,7 +49,7 @@ const AIChatbotDemoPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,11 +82,11 @@ const AIChatbotDemoPage: React.FC = () => {
               <Zap className="w-5 h-5" />
               <span className="font-medium">{t('aiChatbot.instantResponses')}</span>
             </div>
-            <div className="flex items-center space-x-2 text-blue-600">
+            <div className="flex items-center space-x-2 text-primary">
               <Brain className="w-5 h-5" />
               <span className="font-medium">{t('aiChatbot.aiPowered')}</span>
             </div>
-            <div className="flex items-center space-x-2 text-purple-600">
+            <div className="flex items-center space-x-2 text-primary">
               <Clock className="w-5 h-5" />
               <span className="font-medium">{t('aiChatbot.available247')}</span>
             </div>
@@ -98,7 +98,7 @@ const AIChatbotDemoPage: React.FC = () => {
           {/* Feature 1 */}
           <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <MessageCircle className="w-6 h-6 text-blue-600" />
+              <MessageCircle className="w-6 h-6 text-primary" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('aiChatbot.features.naturalConversation.title')}</h3>
             <p className="text-gray-600">
@@ -119,8 +119,8 @@ const AIChatbotDemoPage: React.FC = () => {
 
           {/* Feature 3 */}
           <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-              <Zap className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <Zap className="w-6 h-6 text-primary" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('aiChatbot.features.instantBooking.title')}</h3>
             <p className="text-gray-600">
@@ -134,10 +134,12 @@ const AIChatbotDemoPage: React.FC = () => {
           <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('aiChatbot.availableServices')}</h3>
           <div className="grid md:grid-cols-2 gap-6">
             {sampleServices.map((service) => (
-              <div key={service.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+              <div key={service.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary/40 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="font-semibold text-gray-900">{service.name}</h4>
-                  <span className="text-lg font-bold text-blue-600">${service.price}</span>
+                  {service.price != null && service.price !== undefined && (
+                    <span className="text-lg font-bold text-primary">${service.price}</span>
+                  )}
                 </div>
                 <p className="text-gray-600 text-sm mb-2">{service.description}</p>
                 <span className="text-xs text-gray-500">{service.duration} {t('aiChatbot.minutes')}</span>
@@ -151,7 +153,7 @@ const AIChatbotDemoPage: React.FC = () => {
           <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('aiChatbot.availableTimeSlots')}</h3>
           <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3">
             {availableTimes.map((time) => (
-              <div key={time} className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center text-sm font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition-colors">
+              <div key={time} className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center text-sm font-medium text-gray-700 hover:bg-primary/10 hover:border-primary/40 transition-colors">
                 {time}
               </div>
             ))}
@@ -159,7 +161,7 @@ const AIChatbotDemoPage: React.FC = () => {
         </div>
 
         {/* Call to Action */}
-        <div className="text-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-12 text-white">
+        <div className="text-center bg-gradient-to-r from-primary to-primary-light rounded-xl p-12 text-white">
           <h3 className="text-3xl font-bold mb-4">{t('aiChatbot.tryItNow')}</h3>
           <p className="text-xl mb-6 opacity-90">
             {t('aiChatbot.clickChatBubble')}

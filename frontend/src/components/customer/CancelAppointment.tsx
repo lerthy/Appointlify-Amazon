@@ -6,6 +6,7 @@ import { useNotification } from '../../context/NotificationContext';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import AlertDialog from '../ui/AlertDialog';
 
 interface AppointmentData {
   id: string;
@@ -61,6 +62,7 @@ const CancelAppointment: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editData, setEditData] = useState<Partial<AppointmentData>>({});
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
 
   // Sample services list removed (unused)
 
@@ -109,13 +111,10 @@ const CancelAppointment: React.FC = () => {
 
   const isWithinOneHourOfCreation = () => {
     if (!appointment?.created_at) return false;
-    
     const createdAt = new Date(appointment.created_at);
-    const currentTime = new Date(Date.now());
-    const timeDiffMs = createdAt.getTime() - currentTime.getTime();
-    const hoursSinceCreation = timeDiffMs / (1000 * 60 * 60);
-    
-    return hoursSinceCreation <= 1;
+    const now = Date.now();
+    const hoursSinceCreation = (now - createdAt.getTime()) / (1000 * 60 * 60);
+    return hoursSinceCreation <= 1 && hoursSinceCreation >= 0;
   };
 
   const handleCancel = async () => {
@@ -134,6 +133,7 @@ const CancelAppointment: React.FC = () => {
       if (error) throw error;
 
       setCancelled(true);
+      setShowCancelConfirmModal(false);
       showNotification(t('cancelAppointment.success'), 'success');
       setTimeout(() => navigate('/'), 3000);
     } catch (err) {
@@ -194,7 +194,7 @@ const CancelAppointment: React.FC = () => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800';
       case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-purple-100 text-purple-800';
+      case 'completed': return 'bg-primary/10 text-primary';
       case 'cancelled': return 'bg-red-100 text-red-800';
       case 'no-show': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -203,10 +203,10 @@ const CancelAppointment: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardContent className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <h3 className="text-lg font-semibold text-gray-700">{t('cancelAppointment.loading')}</h3>
             <p className="text-gray-500 mt-2">{t('cancelAppointment.loadingDescription')}</p>
           </CardContent>
@@ -217,7 +217,7 @@ const CancelAppointment: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader className="bg-red-50 border-red-200">
             <div className="flex items-center">
@@ -246,7 +246,7 @@ const CancelAppointment: React.FC = () => {
 
   if (cancelled) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader className="bg-green-50 border-green-200">
             <div className="flex items-center">
@@ -276,10 +276,10 @@ const CancelAppointment: React.FC = () => {
   const { date: formattedDate, time: formattedTime } = formatDateTime(appointment?.date || '');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <Card className="w-full">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <CardHeader className="bg-gradient-to-r from-primary to-primary-light text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <svg className="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -300,7 +300,7 @@ const CancelAppointment: React.FC = () => {
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       {t('cancelAppointment.serviceDetails')}
@@ -310,7 +310,7 @@ const CancelAppointment: React.FC = () => {
                       <p><span className="font-medium">{t('cancelAppointment.labels.date')}:</span> {formattedDate}</p>
                       <p><span className="font-medium">{t('cancelAppointment.labels.time')}:</span> {formattedTime}</p>
                       <p><span className="font-medium">{t('cancelAppointment.labels.duration')}:</span> {appointment?.duration || 0} {t('cancelAppointment.minutes')}</p>
-                      {appointment?.service?.price && (
+                      {appointment?.service?.price != null && (
                         <p><span className="font-medium">{t('cancelAppointment.labels.price')}:</span> ${appointment.service.price}</p>
                       )}
                       {appointment?.service?.description && (
@@ -321,7 +321,7 @@ const CancelAppointment: React.FC = () => {
 
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                       {t('cancelAppointment.customerInformation')}
@@ -339,7 +339,7 @@ const CancelAppointment: React.FC = () => {
                   {appointment?.employee && (
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         {t('cancelAppointment.serviceProvider')}
@@ -355,7 +355,7 @@ const CancelAppointment: React.FC = () => {
 
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       {t('cancelAppointment.bookingInformation')}
@@ -370,7 +370,7 @@ const CancelAppointment: React.FC = () => {
                   {appointment?.notes && (
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         {t('cancelAppointment.labels.notes')}
@@ -394,9 +394,9 @@ const CancelAppointment: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       {t('cancelAppointment.actions')}
@@ -416,7 +416,7 @@ const CancelAppointment: React.FC = () => {
                       </Button>
                       
                       <Button 
-                        onClick={handleCancel} 
+                        onClick={() => setShowCancelConfirmModal(true)} 
                         isLoading={cancelling} 
                         variant="danger"
                         fullWidth
@@ -438,9 +438,9 @@ const CancelAppointment: React.FC = () => {
             ) : (
               // Edit Mode
               <div className="space-y-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                   <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                    <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                     {t('cancelAppointment.editDetails')}
@@ -501,7 +501,7 @@ const CancelAppointment: React.FC = () => {
                     {t('cancelAppointment.labels.notesSection')}
                   </label>
                   <textarea
-                    className="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                     rows={4}
                     value={editData.notes || ''}
                     onChange={(e) => setEditData(prev => ({ ...prev, notes: e.target.value }))}
@@ -540,6 +540,20 @@ const CancelAppointment: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog
+        isOpen={showCancelConfirmModal}
+        onCancel={() => setShowCancelConfirmModal(false)}
+        onConfirm={async () => {
+          setShowCancelConfirmModal(false);
+          await handleCancel();
+        }}
+        title={t('cancelAppointment.confirmCancelTitle')}
+        description={t('cancelAppointment.confirmCancelDescription')}
+        confirmLabel={t('cancelAppointment.yesCancel')}
+        cancelLabel={t('cancelAppointment.keepAppointment')}
+        variant="danger"
+      />
     </div>
   );
 };

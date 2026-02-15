@@ -63,7 +63,7 @@ const LanguageSelector: React.FC = () => {
               key={language.code}
               onClick={() => handleLanguageChange(language.code)}
               className={`w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-100 transition-colors duration-150 ${
-                currentLanguage.code === language.code ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700'
+                currentLanguage.code === language.code ? 'bg-primary/10 text-primary' : 'text-gray-700'
               }`}
             >
               <div className="flex items-center space-x-2">
@@ -71,7 +71,7 @@ const LanguageSelector: React.FC = () => {
                 <span className="text-sm font-medium">{language.name}</span>
               </div>
               {currentLanguage.code === language.code && (
-                <Check className="h-4 w-4 text-indigo-600" />
+                <Check className="h-4 w-4 text-primary" />
               )}
             </button>
           ))}

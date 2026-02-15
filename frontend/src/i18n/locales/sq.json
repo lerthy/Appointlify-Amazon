@@ -136,7 +136,11 @@
       "verifyEmail": "Ju lutem verifikoni adresën tuaj të email-it para se të hyni. Kontrolloni kutinë tuaj për linkun e verifikimit.",
       "invalidCredentials": "Email ose fjalëkalim i pavlefshëm.",
       "profileError": "Dështoi krijimi i profilit të përdoruesit. Ju lutem kontaktoni suportin."
-    }
+    },
+    "emailNotVerifiedBanner": "Email-i juaj nuk është verifikuar",
+    "resendVerification": "Dërgo përsëri verifikimin",
+    "resendVerificationSent": "Email i verifikimit u dërgua. Kontrolloni kutinë tuaj.",
+    "resendVerificationFailed": "Dërgimi i email-it të verifikimit dështoi. Provoni përsëri."
   },
   "register": {
     "title": "Krijo Llogari",
@@ -751,6 +755,10 @@
   "cancelAppointment": {
     "title": "Anulo Terminin",
     "confirmCancel": "Jeni të sigurt që doni të anuloni këtë termin?",
+    "confirmCancelTitle": "Jeni të sigurt që doni të anuloni?",
+    "confirmCancelDescription": "Kjo do të anulojë termin tuaj. Ky veprim nuk mund të zhbëhet.",
+    "yesCancel": "Po, anulo",
+    "keepAppointment": "Mbaj Terminin",
     "cancelButton": "Anulo Terminin",
     "cancelling": "Duke anuluar...",
     "success": "Termini u anulua me sukses.",
@@ -821,7 +829,10 @@
     "goToLogin": "Shko te Hyrja",
     "registerNewAccount": "Regjistro Llogari të Re",
     "error": "Dështoi verifikimi i email-it. Ju lutem provoni përsëri.",
-    "redirecting": "Duke ju ridrejtuar te hyrja..."
+    "redirecting": "Duke ju ridrejtuar te hyrja...",
+    "resendVerification": "Dërgo përsëri verifikimin",
+    "resendVerificationSent": "Email i verifikimit u dërgua. Kontrolloni kutinë tuaj.",
+    "resendVerificationFailed": "Dërgimi i email-it të verifikimit dështoi. Provoni përsëri."
   },
   "resetPassword": {
     "title": "Vendosni një fjalëkalim të ri",
@@ -907,7 +918,9 @@
     "confirmationNumber": "Numri i Konfirmimit",
     "addToCalendar": "Shto në Kalendar",
     "bookAnother": "Rezervo një Termin Tjetër",
-    "minutes": "minuta"
+    "minutes": "minuta",
+    "manageAppointment": "Menaxho terminin",
+    "location": "Vendndodhja"
   },
   "confirmAppointment": {
     "title": "Konfirmimi i Terminit",

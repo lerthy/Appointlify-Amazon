@@ -31,14 +31,14 @@ const Tabs: React.FC<TabsProps> = ({
 
   return (
     <div className={`${className}`}>
-      <div className="border-b border-gray-200 bg-white rounded-t-lg">
+      <div className="border-b border-gray-200 bg-white rounded-t-xl">
         <nav className="flex overflow-x-auto scrollbar-hide -mb-px px-4 sm:px-6">
           <div className="flex space-x-1 min-w-full">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 className={`
-                  py-3 sm:py-4 px-3 sm:px-6 border-b-2 font-semibold text-xs sm:text-sm rounded-t-lg flex-shrink-0
+                  py-3 sm:py-4 px-3 sm:px-6 border-b-2 font-semibold text-xs sm:text-sm rounded-t-xl flex-shrink-0
                   ${activeTab === tab.id
                     ? 'border-primary text-primary bg-primary/10 shadow-sm'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'}
@@ -53,7 +53,7 @@ const Tabs: React.FC<TabsProps> = ({
           </div>
         </nav>
       </div>
-      <div className="bg-white rounded-b-lg">
+      <div className="bg-white rounded-b-xl">
         <div className="p-4 sm:p-6">
           {tabs.find(tab => tab.id === activeTab)?.content}
         </div>

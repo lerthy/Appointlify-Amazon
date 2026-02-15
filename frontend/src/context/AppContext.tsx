@@ -22,6 +22,7 @@ interface AppContextType {
   analytics: Analytics;
   currentView: 'customer' | 'business';
   businessId: string | null;
+  dashboardLoading: boolean;
   
   // Appointment functions
   addAppointment: (appointment: {
@@ -94,6 +95,10 @@ export const AppProvider: React.FC<{
   });
   const [currentView, setCurrentView] = useState<'customer' | 'business'>('customer');
   const [skipBackend, setSkipBackend] = useState<boolean>(false);
+  const [settingsFetched, setSettingsFetched] = useState(false);
+  const [appointmentsFetched, setAppointmentsFetched] = useState(false);
+
+  const dashboardLoading = !!businessId && (!settingsFetched || !appointmentsFetched);
 
   // Fetch actual business ID from backend; fall back to local user.id if unavailable
   useEffect(() => {
@@ -143,7 +148,8 @@ export const AppProvider: React.FC<{
               if (fetchedCustomers) setCustomers(fetchedCustomers);
               if (fetchedReviews) setReviews(fetchedReviews);
               
-              console.log('[AppContext] Loaded all business data from optimized endpoint');
+              setSettingsFetched(true);
+              setAppointmentsFetched(true);
               return;
             }
           }
@@ -168,23 +174,24 @@ export const AppProvider: React.FC<{
   // Fetch business settings (fallback - used if optimized endpoint fails)
   const fetchSettings = async () => {
     if (!businessId) return;
-    if (!skipBackend) {
-      try {
-        const res = await fetch(`/api/business/${businessId}/settings`);
-        if (res.ok) {
-          const json = await res.json();
-          const data = json?.settings;
-          setBusinessSettings(data || null);
-          return;
-        }
-        setSkipBackend(true);
-      } catch (_) {
-        setSkipBackend(true);
-      }
-    }
-
-    // Fallback: direct Supabase read when backend DB routes are unavailable
     try {
+      if (!skipBackend) {
+        try {
+          const res = await fetch(`/api/business/${businessId}/settings`);
+          if (res.ok) {
+            const json = await res.json();
+            const data = json?.settings;
+            setBusinessSettings(data || null);
+            setSettingsFetched(true);
+            return;
+          }
+          setSkipBackend(true);
+        } catch (_) {
+          setSkipBackend(true);
+        }
+      }
+
+      // Fallback: direct Supabase read when backend DB routes are unavailable
       const { data, error } = await supabase
         .from('business_settings')
         .select('*')
@@ -192,38 +199,38 @@ export const AppProvider: React.FC<{
         .order('updated_at', { ascending: false });
 
       if (error) {
-        console.error('[AppContext] Error loading business_settings via Supabase fallback:', error);
         setBusinessSettings(null);
-        return;
+      } else {
+        const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+        setBusinessSettings(row ? (row as unknown as BusinessSettings) : null);
       }
-
-      const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
-      setBusinessSettings(row ? (row as unknown as BusinessSettings) : null);
-    } catch (err) {
-      console.error('[AppContext] Exception in Supabase fallback for business_settings:', err);
+    } catch (_) {
       setBusinessSettings(null);
+    } finally {
+      setSettingsFetched(true);
     }
   };
 
   // Fetch appointments (fallback - used if optimized endpoint fails)
   const fetchAppointments = async () => {
     if (!businessId) return;
-    if (!skipBackend) {
-      try {
-        const res = await fetch(`/api/business/${businessId}/appointments`);
-        if (res.ok) {
-          const json = await res.json();
-          setAppointments(json?.appointments || []);
-          return;
-        }
-        setSkipBackend(true);
-      } catch (_) {
-        setSkipBackend(true);
-      }
-    }
-
-    // Fallback: direct Supabase
     try {
+      if (!skipBackend) {
+        try {
+          const res = await fetch(`/api/business/${businessId}/appointments`);
+          if (res.ok) {
+            const json = await res.json();
+            setAppointments(json?.appointments || []);
+            setAppointmentsFetched(true);
+            return;
+          }
+          setSkipBackend(true);
+        } catch (_) {
+          setSkipBackend(true);
+        }
+      }
+
+      // Fallback: direct Supabase
       const { data } = await supabase
         .from('appointments')
         .select('*')
@@ -231,6 +238,9 @@ export const AppProvider: React.FC<{
         .order('date', { ascending: true });
       setAppointments((data as unknown as Appointment[]) || []);
     } catch (_) {}
+    finally {
+      setAppointmentsFetched(true);
+    }
   };
 
   // Real-time subscription for appointments (only when enabled)
@@ -549,19 +559,20 @@ export const AppProvider: React.FC<{
   };
 
   const addService = async (service: Omit<Service, 'id' | 'created_at'>): Promise<string> => {
-    // Conform to backend DTO: only send allowed fields
     const payload: {
       business_id: string;
       name: string;
       description?: string;
       duration: number;
-      price: number;
+      price?: number | null;
+      icon?: string;
     } = {
       business_id: service.business_id,
       name: service.name,
       description: service.description,
       duration: service.duration,
-      price: service.price,
+      price: service.price ?? null,
+      icon: service.icon,
     };
     const res = await fetch('/api/services', {
       method: 'POST',
@@ -575,13 +586,14 @@ export const AppProvider: React.FC<{
   };
 
   const addEmployee = async (employee: Omit<Employee, 'id' | 'created_at'>): Promise<string> => {
-    // Enforce required backend DTO fields and avoid sending extra fields (e.g., image_url)
     const payload: {
       business_id: string;
       name: string;
       role: string;
       email: string;
       phone?: string;
+      image_url?: string;
+      working_hours?: Employee['working_hours'];
     } = {
       business_id: employee.business_id,
       name: employee.name,
@@ -589,6 +601,8 @@ export const AppProvider: React.FC<{
       email: employee.email,
     };
     if (employee.phone) payload.phone = employee.phone;
+    if (employee.image_url) payload.image_url = employee.image_url;
+    if (Array.isArray(employee.working_hours)) payload.working_hours = employee.working_hours;
 
     if (!payload.business_id) {
       throw new Error('Missing business_id for new employee');
@@ -607,10 +621,6 @@ export const AppProvider: React.FC<{
 
   const updateBusinessSettings = async (settings: Partial<BusinessSettings>) => {
     if (!businessId) return;
-    console.log('[updateBusinessSettings] Sending settings payload:', {
-      businessId,
-      settings,
-    });
     try {
       const json = await authenticatedFetch<{ success?: boolean; settings?: BusinessSettings; error?: string; details?: string }>(
         `/api/business/${businessId}/settings`,
@@ -620,10 +630,8 @@ export const AppProvider: React.FC<{
           body: JSON.stringify(settings),
         }
       );
-      console.log('[updateBusinessSettings] Success response:', json);
       if (json?.settings) setBusinessSettings(json.settings as BusinessSettings);
     } catch (err) {
-      console.error('[updateBusinessSettings] Backend error:', err);
       throw err;
     }
   };
@@ -723,6 +731,7 @@ export const AppProvider: React.FC<{
       analytics,
       currentView,
       businessId,
+      dashboardLoading,
       addAppointment,
       updateAppointmentStatus,
       refreshAppointments,

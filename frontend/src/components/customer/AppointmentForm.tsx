@@ -10,7 +10,6 @@ import { useApp } from '../../context/AppContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/formatters';
-import { sendAppointmentConfirmation } from '../../utils/emailService';
 import { sendSMS } from '../../utils/smsService';
 import { supabase } from '../../utils/supabaseClient';
 import { DayPicker } from 'react-day-picker';
@@ -19,14 +18,14 @@ import type { BusinessSettings } from '../../types';
 
 interface AppointmentFormProps {
   businessId?: string;
+  business?: { name?: string; logo?: string; business_address?: string } | null;
 }
 
-const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
+const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId, business }) => {
   const { addAppointment, addCustomer, services, employees } = useApp();
   const { showNotification } = useNotification();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [business, setBusiness] = useState<any>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
@@ -35,6 +34,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   // Dynamically fetched booking settings - always fresh, works for public booking (no auth)
   const [bookingSettings, setBookingSettings] = useState<BusinessSettings | null>(null);
   const [loadingBookingSettings, setLoadingBookingSettings] = useState(true);
+  const [availableDates, setAvailableDates] = useState<Date[]>([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    service_id: '',
+    employee_id: '',
+    date: '',
+    time: '',
+    notes: ''
+  });
 
   // Fetch booking settings dynamically on mount - plain fetch (no auth) for public booking
   useEffect(() => {
@@ -49,7 +59,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const API_URL = isLocalhost ? '' : (import.meta.env.VITE_API_URL || '');
         const apiPath = API_URL ? `${API_URL}/api/business/${businessId}/settings` : `/api/business/${businessId}/settings`;
-        const res = await fetch(apiPath);
+        const res = await fetch(apiPath, { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to fetch settings');
         const json = await res.json();
         setBookingSettings(json?.settings ?? null);
@@ -69,38 +79,46 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
   };
 
-  // Get available dates (next 14 days, excluding closed days and blocked dates) - uses bookingSettings for fresh data
-  const getInitialAvailableDates = () => {
+  // Get available services and employees for this business (must be before selectedEmployee)
+  const businessServices = services.filter(service => service.business_id === businessId);
+  const businessEmployees = employees.filter(employee => employee.business_id === businessId);
+
+  // Effective working hours: selected employee's schedule when an employee is chosen, else business settings
+  const selectedEmployee = businessId && formData.employee_id
+    ? businessEmployees.find((e) => e.id === formData.employee_id)
+    : undefined;
+  const effectiveWorkingHours =
+    formData.employee_id &&
+    selectedEmployee?.working_hours &&
+    Array.isArray(selectedEmployee.working_hours) &&
+    selectedEmployee.working_hours.length > 0
+      ? selectedEmployee.working_hours
+      : (bookingSettings?.working_hours || []);
+
+  // Get available dates (next 14 days, excluding closed days and blocked dates) - uses effective working hours
+  const getInitialAvailableDates = (workingHours: Array<{ day: string; open?: string; close?: string; isClosed?: boolean }>) => {
     const dates = [];
     const today = new Date();
     const blockedDates = bookingSettings?.blocked_dates || [];
-    const workingHours = bookingSettings?.working_hours || [];
 
     for (let i = 0; i < 14; i++) {
       const date = new Date();
       date.setDate(today.getDate() + i);
-      // Use local date string YYYY-MM-DD
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       const dateString = `${year}-${month}-${day}`;
-      
+
       const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
       const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
-      
-      // Exclude blocked dates and closed days
+
       if (dayWorkingHours && !dayWorkingHours.isClosed && !blockedDates.includes(dateString)) {
-        // If it's today, check if we are past closing time
         if (i === 0) {
           const now = new Date();
-          const [closeHour, closeMinute] = dayWorkingHours.close.split(':').map(Number);
+          const [closeHour, closeMinute] = (dayWorkingHours.close || '00:00').split(':').map(Number);
           const closeTime = new Date(now);
           closeTime.setHours(closeHour, closeMinute, 0, 0);
-          
-          // If current time is past or equal to closing time, skip today
-          if (now >= closeTime) {
-            continue;
-          }
+          if (now >= closeTime) continue;
         }
         dates.push(date);
       }
@@ -108,37 +126,24 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return dates;
   };
 
-  const [availableDates, setAvailableDates] = useState<Date[]>([]);
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    service_id: '',
-    employee_id: '',
-    date: '',
-    time: '',
-    notes: ''
-  });
-
-  // Get available services and employees for this business
-  const businessServices = services.filter(service => service.business_id === businessId);
-  const businessEmployees = employees.filter(employee => employee.business_id === businessId);
-  
   // Use duration from selected service or bookingSettings.appointment_duration
   const selectedService = businessServices.find(s => s.id === formData.service_id);
   let serviceDuration = selectedService?.duration || bookingSettings?.appointment_duration || 30;
 
-  const getSlotsForDate = (date: Date, duration: number, bookings: any[]): string[] => {
+  const getSlotsForDate = (
+    date: Date,
+    duration: number,
+    bookings: any[],
+    workingHours: Array<{ day: string; open?: string; close?: string; isClosed?: boolean }> = effectiveWorkingHours
+  ): string[] => {
     const slots: string[] = [];
     const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
-    const workingHours = bookingSettings?.working_hours || [];
     const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
-    
+
     if (!dayWorkingHours || dayWorkingHours.isClosed) return slots;
 
-    const [openHour, openMinute] = dayWorkingHours.open.split(':').map(Number);
-    const [closeHour, closeMinute] = dayWorkingHours.close.split(':').map(Number);
+    const [openHour, openMinute] = (dayWorkingHours.open || '00:00').split(':').map(Number);
+    const [closeHour, closeMinute] = (dayWorkingHours.close || '00:00').split(':').map(Number);
     
     const openTime = new Date(date);
     openTime.setHours(openHour, openMinute, 0, 0);
@@ -177,11 +182,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return slots;
   };
 
-  // Initialize dates and filter out "Today" if it's fully booked - uses bookingSettings
+  // Initialize dates and filter out "Today" if it's fully booked - uses effective working hours
   useEffect(() => {
     if (!bookingSettings) return;
 
-    const initialDates = getInitialAvailableDates();
+    const initialDates = getInitialAvailableDates(effectiveWorkingHours);
     
     // If no specific service/employee selected, we can't accurately check capacity, so return initial
     if (!formData.service_id || !formData.employee_id) {
@@ -244,30 +249,30 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     };
 
     checkTodayAvailability();
-  }, [bookingSettings, formData.service_id, formData.employee_id, businessId]); // Re-run when service/employee changes
+  }, [bookingSettings, formData.service_id, formData.employee_id, businessId, effectiveWorkingHours]); // Re-run when service/employee or working hours change
 
-  // Check if business is closed for today - uses bookingSettings
+  // Check if selected day is closed for today - uses effective working hours
   const isBusinessClosedToday = () => {
-    if (!formData.date || !bookingSettings) return false;
-    
+    if (!formData.date) return false;
+
     const selectedDate = parseLocalDate(formData.date);
     const now = new Date();
-    const isToday = selectedDate.getDate() === now.getDate() &&
-                    selectedDate.getMonth() === now.getMonth() &&
-                    selectedDate.getFullYear() === now.getFullYear();
-    
+    const isToday =
+      selectedDate.getDate() === now.getDate() &&
+      selectedDate.getMonth() === now.getMonth() &&
+      selectedDate.getFullYear() === now.getFullYear();
+
     if (!isToday) return false;
-    
+
     const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-    const workingHours = bookingSettings?.working_hours || [];
-    const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
-    
+    const dayWorkingHours = effectiveWorkingHours.find((wh: any) => wh.day === dayOfWeek);
+
     if (!dayWorkingHours || dayWorkingHours.isClosed) return true;
-    
-    const [closeHour, closeMinute] = dayWorkingHours.close.split(':').map(Number);
+
+    const [closeHour, closeMinute] = (dayWorkingHours.close || '00:00').split(':').map(Number);
     const closeTime = new Date(selectedDate);
     closeTime.setHours(closeHour, closeMinute, 0, 0);
-    
+
     return now >= closeTime;
   };
 
@@ -300,6 +305,23 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       }
     }
   }, [businessServices.length, businessEmployees.length, availableDates]);
+
+  // Clear selected date if it is no longer in available dates (e.g. after changing employee)
+  useEffect(() => {
+    if (!formData.date || availableDates.length === 0) return;
+    const dateStr = formData.date;
+    const isInAvailable = availableDates.some(
+      (d) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === dateStr
+    );
+    if (!isInAvailable) {
+      const firstDate = availableDates[0];
+      const y = firstDate.getFullYear();
+      const m = String(firstDate.getMonth() + 1).padStart(2, '0');
+      const d = String(firstDate.getDate()).padStart(2, '0');
+      setFormData((prev) => ({ ...prev, date: `${y}-${m}-${d}` }));
+    }
+  }, [availableDates, formData.date]);
 
   // Fetch booked appointments when date or employee changes
   useEffect(() => {
@@ -494,33 +516,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         duration: serviceDuration
       });
 
-      // Fetch appointment to get confirmation token
-      let confirmationLink = null;
-      try {
-        const { data: appointment } = await supabase
-          .from('appointments')
-          .select('confirmation_token')
-          .eq('id', appointmentId)
-          .single();
-        
-        if (appointment?.confirmation_token) {
-          confirmationLink = `${window.location.origin}/confirm-appointment?token=${appointment.confirmation_token}`;
-        }
-      } catch (error) {
-        console.warn('Could not fetch confirmation token:', error);
-      }
-
-      // Send confirmation email
+      // Confirmation email is sent by the backend after successful insert (see server.js POST /api/appointments)
       const cancelLink = `${window.location.origin}/cancel/${appointmentId}`;
-      const emailSent = await sendAppointmentConfirmation({
-        to_name: formData.name,
-        to_email: formData.email,
-        appointment_date: formatDate(appointmentDate),
-        appointment_time: formData.time,
-        business_name: business?.name || 'Business',
-        cancel_link: cancelLink,
-        confirmation_link: confirmationLink || undefined
-      });
 
       // Send SMS confirmation
       const smsMessage = `Hi ${formData.name}, your appointment at ${business?.name || 'Our Business'} on ${formatDate(appointmentDate)} at ${formData.time} has been booked. You can cancel or reschedule at: ${cancelLink}`;
@@ -529,28 +526,23 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         message: smsMessage
       });
 
-      if (!emailSent) {
-        showNotification('Appointment booked but email confirmation failed. Please check your email address.', 'error');
-      } else if (!smsSent) {
-        showNotification('Appointment booked but SMS confirmation failed. Please check your email for confirmation.', 'error');
+      if (!smsSent) {
+        showNotification('Appointment booked. Check your email for confirmation; SMS could not be sent.', 'warning');
       } else {
         showNotification('Check your email and phone for confirmation.', 'success');
       }
       
-      // Prepare booking confirmation data
+      // Prepare booking confirmation data (only fields needed for confirmation page)
       const bookingConfirmationData = {
         appointmentId,
-        customerName: formData.name,
-        customerEmail: formData.email,
-        customerPhone: formData.phone,
-        businessName: business?.name || 'Business',
         serviceName: selectedService?.name || 'Service',
+        employeeName: selectedEmployee?.name,
         appointmentDate: formData.date,
         appointmentTime: formData.time,
         duration: serviceDuration,
-        price: selectedService?.price || 0,
-        businessLogo: business?.logo,
-        cancelLink
+        location: business?.business_address,
+        ...(selectedService?.price != null && selectedService?.price !== undefined && { price: selectedService.price }),
+        cancelLink,
       };
 
       // Redirect to confirmation page with booking data
@@ -697,7 +689,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
                 { value: '', label: 'Select a service' },
                 ...businessServices.map((service) => ({
                   value: service.id,
-                  label: `${service.name} - $${service.price} (${service.duration} min)`,
+                  label: `${service.name}${service.price != null && service.price !== undefined ? ` - $${service.price}` : ''} (${service.duration} min)`,
                 })),
               ]}
             />

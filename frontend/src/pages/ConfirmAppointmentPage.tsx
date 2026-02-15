@@ -295,7 +295,7 @@ const ConfirmAppointmentPage: React.FC = () => {
               className="w-16 h-16 rounded-full object-cover border-4 border-gray-100"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white text-2xl font-bold">
               {(appointment.business?.name || 'B').charAt(0).toUpperCase()}
             </div>
           )}
@@ -306,16 +306,16 @@ const ConfirmAppointmentPage: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center p-4 bg-indigo-50 rounded-lg">
-            <Calendar className="w-5 h-5 text-indigo-600 mr-3" />
+          <div className="flex items-center p-4 bg-primary/10 rounded-lg">
+            <Calendar className="w-5 h-5 text-primary mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-500">Date</p>
               <p className="text-lg font-semibold text-gray-900">{formatDate(appointmentDate)}</p>
             </div>
           </div>
 
-          <div className="flex items-center p-4 bg-purple-50 rounded-lg">
-            <Clock className="w-5 h-5 text-purple-600 mr-3" />
+          <div className="flex items-center p-4 bg-primary/10 rounded-lg">
+            <Clock className="w-5 h-5 text-primary mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-500">Time</p>
               <p className="text-lg font-semibold text-gray-900">
@@ -324,12 +324,12 @@ const ConfirmAppointmentPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center p-4 bg-blue-50 rounded-lg">
-            <Briefcase className="w-5 h-5 text-blue-600 mr-3" />
+          <div className="flex items-center p-4 bg-primary/10 rounded-lg">
+            <Briefcase className="w-5 h-5 text-primary mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-500">Service</p>
               <p className="text-lg font-semibold text-gray-900">{appointment.service?.name || 'Service'}</p>
-              {appointment.service?.price && (
+              {appointment.service?.price != null && (
                 <p className="text-sm text-green-600 font-semibold">${appointment.service.price}</p>
               )}
             </div>
@@ -380,7 +380,7 @@ const ConfirmAppointmentPage: React.FC = () => {
                 {appointment.business.phone && (
                   <div className="flex items-center text-sm text-gray-700">
                     <Phone className="w-4 h-4 text-gray-400 mr-2" />
-                    <a href={`tel:${appointment.business.phone}`} className="text-indigo-600 hover:underline">
+                    <a href={`tel:${appointment.business.phone}`} className="text-primary hover:underline">
                       {appointment.business.phone}
                     </a>
                   </div>
@@ -388,7 +388,7 @@ const ConfirmAppointmentPage: React.FC = () => {
                 {appointment.business.email && (
                   <div className="flex items-center text-sm text-gray-700">
                     <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                    <a href={`mailto:${appointment.business.email}`} className="text-indigo-600 hover:underline">
+                    <a href={`mailto:${appointment.business.email}`} className="text-primary hover:underline">
                       {appointment.business.email}
                     </a>
                   </div>
@@ -402,14 +402,14 @@ const ConfirmAppointmentPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background flex flex-col">
       <Header />
       <main className="flex-grow py-8 flex items-center justify-center">
         <div className="w-full max-w-2xl mx-auto px-4">
           {(status === 'loading' || status === 'confirming') && (
             <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-full mb-4">
-                <Loader className="w-10 h-10 text-indigo-600 animate-spin" />
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
+                <Loader className="w-10 h-10 text-primary animate-spin" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 {status === 'loading' ? t('common.loading') : t('confirmAppointment.confirming')}
@@ -433,7 +433,7 @@ const ConfirmAppointmentPage: React.FC = () => {
               <p className="text-gray-600 mb-6">{message || t('confirmAppointment.successMessage')}</p>
               <Button
                 onClick={() => navigate('/')}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg font-semibold"
+                className="bg-primary hover:bg-primary-light text-white px-8 py-3 text-lg font-semibold"
               >
                 {t('confirmAppointment.backToHome')}
               </Button>
@@ -445,7 +445,7 @@ const ConfirmAppointmentPage: React.FC = () => {
               {renderAppointmentDetails()}
               <Button
                 onClick={() => navigate('/')}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="w-full bg-primary hover:bg-primary-light text-white"
               >
                 {t('confirmAppointment.backToHome')}
               </Button>
@@ -461,7 +461,7 @@ const ConfirmAppointmentPage: React.FC = () => {
               <p className="text-gray-600 mb-6">{message || t('confirmAppointment.errorMessage')}</p>
               <Button
                 onClick={() => navigate('/')}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="w-full bg-primary hover:bg-primary-light text-white"
               >
                 {t('confirmAppointment.backToHome')}
               </Button>

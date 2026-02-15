@@ -71,15 +71,15 @@ const ContactPage: React.FC = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-50 via-white to-violet-50 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-background via-white to-background relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-indigo-400/20 to-violet-400/20 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              {t('contact.title')} <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{t('contact.titleHighlight')}</span>
+              {t('contact.title')} <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">{t('contact.titleHighlight')}</span>
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               {t('contact.subtitle')}
@@ -105,7 +105,7 @@ const ContactPage: React.FC = () => {
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
-                    className="mt-6 text-indigo-600 hover:text-indigo-700 font-medium"
+                    className="mt-6 text-primary hover:text-primary-light font-medium"
                   >
                     {t('contact.form.sendAnother')}
                   </button>
@@ -123,7 +123,7 @@ const ContactPage: React.FC = () => {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
                       placeholder={t('contact.form.fullNamePlaceholder')}
                     />
                   </div>
@@ -139,7 +139,7 @@ const ContactPage: React.FC = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
                       placeholder={t('contact.form.emailPlaceholder')}
                     />
                   </div>
@@ -154,7 +154,7 @@ const ContactPage: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
                       placeholder={t('contact.form.phonePlaceholder')}
                     />
                   </div>
@@ -169,7 +169,7 @@ const ContactPage: React.FC = () => {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900"
                     >
                       <option value="">{t('contact.form.selectSubject')}</option>
                       <option value="general">{t('contact.form.subjects.general')}</option>
@@ -192,7 +192,7 @@ const ContactPage: React.FC = () => {
                       onChange={handleChange}
                       required
                       rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900 resize-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-300 bg-white text-gray-900 resize-none"
                       placeholder={t('contact.form.messagePlaceholder')}
                     />
                   </div>
@@ -200,7 +200,7 @@ const ContactPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-indigo-700 hover:to-violet-700 hover:shadow-xl transition-all duration-300 flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-primary to-primary-light text-white px-8 py-4 rounded-lg font-semibold hover:from-primary-light hover:to-accent hover:shadow-xl transition-all duration-300 flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? (
                       <>
@@ -226,14 +226,14 @@ const ContactPage: React.FC = () => {
                   return (
                     <div
                       key={index}
-                      className="p-6 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-indigo-100"
+                      className="p-6 bg-gradient-to-br from-background to-background rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-primary/20"
                     >
-                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mb-4 hover:scale-110 transition-transform">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-lg flex items-center justify-center mb-4 hover:scale-110 transition-transform">
                         <Icon className="h-6 w-6 text-white" />
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">{info.title}</h3>
-                      <p className="text-indigo-600 font-medium mb-1 text-sm">{info.details}</p>
-                      {info.details2 && <p className="text-indigo-600 font-medium mb-1 text-sm">{info.details2}</p>}
+                      <p className="text-primary font-medium mb-1 text-sm">{info.details}</p>
+                      {info.details2 && <p className="text-primary font-medium mb-1 text-sm">{info.details2}</p>}
                       <p className="text-gray-600 text-sm">{info.description}</p>
                     </div>
                   );
@@ -291,7 +291,7 @@ const ContactPage: React.FC = () => {
             ].map((faq, index) => (
               <div 
                 key={index}
-                className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-indigo-100"
+                className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-primary/20"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">{faq.question}</h3>
                 <p className="text-gray-700">{faq.answer}</p>

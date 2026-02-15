@@ -249,14 +249,14 @@ const AppointmentManagement: React.FC = () => {
 
     // Service and employee info
     const serviceName = service ? service.name : t('appointmentManagement.unknownService');
-    const servicePrice = service ? `$${service.price}` : '';
+    const servicePrice = service && service.price != null && service.price !== undefined ? `$${service.price}` : '';
     const employeeName = employee ? employee.name : t('appointmentManagement.unknownEmployee');
     const employeeRole = employee ? employee.role : '';
 
     return (
       <Card
         key={appointment.id}
-        className="mb-4 border-l-4 border-l-blue-500 hover:shadow-md transition-shadow"
+        className="mb-4 border-l-4 border-l-primary hover:shadow-md transition-shadow"
       >
         <CardContent className="p-4 md:p-6">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
@@ -296,16 +296,16 @@ const AppointmentManagement: React.FC = () => {
                   )}
                 </div>
                 
-                <div className="flex items-center p-2 bg-blue-50 rounded-lg">
-                  <User size={14} className="mr-2 text-blue-500" />
+                <div className="flex items-center p-2 bg-primary/10 rounded-lg">
+                  <User size={14} className="mr-2 text-primary" />
                   <span className="font-medium text-blue-700">{employeeName}</span>
-                  <span className="ml-2 text-blue-600">({employeeRole})</span>
+                  <span className="ml-2 text-primary">({employeeRole})</span>
                 </div>
                 
                 {customerPhone && (
                   <div className="flex items-center p-2 bg-gray-50 rounded-lg">
                     <span className="mr-2">📞</span>
-                    <a href={`tel:${customerPhone}`} className="text-blue-600 hover:underline font-medium">
+                    <a href={`tel:${customerPhone}`} className="text-primary hover:underline font-medium">
                       {formatPhoneNumber(customerPhone)}
                     </a>
                   </div>
@@ -314,7 +314,7 @@ const AppointmentManagement: React.FC = () => {
                 {customerEmail && (
                   <div className="flex items-center p-2 bg-gray-50 rounded-lg">
                     <span className="mr-2">📧</span>
-                    <a href={`mailto:${customerEmail}`} className="text-blue-600 hover:underline font-medium">
+                    <a href={`mailto:${customerEmail}`} className="text-primary hover:underline font-medium">
                       {customerEmail}
                     </a>
                   </div>
@@ -429,7 +429,7 @@ const AppointmentManagement: React.FC = () => {
           {/* Employee Selector */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-4 pt-3 pb-4">
             <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-500" />
+              <User className="h-4 w-4 text-primary" />
               {t('appointmentManagement.teamSchedule')}
             </h3>
             <label className="block text-xs font-medium text-gray-500 mb-2">
@@ -438,7 +438,7 @@ const AppointmentManagement: React.FC = () => {
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white outline-none text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white outline-none text-sm"
             >
               <option value="all">{t('appointmentManagement.allEmployees')}</option>
               {employees.map((employee) => (
@@ -474,13 +474,13 @@ const AppointmentManagement: React.FC = () => {
           <div className="lg:hidden flex items-center justify-center mb-3">
             <div className="w-full max-w-xs">
               <label className="block text-xs font-medium text-gray-500 mb-1">
-                <User className="inline h-3 w-3 mr-1 text-blue-500" />
+                <User className="inline h-3 w-3 mr-1 text-primary" />
                 {t('appointmentManagement.employee')}
               </label>
               <select
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
-                className="w-full max-w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white outline-none text-xs"
+                className="w-full max-w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white outline-none text-xs"
               >
                 <option value="all">{t('appointmentManagement.allEmployees')}</option>
                 {employees.map((employee) => (
@@ -577,7 +577,7 @@ const AppointmentManagement: React.FC = () => {
                     }}
                     className={`px-3 py-1.5 rounded-full border transition-colors ${
                       viewMode === 'week'
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        ? 'bg-primary text-white border-primary shadow-sm'
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`}
                   >
@@ -588,7 +588,7 @@ const AppointmentManagement: React.FC = () => {
                     onClick={() => setViewMode('month')}
                     className={`px-3 py-1.5 rounded-full border transition-colors ${
                       viewMode === 'month'
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        ? 'bg-primary text-white border-primary shadow-sm'
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`}
                   >
@@ -603,7 +603,7 @@ const AppointmentManagement: React.FC = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder={t('appointmentManagement.searchPlaceholder')}
-                    className="w-full md:w-56 pl-8 pr-3 py-1.5 text-xs md:text-sm border border-gray-200 rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full md:w-56 pl-8 pr-3 py-1.5 text-xs md:text-sm border border-gray-200 rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                   <svg
                     className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2"
@@ -660,7 +660,7 @@ const AppointmentManagement: React.FC = () => {
                       {
                         key: 'confirmed',
                         count: counts['confirmed'] || 0,
-                        className: `${isSelected ? 'border border-blue-300' : ''} bg-blue-100 text-blue-800`,
+                        className: `${isSelected ? 'border border-primary/40' : ''} bg-primary/10 text-primary`,
                         title: 'Confirmed appointments'
                       },
                       {
@@ -694,10 +694,10 @@ const AppointmentManagement: React.FC = () => {
                         group min-h-[52px] md:min-h-[110px] p-1.5 md:p-2 border cursor-pointer transition-all duration-150 relative rounded-lg bg-white
                         ${isCurrentMonth ? '' : 'bg-gray-50'}
                         ${isSelected 
-                          ? 'border-blue-500 ring-1 ring-blue-200 shadow-sm' 
+                          ? 'border-primary ring-1 ring-primary/20 shadow-sm' 
                           : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'
                         }
-                        ${isToday && !isSelected ? 'border-blue-300 ring-1 ring-blue-100' : ''}
+                        ${isToday && !isSelected ? 'border-primary/40 ring-1 ring-primary/10' : ''}
                       `}
                     >
                       <div className="flex h-full flex-col">
@@ -710,7 +710,7 @@ const AppointmentManagement: React.FC = () => {
                                 {date.getDate()}
                               </span>
                               {/* Desktop: show circle with white text */}
-                              <span className="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-semibold">
+                              <span className="hidden md:inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold">
                                 {date.getDate()}
                               </span>
                             </>
@@ -718,7 +718,7 @@ const AppointmentManagement: React.FC = () => {
                             <span
                               className={`text-xs md:text-sm font-semibold
                                 ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
-                                ${isToday && !isSelected ? 'text-blue-600' : ''}
+                                ${isToday && !isSelected ? 'text-primary' : ''}
                               `}
                             >
                               {date.getDate()}
@@ -744,7 +744,7 @@ const AppointmentManagement: React.FC = () => {
 
                       {/* Single dot on mobile if any appointments - separate, top-right */}
                       {dayAppointments.length > 0 && (
-                        <span className="absolute md:hidden top-1 right-1 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        <span className="absolute md:hidden top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary/100" />
                       )}
                     </div>
                   );
@@ -830,7 +830,7 @@ const AppointmentManagement: React.FC = () => {
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             placeholder={t('appointmentManagement.dialogs.messagePlaceholder')}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             rows={4}
           />
         </div>

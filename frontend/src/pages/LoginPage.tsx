@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
@@ -12,13 +13,17 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { showNotification } = useNotification();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResendLoading, setIsResendLoading] = useState(false);
+  const [isEmailNotVerified, setIsEmailNotVerified] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
+    setIsEmailNotVerified(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,10 +46,13 @@ const LoginPage: React.FC = () => {
       if (signInError) {
         if (signInError.message.includes('Email not confirmed')) {
           setError(t('login.errors.verifyEmail'));
+          setIsEmailNotVerified(true);
         } else if (signInError.message.includes('Invalid login credentials')) {
           setError(t('login.errors.invalidCredentials'));
+          setIsEmailNotVerified(false);
         } else {
           setError(signInError.message);
+          setIsEmailNotVerified(false);
         }
         setIsSubmitting(false);
         return;
@@ -52,6 +60,7 @@ const LoginPage: React.FC = () => {
 
       if (!authData.user) {
         setError(t('login.errors.invalidCredentials'));
+        setIsEmailNotVerified(false);
         setIsSubmitting(false);
         return;
       }
@@ -60,9 +69,11 @@ const LoginPage: React.FC = () => {
       if (!authData.user.email_confirmed_at) {
         await supabase.auth.signOut();
         setError(t('login.errors.verifyEmail'));
+        setIsEmailNotVerified(true);
         setIsSubmitting(false);
         return;
       }
+      setIsEmailNotVerified(false);
 
       // Get or create user profile
       const { data: profileData, error: profileError } = await supabase
@@ -113,9 +124,35 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleResendVerification = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!form.email?.trim() || isResendLoading) return;
+    setIsResendLoading(true);
+    try {
+      const body = JSON.stringify({ email: form.email.trim() });
+      const headers = { 'Content-Type': 'application/json' };
+      let res = await fetch('/api/verify-email', { method: 'POST', headers, body });
+      if (!res.ok) {
+        res = await fetch('/.netlify/functions/verify-email', { method: 'POST', headers, body });
+      }
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        showNotification(t('login.resendVerificationSent'), 'success');
+      } else {
+        showNotification(t('login.resendVerificationFailed'), 'error');
+      }
+    } catch {
+      showNotification(t('login.resendVerificationFailed'), 'error');
+    } finally {
+      setIsResendLoading(false);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     try {
       setError('');
+      setIsEmailNotVerified(false);
       setIsSubmitting(true);
       const { error: googleError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -149,7 +186,7 @@ const LoginPage: React.FC = () => {
         >
           <button
             onClick={() => navigate('/')}
-            className="absolute left-0 top-0 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+            className="absolute left-0 top-0 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -173,7 +210,7 @@ const LoginPage: React.FC = () => {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder={t('login.emailPlaceholder')}
                 autoComplete="email"
                 required
@@ -186,12 +223,37 @@ const LoginPage: React.FC = () => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder={t('login.passwordPlaceholder')}
                 autoComplete="current-password"
                 required
               />
             </div>
+            {isEmailNotVerified && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p className="text-sm text-amber-800 font-medium">
+                  {t('login.emailNotVerifiedBanner')}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={isResendLoading || !form.email?.trim()}
+                  className="shrink-0 px-3 py-1.5 text-sm font-medium text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isResendLoading ? (
+                    <span className="inline-flex items-center gap-1">
+                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      {t('login.resendVerification')}
+                    </span>
+                  ) : (
+                    t('login.resendVerification')
+                  )}
+                </button>
+              </div>
+            )}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">
                 {error}
@@ -199,7 +261,7 @@ const LoginPage: React.FC = () => {
             )}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -219,7 +281,7 @@ const LoginPage: React.FC = () => {
             <p className="text-gray-600 text-xs">
               {t('login.noAccount')}{' '}
               <button
-                className="text-purple-600 hover:text-purple-700 font-medium hover:underline transition-colors"
+                className="text-primary hover:text-primary-light font-medium hover:underline transition-colors"
                 onClick={() => navigate('/register')}
               >
                 {t('login.signUp')}
@@ -228,7 +290,7 @@ const LoginPage: React.FC = () => {
             <p className="text-[11px] text-gray-500">
               {t('login.googleCalendarNote')}
             </p>
-            <p className="text-indigo-700 text-xs">
+            <p className="text-primary text-xs">
               {t('login.forgotPassword')}{' '}
               <button
                 className="underline cursor-pointer"

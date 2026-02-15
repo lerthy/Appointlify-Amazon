@@ -33,6 +33,7 @@ const EmployeeManagement: React.FC = () => {
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<string | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
     email: '',
@@ -72,6 +73,7 @@ const EmployeeManagement: React.FC = () => {
       return;
     }
 
+    setIsSaving(true);
     try {
       if (editingEmployee) {
         // Find the current employee to check if they have an old image
@@ -86,7 +88,8 @@ const EmployeeManagement: React.FC = () => {
           email: formData.email,
           phone: formData.phone,
           role: formData.role,
-          image_url: formData.image_url || undefined
+          image_url: formData.image_url || undefined,
+          working_hours: formData.working_hours
         });
         
         // Delete old image if it exists and is different from the new one
@@ -117,7 +120,8 @@ const EmployeeManagement: React.FC = () => {
           email: formData.email,
           phone: formData.phone,
           role: formData.role,
-          image_url: formData.image_url || undefined
+          image_url: formData.image_url || undefined,
+          working_hours: formData.working_hours
         });
         showNotification(t('employees.success.added'), 'success');
       }
@@ -127,6 +131,8 @@ const EmployeeManagement: React.FC = () => {
     } catch (error) {
       console.error('Error saving employee:', error);
       showNotification(t('employees.errors.saveFailed'), 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -149,24 +155,30 @@ const EmployeeManagement: React.FC = () => {
     });
   };
 
+  const defaultWorkingHours = [
+    { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+    { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
+  ];
+
   const handleEditEmployee = (employeeId: string) => {
     const employee = employees.find(emp => emp.id === employeeId);
     if (employee) {
+      const loadedHours =
+        Array.isArray(employee.working_hours) && employee.working_hours.length === 7
+          ? employee.working_hours
+          : defaultWorkingHours;
       setFormData({
         name: employee.name,
         email: employee.email,
         phone: employee.phone,
         role: employee.role,
         image_url: employee.image_url || '',
-        working_hours: [
-          { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
-          { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
-          { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
-        ]
+        working_hours: loadedHours
       });
       setEditingEmployee(employeeId);
       setIsAddingEmployee(true);
@@ -242,7 +254,7 @@ const EmployeeManagement: React.FC = () => {
       {/* Employee List */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {employees.map((employee) => (
-          <Card key={employee.id} className="hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-300 group">
+          <Card key={employee.id} className="hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-primary/40 group">
             <CardContent className="p-8">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center">
@@ -253,8 +265,8 @@ const EmployeeManagement: React.FC = () => {
                       className="w-12 h-12 rounded-full object-cover shadow-sm"
                     />
                   ) : (
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center shadow-sm">
-                      <User className="h-6 w-6 text-blue-600" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary/10 to-primary/20 rounded-full flex items-center justify-center shadow-sm">
+                      <User className="h-6 w-6 text-primary" />
                     </div>
                   )}
                   <div className="ml-4">
@@ -264,7 +276,7 @@ const EmployeeManagement: React.FC = () => {
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <button
                     onClick={() => handleEditEmployee(employee.id)}
-                    className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    className="p-2.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all duration-200"
                   >
                     <Edit className="h-4 w-4" />
                   </button>
@@ -300,7 +312,7 @@ const EmployeeManagement: React.FC = () => {
       {isAddingEmployee && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-[80] p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border-0 shadow-2xl relative">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-gray-200">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -337,7 +349,7 @@ const EmployeeManagement: React.FC = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder={t('employees.namePlaceholder')}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-primary focus:ring-primary"
                       required
                     />
                   </div>
@@ -351,7 +363,7 @@ const EmployeeManagement: React.FC = () => {
                       value={formData.role}
                       onChange={handleInputChange}
                       placeholder={t('employees.rolePlaceholder')}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-primary focus:ring-primary"
                       required
                     />
                   </div>
@@ -365,7 +377,7 @@ const EmployeeManagement: React.FC = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder={t('employees.emailPlaceholder')}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-primary focus:ring-primary"
                       required
                     />
                   </div>
@@ -379,7 +391,7 @@ const EmployeeManagement: React.FC = () => {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder={t('employees.phonePlaceholder')}
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-primary focus:ring-primary"
                       required
                     />
                   </div>
@@ -423,7 +435,7 @@ const EmployeeManagement: React.FC = () => {
                                 onChange={(e) =>
                                   handleWorkingHoursChange(hours.day, 'isClosed', !e.target.checked)
                                 }
-                                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="mr-2 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                               />
                               {hours.isClosed ? t('employees.closed') : t('employees.open')}
                             </label>
@@ -441,7 +453,7 @@ const EmployeeManagement: React.FC = () => {
                                   onChange={(e) =>
                                     handleWorkingHoursChange(hours.day, 'open', e.target.value)
                                   }
-                                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-xs"
+                                  className="border-gray-300 focus:border-primary focus:ring-primary text-xs"
                                 />
                               </div>
                               <div className="flex flex-col gap-1">
@@ -454,7 +466,7 @@ const EmployeeManagement: React.FC = () => {
                                   onChange={(e) =>
                                     handleWorkingHoursChange(hours.day, 'close', e.target.value)
                                   }
-                                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-xs"
+                                  className="border-gray-300 focus:border-primary focus:ring-primary text-xs"
                                 />
                               </div>
                             </div>
@@ -478,7 +490,7 @@ const EmployeeManagement: React.FC = () => {
                   >
                     {t('employees.cancel')}
                   </Button>
-                  <Button type="submit" className="px-6 py-2 bg-blue-600 hover:bg-blue-700">
+                  <Button type="submit" isLoading={isSaving} disabled={isSaving} className="px-6 py-2 bg-primary hover:bg-primary-light">
                     {editingEmployee ? t('employees.updateEmployee') : t('employees.addEmployee')}
                   </Button>
                 </div>

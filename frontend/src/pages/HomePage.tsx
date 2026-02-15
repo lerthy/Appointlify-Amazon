@@ -137,7 +137,7 @@ const HomePage: React.FC = () => {
                 alt={image.alt}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-indigo-900/75 to-purple-900/85"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-primary/90 to-primary-light/90"></div>
             </div>
           ))}
         </div>
@@ -155,7 +155,7 @@ const HomePage: React.FC = () => {
               <h1 className="text-4xl md:text-6xl font-extrabold mb-5 text-white leading-tight">
                 {t('home.hero.title')}
                 <br />
-                <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent">
                   {t('home.hero.titleHighlight')}
                 </span>
               </h1>
@@ -191,12 +191,12 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* SECTION 1: FOR BUSINESSES */}
-      <section id="businesses-section" className="py-24 bg-gradient-to-br from-indigo-50 to-violet-50">
+      <section id="businesses-section" className="py-24 bg-gradient-to-br from-background to-background">
         <Container maxWidth="full">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center bg-indigo-100 px-4 py-2 rounded-full mb-4">
-              <Users className="w-5 h-5 text-indigo-600 mr-2" />
-              <span className="text-indigo-800 font-semibold">{t('home.forBusinesses.title')}</span>
+            <div className="inline-flex items-center bg-primary/10 px-4 py-2 rounded-full mb-4">
+              <Users className="w-5 h-5 text-primary mr-2" />
+              <span className="text-primary font-semibold">{t('home.forBusinesses.title')}</span>
             </div>
             <h2 className="text-5xl font-extrabold mb-6 text-gray-900">
               {t('home.forBusinesses.headline')}
@@ -209,15 +209,15 @@ const HomePage: React.FC = () => {
           {/* Three Benefit Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
             {/* Card 1: Time Saving */}
-            <div className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-indigo-500">
-              {/* <div className="bg-indigo-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-                <Clock className="w-8 h-8 text-indigo-600" />
+            <div className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-primary">
+              {/* <div className="bg-primary/10 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+                <Clock className="w-8 h-8 text-primary" />
               </div> */}
               <h3 className="text-2xl font-bold mb-4 text-gray-900">{t('home.forBusinesses.card1Title')}</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {t('home.forBusinesses.card1Description')}
               </p>
-              <div className="flex items-center text-indigo-600 font-semibold">
+              <div className="flex items-center text-primary font-semibold">
                 <Zap className="w-5 h-5 mr-2" />
                 <span>{t('home.forBusinesses.card1Feature')}</span>
               </div>
@@ -239,15 +239,15 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Card 3: More Visibility */}
-            <div className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-blue-500">
-              {/* <div className="bg-blue-100 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
-                <Eye className="w-8 h-8 text-blue-600" />
+            <div className="bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-accent">
+              {/* <div className="bg-accent/10 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+                <Eye className="w-8 h-8 text-accent" />
               </div> */}
               <h3 className="text-2xl font-bold mb-4 text-gray-900">{t('home.forBusinesses.card3Title')}</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {t('home.forBusinesses.card3Description')}
               </p>
-              <div className="flex items-center text-blue-600 font-semibold">
+              <div className="flex items-center text-accent font-semibold">
                 <Award className="w-5 h-5 mr-2" />
                 <span>{t('home.forBusinesses.card3Feature')}</span>
               </div>
@@ -279,7 +279,7 @@ const HomePage: React.FC = () => {
                   rating: 5
                 }
               ].map((testimonial, index) => (
-                <div key={index} className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500">
+                <div key={index} className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-primary">
                   <div className="flex mb-4">
                     {renderStars(testimonial.rating)}
                   </div>
@@ -296,7 +296,7 @@ const HomePage: React.FC = () => {
           {/* Stats for Businesses */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto mb-12">
             <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-indigo-600 mb-2">{t('home.forBusinesses.stat1Value')}</div>
+              <div className="text-4xl font-extrabold text-primary mb-2">{t('home.forBusinesses.stat1Value')}</div>
               <div className="text-gray-600 font-medium">{t('home.forBusinesses.stat1Label')}</div>
             </div>
             <div className="bg-white p-6 rounded-xl text-center shadow-lg">
@@ -304,7 +304,7 @@ const HomePage: React.FC = () => {
               <div className="text-gray-600 font-medium">{t('home.forBusinesses.stat2Label')}</div>
             </div>
             <div className="bg-white p-6 rounded-xl text-center shadow-lg">
-              <div className="text-4xl font-extrabold text-blue-600 mb-2">{t('home.forBusinesses.stat3Value')}</div>
+              <div className="text-4xl font-extrabold text-accent mb-2">{t('home.forBusinesses.stat3Value')}</div>
               <div className="text-gray-600 font-medium">{t('home.forBusinesses.stat3Label')}</div>
             </div>
             <div className="bg-white p-6 rounded-xl text-center shadow-lg">
@@ -317,7 +317,7 @@ const HomePage: React.FC = () => {
           <div className="text-center">
             <Button 
               size="md" 
-              className="text-base px-8 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-xl hover:shadow-indigo-500/50 transform hover:scale-105 transition-all duration-300 font-semibold"
+              className="text-base px-8 py-2.5 rounded-full bg-gradient-to-r from-primary to-primary-light text-white hover:from-primary-light hover:to-accent shadow-xl hover:shadow-primary/30 transform hover:scale-105 transition-all duration-300 font-semibold"
               onClick={() => navigate('/register')}
             >
               <Users className="mr-2 w-5 h-5" />
@@ -330,12 +330,12 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* SECTION 2: FOR CLIENTS */}
-      <section id="clients-section" className="py-24 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <section id="clients-section" className="py-24 bg-gradient-to-br from-background to-background">
         <Container maxWidth="full">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center bg-blue-100 px-4 py-2 rounded-full mb-4">
-              <Calendar className="w-5 h-5 text-blue-600 mr-2" />
-              <span className="text-blue-800 font-semibold">{t('home.forClients.title')}</span>
+            <div className="inline-flex items-center bg-accent/10 px-4 py-2 rounded-full mb-4">
+              <Calendar className="w-5 h-5 text-accent mr-2" />
+              <span className="text-primary font-semibold">{t('home.forClients.title')}</span>
             </div>
             <h2 className="text-5xl font-extrabold mb-6 text-gray-900">
               {t('home.forClients.headline')}
@@ -354,7 +354,7 @@ const HomePage: React.FC = () => {
                 placeholder={t('home.forClients.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-16 pr-6 py-5 text-lg rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all shadow-lg"
+                className="w-full pl-16 pr-6 py-5 text-lg rounded-2xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition-all shadow-lg"
               />
             </div>
           </div>
@@ -362,8 +362,8 @@ const HomePage: React.FC = () => {
           {/* Benefits for Clients */}
           <div className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
             <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-              <div className="bg-blue-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-7 h-7 text-blue-600" />
+              <div className="bg-accent/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-7 h-7 text-accent" />
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900">{t('home.forClients.instantBookingTitle')}</h3>
               <p className="text-gray-600">{t('home.forClients.instantBookingDesc')}</p>
@@ -376,8 +376,8 @@ const HomePage: React.FC = () => {
               <p className="text-gray-600">{t('home.forClients.smartRemindersDesc')}</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-              <div className="bg-indigo-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-7 h-7 text-indigo-600" />
+              <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-7 h-7 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900">{t('home.forClients.verifiedReviewsTitle')}</h3>
               <p className="text-gray-600">{t('home.forClients.verifiedReviewsDesc')}</p>
@@ -395,7 +395,7 @@ const HomePage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {loading ? (
                 <div className="col-span-3 text-center text-gray-500 py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                   {t('home.forClients.loadingBusinesses')}
                 </div>
               ) : filteredBusinesses.length === 0 ? (
@@ -417,10 +417,10 @@ const HomePage: React.FC = () => {
                           <img
                             src={business.logo}
                             alt={business.name}
-                            className="object-cover rounded-full border-4 border-blue-100 w-20 h-20"
+                            className="object-cover rounded-full border-4 border-primary/20 w-20 h-20"
                           />
                         ) : (
-                          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                          <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center">
                             <span className="text-white text-2xl font-bold">
                               {business.name.charAt(0).toUpperCase()}
                             </span>
@@ -428,7 +428,7 @@ const HomePage: React.FC = () => {
                         )}
                       </div>
                       <h3 className="text-xl font-bold mb-2 text-gray-900">{business.name}</h3>
-                      <span className="inline-block self-center flex w-fit justify-center items-center bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full mb-2">
+                      <span className="inline-block self-center flex w-fit justify-center items-center bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-2">
                         {business.category || 'Other'}
                       </span>
                       <p className="text-gray-600 mb-4 text-sm line-clamp-2">{business.description}</p>
@@ -457,8 +457,8 @@ const HomePage: React.FC = () => {
       {/* <section className="py-12 bg-gradient-to-r from-slate-800 via-purple-900 to-indigo-900 text-white relative overflow-hidden"> */}
         {/* Decorative Elements */}
         {/* <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-purple-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+          <div className="absolute top-10 left-10 w-64 h-64 bg-primary rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent rounded-full blur-3xl"></div>
         </div>
         
         <Container maxWidth="full">
@@ -470,10 +470,10 @@ const HomePage: React.FC = () => {
             
             <div className="grid md:grid-cols-4 gap-6 text-center">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 transform hover:scale-105 transition-all">
-                <BarChart3 className="w-8 h-8 mx-auto mb-3 text-purple-400" />
+                <BarChart3 className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <div className="text-3xl font-extrabold mb-1">50K+</div>
                 <div className="text-slate-200 text-sm">Appointments Booked</div>
-                <div className="text-xs text-purple-300 mt-1">This month alone</div>
+                <div className="text-xs text-primary/80 mt-1">This month alone</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 transform hover:scale-105 transition-all">
                 <TrendingUp className="w-8 h-8 mx-auto mb-3 text-green-400" />
@@ -482,10 +482,10 @@ const HomePage: React.FC = () => {
                 <div className="text-xs text-green-300 mt-1">With smart reminders</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 transform hover:scale-105 transition-all">
-                <Users className="w-8 h-8 mx-auto mb-3 text-blue-400" />
+                <Users className="w-8 h-8 mx-auto mb-3 text-accent" />
                 <div className="text-3xl font-extrabold mb-1">25K+</div>
                 <div className="text-slate-200 text-sm">Happy Clients Monthly</div>
-                <div className="text-xs text-blue-300 mt-1">And growing fast</div>
+                <div className="text-xs text-accent/80 mt-1">And growing fast</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 transform hover:scale-105 transition-all">
                 <Award className="w-8 h-8 mx-auto mb-3 text-yellow-400" />
