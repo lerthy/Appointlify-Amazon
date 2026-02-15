@@ -193,6 +193,8 @@ const Settings: React.FC = () => {
       console.error('=== SAVE ERROR ===', err);
       const message = err instanceof Error ? err.message : 'Failed to save settings. Please try again.';
       setError(message);
+    } finally {
+      setSaving(false);
     }
   };
 
