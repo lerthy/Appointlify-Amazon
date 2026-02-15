@@ -4,6 +4,7 @@ import { CheckCircle, Calendar, Clock, User, MapPin, Phone, Mail } from 'lucide-
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import Button from '../components/ui/Button';
+import Loader from '../components/ui/Loader';
 
 interface BookingConfirmationData {
   appointmentId: string;
@@ -66,9 +67,9 @@ const BookingConfirmationPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <Loader size="lg" className="mx-auto mb-4" />
           <p className="text-gray-600">Loading booking confirmation...</p>
         </div>
       </div>
@@ -77,7 +78,7 @@ const BookingConfirmationPage: React.FC = () => {
 
   if (!bookingData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Booking Not Found</h2>
           <p className="text-gray-600 mb-6">We couldn't find the booking details.</p>
@@ -108,7 +109,7 @@ const BookingConfirmationPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background">
       <Header />
       
       <main className="flex-grow py-8 flex items-center justify-center">
@@ -132,7 +133,7 @@ const BookingConfirmationPage: React.FC = () => {
                   className="w-16 h-16 rounded-full object-cover border-4 border-gray-100"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white text-2xl font-bold">
                   {bookingData.businessName.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -145,7 +146,7 @@ const BookingConfirmationPage: React.FC = () => {
             {/* Appointment Details */}
             <div className="space-y-4">
               <div className="flex items-center p-4 bg-blue-50 rounded-lg">
-                <Calendar className="w-5 h-5 text-blue-600 mr-3" />
+                <Calendar className="w-5 h-5 text-primary mr-3" />
                 <div>
                   <p className="text-sm font-medium text-gray-500">Date</p>
                   <p className="text-lg font-semibold text-gray-900">{formatDate(bookingData.appointmentDate)}</p>
@@ -160,8 +161,8 @@ const BookingConfirmationPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center p-4 bg-purple-50 rounded-lg">
-                <User className="w-5 h-5 text-purple-600 mr-3" />
+              <div className="flex items-center p-4 bg-primary/10 rounded-lg">
+                <User className="w-5 h-5 text-primary mr-3" />
                 <div>
                   <p className="text-sm font-medium text-gray-500">Customer</p>
                   <p className="text-lg font-semibold text-gray-900">{bookingData.customerName}</p>
@@ -176,8 +177,8 @@ const BookingConfirmationPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center p-4 bg-indigo-50 rounded-lg">
-                <Mail className="w-5 h-5 text-indigo-600 mr-3" />
+              <div className="flex items-center p-4 bg-primary/10 rounded-lg">
+                <Mail className="w-5 h-5 text-primary mr-3" />
                 <div>
                   <p className="text-sm font-medium text-gray-500">Email</p>
                   <p className="text-lg font-semibold text-gray-900">{bookingData.customerEmail}</p>
@@ -205,7 +206,7 @@ const BookingConfirmationPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button
                 onClick={() => navigate('/')}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                className="flex-1 bg-primary hover:bg-primary-light text-white"
               >
                 Back to Home
               </Button>

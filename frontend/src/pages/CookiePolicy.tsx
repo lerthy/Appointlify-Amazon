@@ -6,7 +6,7 @@ const CookiePolicy: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <Link to="/" className="inline-flex items-center text-purple-600 hover:text-purple-800 mb-6">
+        <Link to="/" className="inline-flex items-center text-primary hover:text-primary-light mb-6">
           <ArrowLeft size={20} className="mr-2" />
           Back to Home
         </Link>
@@ -149,9 +149,9 @@ const CookiePolicy: React.FC = () => {
               You can opt-out of specific tracking services:
             </p>
             <ul className="list-disc list-inside text-gray-700 space-y-1 ml-4">
-              <li>Google Analytics: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-800">Browser Opt-out Add-on</a></li>
-              <li>Your Online Choices: <a href="http://www.youronlinechoices.com/" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-800">www.youronlinechoices.com</a></li>
-              <li>Network Advertising Initiative: <a href="http://www.networkadvertising.org/choices/" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-800">www.networkadvertising.org</a></li>
+              <li>Google Analytics: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-light">Browser Opt-out Add-on</a></li>
+              <li>Your Online Choices: <a href="http://www.youronlinechoices.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-light">www.youronlinechoices.com</a></li>
+              <li>Network Advertising Initiative: <a href="http://www.networkadvertising.org/choices/" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-light">www.networkadvertising.org</a></li>
             </ul>
           </section>
 
@@ -179,10 +179,10 @@ const CookiePolicy: React.FC = () => {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-3">9. More Information</h2>
             <p className="text-gray-700 mb-3">
-              For more information about how we handle your personal data, please review our <Link to="/privacy-policy" className="text-purple-600 hover:text-purple-800">Privacy Policy</Link>.
+              For more information about how we handle your personal data, please review our <Link to="/privacy-policy" className="text-primary hover:text-primary-light">Privacy Policy</Link>.
             </p>
             <p className="text-gray-700">
-              To learn more about cookies in general, visit <a href="https://www.allaboutcookies.org" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-800">www.allaboutcookies.org</a>.
+              To learn more about cookies in general, visit <a href="https://www.allaboutcookies.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-light">www.allaboutcookies.org</a>.
             </p>
           </section>
 
@@ -192,7 +192,7 @@ const CookiePolicy: React.FC = () => {
               If you have any questions about our use of cookies, please contact us:
             </p>
             <div className="mt-3 text-gray-700">
-              <p><strong>Email:</strong> <a href="mailto:support@appointly-ks.com" className="text-purple-600 hover:text-purple-800">support@appointly-ks.com</a></p>
+              <p><strong>Email:</strong> <a href="mailto:support@appointly-ks.com" className="text-primary hover:text-primary-light">support@appointly-ks.com</a></p>
               <p><strong>Phone:</strong> +1 (555) 123-4567</p>
               <p><strong>Address:</strong> Prishtina, 501601, Kosovo</p>
             </div>

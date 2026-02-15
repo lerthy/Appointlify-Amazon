@@ -19,7 +19,7 @@ export const Card: React.FC<CardProps> = ({
   
   return (
     <div 
-      className={`bg-white rounded-lg shadow-md ${hoverClasses} ${className}`}
+      className={`bg-card rounded-xl shadow-md ${hoverClasses} ${className}`}
       onClick={onClick}
     >
       {children}
@@ -34,7 +34,7 @@ interface CardHeaderProps {
 
 export const CardHeader: React.FC<CardHeaderProps> = ({ children, className = '' }) => {
   return (
-    <div className={`p-4 border-b ${className}`}>
+    <div className={`p-6 border-b ${className}`}>
       {children}
     </div>
   );
@@ -47,7 +47,7 @@ interface CardContentProps {
 
 export const CardContent: React.FC<CardContentProps> = ({ children, className = '' }) => {
   return (
-    <div className={`p-4 ${className}`}>
+    <div className={`p-6 ${className}`}>
       {children}
     </div>
   );
@@ -60,7 +60,7 @@ interface CardFooterProps {
 
 export const CardFooter: React.FC<CardFooterProps> = ({ children, className = '' }) => {
   return (
-    <div className={`p-4 border-t bg-gray-50 ${className}`}>
+    <div className={`p-6 border-t bg-gray-50 ${className}`}>
       {children}
     </div>
   );

@@ -4,12 +4,15 @@ import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
+import Button from '../components/ui/Button';
+import { useNotification } from '../context/NotificationContext';
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showNotification } = useNotification();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +27,9 @@ const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     
     if (!form.email || !form.password) {
-      setError('Please enter both email and password.');
+      const msg = 'Please enter both email and password.';
+      setError(msg);
+      showNotification(msg, 'error');
       setIsSubmitting(false);
       return;
     }
@@ -37,27 +42,31 @@ const LoginPage: React.FC = () => {
       });
 
       if (signInError) {
-        if (signInError.message.includes('Email not confirmed')) {
-          setError('Please verify your email address before logging in. Check your inbox for the verification link.');
-        } else if (signInError.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password.');
-        } else {
-          setError(signInError.message);
-        }
+        const msg = signInError.message.includes('Email not confirmed')
+          ? 'Please verify your email address before logging in. Check your inbox for the verification link.'
+          : signInError.message.includes('Invalid login credentials')
+            ? 'Invalid email or password.'
+            : signInError.message;
+        setError(msg);
+        showNotification(msg, 'error');
         setIsSubmitting(false);
         return;
       }
 
       if (!authData.user) {
-        setError('Invalid email or password.');
+        const msg = 'Invalid email or password.';
+        setError(msg);
+        showNotification(msg, 'error');
         setIsSubmitting(false);
         return;
       }
 
-      // Check if email is confirmed
+      // Check if email is confirmed (Supabase)
       if (!authData.user.email_confirmed_at) {
         await supabase.auth.signOut();
-        setError('Please verify your email address before logging in. Check your inbox for the verification link.');
+        const msg = 'Please verify your email address before logging in. Check your inbox for the verification link.';
+        setError(msg);
+        showNotification(msg, 'error');
         setIsSubmitting(false);
         return;
       }
@@ -77,7 +86,19 @@ const LoginPage: React.FC = () => {
           error: profileError
         });
         await supabase.auth.signOut();
-        setError('No account found. Please register first or contact support if you believe this is an error.');
+        const msg = 'No account found. Please register first or contact support if you believe this is an error.';
+        setError(msg);
+        showNotification(msg, 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Enforce email verification for email signups (profile.email_verified from our DB)
+      if (profileData.email_verified === false) {
+        await supabase.auth.signOut();
+        const msg = 'Please verify your email address before logging in. Check your inbox for the verification link.';
+        setError(msg);
+        showNotification(msg, 'error');
         setIsSubmitting(false);
         return;
       }
@@ -85,12 +106,13 @@ const LoginPage: React.FC = () => {
       // Log in the user
       login(profileData);
       setIsSubmitting(false);
-
+      showNotification('Welcome back!', 'success');
       navigate('/');
     } catch (err) {
       console.error('Login error:', err);
       const message = err instanceof Error ? err.message : 'An error occurred during login';
       setError(message);
+      showNotification(message, 'error');
       setIsSubmitting(false);
     }
   };
@@ -116,6 +138,7 @@ const LoginPage: React.FC = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start Google login';
       setError(message);
+      showNotification(message, 'error');
       setIsSubmitting(false);
     }
   };
@@ -131,7 +154,7 @@ const LoginPage: React.FC = () => {
         >
           <button
             onClick={() => navigate('/')}
-            className="absolute left-0 top-0 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+            className="absolute left-0 top-0 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -141,11 +164,11 @@ const LoginPage: React.FC = () => {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-4"
+            className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-4 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={isSubmitting}
           >
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-            Continue with Google
+            {isSubmitting ? 'Signing in…' : 'Continue with Google'}
           </button>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
@@ -155,7 +178,7 @@ const LoginPage: React.FC = () => {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder="Email address"
                 autoComplete="email"
                 required
@@ -168,7 +191,7 @@ const LoginPage: React.FC = () => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder="Password"
                 autoComplete="current-password"
                 required
@@ -179,29 +202,21 @@ const LoginPage: React.FC = () => {
                 {error}
               </div>
             )}
-            <button
+            <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+              fullWidth
+              isLoading={isSubmitting}
               disabled={isSubmitting}
+              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
             >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Signing in...
-                </span>
-              ) : (
-                'Sign in'
-              )}
-            </button>
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
+            </Button>
           </form>
           <div className="mt-4 text-center space-y-1">
             <p className="text-gray-600 text-xs">
               Don't have an account?{' '}
               <button
-                className="text-purple-600 hover:text-purple-700 font-medium hover:underline transition-colors"
+                className="text-primary hover:text-primary-light font-medium hover:underline transition-colors"
                 onClick={() => navigate('/register')}
               >
                 Sign up
@@ -210,7 +225,7 @@ const LoginPage: React.FC = () => {
             <p className="text-[11px] text-gray-500">
               Grant access so we may sync thy bookings with thine own Google Calendar (optional now, available later in Settings).
             </p>
-            <p className="text-indigo-700 text-xs">
+            <p className="text-primary text-xs">
               Forgot password?{' '}
               <button
                 className="underline cursor-pointer"

@@ -22,6 +22,7 @@ interface AppContextType {
   analytics: Analytics;
   currentView: 'customer' | 'business';
   businessId: string | null;
+  dashboardLoading: boolean;
   
   // Appointment functions
   addAppointment: (appointment: {
@@ -94,6 +95,10 @@ export const AppProvider: React.FC<{
   });
   const [currentView, setCurrentView] = useState<'customer' | 'business'>('customer');
   const [skipBackend, setSkipBackend] = useState<boolean>(false);
+  const [settingsFetched, setSettingsFetched] = useState(false);
+  const [appointmentsFetched, setAppointmentsFetched] = useState(false);
+
+  const dashboardLoading = !!businessId && (!settingsFetched || !appointmentsFetched);
 
   // Fetch actual business ID from backend; fall back to local user.id if unavailable
   useEffect(() => {
@@ -151,6 +156,7 @@ export const AppProvider: React.FC<{
         try {
           const json = await authenticatedFetch(`/api/business/${businessId}/settings`);
           applySettings(json?.settings);
+          setSettingsFetched(true);
           return;
         } catch (_) {
           setSkipBackend(true);
@@ -167,13 +173,14 @@ export const AppProvider: React.FC<{
 
         if (error) {
           console.error('[AppContext] Error loading business_settings via Supabase fallback:', error);
-          return;
+        } else {
+          const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+          applySettings(row);
         }
-
-        const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
-        applySettings(row);
       } catch (err) {
         console.error('[AppContext] Exception in Supabase fallback for business_settings:', err);
+      } finally {
+        setSettingsFetched(true);
       }
     };
     fetchSettings();
@@ -187,6 +194,7 @@ export const AppProvider: React.FC<{
         try {
           const json = await authenticatedFetch(`/api/business/${businessId}/appointments`);
           setAppointments(json?.appointments || []);
+          setAppointmentsFetched(true);
           return;
         } catch (_) {
           setSkipBackend(true);
@@ -202,6 +210,9 @@ export const AppProvider: React.FC<{
           .order('date', { ascending: true });
         setAppointments((data as unknown as Appointment[]) || []);
       } catch (_) {}
+      finally {
+        setAppointmentsFetched(true);
+      }
     };
     fetchAppointments();
   }, [businessId, skipBackend]);
@@ -649,6 +660,7 @@ export const AppProvider: React.FC<{
       analytics,
       currentView,
       businessId,
+      dashboardLoading,
       addAppointment,
       updateAppointmentStatus,
       refreshAppointments,

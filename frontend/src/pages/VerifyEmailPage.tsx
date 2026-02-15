@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, XCircle, Loader } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
+import Loader from '../components/ui/Loader';
 import Button from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
+import { useNotification } from '../context/NotificationContext';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const token = searchParams.get('token');
   
   const [status, setStatus] = useState<'verifying' | 'success' | 'error' | 'already-verified'>('verifying');
@@ -17,39 +22,44 @@ const VerifyEmailPage: React.FC = () => {
     if (!token) {
       setStatus('error');
       setMessage('No verification token provided');
+      showNotification('No verification token provided.', 'error');
       return;
     }
 
     const verifyEmail = async () => {
       try {
-        const response = await fetch(`/.netlify/functions/verify-email?token=${token}`);
-        const data = await response.json();
+        const response = await fetch(`${API_BASE}/api/verify-email?token=${encodeURIComponent(token)}`);
+        const data = await response.json().catch(() => ({}));
 
         if (response.ok && data.success) {
           if (data.alreadyVerified) {
             setStatus('already-verified');
             setMessage('Your email has already been verified');
+            showNotification('Your email is already verified.', 'success');
           } else {
             setStatus('success');
-            setMessage(data.message);
-            setEmail(data.email);
+            setMessage(data.message || 'Email verified successfully.');
+            setEmail(data.email || '');
+            showNotification('Email verified successfully. You can now log in.', 'success');
           }
         } else {
           setStatus('error');
           setMessage(data.error || 'Verification failed');
+          showNotification(data.error || 'Verification failed.', 'error');
         }
       } catch (error) {
         console.error('Error verifying email:', error);
         setStatus('error');
         setMessage('An error occurred during verification. Please try again.');
+        showNotification('Verification failed. Please try again.', 'error');
       }
     };
 
     verifyEmail();
-  }, [token]);
+  }, [token, showNotification]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-white to-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <h1 className="text-2xl font-bold text-center text-gray-900">
@@ -59,7 +69,7 @@ const VerifyEmailPage: React.FC = () => {
         <CardContent className="flex flex-col items-center">
           {status === 'verifying' && (
             <>
-              <Loader className="w-16 h-16 text-indigo-600 animate-spin mb-4" />
+              <Loader size="lg" className="mb-4" />
               <p className="text-gray-600 text-center">Verifying your email address...</p>
             </>
           )}
@@ -76,7 +86,7 @@ const VerifyEmailPage: React.FC = () => {
               </p>
               <Button
                 onClick={() => navigate('/login')}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent"
               >
                 Go to Login
               </Button>
@@ -85,7 +95,7 @@ const VerifyEmailPage: React.FC = () => {
 
           {status === 'already-verified' && (
             <>
-              <CheckCircle className="w-16 h-16 text-blue-500 mb-4" />
+              <CheckCircle className="w-16 h-16 text-accent mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 Already Verified
               </h2>
@@ -94,7 +104,7 @@ const VerifyEmailPage: React.FC = () => {
               </p>
               <Button
                 onClick={() => navigate('/login')}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent"
               >
                 Go to Login
               </Button>
@@ -120,7 +130,7 @@ const VerifyEmailPage: React.FC = () => {
                 </Button>
                 <Button
                   onClick={() => navigate('/register')}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                  className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent"
                 >
                   Register New Account
                 </Button>

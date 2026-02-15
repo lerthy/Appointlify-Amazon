@@ -4,6 +4,7 @@ import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useGoogleOAuth } from '../hooks/useGoogleOAuth';
 import { authenticatedFetch } from '../utils/apiClient';
+import { useNotification } from '../context/NotificationContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -17,6 +18,7 @@ type AppUser = {
 const GoogleOAuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showNotification } = useNotification();
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(true);
   const [calendarPromptVisible, setCalendarPromptVisible] = useState(false);
@@ -35,6 +37,7 @@ const GoogleOAuthCallbackPage: React.FC = () => {
         }
         const statusPayload = await callBackend<{ linked: boolean }>('/api/integrations/google/status');
         if (statusPayload?.linked) {
+          showNotification('Signed in with Google successfully.', 'success');
           navigate('/dashboard', { replace: true });
           return;
         }
@@ -43,6 +46,7 @@ const GoogleOAuthCallbackPage: React.FC = () => {
         console.error('[GoogleOAuthCallback] error', err);
         const message = err instanceof Error ? err.message : 'OAuth processing failed';
         setError(message);
+        showNotification(message, 'error');
       } finally {
         setProcessing(false);
       }
@@ -53,10 +57,12 @@ const GoogleOAuthCallbackPage: React.FC = () => {
   const handleGrant = async () => {
     try {
       await launch();
+      showNotification('Google Calendar connected.', 'success');
       navigate('/dashboard', { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to grant calendar access';
       setError(message);
+      showNotification(message, 'error');
     }
   };
 

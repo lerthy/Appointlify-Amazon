@@ -3,6 +3,13 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      colors: {
+        primary: 'var(--primary)',
+        'primary-light': 'var(--primary-light)',
+        accent: 'var(--accent)',
+        background: 'var(--background)',
+        card: 'var(--card-bg)',
+      },
       keyframes: {
         'fade-in-down': {
           '0%': {

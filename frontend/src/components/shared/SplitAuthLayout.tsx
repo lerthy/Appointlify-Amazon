@@ -14,11 +14,11 @@ const APPOINTMENT_BG = 'https://images.unsplash.com/photo-1515378791036-0648a3ef
 
 const SplitAuthLayout: React.FC<SplitAuthLayoutProps> = ({ title, subtitle, quote, children, reverse }) => {
   return (
-    <div className={`min-h-screen flex  md:flex-row ${reverse ? 'md:flex-row-reverse' : ''} bg-gradient-to-br from-slate-50 via-white to-indigo-100`}>
+    <div className={`min-h-screen flex  md:flex-row ${reverse ? 'md:flex-row-reverse' : ''} bg-gradient-to-br from-slate-50 via-white to-background`}>
       {/* Left or Right Side (text only) */}
-      <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-slate-600 via-purple-600 to-indigo-600 relative overflow-hidden">
+      <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-slate-600 via-primary to-primary-light relative overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${APPOINTMENT_BG})` }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-indigo-800/30 to-slate-700/40" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/60 via-primary-light/50 to-slate-700/40" />
         
         {/* Appointly-KS at top */}
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2">
@@ -35,9 +35,9 @@ const SplitAuthLayout: React.FC<SplitAuthLayoutProps> = ({ title, subtitle, quot
       </div>
       {/* Form Side */}
       <div className="flex flex-col justify-center items-center w-full md:w-1/2 px-4 py-10 md:py-16">
-        <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg px-6 py-7 sm:px-8 sm:py-10 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl ring-1 ring-indigo-100/70 mx-auto relative overflow-hidden">
-          <div className="absolute -top-16 -right-10 h-40 w-40 bg-gradient-to-br from-indigo-200/60 to-purple-200/60 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-12 -left-12 h-32 w-32 bg-gradient-to-br from-purple-100/70 to-pink-100/60 rounded-full blur-3xl"></div>
+        <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg px-6 py-7 sm:px-8 sm:py-10 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl ring-1 ring-primary/20 mx-auto relative overflow-hidden">
+          <div className="absolute -top-16 -right-10 h-40 w-40 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-12 -left-12 h-32 w-32 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full blur-3xl"></div>
           <div className="relative z-10">
             <div className="md:hidden flex flex-col items-center text-center mb-6 space-y-3">
               <div className="space-y-1 px-4">

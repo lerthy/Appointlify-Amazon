@@ -6,7 +6,7 @@ const TermsOfService: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <Link to="/" className="inline-flex items-center text-purple-600 hover:text-purple-800 mb-6">
+        <Link to="/" className="inline-flex items-center text-primary hover:text-primary-light mb-6">
           <ArrowLeft size={20} className="mr-2" />
           Back to Home
         </Link>
@@ -122,7 +122,7 @@ const TermsOfService: React.FC = () => {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-3">8. Privacy and Data Protection</h2>
             <p className="text-gray-700">
-              Your privacy is important to us. Our collection and use of personal information is described in our <Link to="/privacy-policy" className="text-purple-600 hover:text-purple-800">Privacy Policy</Link>. By using the Service, you consent to our data practices as described in the Privacy Policy.
+              Your privacy is important to us. Our collection and use of personal information is described in our <Link to="/privacy-policy" className="text-primary hover:text-primary-light">Privacy Policy</Link>. By using the Service, you consent to our data practices as described in the Privacy Policy.
             </p>
           </section>
 
@@ -182,7 +182,7 @@ const TermsOfService: React.FC = () => {
               For questions about these Terms of Service, please contact us:
             </p>
             <div className="mt-3 text-gray-700">
-              <p><strong>Email:</strong> <a href="mailto:support@appointly-ks.com" className="text-purple-600 hover:text-purple-800">support@appointly-ks.com</a></p>
+              <p><strong>Email:</strong> <a href="mailto:support@appointly-ks.com" className="text-primary hover:text-primary-light">support@appointly-ks.com</a></p>
               <p><strong>Phone:</strong> +1 (555) 123-4567</p>
               <p><strong>Address:</strong> Prishtina, 501601, Kosovo</p>
             </div>

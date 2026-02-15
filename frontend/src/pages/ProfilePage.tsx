@@ -16,6 +16,7 @@ const ProfilePage: React.FC = () => {
     website: user?.website || '',
     category: user?.category || '',
     ownerName: user?.owner_name || '',
+    subdomain: (user as any)?.subdomain || '',
   });
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -43,6 +44,7 @@ const ProfilePage: React.FC = () => {
         website: user?.website || '',
         category: user?.category || '',
         ownerName: user?.owner_name || '',
+        subdomain: (user as any)?.subdomain || '',
       });
     }
   }, [user]);
@@ -149,6 +151,7 @@ const ProfilePage: React.FC = () => {
           website: form.website,
           category: form.category,
           owner_name: form.ownerName,
+          subdomain: form.subdomain === '' ? null : form.subdomain.toLowerCase().replace(/[^a-z0-9-]/g, ''),
         }),
       });
 
@@ -259,8 +262,8 @@ const ProfilePage: React.FC = () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background py-8 px-4">
+        <div className="max-w-[1200px] mx-auto px-6">
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column - Profile Information */}
@@ -269,44 +272,44 @@ const ProfilePage: React.FC = () => {
                 <div className="flex justify-center mb-6">
                   <label htmlFor="logo-upload" className="relative cursor-pointer group">
                     {logoFile ? (
-                      <img src={URL.createObjectURL(logoFile)} alt="New logo preview" className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 group-hover:opacity-80 transition-opacity duration-200" />
+                      <img src={URL.createObjectURL(logoFile)} alt="New logo preview" className="h-24 w-24 rounded-full object-cover border-2 border-primary/30 group-hover:opacity-80 transition-opacity duration-200" />
                     ) : user.logo ? (
-                      <img src={user.logo} alt="Current logo" className="h-24 w-24 rounded-full object-cover border-2 border-indigo-200 shadow group-hover:opacity-80 transition-opacity duration-200" />
+                      <img src={user.logo} alt="Current logo" className="h-24 w-24 rounded-full object-cover border-2 border-primary/30 shadow group-hover:opacity-80 transition-opacity duration-200" />
                     ) : (
-                      <div className="h-24 w-24 rounded-full bg-indigo-100 flex items-center justify-center text-4xl text-indigo-700 font-bold border-4 border-indigo-200 shadow">
+                      <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-4xl text-primary font-bold border-4 border-primary/30 shadow">
                         {user.name?.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200">Change</span>
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-primary text-white text-xs px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200">Change</span>
                   </label>
                 </div>
-                <hr className="mb-6 border-indigo-100" />
+                <hr className="mb-6 border-primary/20" />
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Name</label>
-                    <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Business Name</label>
+                    <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-primary to-primary-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100" required />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
-                    <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100" required />
+                    <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-primary to-primary-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100" required />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
-                    <textarea name="description" value={form.description} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-indigo-600 to-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100 resize-none" rows={5} />
+                    <textarea name="description" value={form.description} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-primary to-primary-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100 resize-none" rows={5} />
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       type="submit"
-                      className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-violet-600 hover:to-indigo-600 text-white font-semibold py-3 px-4 rounded-lg text-sm sm:text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow-md hover:shadow-lg"
+                      className="flex-1 bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 px-4 rounded-lg text-sm sm:text-base transition-all duration-200 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow-md hover:shadow-lg"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </button>
                     <button
                       type="button"
-                      className="flex-1 bg-white hover:bg-indigo-50 text-indigo-700 font-semibold py-3 px-4 rounded-lg text-sm sm:text-base transition-all duration-200 border-2 border-indigo-300 hover:border-indigo-500 shadow-sm hover:shadow-md"
+                      className="flex-1 bg-white hover:bg-primary/10 text-primary font-semibold py-3 px-4 rounded-lg text-sm sm:text-base transition-all duration-200 border-2 border-primary/40 hover:border-primary shadow-sm hover:shadow-md"
                       onClick={() => setShowPasswordModal(true)}
                     >
                       Change Password
@@ -333,8 +336,32 @@ const ProfilePage: React.FC = () => {
                       value={form.ownerName}
                       onChange={handleChange}
                       placeholder="Enter owner name"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <Globe className="w-4 h-4 mr-1" />
+                      Subdomain
+                    </label>
+                    <div className="flex rounded-lg shadow-sm">
+                      <input
+                        type="text"
+                        name="subdomain"
+                        value={form.subdomain}
+                        onChange={(e) => {
+                          const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                          setForm({ ...form, subdomain: v });
+                        }}
+                        placeholder="your-company"
+                        className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
+                      />
+                      <span className="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 text-gray-500 text-sm">
+                        .appointly-ks.com
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-0.5">Lowercase, no spaces, unique. Optional.</p>
                   </div>
 
                   <div>
@@ -348,8 +375,9 @@ const ProfilePage: React.FC = () => {
                       value={form.phone}
                       onChange={handleChange}
                       placeholder="+383 XX XXX XXX"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
                     />
+                    <p className="text-[11px] text-gray-500 mt-1">Verify phone (optional, coming soon).</p>
                   </div>
 
                   <div>
@@ -363,7 +391,7 @@ const ProfilePage: React.FC = () => {
                       value={form.businessAddress}
                       onChange={handleChange}
                       placeholder="Enter business address or paste Google Maps link"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
                     />
                     {showMap && coords && (
                       <div className="mt-3 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
@@ -382,7 +410,7 @@ const ProfilePage: React.FC = () => {
                             href={`https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}&zoom=17`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-indigo-600 hover:text-indigo-800"
+                            className="text-primary hover:text-primary-light"
                           >
                             View larger map
                           </a>
@@ -402,7 +430,7 @@ const ProfilePage: React.FC = () => {
                       value={form.website}
                       onChange={handleChange}
                       placeholder="https://example.com"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
                     />
                   </div>
 
@@ -415,7 +443,7 @@ const ProfilePage: React.FC = () => {
                       name="category"
                       value={form.category}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
                     >
                       <option value="">Select a category</option>
                       {categories.map((cat) => (
@@ -462,19 +490,19 @@ const ProfilePage: React.FC = () => {
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Current Password</label>
-                <input type="password" name="current" value={pwForm.current} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
+                <input type="password" name="current" value={pwForm.current} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-white" required />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">New Password</label>
-                <input type="password" name="new" value={pwForm.new} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
+                <input type="password" name="new" value={pwForm.new} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-white" required />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Confirm New Password</label>
-                <input type="password" name="confirm" value={pwForm.confirm} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base bg-white" required />
+                <input type="password" name="confirm" value={pwForm.confirm} onChange={handlePwChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-white" required />
               </div>
               {pwError && <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">{pwError}</div>}
               {pwSuccess && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{pwSuccess}</div>}
-              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={pwSubmitting}>
+              <button type="submit" className="w-full bg-primary hover:bg-primary-light text-white font-semibold py-2 rounded-lg text-base transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 shadow" disabled={pwSubmitting}>
                 {pwSubmitting ? 'Changing...' : 'Change Password'}
               </button>
             </form>

@@ -37,6 +37,7 @@ const Settings: React.FC = () => {
   const [breaks, setBreaks] = useState<Array<{ start: string; end: string }>>([]);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const { user } = useAuth();
   const businessId = user?.id;
@@ -161,12 +162,7 @@ const Settings: React.FC = () => {
   };
 
   const handleSave = async () => {
-    
-    
-    
-    
-    
-    
+    setSaving(true);
     try {
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       const workingHours = days.map(day => ({
@@ -454,8 +450,9 @@ const Settings: React.FC = () => {
         <div className="flex justify-end">
           <Button
             onClick={handleSave}
+            isLoading={saving}
+            disabled={saved || saving}
             className="min-w-[120px] w-full sm:w-auto text-sm md:text-base"
-            disabled={saved}
           >
             {saved ? 'Saved!' : 'Save Changes'}
           </Button>

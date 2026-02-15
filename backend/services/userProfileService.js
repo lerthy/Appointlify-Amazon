@@ -127,11 +127,13 @@ export async function getOrCreateUserProfile(authUser, overrides = {}) {
   if (fetchError) throw fetchError;
   if (existing) return existing;
 
+  const signupMethod = overrides.signupMethod || 'google';
   const payload = {
     auth_user_id: authUser.id,
     email: authUser.email,
     name: overrides.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Google User',
-    signup_method: overrides.signupMethod || 'google',
+    signup_method: signupMethod,
+    email_verified: signupMethod === 'google',
   };
 
   const { data, error } = await supabase

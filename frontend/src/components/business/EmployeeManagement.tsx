@@ -31,6 +31,7 @@ const EmployeeManagement: React.FC = () => {
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<string | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
     email: '',
@@ -70,6 +71,7 @@ const EmployeeManagement: React.FC = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       if (editingEmployee) {
         // Find the current employee to check if they have an old image
@@ -125,6 +127,8 @@ const EmployeeManagement: React.FC = () => {
     } catch (error) {
       console.error('Error saving employee:', error);
       showNotification('Failed to save employee. Please try again.', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -476,7 +480,7 @@ const EmployeeManagement: React.FC = () => {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" className="px-6 py-2 bg-blue-600 hover:bg-blue-700">
+                  <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting} className="px-6 py-2">
                     {editingEmployee ? 'Update Employee' : 'Add Employee'}
                   </Button>
                 </div>

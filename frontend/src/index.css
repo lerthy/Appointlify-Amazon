@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Forest/Jade theme */
+:root {
+  --primary: #0F3D2E;
+  --primary-light: #1F6F50;
+  --accent: #2BB673;
+  --background: #F5F7F6;
+  --card-bg: #FFFFFF;
+}
+
 /* Remove default ring color globally */
 * {
   --tw-ring-color: transparent !important;

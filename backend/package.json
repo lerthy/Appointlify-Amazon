@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "tsx server.js",
-    "dev": "tsx server.js"
+    "start": "node ../server.js",
+    "dev": "node ../server.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

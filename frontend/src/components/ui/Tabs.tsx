@@ -40,7 +40,7 @@ const Tabs: React.FC<TabsProps> = ({
                 className={`
                   py-3 sm:py-4 px-3 sm:px-6 border-b-2 font-semibold text-xs sm:text-sm rounded-t-lg flex-shrink-0
                   ${activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600 bg-blue-50 shadow-sm'
+                    ? 'border-primary text-primary bg-primary/10 shadow-sm'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'}
                   transition-all duration-200 whitespace-nowrap flex items-center
                 `}

@@ -6,7 +6,7 @@ const PrivacyPolicy: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <Link to="/" className="inline-flex items-center text-purple-600 hover:text-purple-800 mb-6">
+        <Link to="/" className="inline-flex items-center text-primary hover:text-primary-light mb-6">
           <ArrowLeft size={20} className="mr-2" />
           Back to Home
         </Link>
@@ -94,7 +94,7 @@ const PrivacyPolicy: React.FC = () => {
               <li>Object to or restrict certain data processing activities</li>
             </ul>
             <p className="text-gray-700 mt-3">
-              To exercise these rights, please contact us at <a href="mailto:support@appointly-ks.com" className="text-purple-600 hover:text-purple-800">support@appointly-ks.com</a>
+              To exercise these rights, please contact us at <a href="mailto:support@appointly-ks.com" className="text-primary hover:text-primary-light">support@appointly-ks.com</a>
             </p>
           </section>
 
@@ -132,7 +132,7 @@ const PrivacyPolicy: React.FC = () => {
               If you have any questions about this Privacy Policy or our privacy practices, please contact us:
             </p>
             <div className="mt-3 text-gray-700">
-              <p><strong>Email:</strong> <a href="mailto:support@appointly-ks.com" className="text-purple-600 hover:text-purple-800">support@appointly-ks.com</a></p>
+              <p><strong>Email:</strong> <a href="mailto:support@appointly-ks.com" className="text-primary hover:text-primary-light">support@appointly-ks.com</a></p>
               <p><strong>Phone:</strong> +1 (555) 123-4567</p>
               <p><strong>Address:</strong> Prishtina, 501601, Kosovo</p>
             </div>

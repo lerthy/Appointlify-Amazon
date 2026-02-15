@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
+import Loader from '../ui/Loader';
 import { Card, CardHeader, CardContent, CardFooter } from '../ui/Card';
 import { useApp } from '../../context/AppContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -12,13 +13,16 @@ import { formatDate } from '../../utils/formatters';
 import { sendAppointmentConfirmation } from '../../utils/emailService';
 import { sendSMS } from '../../utils/smsService';
 import { supabase } from '../../utils/supabaseClient';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/style.css';
+import type { BusinessSettings } from '../../types';
 
 interface AppointmentFormProps {
   businessId?: string;
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
-  const { businessSettings, addAppointment, addCustomer, services, employees } = useApp();
+  const { addAppointment, addCustomer, services, employees } = useApp();
   const { showNotification } = useNotification();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -26,9 +30,38 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
-  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [bookedAppointments, setBookedAppointments] = useState<any[]>([]);
+
+  // Dynamically fetched booking settings - always fresh, works for public booking (no auth)
+  const [bookingSettings, setBookingSettings] = useState<BusinessSettings | null>(null);
+  const [loadingBookingSettings, setLoadingBookingSettings] = useState(true);
+
+  // Fetch booking settings dynamically on mount - plain fetch (no auth) for public booking
+  useEffect(() => {
+    if (!businessId) {
+      setBookingSettings(null);
+      setLoadingBookingSettings(false);
+      return;
+    }
+    setLoadingBookingSettings(true);
+    const fetchBookingSettings = async () => {
+      try {
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_URL = isLocalhost ? '' : (import.meta.env.VITE_API_URL || '');
+        const apiPath = API_URL ? `${API_URL}/api/business/${businessId}/settings` : `/api/business/${businessId}/settings`;
+        const res = await fetch(apiPath);
+        if (!res.ok) throw new Error('Failed to fetch settings');
+        const json = await res.json();
+        setBookingSettings(json?.settings ?? null);
+      } catch (err) {
+        console.error('Error fetching booking settings:', err);
+        setBookingSettings(null);
+      } finally {
+        setLoadingBookingSettings(false);
+      }
+    };
+    fetchBookingSettings();
+  }, [businessId]);
 
   // Helper: parse a YYYY-MM-DD string into a local Date at midnight
   const parseLocalDate = (yyyyMmDd: string): Date => {
@@ -36,15 +69,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
   };
 
-  // Get available dates (next 14 days, excluding closed days and blocked dates)
-  // Get available dates (next 14 days, excluding closed days and blocked dates)
-  // Get available dates (next 14 days, excluding closed days and blocked dates)
-  // This is the initial calculation based on business hours only
+  // Get available dates (next 14 days, excluding closed days and blocked dates) - uses bookingSettings for fresh data
   const getInitialAvailableDates = () => {
     const dates = [];
     const today = new Date();
-    const blockedDates = businessSettings?.blocked_dates || [];
-    const workingHours = businessSettings?.working_hours || [];
+    const blockedDates = bookingSettings?.blocked_dates || [];
+    const workingHours = bookingSettings?.working_hours || [];
 
     for (let i = 0; i < 14; i++) {
       const date = new Date();
@@ -95,15 +125,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
   const businessServices = services.filter(service => service.business_id === businessId);
   const businessEmployees = employees.filter(employee => employee.business_id === businessId);
   
-  // Use duration from selected service or businessSettings.appointment_duration
+  // Use duration from selected service or bookingSettings.appointment_duration
   const selectedService = businessServices.find(s => s.id === formData.service_id);
-  let serviceDuration = selectedService?.duration || businessSettings?.appointment_duration || 30;
+  let serviceDuration = selectedService?.duration || bookingSettings?.appointment_duration || 30;
 
-  // Ensure helper is available for the effect
   const getSlotsForDate = (date: Date, duration: number, bookings: any[]): string[] => {
     const slots: string[] = [];
     const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
-    const workingHours = businessSettings?.working_hours || [];
+    const workingHours = bookingSettings?.working_hours || [];
     const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
     
     if (!dayWorkingHours || dayWorkingHours.isClosed) return slots;
@@ -148,9 +177,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     return slots;
   };
 
-  // Initialize dates and filter out "Today" if it's fully booked
+  // Initialize dates and filter out "Today" if it's fully booked - uses bookingSettings
   useEffect(() => {
-    if (!businessSettings) return;
+    if (!bookingSettings) return;
 
     const initialDates = getInitialAvailableDates();
     
@@ -215,11 +244,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     };
 
     checkTodayAvailability();
-  }, [businessSettings, formData.service_id, formData.employee_id, businessId]); // Re-run when service/employee changes
+  }, [bookingSettings, formData.service_id, formData.employee_id, businessId]); // Re-run when service/employee changes
 
-  // Check if business is closed for today - updated to use form date
+  // Check if business is closed for today - uses bookingSettings
   const isBusinessClosedToday = () => {
-    if (!formData.date || !businessSettings) return false;
+    if (!formData.date || !bookingSettings) return false;
     
     const selectedDate = parseLocalDate(formData.date);
     const now = new Date();
@@ -230,7 +259,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     if (!isToday) return false;
     
     const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-    const workingHours = businessSettings?.working_hours || [];
+    const workingHours = bookingSettings?.working_hours || [];
     const dayWorkingHours = workingHours.find((wh: any) => wh.day === dayOfWeek);
     
     if (!dayWorkingHours || dayWorkingHours.isClosed) return true;
@@ -253,10 +282,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     }
   }, [user?.email, user?.name, user?.id]);
 
-  // Set loading state
-  useEffect(() => {
-    if (businessSettings !== null) setIsLoadingSettings(false);
-  }, [businessSettings]);
 
   // Initialize form date - UPDATED to use availableDates state
   useEffect(() => {
@@ -275,32 +300,6 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
       }
     }
   }, [businessServices.length, businessEmployees.length, availableDates]);
-
-  // Generate available time slots for the selected date and employee (UI display)
-  useEffect(() => {
-    if (!formData.date || !businessSettings || !formData.employee_id || isLoadingSettings) {
-      setAvailableTimeSlots([]);
-      return;
-    }
-
-    try {
-      // We can reuse getSlotsForDate but we need bookings first. 
-      // The original effect fetched bookings then calculated slots.
-      // We should keep the original effect structure for the Time dropdown.
-      // But we can call getAvailableTimeSlots which was the original function name.
-      // Let's keep the original pattern for this useEffect but name the helper getAvailableTimeSlots
-      // Wait, I replaced getAvailableTimeSlots with getSlotsForDate helper above. 
-      // I should allow the Main flow to use it too.
-      
-      // We need to fetch bookings for the selected date again here? 
-      // Yes, previously there was a useEffect that fetched bookedAppointments, and another that calculated slots.
-    } catch (error) {
-       console.error(error);
-    }
-  }, []); // Placeholder, see below
-
-
-
 
   // Fetch booked appointments when date or employee changes
   useEffect(() => {
@@ -334,22 +333,21 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     fetchAppointments();
   }, [formData.date, formData.employee_id, businessId]);
 
-  // Generate available time slots for the selected date and employee
+  // Generate available time slots for the selected date and employee - uses bookingSettings
   useEffect(() => {
-    if (!formData.date || !businessSettings || !formData.employee_id || isLoadingSettings) {
+    if (!formData.date || !bookingSettings || !formData.employee_id || loadingBookingSettings) {
       setAvailableTimeSlots([]);
       return;
     }
 
     try {
-      // Use the helper we defined earlier
       const slots = getSlotsForDate(parseLocalDate(formData.date), serviceDuration, bookedAppointments);
       setAvailableTimeSlots(slots);
     } catch (error) {
       console.error('Error generating time slots:', error);
       setAvailableTimeSlots([]);
     }
-  }, [formData.date, businessSettings, serviceDuration, bookedAppointments, formData.employee_id, isLoadingSettings]);
+  }, [formData.date, bookingSettings, serviceDuration, bookedAppointments, formData.employee_id, loadingBookingSettings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -394,8 +392,18 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     
     if (!formData.date) {
       newErrors.date = 'Please select a date';
+    } else {
+      const isInAvailable = availableDates.some(d => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}` === formData.date;
+      });
+      if (!isInAvailable) {
+        newErrors.date = 'Please select an available date';
+      }
     }
-    
+
     if (!formData.time) {
       newErrors.time = 'Please select a time';
     }
@@ -565,14 +573,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
     }
   };
 
-  if (isLoadingSettings || (businessServices.length === 0 && services.length === 0) || (businessEmployees.length === 0 && employees.length === 0)) {
+  if (loadingBookingSettings || (businessServices.length === 0 && services.length === 0) || (businessEmployees.length === 0 && employees.length === 0)) {
     return (
       <Card className="w-full max-w-md mx-auto shadow-none border-none">
         <CardHeader>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Appointment Booking</h2>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-gray-600 text-sm sm:text-base">Loading business settings...</div>
+          <div className="flex flex-col items-center justify-center py-8 gap-4">
+            <Loader size="lg" />
+            <p className="text-gray-600 text-sm sm:text-base">Loading business settings...</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -720,34 +731,41 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
           {/* Date & Time (only show when both Service and Employee are chosen) */}
           {formData.service_id && formData.employee_id && (
             <>
-              {/* Date */}
-              <div className="col-span-1 sm:col-span-1">
+              {/* Date - Calendar with unavailable days disabled */}
+              <div className="col-span-1 sm:col-span-2">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                   <Calendar className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
                   Date
                 </label>
-                <Select
-                  name="date"
-                  value={formData.date}
-                  onChange={(value) => {
-                    setFormData((prev) => ({ ...prev, date: value }));
-                    setErrors((prev) => ({ ...prev, date: '' }));
-                  }}
-                  error={errors.date}
-                  required
-                  options={[
-                    { value: '', label: 'Select a date' },
-                    ...availableDates.map((date) => ({
-                      value: date.toISOString().split('T')[0],
-                      label: date.toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      }),
-                    })),
-                  ]}
-                />
+                <div className="flex justify-center">
+                  <DayPicker
+                    mode="single"
+                    selected={formData.date ? parseLocalDate(formData.date) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const y = date.getFullYear();
+                        const m = String(date.getMonth() + 1).padStart(2, '0');
+                        const d = String(date.getDate()).padStart(2, '0');
+                        setFormData((prev) => ({ ...prev, date: `${y}-${m}-${d}` }));
+                        setErrors((prev) => ({ ...prev, date: '' }));
+                      }
+                    }}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                      if (d < today) return true;
+                      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                      return !availableDates.some(ad => `${ad.getFullYear()}-${String(ad.getMonth() + 1).padStart(2, '0')}-${String(ad.getDate()).padStart(2, '0')}` === dateStr);
+                    }}
+                    fromDate={new Date()}
+                    toDate={(() => { const d = new Date(); d.setDate(d.getDate() + 60); return d; })()}
+                    className="rdp-root border border-gray-200 rounded-lg p-3 bg-white"
+                  />
+                </div>
+                {errors.date && (
+                  <p className="text-red-600 text-xs mt-1">{errors.date}</p>
+                )}
               </div>
 
               {/* Time */}
@@ -839,7 +857,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
               value={formData.notes}
               onChange={handleChange}
               placeholder="Any special requests or notes..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none outline-none focus:border-blue-500 text-sm sm:text-base"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary resize-none outline-none focus:border-primary text-sm sm:text-base"
               rows={3}
             />
           </div>
@@ -848,8 +866,9 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId }) => {
         <CardFooter className="col-span-1 sm:col-span-2 flex gap-3 bg-white px-2 sm:px-6 pb-2">
           <Button
             type="submit"
+            isLoading={isSubmitting}
             disabled={isSubmitting || isBusinessClosedToday()}
-            className="flex-1 text-sm sm:text-base outline-none focus:ring-0 focus:ring-offset-0 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+            className="flex-1 text-sm sm:text-base outline-none focus:ring-0 focus:ring-offset-0 bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent"
           >
             {isSubmitting
               ? 'Booking Appointment...'

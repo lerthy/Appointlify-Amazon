@@ -3,7 +3,7 @@ import React from 'react';
 interface ContainerProps {
   children: React.ReactNode;
   className?: string;
-  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'page' | 'full';
 }
 
 const Container: React.FC<ContainerProps> = ({ 
@@ -17,11 +17,12 @@ const Container: React.FC<ContainerProps> = ({
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl',
+    page: 'max-w-[1200px]',
     full: 'max-w-full',
   };
 
   return (
-    <div className={`mx-auto px-4 ${maxWidthClasses[maxWidth]} ${className}`}>
+    <div className={`mx-auto ${maxWidthClasses[maxWidth]} ${maxWidth === 'page' ? 'px-6' : 'px-4'} ${className}`}>
       {children}
     </div>
   );

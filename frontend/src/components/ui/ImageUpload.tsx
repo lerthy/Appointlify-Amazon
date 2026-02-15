@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, User } from 'lucide-react';
+import Loader from './Loader';
 import { uploadToStorage, generateImagePath } from '../../utils/storageService';
 
 interface ImageUploadProps {
@@ -103,7 +104,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <div className="p-8 text-center">
             {isUploading ? (
               <div className="space-y-2">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <Loader size="md" className="mx-auto" />
                 <p className="text-sm text-gray-600">Uploading...</p>
               </div>
             ) : (

@@ -121,7 +121,7 @@ function PaymentForm() {
                 </p>
             </header>
             <div className="flex justify-center p-10 max-w-7xl mx-auto mt-5">
-                <Card className="w-full max-w-xl !rounded-3xl border-2 border-gray-900 hover:border-purple-500 shadow-xl hover:shadow-2xl transition-transform transform hover:scale-105 duration-300">
+                <Card className="w-full max-w-xl !rounded-3xl border-2 border-gray-900 hover:border-primary shadow-xl hover:shadow-2xl transition-transform transform hover:scale-105 duration-300">
                     <CardContent className="space-y-6">
                         <h2 className="text-3xl font-extrabold text-center mb-2">Payment Details</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -131,7 +131,7 @@ function PaymentForm() {
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="mt-1 block w-full rounded-xl border-2 border-gray-300 p-3 focus:border-purple-500 focus:ring-purple-500"
+                                    className="mt-1 block w-full rounded-xl border-2 border-gray-300 p-3 focus:border-primary focus:ring-primary"
                                     placeholder="John Doe"
                                     required
                                 />
@@ -142,7 +142,7 @@ function PaymentForm() {
                                     type="text"
                                     value={cardNumber}
                                     onChange={(e) => setCardNumber(e.target.value)}
-                                    className="mt-1 block w-full rounded-xl border-2 border-gray-300 p-3 focus:border-purple-500 focus:ring-purple-500"
+                                    className="mt-1 block w-full rounded-xl border-2 border-gray-300 p-3 focus:border-primary focus:ring-primary"
                                     placeholder="1234 5678 9012 3456"
                                     required
                                 />
@@ -154,7 +154,7 @@ function PaymentForm() {
                                         type="text"
                                         value={expiry}
                                         onChange={(e) => setExpiry(e.target.value)}
-                                        className="mt-1 block w-full rounded-xl border-2 border-gray-300 p-3 focus:border-purple-500 focus:ring-purple-500"
+                                        className="mt-1 block w-full rounded-xl border-2 border-gray-300 p-3 focus:border-primary focus:ring-primary"
                                         placeholder="MM/YY"
                                         required
                                     />
@@ -165,7 +165,7 @@ function PaymentForm() {
                                         type="text"
                                         value={cvc}
                                         onChange={(e) => setCvc(e.target.value)}
-                                        className="mt-1 block w-full rounded-xl border-2 border-gray-300 p-3 focus:border-purple-500 focus:ring-purple-500"
+                                        className="mt-1 block w-full rounded-xl border-2 border-gray-300 p-3 focus:border-primary focus:ring-primary"
                                         placeholder="123"
                                         required
                                     />
@@ -173,7 +173,7 @@ function PaymentForm() {
                             </div>
                             <Button
                                 type="submit"
-                                className="w-full py-3 text-lg font-semibold rounded-xl transition-colors duration-300 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white focus:ring-white"
+                                className="w-full py-3 text-lg font-semibold rounded-xl transition-colors duration-300 bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white focus:ring-white"
                             >
                                 Pay Now
                             </Button>

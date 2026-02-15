@@ -114,7 +114,7 @@ const AppointmentPage: React.FC = () => {
           <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
           <p className="mb-6">Please select a business from the home page to book an appointment.</p>
           <button
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+            className="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-light"
             onClick={() => navigate('/')}
           >
             Back to Home
@@ -139,7 +139,7 @@ const AppointmentPage: React.FC = () => {
           <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
           <p className="mb-6">Please select a business from the home page to book an appointment.</p>
           <button
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+            className="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-light"
             onClick={() => navigate('/')}
           >
             Back to Home
@@ -151,15 +151,15 @@ const AppointmentPage: React.FC = () => {
 
   return (
     <AppProvider businessIdOverride={business.id}>
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-background">
         <Header />
         <AuthPageTransition>
-          <main className="flex-grow py-4 sm:py-8 px-4">
-            <div className="max-w-6xl mx-auto">
+          <main className="flex-grow py-4 sm:py-8 px-6">
+            <div className="max-w-[1200px] mx-auto">
               {/* Back Button */}
               <motion.button
                 onClick={() => navigate(-1)}
-                className="mb-4 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+                className="mb-4 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
                 type="button"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
@@ -236,7 +236,7 @@ const AppointmentPage: React.FC = () => {
                           href={`https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}&zoom=17`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-800 font-medium"
+                          className="text-primary hover:text-primary-light font-medium"
                         >
                           View larger map →
                         </a>

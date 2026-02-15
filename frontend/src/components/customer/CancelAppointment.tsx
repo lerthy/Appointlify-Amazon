@@ -5,6 +5,7 @@ import { useNotification } from '../../context/NotificationContext';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import Loader from '../ui/Loader';
 
 interface AppointmentData {
   id: string;
@@ -192,7 +193,7 @@ const CancelAppointment: React.FC = () => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800';
       case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-purple-100 text-purple-800';
+      case 'completed': return 'bg-primary/10 text-primary';
       case 'cancelled': return 'bg-red-100 text-red-800';
       case 'no-show': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -201,10 +202,10 @@ const CancelAppointment: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardContent className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <Loader size="lg" className="mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-700">Loading appointment...</h3>
             <p className="text-gray-500 mt-2">Please wait while we fetch your appointment details.</p>
           </CardContent>
@@ -215,7 +216,7 @@ const CancelAppointment: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader className="bg-red-50 border-red-200">
             <div className="flex items-center">
@@ -244,7 +245,7 @@ const CancelAppointment: React.FC = () => {
 
   if (cancelled) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardHeader className="bg-green-50 border-green-200">
             <div className="flex items-center">
@@ -274,10 +275,10 @@ const CancelAppointment: React.FC = () => {
   const { date: formattedDate, time: formattedTime } = formatDateTime(appointment?.date || '');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <Card className="w-full">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <CardHeader className="bg-gradient-to-r from-primary to-primary-light text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <svg className="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -298,7 +299,7 @@ const CancelAppointment: React.FC = () => {
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       Service Details
@@ -319,7 +320,7 @@ const CancelAppointment: React.FC = () => {
 
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                       Customer Information
@@ -337,7 +338,7 @@ const CancelAppointment: React.FC = () => {
                   {appointment?.employee && (
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         Service Provider
@@ -353,7 +354,7 @@ const CancelAppointment: React.FC = () => {
 
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       Booking Information
@@ -368,7 +369,7 @@ const CancelAppointment: React.FC = () => {
                   {appointment?.notes && (
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Notes
@@ -394,7 +395,7 @@ const CancelAppointment: React.FC = () => {
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       Actions
@@ -438,7 +439,7 @@ const CancelAppointment: React.FC = () => {
               <div className="space-y-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                    <svg className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                     Edit Appointment Details

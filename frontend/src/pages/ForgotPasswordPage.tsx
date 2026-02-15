@@ -90,7 +90,7 @@ const ForgotPasswordPage: React.FC = () => {
           </div>
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded p-2 text-center">{error}</div>}
           {message && <div className="bg-green-50 border border-green-200 text-green-700 text-xs rounded p-2 text-center">{message}</div>}
-          <button type="submit" className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl" disabled={isSubmitting}>
+          <button type="submit" className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl" disabled={isSubmitting}>
             {isSubmitting ? 'Sending...' : 'Send reset link'}
           </button>
         </form>

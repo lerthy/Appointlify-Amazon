@@ -3,14 +3,20 @@ import twilio from 'twilio';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, resolve } from 'path';
+import { existsSync } from 'fs';
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-dotenv.config();
+console.log('Starting backend...');
+// Load .env from root or backend
+const rootEnvPath = resolve(__dirname, '.env');
+const backendEnvPath = resolve(__dirname, 'backend', '.env');
+const envPath = existsSync(rootEnvPath) ? rootEnvPath : (existsSync(backendEnvPath) ? backendEnvPath : rootEnvPath);
+dotenv.config({ path: envPath });
 
 const app = express();
 app.use(cors());
@@ -734,7 +740,239 @@ app.post('/api/send-sms', async (req, res) => {
   }
 });
 
+// Health check (for verifying proxy: open http://localhost:3000/api/health)
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, message: 'Backend is up' });
+});
+
+// Get business info by ID or subdomain (for AppointmentPage)
+app.get('/api/business/:businessId/info', async (req, res) => {
+  try {
+    const { businessId } = req.params;
+
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database not configured'
+      });
+    }
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessId);
+
+    let query = supabase
+      .from('users')
+      .select('id, name, description, logo, subdomain, business_address');
+
+    if (isUuid) {
+      query = query.eq('id', businessId);
+    } else {
+      query = query.eq('subdomain', businessId);
+    }
+
+    const { data, error } = await query.single();
+
+    if (error) {
+      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+        return res.status(404).json({ success: false, error: 'Business not found' });
+      }
+      throw error;
+    }
+
+    return res.json({ success: true, info: data || null });
+  } catch (error) {
+    console.error('[GET /api/business/:businessId/info]', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch business info'
+    });
+  }
+});
+
+// Get business settings (for AppointmentForm - public booking, no auth required)
+function buildDefaultWorkingHours() {
+  return [
+    { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+    { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+    { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
+  ];
+}
+
+async function ensureBusinessSettings(businessId) {
+  const { data, error } = await supabase
+    .from('business_settings')
+    .select('*')
+    .eq('business_id', businessId)
+    .order('updated_at', { ascending: false })
+    .limit(1);
+
+  if (!error && Array.isArray(data) && data.length > 0) {
+    return { data: data[0], created: false };
+  }
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('[ensureBusinessSettings] Unexpected Supabase error:', error);
+    throw error;
+  }
+
+  let businessName = 'Business Settings';
+  try {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', businessId)
+      .maybeSingle();
+
+    if (userData && userData.name) {
+      businessName = userData.name;
+    }
+  } catch (err) {
+    console.warn('[ensureBusinessSettings] Failed to fetch business name, using default:', err);
+  }
+
+  const defaultSettings = {
+    business_id: businessId,
+    name: businessName,
+    working_hours: buildDefaultWorkingHours(),
+    blocked_dates: [],
+    breaks: [],
+    appointment_duration: 30,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  const { data: inserted, error: insertError } = await supabase
+    .from('business_settings')
+    .insert([defaultSettings])
+    .select()
+    .single();
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  return { data: inserted, created: true };
+}
+
+app.get('/api/business/:businessId/settings', async (req, res) => {
+  try {
+    const { businessId } = req.params;
+
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database not configured'
+      });
+    }
+
+    const { data } = await ensureBusinessSettings(businessId);
+    return res.json({ success: true, settings: data || null });
+  } catch (error) {
+    console.error('[GET /api/business/:businessId/settings]', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch business settings'
+    });
+  }
+});
+
+app.patch('/api/business/:businessId/settings', async (req, res) => {
+  try {
+    const { businessId } = req.params;
+    const updates = req.body || {};
+
+    if (!supabase) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database not configured'
+      });
+    }
+
+    const normalized = {
+      working_hours: Array.isArray(updates.working_hours) ? updates.working_hours : buildDefaultWorkingHours(),
+      blocked_dates: Array.isArray(updates.blocked_dates) ? updates.blocked_dates : [],
+      breaks: Array.isArray(updates.breaks) ? updates.breaks : [],
+      appointment_duration: typeof updates.appointment_duration === 'number' && updates.appointment_duration > 0
+        ? updates.appointment_duration
+        : 30,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: existingRows, error: existingError } = await supabase
+      .from('business_settings')
+      .select('*')
+      .eq('business_id', businessId)
+      .order('updated_at', { ascending: false });
+
+    if (existingError) {
+      console.error('[PATCH /api/business/:businessId/settings] error checking existing:', existingError);
+      return res.status(500).json({ success: false, error: existingError.message });
+    }
+
+    const existing = Array.isArray(existingRows) && existingRows.length > 0 ? existingRows[0] : null;
+    let dbResult = null;
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from('business_settings')
+        .update(normalized)
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[PATCH /api/business/:businessId/settings] update error:', error);
+        return res.status(500).json({ success: false, error: error.message });
+      }
+      dbResult = data;
+    } else {
+      let businessName = 'Business';
+      try {
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('name')
+          .eq('id', businessId)
+          .maybeSingle();
+        if (userRow?.name) businessName = userRow.name;
+      } catch { }
+
+      const insertPayload = {
+        business_id: businessId,
+        name: businessName,
+        working_hours: normalized.working_hours,
+        blocked_dates: normalized.blocked_dates,
+        breaks: normalized.breaks,
+        appointment_duration: normalized.appointment_duration,
+        updated_at: normalized.updated_at
+      };
+
+      const { data, error } = await supabase
+        .from('business_settings')
+        .insert([insertPayload])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[PATCH /api/business/:businessId/settings] insert error:', error);
+        return res.status(500).json({ success: false, error: error.message });
+      }
+      dbResult = data;
+    }
+
+    return res.json({ success: true, settings: dbResult });
+  } catch (error) {
+    console.error('[PATCH /api/business/:businessId/settings]', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update business settings'
+    });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-
+  console.log(`Server running at http://localhost:${PORT}`);
 });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Calendar, BarChart2, Settings as SettingsIcon, Briefcase, AlertCircle } from 'lucide-react';
 import Tabs from '../ui/Tabs';
+import Skeleton from '../ui/Skeleton';
 import AppointmentManagement from './AppointmentManagement';
 import Analytics from './Analytics';
 import Settings from './Settings';
@@ -10,7 +11,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
 const Dashboard: React.FC = () => {
-  const { appointments, analytics, employees, services, refreshAppointments } = useApp();
+  const { appointments, analytics, employees, services, refreshAppointments, dashboardLoading } = useApp();
   const { } = useAuth();
   const [activeTab, setActiveTab] = useState('appointments');
   
@@ -139,13 +140,21 @@ const Dashboard: React.FC = () => {
         </div>
       </header> */}
       
-      <main className="max-w-7xl mx-auto px-4 py-4 sm:py-6 sm:px-6 lg:px-8">
+      <main className="max-w-[1200px] mx-auto px-6 py-4 sm:py-6">
         {/* Stats Overview */}
+        {dashboardLoading ? (
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
+            <Skeleton variant="stat-card" />
+            <Skeleton variant="stat-card" />
+            <Skeleton variant="stat-card" />
+            <Skeleton variant="stat-card" />
+          </div>
+        ) : (
         <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
             <div className="px-3 py-4 sm:px-6 sm:py-6">
               <div className="flex items-center sm:flex-row flex-col sm:items-center">
-                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-3 sm:p-4 shadow-sm">
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-primary/20 to-primary/30 rounded-xl p-3 sm:p-4 shadow-sm">
                   <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
@@ -162,8 +171,8 @@ const Dashboard: React.FC = () => {
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
             <div className="px-3 py-4 sm:px-6 sm:py-6">
               <div className="flex items-center sm:flex-row flex-col sm:items-center">
-                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-3 sm:p-4 shadow-sm">
-                  <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-primary/20 to-primary/30 rounded-xl p-3 sm:p-4 shadow-sm">
+                  <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
@@ -196,8 +205,8 @@ const Dashboard: React.FC = () => {
           <div className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300">
             <div className="px-3 py-4 sm:px-6 sm:py-6">
               <div className="flex items-center sm:flex-row flex-col sm:items-center">
-                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-3 sm:p-4 shadow-sm">
-                  <Briefcase className="h-6 w-6 sm:h-7 sm:w-7 text-purple-600" />
+                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-accent/20 to-accent/30 rounded-xl p-3 sm:p-4 shadow-sm">
+                  <Briefcase className="h-6 w-6 sm:h-7 sm:w-7 text-accent" />
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
@@ -211,7 +220,14 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
         {/* Tabs for Different Sections */}
+        {dashboardLoading ? (
+          <div className="bg-white shadow rounded-xl p-6">
+            <Skeleton className="h-10 w-full mb-4" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        ) : (
         <div className="bg-white shadow rounded-lg">
           <Tabs 
             tabs={dashboardTabs}
@@ -219,6 +235,7 @@ const Dashboard: React.FC = () => {
             onChange={setActiveTab}
           />
         </div>
+        )}
       </main>
     </div>
   );

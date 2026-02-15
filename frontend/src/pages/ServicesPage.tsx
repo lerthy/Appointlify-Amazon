@@ -134,15 +134,15 @@ const ServicesPage: React.FC = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-50 via-white to-violet-50 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-background via-white to-background relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-indigo-400/20 to-violet-400/20 rounded-full animate-pulse"></div>
-          <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              Our <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Services</span>
+              Our <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">Services</span>
             </h1>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               Comprehensive appointment management solutions tailored to your business needs. 
@@ -164,7 +164,7 @@ const ServicesPage: React.FC = () => {
                 <div key={index} className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${!isEven ? 'lg:grid-flow-dense' : ''}`}>
                   <div className={isEven ? '' : 'lg:col-start-2'}>
                     <div className="flex items-center mb-6">
-                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-light rounded-lg flex items-center justify-center mr-4 hover:scale-110 transition-transform">
                         <Icon className="h-6 w-6 text-white" />
                       </div>
                       <h2 className="text-3xl font-bold text-gray-900">{service.title}</h2>
@@ -187,7 +187,7 @@ const ServicesPage: React.FC = () => {
                       <h3 className="font-semibold text-gray-900 mb-4 text-lg">Technologies:</h3>
                       <div className="flex flex-wrap gap-2">
                         {service.technologies.map((tech, techIndex) => (
-                          <span key={techIndex} className="px-4 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium hover:scale-105 transition-transform duration-200">
+                          <span key={techIndex} className="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium hover:scale-105 transition-transform duration-200">
                             {tech}
                           </span>
                         ))}
@@ -196,7 +196,7 @@ const ServicesPage: React.FC = () => {
                   </div>
                   
                   <div className={`${!isEven ? 'lg:col-start-1 lg:row-start-1' : ''} relative`}>
-                    <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-8 transform hover:scale-105 transition-transform duration-300 shadow-2xl">
+                    <div className="bg-gradient-to-br from-primary to-primary-light rounded-2xl p-8 transform hover:scale-105 transition-transform duration-300 shadow-2xl">
                       <div className="bg-white rounded-xl p-6 shadow-2xl">
                         <div className="space-y-4">
                           <div className="flex items-center space-x-2 mb-4">
@@ -206,12 +206,12 @@ const ServicesPage: React.FC = () => {
                           </div>
                           <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
                           <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="h-32 bg-gradient-to-r from-indigo-100 to-violet-100 rounded-lg flex items-center justify-center">
-                            <Icon className="h-16 w-16 text-indigo-600 animate-pulse" />
+                          <div className="h-32 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
+                            <Icon className="h-16 w-16 text-primary animate-pulse" />
                           </div>
                           <div className="flex space-x-2">
-                            <div className="flex-1 h-8 bg-indigo-500 rounded hover:scale-105 transition-transform"></div>
-                            <div className="flex-1 h-8 bg-violet-500 rounded hover:scale-105 transition-transform"></div>
+                            <div className="flex-1 h-8 bg-primary rounded hover:scale-105 transition-transform"></div>
+                            <div className="flex-1 h-8 bg-primary-light rounded hover:scale-105 transition-transform"></div>
                           </div>
                         </div>
                       </div>
@@ -241,9 +241,9 @@ const ServicesPage: React.FC = () => {
               return (
                 <div 
                   key={index}
-                  className="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-indigo-100"
+                  className="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-primary/20"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform">
                     <Icon className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-4">{service.title}</h3>
@@ -277,7 +277,7 @@ const ServicesPage: React.FC = () => {
                 key={index}
                 className="text-center transition-all duration-300 hover:-translate-y-2"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform shadow-lg">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center mx-auto mb-6 hover:scale-110 transition-transform shadow-lg">
                   <span className="text-white font-bold text-lg">{phase.step}</span>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">{phase.title}</h3>
@@ -289,7 +289,7 @@ const ServicesPage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-600 to-violet-600 text-white relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-primary to-primary-light text-white relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full animate-pulse"></div>
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/5 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
@@ -304,7 +304,7 @@ const ServicesPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
-              className="bg-white text-indigo-600 px-8 py-4 rounded-lg font-semibold hover:shadow-xl transition-all duration-300 inline-flex items-center justify-center group hover:scale-105"
+              className="bg-white text-primary px-8 py-4 rounded-lg font-semibold hover:shadow-xl transition-all duration-300 inline-flex items-center justify-center group hover:scale-105"
             >
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />

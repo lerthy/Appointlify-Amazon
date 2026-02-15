@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
-
-// RegisterPage component for user registration
+import Button from '../components/ui/Button';
+import { useNotification } from '../context/NotificationContext';
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', description: '', phone: '', subdomain: '' });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
@@ -81,8 +84,8 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone || !form.subdomain) {
-      setError('Please fill in all fields.');
+    if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
+      setError('Please fill in all required fields.');
       setIsSubmitting(false);
       return;
     }
@@ -93,8 +96,13 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    if (subdomainError) {
+    if (form.subdomain && subdomainError) {
       setError('Please fix the subdomain error before continuing.');
+      setIsSubmitting(false);
+      return;
+    }
+    if (form.subdomain && form.subdomain.length < 3) {
+      setError('Subdomain must be at least 3 characters.');
       setIsSubmitting(false);
       return;
     }
@@ -138,42 +146,46 @@ const RegisterPage: React.FC = () => {
             name: form.name,
             phone: form.phone,
             description: form.description,
-            subdomain: form.subdomain,
+            subdomain: form.subdomain || '',
             logo: logoUrl,
-            email_verified: true
+            email_verified: false,
+            signup_method: 'email'
           }
         }
       });
 
       if (signUpError) {
         setError(signUpError.message);
+        showNotification(signUpError.message, 'error');
         setIsSubmitting(false);
         return;
       }
 
       if (!authData.user) {
         setError('Failed to create account. Please try again.');
+        showNotification('Failed to create account. Please try again.', 'error');
         setIsSubmitting(false);
         return;
       }
 
-      // Success! The database trigger will automatically create the user profile
-      // User needs to verify their email before they can log in
-      console.log('[Registration] ✅ Auth account created:', {
-        userId: authData.user.id,
-        email: authData.user.email,
-        emailConfirmedAt: authData.user.email_confirmed_at
-      });
-
-
-
+      // Success: trigger creates user profile. Send verification email.
+      try {
+        await fetch(`${API_BASE}/api/verify-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: form.email }),
+        });
+      } catch (sendErr) {
+        console.warn('Send verification email failed:', sendErr);
+      }
       setIsSubmitting(false);
-      alert('Registration successful! Please check your email to verify your account. You must verify your email before you can log in.');
+      showNotification('Check your email to verify your account.', 'success');
       navigate('/login');
     } catch (err) {
       console.error('Registration error:', err);
       const message = err instanceof Error ? err.message : 'An error occurred during registration';
       setError(message);
+      showNotification(message, 'error');
       setIsSubmitting(false);
     }
   };
@@ -197,6 +209,7 @@ const RegisterPage: React.FC = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start Google sign up';
       setError(message);
+      showNotification(message, 'error');
       setIsSubmitting(false);
     }
   };
@@ -213,7 +226,7 @@ const RegisterPage: React.FC = () => {
         >
           <button
             onClick={() => navigate('/')}
-            className="absolute left-0 top-0 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+            className="absolute left-0 top-0 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -223,21 +236,21 @@ const RegisterPage: React.FC = () => {
             <button
               type="button"
               onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-2"
+              className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-2 disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-              Sign up with Google
+              {isSubmitting ? 'Signing up…' : 'Sign up with Google'}
             </button>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">Name</label>
+              <label className="block text-xs font-medium text-gray-700">Business Name</label>
               <input
                 type="text"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
-                placeholder="Your name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
+                placeholder="Your business name"
                 autoComplete="name"
                 required
               />
@@ -249,7 +262,7 @@ const RegisterPage: React.FC = () => {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder="you@example.com"
                 autoComplete="email"
                 required
@@ -262,11 +275,12 @@ const RegisterPage: React.FC = () => {
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder="Your phone number"
                 autoComplete="tel"
                 required
               />
+              <p className="text-[11px] text-gray-500 mt-0.5">Phone verification (optional, coming soon).</p>
             </div>
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Password</label>
@@ -275,7 +289,7 @@ const RegisterPage: React.FC = () => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder="Create a password"
                 autoComplete="new-password"
                 required
@@ -288,7 +302,7 @@ const RegisterPage: React.FC = () => {
                 name="confirm"
                 value={form.confirm}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black text-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
                 placeholder="Repeat your password"
                 autoComplete="new-password"
                 required
@@ -302,18 +316,17 @@ const RegisterPage: React.FC = () => {
                   name="subdomain"
                   value={form.subdomain}
                   onChange={handleChange}
-                  className={`flex-1 min-w-0 block w-full px-4 py-3 rounded-none rounded-l-lg border ${subdomainError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-black focus:ring-indigo-500'
+                  className={`flex-1 min-w-0 block w-full px-4 py-3 rounded-none rounded-l-lg border ${subdomainError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-black focus:ring-primary'
                     } focus:ring-2 text-sm transition-all duration-200`}
-                  placeholder="your-company"
+                  placeholder="your-company (optional)"
                   autoComplete="off"
-                  required
                 />
                 <span className="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
                   .appointly-ks.com
                 </span>
               </div>
               {isCheckingSubdomain && (
-                <p className="text-xs text-indigo-500 mt-1">Checking availability...</p>
+                <p className="text-xs text-primary mt-1">Checking availability...</p>
               )}
               {subdomainError && (
                 <p className="text-xs text-red-600 mt-1">{subdomainError}</p>
@@ -323,6 +336,7 @@ const RegisterPage: React.FC = () => {
                   Your URL: <span className="font-semibold">{form.subdomain}.appointly-ks.com</span>
                 </p>
               )}
+              <p className="text-[11px] text-gray-500 mt-0.5">Lowercase, no spaces, unique. You can set this later in Profile.</p>
             </div>
             <div className="space-y-1">
               <label className="block text-xs font-medium text-gray-700">Company Description</label>
@@ -330,7 +344,7 @@ const RegisterPage: React.FC = () => {
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-indigo-500 focus:border-black transition-all resize-none text-sm"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black transition-all resize-none text-sm"
                 placeholder="Describe your company"
                 required
                 rows={2}
@@ -340,7 +354,7 @@ const RegisterPage: React.FC = () => {
               <label className="block text-xs font-medium text-gray-700">Company Logo</label>
               <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${logoFile
                 ? 'border-green-500 bg-green-50'
-                : 'border-gray-300 hover:border-indigo-500'
+                : 'border-gray-300 hover:border-primary'
                 }`}>
                 <div className="space-y-1 text-center">
                   {logoFile ? (
@@ -407,29 +421,21 @@ const RegisterPage: React.FC = () => {
                 {error}
               </div>
             )}
-            <button
+            <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+              fullWidth
+              isLoading={isSubmitting}
               disabled={isSubmitting}
+              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
             >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating account...
-                </span>
-              ) : (
-                'Create Account'
-              )}
-            </button>
+              {isSubmitting ? 'Creating account...' : 'Create Account'}
+            </Button>
           </form>
           <div className="mt-4 text-center">
             <p className="text-gray-600 text-xs">
               Already have an account?{' '}
               <button
-                className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline transition-colors"
+                className="text-primary hover:text-primary-light font-medium hover:underline transition-colors"
                 onClick={() => navigate('/login')}
               >
                 Sign in

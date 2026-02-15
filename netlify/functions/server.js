@@ -602,6 +602,151 @@ app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
   }
 });
 
+// Email verification: GET validate token and set email_verified; POST send verification email
+app.get('/api/verify-email', async (req, res) => {
+  try {
+    const token = req.query.token;
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'Verification token is required' });
+    }
+    if (!supabase) {
+      return res.status(503).json({ success: false, error: 'Database not configured' });
+    }
+    const { data: user, error: findError } = await supabase
+      .from('users')
+      .select('id, email, auth_user_id, email_verified, email_verification_token_expires')
+      .eq('email_verification_token', token)
+      .single();
+    if (findError || !user) {
+      return res.status(404).json({ success: false, error: 'Invalid or expired verification token' });
+    }
+    if (user.email_verified) {
+      return res.status(200).json({
+        success: true,
+        message: 'Email already verified',
+        alreadyVerified: true,
+        email: user.email,
+      });
+    }
+    const expires = user.email_verification_token_expires ? new Date(user.email_verification_token_expires) : null;
+    if (expires && expires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Verification token has expired. Please request a new one.',
+        expired: true,
+      });
+    }
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        email_verified: true,
+        email_verification_token: null,
+        email_verification_token_expires: null,
+      })
+      .eq('id', user.id);
+    if (updateError) {
+      console.error('[GET /api/verify-email] Update error:', updateError);
+      return res.status(500).json({ success: false, error: 'Failed to verify email' });
+    }
+    if (user.auth_user_id) {
+      try {
+        await supabase.auth.admin.updateUserById(user.auth_user_id, { email_confirm: true });
+      } catch (authErr) {
+        console.warn('[GET /api/verify-email] Supabase auth confirm:', authErr);
+      }
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Email verified successfully! You can now log in.',
+      email: user.email,
+    });
+  } catch (error) {
+    console.error('[GET /api/verify-email] Error:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+app.post('/api/verify-email', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ success: false, error: 'Email is required' });
+    }
+    if (!supabase) {
+      return res.status(503).json({ success: false, error: 'Database not configured' });
+    }
+    const { data: user, error: findError } = await supabase
+      .from('users')
+      .select('id, email, email_verified')
+      .eq('email', email.trim().toLowerCase())
+      .single();
+    if (findError || !user) {
+      return res.status(200).json({
+        success: true,
+        message: 'If an account with that email exists, a verification email has been sent.',
+      });
+    }
+    if (user.email_verified) {
+      return res.status(200).json({ success: true, message: 'Email is already verified' });
+    }
+    const crypto = await import('crypto');
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date();
+    expiry.setHours(expiry.getHours() + 24);
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        email_verification_token: token,
+        email_verification_token_expires: expiry.toISOString(),
+      })
+      .eq('id', user.id);
+    if (updateError) {
+      console.error('[POST /api/verify-email] Update token error:', updateError);
+      return res.status(500).json({ success: false, error: 'Failed to send verification email' });
+    }
+    const origin = (req.headers.origin || req.headers.referer || '').toString();
+    let frontendUrl = 'http://localhost:3000';
+    if (origin.includes('appointly-ks.netlify.app')) frontendUrl = 'https://appointly-ks.netlify.app';
+    else if (origin.includes('appointly-qa.netlify.app')) frontendUrl = 'https://appointly-qa.netlify.app';
+    else if (process.env.FRONTEND_URL) frontendUrl = process.env.FRONTEND_URL.split(',')[0].trim();
+    const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #4F46E5; text-align: center;">Verify Your Email</h1>
+        <p>Thank you for registering with Appointly!</p>
+        <p>Please click the button below to verify your email address and activate your account:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verificationLink}" style="background-color: #4F46E5; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Verify Email</a>
+        </div>
+        <p style="color: #666; font-size: 14px;">Or copy and paste this link: <a href="${verificationLink}" style="color: #4F46E5;">${verificationLink}</a></p>
+        <p style="color: #999; font-size: 12px; margin-top: 30px;">This link will expire in 24 hours.</p>
+      </div>`;
+    try {
+      const apiBase = process.env.BACKEND_URL || process.env.VITE_API_URL || 'http://localhost:5001';
+      const sendRes = await fetch(`${apiBase.replace(/\/$/, '')}/api/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: user.email,
+          subject: 'Verify Your Email - Appointly',
+          html,
+          text: `Verify your email: ${verificationLink}`,
+        }),
+      });
+      if (!sendRes.ok) console.warn('[POST /api/verify-email] Send email failed');
+    } catch (emailErr) {
+      console.warn('[POST /api/verify-email] Send email error:', emailErr);
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'If an account with that email exists, a verification email has been sent.',
+    });
+  } catch (error) {
+    console.error('[POST /api/verify-email] Error:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 app.get('/api/users/by-email', async (req, res) => {
   try {
     const { email } = req.query;
@@ -658,6 +803,31 @@ app.patch('/api/users/:id', async (req, res) => {
     if (updates.website !== undefined) updateData.website = updates.website;
     if (updates.category !== undefined) updateData.category = updates.category;
     if (updates.owner_name !== undefined) updateData.owner_name = updates.owner_name;
+    if (updates.subdomain !== undefined) {
+      const raw = updates.subdomain;
+      const subdomain = raw === null || raw === '' ? '' : String(raw).toLowerCase().replace(/\s/g, '').replace(/[^a-z0-9-]/g, '');
+      if (subdomain && subdomain.length < 3) {
+        return res.status(400).json({
+          success: false,
+          error: 'Subdomain must be at least 3 characters',
+        });
+      }
+      if (subdomain) {
+        const { data: existing } = await supabase
+          .from('users')
+          .select('id')
+          .eq('subdomain', subdomain)
+          .neq('id', id)
+          .maybeSingle();
+        if (existing) {
+          return res.status(400).json({
+            success: false,
+            error: 'This subdomain is already taken',
+          });
+        }
+      }
+      updateData.subdomain = subdomain || null;
+    }
 
     // Update the user
     const { data, error } = await supabase

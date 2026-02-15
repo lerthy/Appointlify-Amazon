@@ -283,20 +283,17 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <Button
                   type="submit"
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="flex-1 bg-primary hover:bg-primary-light text-white"
+                  isLoading={isSubmitting}
                   disabled={!isFormValid() || isSubmitting}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Submitting...
-                    </>
-                  ) : (
+                  {!isSubmitting && (
                     <>
                       <Send className="w-4 h-4 mr-2" />
                       Submit Review
                     </>
                   )}
+                  {isSubmitting && 'Submitting...'}
                 </Button>
                 
                 <Button

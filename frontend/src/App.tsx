@@ -31,11 +31,21 @@ import ConfirmAppointmentPage from './pages/ConfirmAppointmentPage';
 import GoogleOAuthCallbackPage from './pages/GoogleOAuthCallbackPage';
 
 // Components
+import Loader from './components/ui/Loader';
 
 function Providers({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader size="lg" />
+          <p className="text-gray-600 text-sm">Loading…</p>
+        </div>
+      </div>
+    );
+  }
   return <>{children}</>;
 }
 
