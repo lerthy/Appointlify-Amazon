@@ -791,7 +791,12 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 
     if (existingError) {
       console.error('[PATCH /api/business/:businessId/settings] error checking existing:', existingError);
-      return res.status(500).json({ success: false, error: existingError.message });
+      return res.status(500).json({
+        success: false,
+        error: existingError.message,
+        details: existingError.details,
+        code: existingError.code
+      });
     }
 
     const existing = Array.isArray(existingRows) && existingRows.length > 0 ? existingRows[0] : null;
@@ -807,7 +812,12 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 
       if (error) {
         console.error('[PATCH /api/business/:businessId/settings] update error:', error);
-        return res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({
+          success: false,
+          error: error.message,
+          details: error.details,
+          code: error.code
+        });
       }
       dbResult = data;
     } else {
@@ -828,6 +838,7 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
         blocked_dates: normalized.blocked_dates,
         breaks: normalized.breaks,
         appointment_duration: normalized.appointment_duration,
+        created_at: new Date().toISOString(),
         updated_at: normalized.updated_at
       };
 
@@ -839,7 +850,12 @@ app.patch('/api/business/:businessId/settings', requireDb, async (req, res) => {
 
       if (error) {
         console.error('[PATCH /api/business/:businessId/settings] insert error:', error);
-        return res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({
+          success: false,
+          error: error.message,
+          details: error.details,
+          code: error.code
+        });
       }
       dbResult = data;
     }
