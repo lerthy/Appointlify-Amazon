@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import './loadEnv.js';
 import express from 'express';
+import { request as httpsRequest } from 'https';
 import twilio from 'twilio';
 import cors from 'cors';
 import OpenAI from 'openai';
@@ -92,6 +93,108 @@ app.get('/health', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true });
+});
+
+/** Follow HTTP redirects for short Google Maps links (maps.app.goo.gl) — browsers cannot do this due to CORS. */
+function isResolvableShortMapsUrl(urlString) {
+  try {
+    const u = new URL(urlString);
+    const h = u.hostname.replace(/^www\./, '').toLowerCase();
+    if (h === 'maps.app.goo.gl') return true;
+    if (h === 'goo.gl' && u.pathname.startsWith('/maps')) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Reads the raw Location header from the first redirect hop using Node's https module.
+ * Native fetch redirect:'manual' returns an opaque response where headers are inaccessible.
+ */
+function getFirstRedirectLocation(urlString) {
+  return new Promise((resolve, reject) => {
+    try {
+      const parsed = new URL(urlString);
+      const req = httpsRequest(
+        {
+          hostname: parsed.hostname,
+          path: parsed.pathname + parsed.search,
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            // SOCS cookie tells Google consent was already given — avoids consent.google.com redirect
+            Cookie: 'SOCS=CAESEwgDEgk2MDQxMzMxMTQaAmVuIAEaBgiAuPqcBg==',
+          },
+        },
+        (incoming) => {
+          resolve(incoming.headers['location'] || null);
+          incoming.destroy();
+        }
+      );
+      req.setTimeout(8000, () => req.destroy(new Error('timeout')));
+      req.on('error', reject);
+      req.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+app.get('/api/resolve-maps-url', async (req, res) => {
+  let raw = req.query.url;
+  if (!raw || typeof raw !== 'string') {
+    return res.status(400).json({ error: 'Missing url query parameter' });
+  }
+  let urlString = raw.trim();
+  if (!/^https?:\/\//i.test(urlString)) {
+    urlString = `https://${urlString}`;
+  }
+  if (!isResolvableShortMapsUrl(urlString)) {
+    return res.status(400).json({ error: 'URL must be a maps.app.goo.gl or goo.gl/maps short link' });
+  }
+
+  try {
+    // Step 1: read the raw Location header of the first redirect hop
+    // maps.app.goo.gl → google.com/maps/place/.../@lat,lng,... in one hop
+    const location = await getFirstRedirectLocation(urlString);
+    if (location) {
+      const isGoogleMaps = /google\.com\/maps/i.test(location) || /maps\.google\.com/i.test(location);
+      if (isGoogleMaps) {
+        console.log('[api/resolve-maps-url] first-hop resolved:', location);
+        return res.json({ resolvedUrl: location });
+      }
+    }
+
+    // Step 2: follow full redirect chain with SOCS cookie (skips consent page)
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const followResp = await fetch(urlString, {
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        Cookie: 'SOCS=CAESEwgDEgk2MDQxMzMxMTQaAmVuIAEaBgiAuPqcBg==',
+      },
+    });
+    clearTimeout(timer);
+    const finalUrl = followResp.url;
+    if (!finalUrl) {
+      return res.status(502).json({ error: 'Empty response URL' });
+    }
+    if (isResolvableShortMapsUrl(finalUrl)) {
+      return res.status(502).json({ error: 'Redirect chain did not resolve to maps.google.com' });
+    }
+    console.log('[api/resolve-maps-url] full-follow resolved:', finalUrl);
+    return res.json({ resolvedUrl: finalUrl });
+  } catch (e) {
+    console.error('[api/resolve-maps-url]', e.message || e);
+    return res.status(502).json({ error: 'Failed to resolve maps URL', message: String(e.message || e) });
+  }
 });
 
 app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {

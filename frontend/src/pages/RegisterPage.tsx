@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { User, Mail, Lock, Phone, FileText, ImagePlus } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
-import AuthPageTransition from '../components/shared/AuthPageTransition';
-
-// RegisterPage component for user registration
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
 
@@ -30,7 +28,6 @@ const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Upload logo first if provided
     let logoUrl = '';
     if (logoFile) {
       const fileExt = logoFile.name.split('.').pop();
@@ -43,20 +40,6 @@ const RegisterPage: React.FC = () => {
       }
       logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
     }
-    // Debug: log the payload sent to Supabase
-    console.log('Payload sent to Supabase:', {
-      email: form.email,
-      password: form.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: {
-          name: form.name,
-          phone: form.phone,
-          description: form.description,
-          logo: logoUrl
-        }
-      }
-    });
     setIsSubmitting(true);
     
     if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
@@ -72,7 +55,6 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
-      // Check if user already exists in the users table
       const { data: existingUser } = await supabase
         .from('users')
         .select('id')
@@ -85,8 +67,7 @@ const RegisterPage: React.FC = () => {
         return;
       }
 
-      // Upload logo first if provided
-      let logoUrl = '';
+      let logoUrlFinal = '';
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
         const fileName = `${Date.now()}_${form.name.replace(/\s+/g, '_')}.${fileExt}`;
@@ -96,21 +77,18 @@ const RegisterPage: React.FC = () => {
           setIsSubmitting(false);
           return;
         }
-        logoUrl = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
+        logoUrlFinal = supabase.storage.from('logos').getPublicUrl(fileName).data.publicUrl;
       }
 
-      // Register user with Supabase Auth
-      // Only send allowed metadata fields (sanitize logoUrl and never spread form object)
       const metadata = {
         name: form.name,
         phone: form.phone,
         description: form.description,
-        logo: logoUrl
+        logo: logoUrlFinal || logoUrl
       };
-      // Remove any accidental extra fields
       Object.keys(metadata).forEach(key => {
         if (!["name", "phone", "description", "logo"].includes(key)) {
-          delete metadata[key];
+          delete (metadata as any)[key];
         }
       });
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -134,16 +112,6 @@ const RegisterPage: React.FC = () => {
         return;
       }
 
-      // Success! The database trigger will automatically create the user profile
-      // User needs to verify their email before they can log in
-      console.log('[Registration] ✅ Auth account created:', {
-        userId: authData.user.id,
-        email: authData.user.email,
-        emailConfirmedAt: authData.user.email_confirmed_at
-      });
-      
-      console.log('[Registration] ✅ User profile will be created automatically by database trigger');
-
       setIsSubmitting(false);
       alert(t('register.successMessage'));
       navigate('/login');
@@ -155,242 +123,216 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  const handleGoogleSignup = async () => {
-    try {
-      setError('');
-      setIsSubmitting(true);
-      const { error: googleError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/google`,
-          scopes: 'openid email profile',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-      if (googleError) throw googleError;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to start Google sign up';
-      setError(message);
-      setIsSubmitting(false);
-    }
-  };
-
   return (
-    <>
-      <AuthPageTransition>
-        <SplitAuthLayout
-          logoUrl={LOGO_URL}
-          title={t('register.title')}
-          subtitle={t('register.subtitle')}
-          quote={t('register.quote')}
-          reverse
-        >
-          <button
-            onClick={() => navigate('/')}
-            className="absolute left-0 top-0 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </button>
-          <form onSubmit={handleSubmit} className="space-y-3 pt-12 md:pt-10">
-            <button
-              type="button"
-              onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-2"
-              disabled={isSubmitting}
-            >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-              {t('register.signUpWithGoogle')}
-            </button>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">{t('register.nameLabel')}</label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder={t('register.namePlaceholder')}
-                autoComplete="name"
-                required
-              />
+    <SplitAuthLayout
+      logoUrl={LOGO_URL}
+      title={t('register.title')}
+      subtitle={t('register.subtitle')}
+      quote={t('register.quote')}
+      reverse
+    >
+      {/* Title */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">{t('register.title')}</h2>
+          <p className="text-sm text-gray-500">{t('register.subtitle')}</p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {/* Name + Email row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.nameLabel')}</label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                  placeholder={t('register.namePlaceholder')}
+                  autoComplete="name"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">{t('register.emailLabel')}</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder={t('register.emailPlaceholder')}
-                autoComplete="email"
-                required
-              />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.emailLabel')}</label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                  placeholder={t('register.emailPlaceholder')}
+                  autoComplete="email"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">{t('register.phoneLabel')}</label>
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.phoneLabel')}</label>
+            <div className="relative">
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="tel"
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
                 placeholder={t('register.phonePlaceholder')}
                 autoComplete="tel"
                 required
               />
             </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">{t('register.passwordLabel')}</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder={t('register.passwordPlaceholder')}
-                autoComplete="new-password"
-                required
-              />
+          </div>
+
+          {/* Password row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.passwordLabel')}</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                  placeholder={t('register.passwordPlaceholder')}
+                  autoComplete="new-password"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">{t('register.confirmPasswordLabel')}</label>
-              <input
-                type="password"
-                name="confirm"
-                value={form.confirm}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black text-sm transition-all duration-200"
-                placeholder={t('register.confirmPasswordPlaceholder')}
-                autoComplete="new-password"
-                required
-              />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.confirmPasswordLabel')}</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="password"
+                  name="confirm"
+                  value={form.confirm}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                  placeholder={t('register.confirmPasswordPlaceholder')}
+                  autoComplete="new-password"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">{t('register.descriptionLabel')}</label>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.descriptionLabel')}</label>
+            <div className="relative">
+              <FileText className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-black focus:ring-2 focus:ring-primary focus:border-black transition-all resize-none text-sm"
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all resize-none text-sm placeholder:text-gray-400"
                 placeholder={t('register.descriptionPlaceholder')}
                 required
                 rows={2}
               />
             </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-gray-700">{t('register.logoLabel')}</label>
-              <div className={`mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-dashed rounded-lg transition-all ${
-                logoFile 
-                  ? 'border-green-500 bg-green-50' 
-                  : 'border-gray-300 hover:border-primary'
-              }`}>
-                <div className="space-y-1 text-center">
-                  {logoFile ? (
-                    <>
-                      <svg
-                        className="mx-auto h-8 w-8 text-green-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <p className="text-xs font-medium text-green-600">{logoFile.name}</p>
-                      <p className="text-[10px] text-gray-500">
-                        {(logoFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="mx-auto h-8 w-8 text-gray-400"
-                        stroke="currentColor"
-                        fill="none"
-                        viewBox="0 0 48 48"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <p className="text-[10px] text-gray-500">{t('register.fileTypes')}</p>
-                    </>
-                  )}
-                  <div className="flex text-xs text-gray-600">
-                    <label
-                      htmlFor="file-upload"
-                      className="relative cursor-pointer bg-white rounded font-medium text-primary hover:text-primary-light focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary px-1"
-                    >
-                      <span>{logoFile ? t('register.changeFile') : t('register.uploadFile')}</span>
-                      <input
-                        id="file-upload"
-                        name="file-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoChange}
-                        className="sr-only"
-                      />
-                    </label>
-                    {!logoFile && <p className="pl-1">{t('register.dragAndDrop')}</p>}
-                  </div>
-                </div>
-              </div>
-            </div>
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded p-2 text-center">
-                {error}
-              </div>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 shadow-lg hover:shadow-xl"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {t('register.creatingAccount')}
-                </span>
-              ) : (
-                t('register.createAccountButton')
-              )}
-            </button>
-          </form>
-          <div className="mt-4 text-center">
-            <p className="text-gray-600 text-xs">
-              {t('register.alreadyHaveAccount')}{' '}
-              <button
-                className="text-primary hover:text-primary-light font-medium hover:underline transition-colors"
-                onClick={() => navigate('/login')}
-              >
-                {t('register.signIn')}
-              </button>
-            </p>
-            <p className="text-[11px] text-gray-500">
-              {t('register.googleCalendarNote')}
-            </p>
           </div>
-        </SplitAuthLayout>
-      </AuthPageTransition>
-    </>
+
+          {/* Logo upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.logoLabel')}</label>
+            <label
+              htmlFor="file-upload"
+              className={`flex items-center justify-center gap-3 px-4 py-3.5 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
+                logoFile 
+                  ? 'border-accent bg-accent/5 text-accent' 
+                  : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50 text-gray-500'
+              }`}
+            >
+              {logoFile ? (
+                <>
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                    <ImagePlus className="w-4 h-4 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-medium text-gray-900 truncate">{logoFile.name}</p>
+                    <p className="text-xs text-gray-500">{(logoFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                  <span className="text-xs font-medium text-primary">{t('register.changeFile')}</span>
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="w-5 h-5" />
+                  <span className="text-sm font-medium">{t('register.uploadFile')}</span>
+                  <span className="text-xs text-gray-400">{t('register.fileTypes')}</span>
+                </>
+              )}
+              <input
+                id="file-upload"
+                name="file-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="sr-only"
+              />
+            </label>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl p-3 text-center font-medium">
+              {error}
+            </div>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3.5 rounded-xl text-sm transition-all duration-300 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {t('register.creatingAccount')}
+              </span>
+            ) : (
+              t('register.createAccountButton')
+            )}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-6 text-center space-y-3">
+          <p className="text-gray-500 text-sm">
+            {t('register.alreadyHaveAccount')}{' '}
+            <button
+              className="text-primary hover:text-primary-light font-semibold hover:underline transition-colors"
+              onClick={() => navigate('/login')}
+            >
+              {t('register.signIn')}
+            </button>
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="text-sm text-primary hover:text-primary-light underline underline-offset-2 transition-colors"
+          >
+            {t('header.goToHomepage')}
+          </button>
+        </div>
+    </SplitAuthLayout>
   );
 };
 
-export default RegisterPage; 
+export default RegisterPage;

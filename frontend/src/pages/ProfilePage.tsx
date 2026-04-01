@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabaseClient';
-import { extractCoordinates, isValidCoordinates } from '../utils/coordinates';
+import {
+  extractCoordinates,
+  isValidCoordinates,
+  isShortGoogleMapsUrl,
+  resolveShortMapsUrlToCoordinates,
+} from '../utils/coordinates';
 import Header from '../components/shared/Header';
 import { MapPin, Phone, Globe, Briefcase, User, CheckCircle, XCircle } from 'lucide-react';
 
@@ -74,21 +79,45 @@ const ProfilePage: React.FC = () => {
     }
   }, [showNotification]);
 
-  // Extract coordinates when address changes
+  // Extract coordinates when address changes (incl. short maps.app.goo.gl via backend resolve)
   useEffect(() => {
-    if (form.businessAddress) {
-      const extracted = extractCoordinates(form.businessAddress);
-      if (extracted && isValidCoordinates(extracted)) {
-        setCoords(extracted);
+    const addr = form.businessAddress?.trim() ?? '';
+    if (!addr) {
+      setCoords(null);
+      setShowMap(false);
+      return;
+    }
+
+    const extracted = extractCoordinates(addr);
+    if (extracted && isValidCoordinates(extracted)) {
+      setCoords(extracted);
+      setShowMap(true);
+      return;
+    }
+
+    if (!isShortGoogleMapsUrl(addr)) {
+      setCoords(null);
+      setShowMap(false);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const coords = await resolveShortMapsUrlToCoordinates(addr);
+      if (cancelled) return;
+      if (coords) {
+        setCoords(coords);
         setShowMap(true);
       } else {
         setCoords(null);
         setShowMap(false);
       }
-    } else {
-      setCoords(null);
-      setShowMap(false);
-    }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [form.businessAddress]);
 
   const showToast = (message: string, type: 'success' | 'error') => {

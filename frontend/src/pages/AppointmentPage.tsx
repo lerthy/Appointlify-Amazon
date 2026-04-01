@@ -10,7 +10,12 @@ import { supabase } from '../utils/supabaseClient';
 import { AppProvider } from '../context/AppContext';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 import { motion } from 'framer-motion';
-import { extractCoordinates, isValidCoordinates } from '../utils/coordinates';
+import {
+  extractCoordinates,
+  isValidCoordinates,
+  isShortGoogleMapsUrl,
+  resolveShortMapsUrlToCoordinates,
+} from '../utils/coordinates';
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
@@ -68,21 +73,45 @@ const AppointmentPage: React.FC = () => {
     fetchBusiness();
   }, [businessId]);
 
-  // Extract coordinates when business address changes
+  // Extract coordinates when business address changes (incl. short maps.app.goo.gl)
   useEffect(() => {
-    if (business?.business_address) {
-      const extracted = extractCoordinates(business.business_address);
-      if (extracted && isValidCoordinates(extracted)) {
-        setCoords(extracted);
+    const addr = business?.business_address?.trim() ?? '';
+    if (!addr) {
+      setCoords(null);
+      setShowMap(false);
+      return;
+    }
+
+    const extracted = extractCoordinates(addr);
+    if (extracted && isValidCoordinates(extracted)) {
+      setCoords(extracted);
+      setShowMap(true);
+      return;
+    }
+
+    if (!isShortGoogleMapsUrl(addr)) {
+      setCoords(null);
+      setShowMap(false);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const coords = await resolveShortMapsUrlToCoordinates(addr);
+      if (cancelled) return;
+      if (coords) {
+        setCoords(coords);
         setShowMap(true);
       } else {
         setCoords(null);
         setShowMap(false);
       }
-    } else {
-      setCoords(null);
-      setShowMap(false);
-    }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [business?.business_address]);
 
   if (!businessId) {
@@ -134,31 +163,36 @@ const AppointmentPage: React.FC = () => {
         <AuthPageTransition>
           <main className="flex-grow py-4 sm:py-8 px-4">
             <div className="max-w-6xl mx-auto">
-              {/* Back Button */}
-              <motion.button
-                onClick={() => navigate(-1)}
-                className="mb-4 flex items-center text-primary hover:text-primary-light transition-colors duration-200"
-                type="button"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
+              {/* Two columns when map is shown; single column otherwise */}
+              <div
+                className={
+                  showMap && coords
+                    ? 'grid grid-cols-1 lg:grid-cols-2 gap-6'
+                    : 'mx-auto w-full max-w-2xl flex flex-col gap-6'
+                }
               >
-                <ArrowLeft className="w-5 h-5 mr-1" />
-                <span>{t('appointmentPage.back')}</span>
-              </motion.button>
-
-              {/* Two Column Layout: Form on Left, Map on Right */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left Column: Appointment Form */}
                 <motion.div
-                  className="bg-white rounded-xl shadow-xl p-4 sm:p-6 md:p-8"
+                  className="bg-white rounded-xl shadow-xl p-4 sm:p-6 md:p-8 relative"
                   variants={fadeUp}
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.3 }}
                 >
+                  <motion.button
+                    type="button"
+                    onClick={() => navigate('/')}
+                    className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 p-2 rounded-lg text-primary hover:text-primary-light hover:bg-primary/5 transition-colors duration-200"
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
+                    aria-label={t('appointmentPage.backToHome')}
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </motion.button>
+
                   {/* Business Header inside form */}
                   <motion.div
-                    className="flex flex-col items-center mb-6"
+                    className="flex flex-col items-center mb-6 pt-2"
                     variants={fadeUp}
                     initial="initial"
                     animate="animate"
@@ -191,9 +225,9 @@ const AppointmentPage: React.FC = () => {
                 </motion.div>
 
                 {/* Right Column: Map */}
-                {showMap && coords ? (
+                {showMap && coords && (
                   <motion.div
-                    className="bg-white rounded-xl shadow-xl p-4 sm:p-6 overflow-hidden"
+                    className="bg-white rounded-xl shadow-xl p-4 sm:p-6 overflow-hidden max-h-fit self-center"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0, transition: { delay: 0.4, duration: 0.5 } }}
                   >
@@ -219,16 +253,6 @@ const AppointmentPage: React.FC = () => {
                           View larger map →
                         </a>
                       </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    className="bg-white rounded-xl shadow-xl p-4 sm:p-6 md:p-8 flex items-center justify-center"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0, transition: { delay: 0.4, duration: 0.5 } }}
-                  >
-                    <div className="text-center text-gray-400">
-                      <p className="text-sm">No location available</p>
                     </div>
                   </motion.div>
                 )}

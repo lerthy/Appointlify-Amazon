@@ -31,6 +31,7 @@
     "login": "Hyr",
     "register": "Regjistrohu",
     "home": "Kryefaqja",
+    "goToHomepage": "Shkoni në kryefaqe",
     "dashboard": "Paneli",
     "profile": "Profili",
     "businessProfile": "Profili i Biznesit",
@@ -49,12 +50,12 @@
     "termsOfService": "Kushtet e Shërbimit",
     "cookiePolicy": "Politika e Cookie-ve",
     "allRightsReserved": "Të gjitha të drejtat e rezervuara.",
-    "monFri": "Hën-Pre, 9:00-18:00 CET"
+    "monFri": "Hënë-Premte, 9:00-18:00 CET"
   },
   "home": {
     "hero": {
       "badge": "Platformë Rezervimi me Inteligjencë Artificiale",
-      "title": "Koha Po Iku,",
+      "title": "Koha Po Ikën,",
       "titleHighlight": "Fillo të Klikosh.",
       "subtitle": "Sepse çdo moment që kurseni hap dyert për mundësi më të mëdha."
     },

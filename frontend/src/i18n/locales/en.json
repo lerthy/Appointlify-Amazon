@@ -31,6 +31,7 @@
     "login": "Login",
     "register": "Register",
     "home": "Home",
+    "goToHomepage": "Go to homepage",
     "dashboard": "Dashboard",
     "profile": "Profile",
     "businessProfile": "Business Profile",
@@ -49,7 +50,7 @@
     "termsOfService": "Terms of Service",
     "cookiePolicy": "Cookie Policy",
     "allRightsReserved": "All rights reserved.",
-    "monFri": "Mon-Fri, 9am-6pm CET"
+    "monFri": "Monday-Friday, 9am-6pm CET"
   },
   "home": {
     "hero": {

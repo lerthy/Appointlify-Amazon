@@ -9,6 +9,7 @@
     "@modelcontextprotocol/sdk": "^1.4.0",
     "@sendgrid/mail": "^8.1.0",
     "@supabase/supabase-js": "^2.45.4",
+    "appointlify-amazon": "file:../../..",
     "bcryptjs": "^2.4.3",
     "fetch-to-node": "^2.0.2",
     "groq-sdk": "^0.7.0",

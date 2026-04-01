@@ -46,14 +46,15 @@ const LanguageSelector: React.FC = () => {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200 text-gray-700"
+        className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200 text-gray-700 text-sm font-medium"
         aria-label="Select language"
+        aria-expanded={isOpen}
       >
-        <Globe className="h-4 w-4" />
-        <span className="text-sm font-medium hidden sm:inline">{currentLanguage.flag}</span>
-        <span className="text-sm font-medium">{currentLanguage.code.toUpperCase()}</span>
-        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <Globe className="h-4 w-4 shrink-0 text-gray-500" />
+        <span className="tabular-nums">{currentLanguage.code.toUpperCase()}</span>
+        <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -67,7 +68,6 @@ const LanguageSelector: React.FC = () => {
               }`}
             >
               <div className="flex items-center space-x-2">
-                <span className="text-lg">{language.flag}</span>
                 <span className="text-sm font-medium">{language.name}</span>
               </div>
               {currentLanguage.code === language.code && (

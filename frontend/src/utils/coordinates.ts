@@ -1,9 +1,54 @@
 /**
+ * Short share links (e.g. maps.app.goo.gl) do not contain lat/lng; resolve via /api/resolve-maps-url first.
+ */
+export function isShortGoogleMapsUrl(input: string): boolean {
+  const s = input.trim();
+  if (!s) return false;
+  const withProto = /^https?:\/\//i.test(s) ? s : `https://${s}`;
+  try {
+    const u = new URL(withProto);
+    const h = u.hostname.replace(/^www\./, '').toLowerCase();
+    if (h === 'maps.app.goo.gl') return true;
+    if (h === 'goo.gl' && u.pathname.startsWith('/maps')) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function mapsApiBase(): string {
+  return (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+}
+
+/**
+ * Resolves a short Maps link server-side, then extracts coordinates from the final URL.
+ */
+export async function resolveShortMapsUrlToCoordinates(addressInput: string): Promise<{ lat: string; lng: string } | null> {
+  const base = mapsApiBase();
+  const q = encodeURIComponent(addressInput.trim());
+  const url = base ? `${base}/api/resolve-maps-url?url=${q}` : `/api/resolve-maps-url?url=${q}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = (await res.json()) as { resolvedUrl?: string };
+    if (!data.resolvedUrl) return null;
+    const coords = extractCoordinates(data.resolvedUrl);
+    if (coords && isValidCoordinates(coords)) return coords;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Extracts coordinates from a Google Maps URL
  * Supports various Google Maps URL formats:
  * - https://www.google.com/maps/place/.../@lat,lng,zoom/...
+ * - https://www.google.com/maps/@lat,lng,zoom/...
  * - https://maps.google.com/?q=lat,lng
  * - https://www.google.com/maps/search/?api=1&query=lat,lng
+ *
+ * Short links (maps.app.goo.gl) are not supported here — use resolveShortMapsUrlToCoordinates.
  * 
  * @param url - The Google Maps URL
  * @returns Object with lat and lng as strings, or null if not found
@@ -53,6 +98,17 @@ export function extractCoordinates(url: string): { lat: string; lng: string } | 
     return {
       lat: llMatch[1],
       lng: llMatch[2]
+    };
+  }
+
+  // Pattern 5: /maps/search/lat,lng (common after resolving maps.app.goo.gl)
+  // e.g. https://www.google.com/maps/search/42.631380,+21.009579?entry=...
+  const searchPathPattern = /\/maps\/search\/(-?\d+\.?\d*),\+?(-?\d+\.?\d*)/;
+  const searchPathMatch = url.match(searchPathPattern);
+  if (searchPathMatch) {
+    return {
+      lat: searchPathMatch[1],
+      lng: searchPathMatch[2]
     };
   }
 
