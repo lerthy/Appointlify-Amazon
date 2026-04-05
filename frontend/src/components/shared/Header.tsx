@@ -160,20 +160,6 @@ const Header: React.FC = () => {
               ) : (
                 <>
                   <button
-                    onClick={() => scrollToSection('businesses-section')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-steel-300 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200"
-                  >
-                    <Briefcase className="h-3.5 w-3.5" />
-                    {t('header.forBusinesses')}
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('clients-section')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-steel-300 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200"
-                  >
-                    <HeartHandshake className="h-3.5 w-3.5" />
-                    {t('header.forClients')}
-                  </button>
-                  <button
                     onClick={() => navigate('/pricing')}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white hover:text-accent rounded-lg hover:bg-white/[0.06] transition-all duration-200"
                   >
