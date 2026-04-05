@@ -1,5 +1,5 @@
 [build]
-  command = "(npm --prefix backend/netlify/functions ci || npm --prefix backend/netlify/functions install) && (npm --prefix frontend ci || npm --prefix frontend install) && npm --prefix frontend run build"
+  command = "(npm --prefix backend ci || npm --prefix backend install) && (npm --prefix backend/netlify/functions ci || npm --prefix backend/netlify/functions install) && (npm --prefix frontend ci || npm --prefix frontend install) && npm --prefix frontend run build"
   publish = "frontend/dist"
   functions = "backend/netlify/functions"
 
