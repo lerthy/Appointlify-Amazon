@@ -5,12 +5,11 @@ import { Globe, ChevronDown, Check } from 'lucide-react';
 interface Language {
   code: string;
   name: string;
-  flag: string;
 }
 
 const languages: Language[] = [
-  { code: 'sq', name: 'Shqip', flag: '🇦🇱' },
-  { code: 'en', name: 'English', flag: '🇬🇧' }
+  { code: 'sq', name: 'Shqip' },
+  { code: 'en', name: 'English' }
 ];
 
 const LanguageSelector: React.FC = () => {
