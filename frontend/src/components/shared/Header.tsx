@@ -86,13 +86,13 @@ const Header: React.FC = () => {
                 <div className="flex items-center gap-1 sm:gap-2">
                   <button
                     onClick={() => navigate('/pricing')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-steel-300 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white hover:text-steel-300 rounded-lg hover:bg-white/[0.06] transition-all duration-200"
                   >
                     <CreditCard className="h-4 w-4" />
                     {t('header.pricing')}
                   </button>
                   <LanguageSelector />
-                  <div className="w-px h-5 bg-white/10 mx-1" />
+                  <div className="w-px h-5 bg-white mx-1" />
 
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -100,7 +100,7 @@ const Header: React.FC = () => {
                       onClick={toggleDropdown}
                       aria-haspopup="true"
                       aria-expanded={dropdownOpen}
-                      className={`p-2 rounded-lg transition-all duration-200 ${dropdownOpen ? 'bg-white/10 text-white' : 'hover:bg-white/[0.06] text-steel-400'}`}
+                      className={`p-2 rounded-lg transition-all duration-200 ${dropdownOpen ? 'bg-white/10 text-white' : 'hover:bg-white/[0.06] text-white'}`}
                     >
                       {dropdownOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </button>
@@ -115,7 +115,7 @@ const Header: React.FC = () => {
                             type="button"
                             role="menuitem"
                             onClick={() => { navigate('/'); setDropdownOpen(false); }}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-steel-200 hover:bg-white/[0.06] hover:text-white w-full text-left transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/[0.06] hover:text-white w-full text-left transition-colors"
                           >
                             <Home className="h-4 w-4 shrink-0" />
                             {t('header.home')}
@@ -126,7 +126,7 @@ const Header: React.FC = () => {
                             type="button"
                             role="menuitem"
                             onClick={() => { navigate('/dashboard'); setDropdownOpen(false); }}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-steel-200 hover:bg-white/[0.06] hover:text-white w-full text-left transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/[0.06] hover:text-white w-full text-left transition-colors"
                           >
                             <LayoutDashboard className="h-4 w-4 shrink-0" />
                             {t('header.dashboard')}
@@ -137,7 +137,7 @@ const Header: React.FC = () => {
                             type="button"
                             role="menuitem"
                             onClick={() => { navigate('/profile'); setDropdownOpen(false); }}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-steel-200 hover:bg-white/[0.06] hover:text-white w-full text-left transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/[0.06] hover:text-white w-full text-left transition-colors"
                           >
                             <User className="h-4 w-4 shrink-0" />
                             {t('header.businessProfile')}
@@ -148,7 +148,7 @@ const Header: React.FC = () => {
                           type="button"
                           role="menuitem"
                           onClick={() => { logout(() => navigate('/')); setDropdownOpen(false); }}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/10 w-full text-left transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10 w-full text-left transition-colors"
                         >
                           <LogOut className="h-4 w-4 shrink-0" />
                           {t('header.signOut')}

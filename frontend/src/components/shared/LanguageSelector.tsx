@@ -51,9 +51,9 @@ const LanguageSelector: React.FC = () => {
         aria-label="Select language"
         aria-expanded={isOpen}
       >
-        <Globe className="h-4 w-4 shrink-0 text-steel-300" />
-        <span className="tabular-nums">{currentLanguage.code.toUpperCase()}</span>
-        <ChevronDown className={`h-3 w-3 shrink-0 text-steel-300 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <Globe className="h-4 w-4 shrink-0 text-white" />
+        <span className="tabular-nums text-white">{currentLanguage.code.toUpperCase()}</span>
+        <ChevronDown className={`h-3 w-3 shrink-0 text-white transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -63,7 +63,7 @@ const LanguageSelector: React.FC = () => {
               key={language.code}
               onClick={() => handleLanguageChange(language.code)}
               className={`w-full flex items-center justify-between px-4 py-2 text-left transition-colors duration-150 ${
-                currentLanguage.code === language.code ? 'bg-accent/15 text-accent' : 'text-steel-200 hover:bg-white/[0.06]'
+                currentLanguage.code === language.code ? 'bg-accent/15 text-accent' : 'text-white hover:bg-white/[0.06]'
               }`}
             >
               <div className="flex items-center space-x-2">
