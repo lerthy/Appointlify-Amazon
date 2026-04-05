@@ -1004,9 +1004,10 @@
     "notFound": "Rezervimi Nuk u Gjet",
     "notFoundMessage": "Nuk mundëm të gjejmë detajet e rezervimit. Ju lutem provoni përsëri ose kontaktoni mbështetjen.",
     "backToHome": "Kthehu në Faqen Kryesore",
-    "confirmed": "Rezervimi u Konfirmua!",
-    "successMessage": "Termini juaj u planifikua me sukses.",
+    "confirmed": "Kontrollo Email-in!",
+    "successMessage": "Ju lutem kontrolloni email-in tuaj për të konfirmuar rezervimin.",
     "confirmationSent": "Një email konfirmimi u dërgua në adresën tuaj të email-it.",
+    "pendingConfirmation": "Termini juaj është në pritje të konfirmimit",
     "bookingDetails": "Detajet e Rezervimit",
     "service": "Shërbimi",
     "date": "Data",
@@ -1565,13 +1566,15 @@
       "week": "Java"
     },
     "status": {
-      "scheduled": "I Programuar",
+      "scheduled": "I Planifikuar",
       "confirmed": "I Konfirmuar",
       "completed": "I Përfunduar",
       "cancelled": "I Anuluar",
       "noShow": "Nuk u Paraqit",
-      "pastDue": "I Vonuar"
+      "pastDue": "I Vonuar",
+      "awaitingConfirmation": "Në Pritje të Konfirmimit"
     },
+    "waitingForCustomer": "Duke pritur që klienti të konfirmojë përmes email-it",
     "actions": {
       "confirm": "Konfirmo",
       "cancel": "Anulo",

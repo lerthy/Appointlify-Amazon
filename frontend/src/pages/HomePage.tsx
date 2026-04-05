@@ -646,7 +646,7 @@ const HomePage: React.FC = () => {
                   </button>
                 )}
                 <div className="mr-3 hidden sm:flex items-center gap-1 bg-primary/[0.06] text-primary text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0">
-                  <Search className="w-3 h-3" />
+                  <Search className="w-4 h-4" />
                 </div>
               </div>
             </div>

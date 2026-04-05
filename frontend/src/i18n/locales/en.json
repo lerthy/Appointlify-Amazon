@@ -1004,9 +1004,10 @@
     "notFound": "Booking Not Found",
     "notFoundMessage": "We couldn't find the booking details. Please try again or contact support.",
     "backToHome": "Back to Home",
-    "confirmed": "Booking Confirmed!",
-    "successMessage": "Your appointment has been successfully scheduled.",
+    "confirmed": "Check Your Email!",
+    "successMessage": "Please check your email to confirm your reservation.",
     "confirmationSent": "A confirmation email has been sent to your email address.",
+    "pendingConfirmation": "Your appointment is pending confirmation",
     "bookingDetails": "Booking Details",
     "service": "Service",
     "date": "Date",
@@ -1570,8 +1571,10 @@
       "completed": "Completed",
       "cancelled": "Cancelled",
       "noShow": "No Show",
-      "pastDue": "Past Due"
+      "pastDue": "Past Due",
+      "awaitingConfirmation": "Awaiting Confirmation"
     },
+    "waitingForCustomer": "Waiting for customer to confirm via email",
     "actions": {
       "confirm": "Confirm",
       "cancel": "Cancel",

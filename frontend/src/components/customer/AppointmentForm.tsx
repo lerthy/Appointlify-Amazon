@@ -30,6 +30,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId, business 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [bookedAppointments, setBookedAppointments] = useState<any[]>([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Dynamically fetched booking settings - always fresh, works for public booking (no auth)
   const [bookingSettings, setBookingSettings] = useState<BusinessSettings | null>(null);
@@ -79,6 +81,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId, business 
     return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
   };
 
+  // Helper: format date for display (e.g., "Mon, Apr 14")
+  const formatDisplayDate = (dateStr: string): string => {
+    const date = parseLocalDate(dateStr);
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  };
+
   // Get available services and employees for this business (must be before selectedEmployee)
   const businessServices = services.filter(service => service.business_id === businessId);
   const businessEmployees = employees.filter(employee => employee.business_id === businessId);
@@ -95,13 +103,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId, business 
       ? selectedEmployee.working_hours
       : (bookingSettings?.working_hours || []);
 
-  // Get available dates (next 14 days, excluding closed days and blocked dates) - uses effective working hours
+  // Get available dates (next 60 days, excluding closed days and blocked dates) - uses effective working hours
   const getInitialAvailableDates = (workingHours: Array<{ day: string; open?: string; close?: string; isClosed?: boolean }>) => {
     const dates = [];
     const today = new Date();
     const blockedDates = bookingSettings?.blocked_dates || [];
 
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 60; i++) {
       const date = new Date();
       date.setDate(today.getDate() + i);
       const year = date.getFullYear();
@@ -723,66 +731,118 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ businessId, business 
           {/* Date & Time (only show when both Service and Employee are chosen) */}
           {formData.service_id && formData.employee_id && (
             <>
-              {/* Date - Calendar with unavailable days disabled */}
-              <div className="col-span-1 sm:col-span-2">
+              {/* Date Picker */}
+              <div className="col-span-1 sm:col-span-1 relative">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                   <Calendar className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
                   Date
                 </label>
-                <div className="flex justify-center">
-                  <DayPicker
-                    mode="single"
-                    selected={formData.date ? parseLocalDate(formData.date) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        const y = date.getFullYear();
-                        const m = String(date.getMonth() + 1).padStart(2, '0');
-                        const d = String(date.getDate()).padStart(2, '0');
-                        setFormData((prev) => ({ ...prev, date: `${y}-${m}-${d}` }));
-                        setErrors((prev) => ({ ...prev, date: '' }));
-                      }
-                    }}
-                    disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                      if (d < today) return true;
-                      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                      return !availableDates.some(ad => `${ad.getFullYear()}-${String(ad.getMonth() + 1).padStart(2, '0')}-${String(ad.getDate()).padStart(2, '0')}` === dateStr);
-                    }}
-                    fromDate={new Date()}
-                    toDate={(() => { const d = new Date(); d.setDate(d.getDate() + 60); return d; })()}
-                    className="rdp-root border border-gray-200 rounded-lg p-3 bg-white"
-                  />
-                </div>
-                {errors.date && (
-                  <p className="text-red-600 text-xs mt-1">{errors.date}</p>
+                <button
+                  type="button"
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  className={`w-full px-3 py-2 border rounded-lg text-left text-sm sm:text-base transition-colors ${
+                    errors.date ? 'border-red-500' : 'border-gray-300 hover:border-primary focus:border-primary'
+                  } ${formData.date ? 'text-gray-900' : 'text-gray-500'}`}
+                >
+                  {formData.date ? formatDisplayDate(formData.date) : 'Select a date'}
+                </button>
+                {errors.date && <p className="text-red-600 text-xs mt-1">{errors.date}</p>}
+                
+                {/* Calendar Popup */}
+                {showDatePicker && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowDatePicker(false)} />
+                    <div className="absolute z-50 mt-1 left-0 bg-white border border-gray-200 rounded-xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <DayPicker
+                        mode="single"
+                        selected={formData.date ? parseLocalDate(formData.date) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, '0');
+                            const d = String(date.getDate()).padStart(2, '0');
+                            setFormData((prev) => ({ ...prev, date: `${y}-${m}-${d}`, time: '' }));
+                            setErrors((prev) => ({ ...prev, date: '', time: '' }));
+                            setShowDatePicker(false);
+                          }
+                        }}
+                        disabled={(date) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                          if (d < today) return true;
+                          const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                          return !availableDates.some(ad => `${ad.getFullYear()}-${String(ad.getMonth() + 1).padStart(2, '0')}-${String(ad.getDate()).padStart(2, '0')}` === dateStr);
+                        }}
+                        fromDate={new Date()}
+                        toDate={(() => { const d = new Date(); d.setDate(d.getDate() + 60); return d; })()}
+                        className="rdp-root"
+                      />
+                    </div>
+                  </>
                 )}
               </div>
 
-              {/* Time */}
-              <div className="col-span-1 sm:col-span-1">
+              {/* Time Picker */}
+              <div className="col-span-1 sm:col-span-1 relative">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                   <Clock className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
                   Time
                 </label>
-                <Select
-                  name="time"
-                  value={formData.time}
-                  onChange={(value) => {
-                    setFormData((prev) => ({ ...prev, time: value }));
-                    setErrors((prev) => ({ ...prev, time: '' }));
-                  }}
-                  error={errors.time}
-                  required
-                  options={[
-                    { value: '', label: 'Select a time' },
-                    ...availableTimeSlots.map((slot) => ({
-                      value: slot,
-                      label: slot,
-                    })),
-                  ]}
-                />
+                <button
+                  type="button"
+                  onClick={() => formData.date && setShowTimePicker(!showTimePicker)}
+                  disabled={!formData.date}
+                  className={`w-full px-3 py-2 border rounded-lg text-left text-sm sm:text-base transition-colors ${
+                    errors.time ? 'border-red-500' : 'border-gray-300 hover:border-primary focus:border-primary'
+                  } ${formData.time ? 'text-gray-900' : 'text-gray-500'} ${!formData.date ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {formData.time || (formData.date ? 'Select a time' : 'Select date first')}
+                </button>
+                {errors.time && <p className="text-red-600 text-xs mt-1">{errors.time}</p>}
+                
+                {/* Time Slots Popup */}
+                {showTimePicker && formData.date && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowTimePicker(false)} />
+                    <div className="absolute z-50 mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl p-4 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[320px] overflow-hidden">
+                      {availableTimeSlots.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                          <Clock className="w-10 h-10 mb-2 opacity-40" />
+                          <p className="text-sm font-medium">No available times</p>
+                          <p className="text-xs mt-1">Try selecting another date</p>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-xs text-gray-500 mb-3 font-medium">Available times for {formatDisplayDate(formData.date)}</p>
+                          <div className="grid grid-cols-4 gap-2 max-h-[220px] overflow-y-auto pr-1">
+                            {availableTimeSlots.map((slot) => {
+                              const isSelected = formData.time === slot;
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData((prev) => ({ ...prev, time: slot }));
+                                    setErrors((prev) => ({ ...prev, time: '' }));
+                                    setShowTimePicker(false);
+                                  }}
+                                  className={`py-2.5 px-1 rounded-lg text-sm font-medium transition-all duration-150 border ${
+                                    isSelected
+                                      ? 'bg-primary text-white border-primary shadow-md'
+                                      : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-primary/10 hover:border-primary/40 hover:text-primary'
+                                  }`}
+                                >
+                                  {slot}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}

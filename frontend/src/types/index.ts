@@ -86,6 +86,7 @@ export interface Appointment {
   date: string; // ISO string
   duration: number;
   status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
+  confirmation_status?: 'pending' | 'confirmed';
   reminder_sent: boolean;
   notes?: string;
   created_at: string;

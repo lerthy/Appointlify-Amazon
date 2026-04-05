@@ -275,15 +275,21 @@ const AppointmentManagement: React.FC = () => {
                     </span>
                   </p>
                 </div>
-                <div className="flex gap-2 items-center shrink-0">
+                <div className="flex gap-2 items-center shrink-0 flex-wrap justify-end">
                   {isPastDue && (
                     <Badge variant="warning">
                       {t('appointmentManagement.status.pastDue')}
                     </Badge>
                   )}
-                  <Badge variant={statusVariants[appointment.status]?.variant as any}>
-                    {t(statusVariants[appointment.status]?.labelKey)}
-                  </Badge>
+                  {appointment.status === 'scheduled' && appointment.confirmation_status === 'pending' ? (
+                    <Badge variant="warning" className="bg-amber-100 text-amber-700 border-amber-200">
+                      {t('appointmentManagement.status.awaitingConfirmation')}
+                    </Badge>
+                  ) : (
+                    <Badge variant={statusVariants[appointment.status]?.variant as any}>
+                      {t(statusVariants[appointment.status]?.labelKey)}
+                    </Badge>
+                  )}
                 </div>
               </div>
               
@@ -331,7 +337,8 @@ const AppointmentManagement: React.FC = () => {
             
             {/* Actions column: stacked on mobile, column on desktop */}
             <div className="md:ml-4 flex flex-col md:items-end w-full md:w-auto">
-              {appointment.status === 'scheduled' && (
+              {/* Only show actions when customer has confirmed (or confirmation_status is not pending) */}
+              {appointment.status === 'scheduled' && appointment.confirmation_status !== 'pending' && (
                 <div className="flex flex-col gap-2 w-full md:w-auto">
                   <Button
                     variant="primary"

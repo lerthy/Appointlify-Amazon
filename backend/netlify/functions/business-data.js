@@ -73,7 +73,7 @@ async function getAppointments(businessId) {
   });
   if (viaMcp) return viaMcp;
   const sb = supabaseServer();
-  let query = sb.from("appointments").select("id, date, status, service_id, business_id").limit(2000);
+  let query = sb.from("appointments").select("id, date, status, confirmation_status, service_id, business_id").limit(2000);
   if (businessId) query = query.eq("business_id", businessId);
   const { data, error } = await query;
   if (error) throw error;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, Calendar, Clock, MapPin, DollarSign } from 'lucide-react';
+import { Mail, Calendar, Clock, MapPin, DollarSign } from 'lucide-react';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import Button from '../components/ui/Button';
@@ -134,16 +134,19 @@ const BookingConfirmationPage: React.FC = () => {
 
       <main className="flex-grow py-8 flex items-center justify-center">
         <div className="w-full max-w-md mx-auto px-4">
-          {/* Success block */}
+          {/* Email confirmation block */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
-              <CheckCircle className="w-10 h-10 text-green-600" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
+              <Mail className="w-10 h-10 text-primary" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {t('bookingConfirmation.confirmed')}
             </h1>
             <p className="text-gray-600">
               {t('bookingConfirmation.successMessage')}
+            </p>
+            <p className="text-sm text-amber-600 mt-2 font-medium">
+              {t('bookingConfirmation.pendingConfirmation')}
             </p>
           </div>
 
