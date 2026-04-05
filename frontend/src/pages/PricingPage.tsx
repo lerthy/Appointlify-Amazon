@@ -122,7 +122,7 @@ const PricingPage: React.FC = () => {
                     variants={fadeUp}
                     className={`relative rounded-2xl p-6 lg:p-8 transition-all duration-300 ${
                       plan.popular
-                        ? 'bg-navy-950 text-white shadow-ghost-xl scale-[1.02] border-2 border-accent'
+                        ? 'bg-navy-950/95 text-white shadow-ghost-xl scale-[1.02] border-2 border-accent'
                         : 'bg-white border border-gray-200 shadow-ghost hover:shadow-ghost-lg hover:border-primary/20'
                     }`}
                   >
@@ -139,7 +139,7 @@ const PricingPage: React.FC = () => {
                       <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 ${
                         plan.popular ? 'bg-white/10' : 'bg-primary/10'
                       }`}>
-                        <Icon className={`w-6 h-6 ${plan.popular ? 'text-accent' : 'text-primary'}`} />
+                        <Icon className={`w-6 h-6 ${plan.popular ? 'text-white' : 'text-primary'}`} />
                       </div>
                       
                       <h3 className={`text-xl font-bold mb-2 ${plan.popular ? 'text-white' : 'text-navy-900'}`}>
