@@ -480,7 +480,33 @@
       "future": "Making Appointly-ks the most trusted appointment management platform in the region"
     },
     "team": {
-      "title": "Meet Our Team"
+      "title": "Meet Our Team",
+      "subtitle": "The talented individuals behind Appointly-ks's success.",
+      "members": {
+        "lerdi": {
+          "role": "AI Integration, Full Stack Developer, DevOps Apprentice",
+          "description": "Expert in AI integration, building intelligent chatbots that feel natural and help businesses automate customer interactions."
+        },
+        "etrit": {
+          "role": "Full Stack Developer, Startup Founder",
+          "description": "Leads technical vision and client relationships with 2+ years of experience in building scalable web applications."
+        },
+        "jasin": {
+          "role": "Backend Developer, Startup Founder",
+          "description": "Focuses on database optimization and API development to ensure lightning-fast performance."
+        },
+        "marjan": {
+          "role": "Backend Developer",
+          "description": "Expert in server architecture and ensuring the platform runs smoothly 24/7."
+        }
+      }
+    },
+    "coreValues": {
+      "title": "Our Core Values",
+      "subtitle": "These principles guide everything we do and shape how we work with our clients."
+    },
+    "journey": {
+      "subtitle": "Key milestones in our growth and evolution as a company."
     }
   },
   "services": {

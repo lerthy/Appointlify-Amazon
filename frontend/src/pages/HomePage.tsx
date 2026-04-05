@@ -704,7 +704,7 @@ const HomePage: React.FC = () => {
                           <h3 className="text-[15px] font-bold text-navy-900 group-hover:text-primary transition-colors truncate leading-snug">
                             {business.name}
                           </h3>
-                          <span className="inline-block mt-1 text-[11px] font-medium text-accent bg-accent/[0.08] px-2 py-0.5 rounded-full">
+                          <span className="inline-block mt-1 text-[11px] font-medium text-accent bg-accent/[0.08] py-0.5 rounded-full">
                             {translateCategory(business.category)}
                           </span>
                         </div>

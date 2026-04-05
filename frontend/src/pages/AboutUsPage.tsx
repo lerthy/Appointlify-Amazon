@@ -7,8 +7,7 @@ import { supabase } from '../utils/supabaseClient';
 
 interface TeamMember {
   name: string;
-  role: string;
-  description: string;
+  roleKey: string;
   image?: string;
   email?: string;
   imageFileName?: string;
@@ -23,35 +22,25 @@ const AboutUsPage: React.FC = () => {
       const initialMembers = [
         {
           name: 'Lerdi Salihi',
-          role: 'AI Integration, Full Stack Developer, DevOps Apprentice',
-          description: 'Expert in AI integration, building intelligent chatbots that feel natural and help businesses automate customer interactions.',
+          roleKey: 'lerdi',
           email: 'lerdi890@gmail.com',
-          imageFileName: 'lerdi.jpeg', // or whatever the filename is in your bucket
+          imageFileName: 'lerdifoto.jpeg',
         },
         {
           name: 'Etrit Hasolli',
-          role: 'Full Stack Developer, Startup Founder',
-          description: 'Leads technical vision and client relationships with 2+ years of experience in building scalable web applications.',
+          roleKey: 'etrit',
           email: 'etrit.hasolli@gmail.com',
-          imageFileName: 'etrit.jpg',
-        },
-        {
-          name: 'Fatlum Mehmeti',
-          role: 'Backend Developer',
-          description: 'Specializes in creating robust backend systems that handle thousands of appointments seamlessly.',
-          imageFileName: 'fatlum.jpg',
+          imageFileName: 'etritfoto.jpeg',
         },
         {
           name: 'Jasin Avdiu',
-          role: 'Backend Developer',
-          description: 'Focuses on database optimization and API development to ensure lightning-fast performance.',
+          roleKey: 'jasin',
           email: 'avdiu.jasin04@gmail.com',
-          imageFileName: 'jasin.jpg',
+          imageFileName: 'jasinifoto.jpeg',
         },
         {
           name: 'Marjan Kolaj',
-          role: 'Backend Developer',
-          description: 'Expert in server architecture and ensuring the platform runs smoothly 24/7.',
+          roleKey: 'marjan',
           email: 'marijan.kolaj@student.uni-pr.edu',
           imageFileName: 'marjan.jpg',
         },
@@ -121,7 +110,7 @@ const AboutUsPage: React.FC = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-background via-white to-background relative overflow-hidden">
+      <section className="flex flex-row justify-center items-center py-20 bg-gradient-to-br from-background via-white to-background relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full animate-pulse"></div>
           <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -139,23 +128,34 @@ const AboutUsPage: React.FC = () => {
       </section>
 
       {/* Our Story Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 pt-0 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-background to-background rounded-2xl p-8 md:p-12 border border-primary/20 shadow-lg">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('about.ourStory.title')}</h2>
-            <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
-              <p>
-                {t('about.ourStory.p1')}
-              </p>
-              <p>
-                {t('about.ourStory.p2')}
-              </p>
-              <p>
-                {t('about.ourStory.p3')} <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent font-semibold">{t('about.ourStory.p3Highlight')}</span> {t('about.ourStory.p3End')}
-              </p>
-              <p>
-                {t('about.ourStory.p4')}
-              </p>
+          <div className="bg-gradient-to-br from-background to-background rounded-2xl p-8 md:p-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-center">
+              <div className="lg:col-span-2">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('about.ourStory.title')}</h2>
+                <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
+                  <p>
+                    {t('about.ourStory.p1')}
+                  </p>
+                  <p>
+                    {t('about.ourStory.p2')}
+                  </p>
+                  <p>
+                    {t('about.ourStory.p3')} <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent font-semibold">{t('about.ourStory.p3Highlight')}</span> {t('about.ourStory.p3End')}
+                  </p>
+                  <p>
+                    {t('about.ourStory.p4')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-center lg:justify-end">
+                <img 
+                  src="/logo-transparent.png" 
+                  alt="Appointly Logo" 
+                  className="w-full h-full object-contain opacity-90"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -196,9 +196,9 @@ const AboutUsPage: React.FC = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Our Core Values</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('about.coreValues.title')}</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              These principles guide everything we do and shape how we work with our clients.
+              {t('about.coreValues.subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -227,13 +227,13 @@ const AboutUsPage: React.FC = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('about.team.title')}</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              The talented individuals behind Appointly-ks's success.
+              {t('about.team.subtitle')}
             </p>
           </div>
           
-          {/* First Row - 3 members */}
+          {/* First Row - 2 members */}
           <div className="flex flex-wrap justify-center gap-12 mb-12">
-            {teamMembers.slice(0, 3).map((member, index) => (
+            {teamMembers.slice(0, 2).map((member, index) => (
               <div 
                 key={index}
                 className="text-center group max-w-xs"
@@ -250,15 +250,15 @@ const AboutUsPage: React.FC = () => {
                   )}
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-2">{member.name}</h3>
-                <p className="text-primary font-medium mb-4">{member.role}</p>
-                <p className="text-gray-700">{member.description}</p>
+                <p className="text-primary font-medium mb-4">{t(`about.team.members.${member.roleKey}.role`)}</p>
+                <p className="text-gray-700">{t(`about.team.members.${member.roleKey}.description`)}</p>
               </div>
             ))}
           </div>
 
           {/* Second Row - 2 members */}
           <div className="flex flex-wrap justify-center gap-12">
-            {teamMembers.slice(3, 5).map((member, index) => (
+            {teamMembers.slice(2, 5).map((member, index) => (
               <div 
                 key={index}
                 className="text-center group max-w-xs"
@@ -275,8 +275,8 @@ const AboutUsPage: React.FC = () => {
                   )}
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-2">{member.name}</h3>
-                <p className="text-primary font-medium mb-4">{member.role}</p>
-                <p className="text-gray-700">{member.description}</p>
+                <p className="text-primary font-medium mb-4">{t(`about.team.members.${member.roleKey}.role`)}</p>
+                <p className="text-gray-700">{t(`about.team.members.${member.roleKey}.description`)}</p>
               </div>
             ))}
           </div>
@@ -289,7 +289,7 @@ const AboutUsPage: React.FC = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('about.milestones.title')}</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              Key milestones in our growth and evolution as a company.
+              {t('about.journey.subtitle')}
             </p>
           </div>
           <div className="space-y-8 max-w-4xl mx-auto">

@@ -476,11 +476,37 @@
     "milestones": {
       "title": "Udhëtimi Ynë",
       "2024": "Appointly-ks u themelua në Prishtinë me një vizion për të transformuar rezervimin e termineve",
-      "2025": "Lançuam chatbot me AI dhe shërbejmë biznese në të gjithë Kosovën",
+      "2025": "Lancuam chatbot me AI dhe shërbejmë biznese në të gjithë Kosovën",
       "future": "Duke e bërë Appointly-ks platformën më të besuar të menaxhimit të termineve në rajon"
     },
     "team": {
-      "title": "Njihuni me Ekipin Tonë"
+      "title": "Njihuni me Ekipin Tonë",
+      "subtitle": "Individët e talentuar pas suksesit të Appointly-ks.",
+      "members": {
+        "lerdi": {
+          "role": "Integrim AI, Zhvillues Full Stack, Praktikant DevOps",
+          "description": "Ekspert në integrimin e AI-së, ndërton chatbot inteligjentë që ndihen natyrshëm dhe ndihmojnë bizneset të automatizojnë ndërveprimet me klientët."
+        },
+        "etrit": {
+          "role": "Zhvillues Full Stack, Themelues Startup",
+          "description": "Udhëheq vizionin teknik dhe marrëdhëniet me klientët me 2+ vite përvojë në ndërtimin e aplikacioneve web të shkallëzueshme."
+        },
+        "jasin": {
+          "role": "Zhvillues Backend, Themelues Startup",
+          "description": "Fokusohet në optimizimin e bazës së të dhënave dhe zhvillimin e API-ve për të siguruar performancë të shpejtë."
+        },
+        "marjan": {
+          "role": "Zhvillues Backend",
+          "description": "Ekspert në arkitekturën e serverëve dhe sigurimin që platforma funksionon pa probleme 24/7."
+        }
+      }
+    },
+    "coreValues": {
+      "title": "Vlerat Tona Thelbësore",
+      "subtitle": "Këto parime udhëheqin gjithçka që bëjmë dhe formojnë mënyrën si punojmë me klientët tanë."
+    },
+    "journey": {
+      "subtitle": "Momentet kyçe në rritjen dhe evolucionin tonë si kompani."
     }
   },
   "services": {
