@@ -71,7 +71,7 @@ const Header: React.FC = () => {
               >
                 <img
                   className="h-9 mr-0 sm:mr-3"
-                  src="/logo-transparent.png"
+                  src="/logo-white.png"
                   alt="Appointly logo"
                 />
                 <span className="hidden sm:inline text-xl font-bold text-white tracking-tight">

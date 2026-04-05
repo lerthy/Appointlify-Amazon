@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
             {/* Company Info */}
             <div className="space-y-5 flex flex-col items-center text-center md:items-start md:text-left">
               <div className="flex items-center gap-3">
-                <img src="/logo-transparent.png" alt="Appointly" className="h-9" />
+                <img src="/logo-white.png" alt="Appointly" className="h-9" />
                 <span className="text-xl font-bold tracking-tight">Appointly-ks</span>
               </div>
               <p className="text-steel-400 text-sm leading-relaxed max-w-xs">

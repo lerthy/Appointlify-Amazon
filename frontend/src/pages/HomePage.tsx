@@ -55,7 +55,7 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.12 } }
 };
 
-function AnimatedCounter({ target, suffix = '' }: { target: string; suffix?: string }) {
+function AnimatedCounter({ target }: { target: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true });
   const [value, setValue] = useState('0');
@@ -64,7 +64,8 @@ function AnimatedCounter({ target, suffix = '' }: { target: string; suffix?: str
     if (!isInView) return;
     const num = parseInt(target.replace(/\D/g, ''));
     if (isNaN(num)) { setValue(target); return; }
-    const prefix = target.replace(/[\d.]+.*/, '');
+    const prefix = target.match(/^[^\d]*/)?.[0] || '';
+    const suffix = target.match(/[^\d]*$/)?.[0] || '';
     const duration = 1500;
     const steps = 40;
     const increment = num / steps;
@@ -77,7 +78,7 @@ function AnimatedCounter({ target, suffix = '' }: { target: string; suffix?: str
       if (step >= steps) clearInterval(timer);
     }, duration / steps);
     return () => clearInterval(timer);
-  }, [isInView, target, suffix]);
+  }, [isInView, target]);
 
   return <span ref={ref}>{value}</span>;
 }

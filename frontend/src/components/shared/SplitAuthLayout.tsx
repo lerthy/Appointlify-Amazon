@@ -30,7 +30,7 @@ const SplitAuthLayout: React.FC<SplitAuthLayoutProps> = ({ title, subtitle, quot
         {/* Top - Brand */}
         <div className="relative z-10 pt-10 px-10">
           <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
-            <img src="/logo-transparent.png" alt="Appointly" className="h-9 group-hover:opacity-90 transition-opacity" />
+            <img src="/logo-white.png" alt="Appointly" className="h-9 group-hover:opacity-90 transition-opacity" />
             <span className="text-xl font-bold text-white tracking-tight group-hover:text-white/90 transition-colors">Appointly-ks</span>
           </button>
         </div>
@@ -77,7 +77,7 @@ const SplitAuthLayout: React.FC<SplitAuthLayoutProps> = ({ title, subtitle, quot
             {/* Mobile header */}
             <div className="md:hidden flex flex-col items-center text-center mb-8 space-y-3">
               <button onClick={() => navigate('/')} className="flex items-center gap-2 mb-2">
-                <img src="/logo-transparent.png" alt="Appointly" className="h-8" />
+                <img src="/logo-white.png" alt="Appointly" className="h-8" />
                 <span className="text-xl font-bold text-primary">Appointly-ks</span>
               </button>
               <h1 className="text-xl font-extrabold text-navy-900">{title}</h1>
