@@ -106,11 +106,11 @@ const AboutUsPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
       {/* Hero Section */}
-      <section className="flex flex-row justify-center items-center py-20 bg-gradient-to-br from-background via-white to-background relative overflow-hidden">
+      <section className="flex flex-row justify-center items-center py-20 bg-gradient-to-br  via-white  relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full animate-pulse"></div>
           <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -130,7 +130,7 @@ const AboutUsPage: React.FC = () => {
       {/* Our Story Section */}
       <section className="py-20 pt-0 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-background to-background rounded-2xl p-8 md:p-12">
+          <div className="bg-gradient-to-br rounded-2xl p-8 md:p-12">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-center">
               <div className="lg:col-span-2">
                 <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('about.ourStory.title')}</h2>
@@ -302,7 +302,7 @@ const AboutUsPage: React.FC = () => {
                   <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">{milestone.year}</span>
                 </div>
                 <div className="flex-shrink-0 w-4 h-4 bg-primary rounded-full mr-8 animate-pulse"></div>
-                <div className="flex-grow bg-gradient-to-br from-background to-background p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-primary/20">
+                <div className="flex-grow bg-gradient-to-br p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 border border-primary/20">
                   <p className="text-gray-700">{milestone.event}</p>
                 </div>
               </div>

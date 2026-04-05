@@ -241,7 +241,7 @@ const Analytics: React.FC = () => {
                 {/* Customers Served */}
                 <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg sm:block sm:p-4">
                   <div className="flex items-center">
-                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2" />
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary mr-2" />
                     <h4 className="text-xs sm:text-sm font-medium text-gray-500">{t('analytics.stats.customersServed')}</h4>
                   </div>
                   <p className="text-xl sm:text-2xl font-bold sm:mt-2">{analytics.customersServed}</p>

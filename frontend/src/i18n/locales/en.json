@@ -14,6 +14,7 @@
     "yes": "Yes",
     "no": "No",
     "search": "Search",
+    "and": "and",
     "noResults": "No results found",
     "required": "Required",
     "optional": "Optional",
@@ -586,6 +587,8 @@
       }
     },
     "additional": {
+      "sectionTitle": "Additional Features",
+      "sectionSubtitle": "Complete your appointment management with our complementary features.",
       "timeManagement": {
         "title": "Time Management",
         "description": "Optimize your schedule with smart time slot management."
@@ -604,7 +607,17 @@
       }
     },
     "whatsIncluded": "What's Included:",
-    "technologies": "Technologies:"
+    "technologies": "Technologies:",
+    "process": {
+      "title": "Our Process",
+      "subtitle": "A proven methodology that ensures successful implementation.",
+      "steps": [
+        { "step": "01", "title": "Discovery", "description": "Understanding your business and requirements" },
+        { "step": "02", "title": "Setup", "description": "Configuring your account and preferences" },
+        { "step": "03", "title": "Integration", "description": "Connecting with your existing tools" },
+        { "step": "04", "title": "Launch", "description": "Going live with ongoing support" }
+      ]
+    }
   },
   "contact": {
     "title": "Get In",
@@ -646,6 +659,28 @@
       "workingHours": "Working Hours",
       "workingDesc": "Central European Time",
       "weekendClosed": "Weekend: Closed"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Common questions about our services and process.",
+      "items": [
+        {
+          "question": "What are your business hours?",
+          "answer": "We're available Monday through Friday, 9:00 AM to 6:00 PM CET. For urgent matters outside business hours, please email us and we'll respond as soon as possible."
+        },
+        {
+          "question": "How quickly will I get a response?",
+          "answer": "We typically respond to all inquiries within 24 hours during business days. For urgent technical issues, we aim to respond within 4 hours."
+        },
+        {
+          "question": "Do you offer demos?",
+          "answer": "Yes! We'd be happy to provide a personalized demo of our platform. Simply select \"Request a Demo\" in the contact form and we'll schedule a demo at your convenience."
+        },
+        {
+          "question": "Can I get support in Albanian?",
+          "answer": "Absolutely! Our team is fluent in both English and Albanian. Feel free to contact us in whichever language you're most comfortable with."
+        }
+      ]
     }
   },
   "employees": {
@@ -1014,94 +1049,140 @@
     "lastUpdated": "Last updated",
     "backToHome": "Back to Home",
     "sections": {
-      "introduction": {
+      "s1": {
         "title": "1. Introduction",
-        "content": "Welcome to Appointly-ks (\"we,\" \"our,\" or \"us\"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our appointment booking platform."
+        "content": "Welcome to Appointly-ks (\"we,\" \"our,\" or \"us\"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our appointment booking platform operating in Kosovo."
       },
-      "informationCollected": {
+      "s2": {
         "title": "2. Information We Collect",
-        "personalInfoTitle": "Personal Information",
-        "personalInfoDesc": "We collect information that you provide directly to us, including:",
-        "personalInfoItems": [
-          "Name, email address, and phone number",
-          "Business information (for business accounts)",
-          "Appointment details and preferences",
-          "Payment information (processed securely through third-party payment processors)",
-          "Communications with us, including customer support inquiries"
+        "businessTitle": "Personal Information for Business Accounts",
+        "businessDesc": "When you register a business account, we collect:",
+        "businessItems": [
+          "Business name, owner name, and contact information (email, phone)",
+          "Business description and category",
+          "Business address (for map display purposes)",
+          "Business logo (stored in our secure cloud storage)",
+          "Account credentials (email and securely hashed password)"
         ],
-        "autoCollectedTitle": "Automatically Collected Information",
-        "autoCollectedItems": [
-          "Device information (IP address, browser type, operating system)",
-          "Usage data (pages visited, time spent, features used)",
-          "Cookies and similar tracking technologies",
-          "Location data (with your permission)"
+        "employeeTitle": "Employee Information",
+        "employeeDesc": "Business accounts may add employee data including:",
+        "employeeItems": [
+          "Employee name, email, phone, and role",
+          "Working hours and schedules",
+          "Profile photos"
+        ],
+        "customerTitle": "Customer Information",
+        "customerDesc": "When customers book appointments, we collect:",
+        "customerItems": [
+          "Name, email address, and phone number",
+          "Appointment details (date, time, service, notes)",
+          "Communication preferences"
+        ],
+        "googleTitle": "Google Account Information (Optional)",
+        "googleDesc": "If you choose to connect your Google account for calendar synchronization, we collect:",
+        "googleItems": [
+          "Google account identifier and email",
+          "OAuth access and refresh tokens (securely stored)",
+          "Calendar access permissions you grant"
+        ],
+        "autoTitle": "Automatically Collected Information",
+        "autoItems": [
+          "Browser type and device information",
+          "Language preferences",
+          "Session data for authentication purposes"
         ]
       },
-      "howWeUse": {
+      "s3": {
         "title": "3. How We Use Your Information",
         "intro": "We use the information we collect to:",
         "items": [
           "Provide, maintain, and improve our appointment booking services",
-          "Process appointments and send confirmations",
-          "Send automated notifications via email and SMS",
+          "Process appointment bookings and send confirmation emails",
+          "Send SMS notifications for appointment confirmations and reminders (via Twilio)",
+          "Synchronize appointments with Google Calendar (when enabled)",
+          "Enable business dashboard analytics and reporting",
           "Provide customer support and respond to inquiries",
-          "Process payments and prevent fraud",
-          "Analyze usage patterns to enhance user experience",
-          "Send marketing communications (with your consent)",
-          "Comply with legal obligations",
-          "Improve our AI-powered features and recommendations"
+          "Send password reset and email verification communications",
+          "Display business location on maps (using Google Maps)",
+          "Comply with legal obligations"
         ]
       },
-      "sharing": {
-        "title": "4. Information Sharing and Disclosure",
+      "s4": {
+        "title": "4. Third-Party Services",
+        "intro": "We use the following third-party services to operate our platform:",
+        "items": [
+          { "name": "Supabase", "desc": "Database hosting, user authentication, and file storage" },
+          { "name": "Twilio", "desc": "SMS notifications for appointment confirmations and reminders" },
+          { "name": "Gmail/SMTP", "desc": "Transactional email delivery (confirmations, password resets)" },
+          { "name": "Google OAuth", "desc": "Optional sign-in and calendar integration" },
+          { "name": "Google Maps", "desc": "Business address display and location services" },
+          { "name": "Netlify", "desc": "Application hosting and serverless functions" }
+        ],
+        "note": "Each of these services has their own privacy policies. We recommend reviewing them for more information about their data practices."
+      },
+      "s5": {
+        "title": "5. Information Sharing and Disclosure",
         "intro": "We may share your information with:",
         "items": [
-          "Service Providers: Third-party companies that help us operate our platform",
-          "Business Partners: When you book appointments with businesses using our platform",
-          "Legal Requirements: When required by law or to protect our rights",
-          "Business Transfers: In connection with a merger, acquisition, or sale of assets"
+          { "name": "Service Providers", "desc": "Third-party companies that help us operate our platform (as listed above)" },
+          { "name": "Business-Customer Relationship", "desc": "Customer information is shared with the business they book appointments with" },
+          { "name": "Legal Requirements", "desc": "When required by law or to protect our rights" },
+          { "name": "Business Transfers", "desc": "In connection with a merger, acquisition, or sale of assets" }
         ],
         "noSell": "We do not sell your personal information to third parties."
       },
-      "security": {
-        "title": "5. Data Security",
-        "content": "We implement appropriate technical and organizational security measures to protect your personal information, including encryption, secure servers, and regular security audits. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security."
+      "s6": {
+        "title": "6. Data Storage and Security",
+        "intro": "Your data is stored securely using Supabase's infrastructure. We implement appropriate technical and organizational security measures including:",
+        "items": [
+          "Encrypted data transmission (HTTPS/TLS)",
+          "Secure password hashing",
+          "OAuth 2.0 PKCE flow for authentication",
+          "Row-level security policies on database tables",
+          "Secure token storage for third-party integrations"
+        ],
+        "note": "However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security."
       },
-      "rights": {
-        "title": "6. Your Rights and Choices",
+      "s7": {
+        "title": "7. Local Storage and Browser Data",
+        "intro": "We store the following data in your browser's local storage:",
+        "items": [
+          { "name": "Authentication Session (Supabase Auth)", "desc": "Keeps you logged in and maintains your session security. Managed by Supabase authentication system using secure tokens." },
+          { "name": "User Profile", "desc": "Caches your profile information locally for faster page loads." },
+          { "name": "Language Preference", "desc": "Your selected language (English or Albanian)." }
+        ],
+        "note": "For more details, please see our Cookie Policy."
+      },
+      "s8": {
+        "title": "8. Your Rights and Choices",
         "intro": "You have the right to:",
         "items": [
           "Access and receive a copy of your personal information",
-          "Correct or update your information",
+          "Correct or update your information through your profile settings",
           "Delete your account and personal information",
-          "Opt-out of marketing communications",
-          "Disable cookies through your browser settings",
-          "Object to or restrict certain data processing activities"
+          "Disconnect Google Calendar integration at any time",
+          "Opt-out of SMS notifications",
+          "Clear browser storage through your browser settings"
         ],
         "contactInfo": "To exercise these rights, please contact us at"
       },
-      "retention": {
-        "title": "7. Data Retention",
-        "content": "We retain your personal information for as long as necessary to provide our services, comply with legal obligations, resolve disputes, and enforce our agreements. When you delete your account, we will delete or anonymize your information within 30 days, except where retention is required by law."
+      "s9": {
+        "title": "9. Data Retention",
+        "content": "We retain your personal information for as long as necessary to provide our services and comply with legal obligations. Appointment records are retained for business reporting purposes. When you delete your account, we will delete or anonymize your information within 30 days, except where retention is required by law."
       },
-      "international": {
-        "title": "8. International Data Transfers",
-        "content": "Your information may be transferred to and processed in countries other than your country of residence. We ensure appropriate safeguards are in place to protect your information in accordance with applicable data protection laws."
-      },
-      "children": {
-        "title": "9. Children's Privacy",
+      "s10": {
+        "title": "10. Children's Privacy",
         "content": "Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us immediately."
       },
-      "changes": {
-        "title": "10. Changes to This Privacy Policy",
+      "s11": {
+        "title": "11. Changes to This Privacy Policy",
         "content": "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the \"Last updated\" date. We encourage you to review this Privacy Policy periodically."
       },
-      "contact": {
-        "title": "11. Contact Us",
+      "s12": {
+        "title": "12. Contact Us",
         "intro": "If you have any questions about this Privacy Policy or our privacy practices, please contact us:",
-        "email": "Email",
-        "phone": "Phone",
-        "address": "Address"
+        "emailLabel": "Email:",
+        "addressLabel": "Address:"
       }
     }
   },
@@ -1110,116 +1191,147 @@
     "lastUpdated": "Last updated",
     "backToHome": "Back to Home",
     "sections": {
-      "acceptance": {
+      "s1": {
         "title": "1. Acceptance of Terms",
-        "content": "By accessing and using Appointly-ks (\"Service,\" \"Platform,\" \"we,\" \"us,\" or \"our\"), you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service."
+        "content": "By accessing and using Appointly-ks (\"Service,\" \"Platform,\" \"we,\" \"us,\" or \"our\"), you accept and agree to be bound by these Terms of Service (\"Terms\"). If you do not agree to these Terms, please do not use our Service. These Terms apply to all visitors, users, and others who access or use the Service."
       },
-      "description": {
+      "s2": {
         "title": "2. Description of Service",
-        "intro": "Appointly-ks is an AI-powered appointment booking SaaS platform that enables businesses to manage appointments, employees, and services while allowing customers to book appointments online. Our Service includes:",
+        "intro": "Appointly-ks is an appointment booking platform that enables businesses in Kosovo to manage appointments, employees, and services while allowing customers to book appointments online. Our Service includes:",
         "items": [
-          "Business dashboard and management tools",
-          "Employee and service management",
-          "Appointment scheduling and notifications",
-          "AI-powered chat assistance",
-          "Analytics and reporting features",
-          "Customer booking interface"
+          "Business dashboard for managing appointments, services, and employees",
+          "Online appointment scheduling and calendar management",
+          "Email and SMS notifications for appointment confirmations and reminders",
+          "Optional Google Calendar synchronization",
+          "Customer booking interface with service selection",
+          "Business analytics and reporting features",
+          "Review and rating system"
         ]
       },
-      "accounts": {
+      "s3": {
         "title": "3. User Accounts",
         "registrationTitle": "Registration",
         "registrationIntro": "To use certain features, you must register for an account. You agree to:",
         "registrationItems": [
-          "Provide accurate, current, and complete information",
+          "Provide accurate, current, and complete information during registration",
+          "Verify your email address to activate your account",
           "Maintain and update your information to keep it accurate",
           "Maintain the security of your password and account",
-          "Notify us immediately of any unauthorized use",
+          "Notify us immediately of any unauthorized use of your account",
           "Be responsible for all activities under your account"
         ],
         "accountTypesTitle": "Account Types",
-        "businessAccount": "Business Accounts: For businesses offering appointment-based services",
-        "customerAccount": "Customer Accounts: For individuals booking appointments"
+        "businessAccount": "Business Accounts: For businesses offering appointment-based services. Includes access to dashboard, employee management, service configuration, and analytics.",
+        "guestBooking": "Guest Booking: Customers can book appointments without creating an account by providing contact information."
       },
-      "acceptableUse": {
-        "title": "4. Acceptable Use Policy",
+      "s4": {
+        "title": "4. Service Plans and Pricing",
+        "intro": "Appointly-ks offers the following service plans:",
+        "items": [
+          { "name": "Free Plan", "desc": "Basic appointment scheduling with limited features, up to 50 appointments per month and 2 employees" },
+          { "name": "Starter Plan (€9.99/month)", "desc": "Unlimited appointments, up to 5 employees, email reminders, and basic analytics" },
+          { "name": "Professional Plan (€24.99/month)", "desc": "All features including unlimited employees, SMS reminders, advanced analytics, priority support, and custom branding" }
+        ],
+        "note": "Paid plans are currently under development. All users currently have access to free tier features. We will notify registered users when paid features become available."
+      },
+      "s5": {
+        "title": "5. Acceptable Use Policy",
         "intro": "You agree NOT to:",
         "items": [
           "Use the Service for any illegal or unauthorized purpose",
-          "Violate any laws in your jurisdiction",
+          "Violate any laws in your jurisdiction, including Kosovo law",
           "Infringe on intellectual property rights",
           "Transmit harmful code, viruses, or malware",
-          "Interfere with or disrupt the Service",
+          "Interfere with or disrupt the Service or its servers",
           "Attempt to gain unauthorized access to our systems",
           "Harass, abuse, or harm other users",
-          "Scrape, copy, or reproduce content without permission",
-          "Create fake or misleading appointments",
-          "Use automated systems to access the Service excessively"
+          "Create fake or misleading business profiles",
+          "Book fake appointments or abuse the booking system",
+          "Use automated systems to access the Service excessively",
+          "Scrape, copy, or reproduce content without permission"
         ]
       },
-      "appointments": {
-        "title": "5. Appointments and Bookings",
+      "s6": {
+        "title": "6. Appointments and Bookings",
         "forBusinessesTitle": "For Businesses",
         "forBusinessesItems": [
-          "You are responsible for managing your calendar and availability",
+          "You are responsible for maintaining accurate availability and working hours",
           "You must honor confirmed appointments or provide reasonable notice of cancellation",
-          "You must provide accurate service descriptions and pricing",
-          "You are responsible for the quality of services provided"
+          "You must provide accurate service descriptions, durations, and pricing",
+          "You are responsible for the quality of services provided to customers",
+          "You must respond to customer inquiries in a timely manner"
         ],
         "forCustomersTitle": "For Customers",
         "forCustomersItems": [
-          "You must provide accurate information when booking",
-          "You must arrive on time or provide notice of cancellation",
-          "You agree to the business's cancellation and refund policies",
-          "You are responsible for any fees or charges incurred"
+          "You must provide accurate contact information when booking",
+          "You must arrive on time for appointments",
+          "You may cancel appointments within one hour of booking through the provided cancellation link",
+          "You agree to the business's individual cancellation and service policies",
+          "You are responsible for any fees charged by the business for services rendered"
         ]
       },
-      "payment": {
-        "title": "6. Payment Terms",
-        "intro": "For business accounts:",
+      "s7": {
+        "title": "7. Third-Party Integrations",
+        "intro": "Our Service integrates with third-party services. By using these integrations, you agree to their respective terms:",
         "items": [
-          "Subscription fees are billed according to your selected plan",
-          "All fees are non-refundable except as required by law",
-          "We may change pricing with 30 days' notice",
-          "Payment processing is handled by third-party providers",
-          "You authorize us to charge your payment method on file",
-          "Late payments may result in service suspension"
-        ]
+          { "name": "Google Calendar", "desc": "When you connect your Google account, you authorize us to create, read, and update calendar events on your behalf" },
+          { "name": "SMS Notifications", "desc": "By providing a phone number, you consent to receive appointment-related SMS messages via Twilio" },
+          { "name": "Email Communications", "desc": "You will receive transactional emails related to your account and appointments" }
+        ],
+        "note": "You may disconnect Google Calendar integration at any time through your account settings."
       },
-      "intellectualProperty": {
-        "title": "7. Intellectual Property",
+      "s8": {
+        "title": "8. Intellectual Property",
         "content1": "The Service, including all content, features, and functionality, is owned by Appointly-ks and is protected by international copyright, trademark, and other intellectual property laws.",
-        "content2": "You retain ownership of content you create or upload, but grant us a license to use, store, and display it as necessary to provide the Service."
+        "content2": "You retain ownership of content you create or upload (such as business logos, service descriptions, and profile information), but grant us a non-exclusive, worldwide license to use, store, and display it as necessary to provide the Service."
       },
-      "privacyData": {
-        "title": "8. Privacy and Data Protection",
-        "content": "Your privacy is important to us. Our collection and use of personal information is described in our Privacy Policy. By using the Service, you consent to our data practices as described in the Privacy Policy."
+      "s9": {
+        "title": "9. Privacy and Data Protection",
+        "content": "Your privacy is important to us. Our collection and use of personal information is described in our Privacy Policy. By using the Service, you consent to our data practices as described in the Privacy Policy and Cookie Policy."
       },
-      "disclaimers": {
-        "title": "9. Disclaimers and Limitations of Liability",
+      "s10": {
+        "title": "10. Disclaimers and Limitations of Liability",
         "asIsTitle": "Service \"As Is\"",
         "asIsContent": "The Service is provided \"as is\" and \"as available\" without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.",
+        "platformTitle": "Platform Role",
+        "platformIntro": "Appointly-ks is a platform that connects businesses with customers. We are not responsible for:",
+        "platformItems": [
+          "The quality of services provided by businesses",
+          "Disputes between businesses and customers",
+          "Business cancellations or no-shows",
+          "Accuracy of business information provided by users"
+        ],
         "limitationTitle": "Limitation of Liability",
-        "limitationContent": "To the maximum extent permitted by law, Appointly-ks shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the Service."
+        "limitationContent": "To the maximum extent permitted by law, Appointly-ks shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, revenues, data, or goodwill resulting from your use of the Service."
       },
-      "indemnification": {
-        "title": "10. Indemnification",
-        "content": "You agree to indemnify, defend, and hold harmless Appointly-ks and its officers, directors, employees, and agents from any claims, liabilities, damages, losses, and expenses arising from your use of the Service or violation of these Terms."
+      "s11": {
+        "title": "11. Indemnification",
+        "content": "You agree to indemnify, defend, and hold harmless Appointly-ks and its officers, directors, employees, and agents from any claims, liabilities, damages, losses, and expenses arising from your use of the Service, your violation of these Terms, or your violation of any rights of another."
       },
-      "termination": {
-        "title": "11. Termination",
-        "content": "We may terminate or suspend your account and access to the Service at any time, with or without cause, and with or without notice. Upon termination, your right to use the Service will immediately cease."
+      "s12": {
+        "title": "12. Termination",
+        "intro": "We may terminate or suspend your account and access to the Service immediately, without prior notice, for:",
+        "items": [
+          "Violation of these Terms",
+          "Fraudulent or illegal activity",
+          "Abuse of the booking system",
+          "At our discretion for any reason with reasonable notice"
+        ],
+        "note": "You may cancel your account at any time by contacting us. Upon termination, your right to use the Service will immediately cease."
       },
-      "governingLaw": {
-        "title": "12. Governing Law",
-        "content": "These Terms shall be governed by and construed in accordance with the laws of Kosovo, without regard to its conflict of law provisions."
+      "s13": {
+        "title": "13. Changes to Terms",
+        "content": "We reserve the right to modify these Terms at any time. We will provide notice of material changes by posting the updated Terms on the Service and updating the \"Last updated\" date. Your continued use of the Service after changes constitutes acceptance of the new Terms."
       },
-      "contact": {
-        "title": "13. Contact Us",
-        "intro": "If you have any questions about these Terms of Service, please contact us:",
-        "email": "Email",
-        "phone": "Phone",
-        "address": "Address"
+      "s14": {
+        "title": "14. Governing Law",
+        "content": "These Terms shall be governed by and construed in accordance with the laws of the Republic of Kosovo, without regard to its conflict of law provisions. Any disputes arising from these Terms or your use of the Service shall be resolved in the courts of Prishtina, Kosovo."
+      },
+      "s15": {
+        "title": "15. Contact Information",
+        "intro": "For questions about these Terms of Service, please contact us:",
+        "emailLabel": "Email:",
+        "addressLabel": "Address:"
       }
     }
   },
@@ -1228,106 +1340,93 @@
     "lastUpdated": "Last updated",
     "backToHome": "Back to Home",
     "sections": {
-      "whatAreCookies": {
-        "title": "1. What Are Cookies?",
-        "content": "Cookies are small text files that are placed on your device (computer, smartphone, or tablet) when you visit our website. They are widely used to make websites work more efficiently and provide information to the owners of the site. Appointly-ks uses cookies to enhance your experience and improve our services."
+      "s1": {
+        "title": "1. What Are Cookies and Local Storage?",
+        "content": "Cookies are small text files stored on your device when you visit websites. Local storage is a similar technology that allows websites to store data in your browser. Appointly-ks primarily uses local storage (not traditional cookies) to enhance your experience and provide essential functionality."
       },
-      "howWeUse": {
-        "title": "2. How We Use Cookies",
-        "intro": "We use cookies for several important reasons:",
-        "items": [
-          "To keep you signed in to your account",
-          "To remember your preferences and settings",
-          "To understand how you use our platform",
-          "To improve the performance and functionality of our services",
-          "To provide personalized content and recommendations",
-          "To analyze traffic and user behavior",
-          "To enhance security and prevent fraud"
+      "s2": {
+        "title": "2. What We Store in Your Browser",
+        "essentialTitle": "Essential Storage (Required)",
+        "essentialDesc": "These are necessary for the platform to function properly. You cannot opt-out of these as they are required for basic functionality.",
+        "essentialItems": [
+          { "name": "Authentication Session (Supabase Auth)", "desc": "Keeps you logged in and maintains your session security. Managed by Supabase authentication system using secure tokens." },
+          { "name": "User Profile Data", "desc": "Caches your profile information locally for faster page loads." }
+        ],
+        "preferenceTitle": "Preference Storage",
+        "preferenceDesc": "These remember your preferences and settings.",
+        "preferenceItems": [
+          { "name": "Language Preference", "desc": "Remembers your selected language (English or Albanian)." }
         ]
       },
-      "typesOfCookies": {
-        "title": "3. Types of Cookies We Use",
-        "essential": {
-          "title": "Essential Cookies",
-          "content": "These cookies are necessary for the website to function properly. They enable core functionality such as security, network management, and accessibility. You cannot opt-out of these cookies.",
-          "items": [
-            "Session Cookies: Keep you logged in during your visit",
-            "Authentication Cookies: Verify your identity and access rights",
-            "Security Cookies: Protect against fraudulent activity"
-          ]
-        },
-        "performance": {
-          "title": "Performance and Analytics Cookies",
-          "content": "These cookies collect information about how visitors use our website, such as which pages are visited most often and if error messages are received. This helps us improve how our website works.",
-          "items": [
-            "Google Analytics: Tracks website usage and generates statistics",
-            "Performance Monitoring: Identifies technical issues and errors",
-            "Usage Tracking: Analyzes feature adoption and user behavior"
-          ]
-        },
-        "functionality": {
-          "title": "Functionality Cookies",
-          "content": "These cookies allow our website to remember choices you make and provide enhanced, personalized features.",
-          "items": [
-            "Preference Cookies: Remember your settings and preferences",
-            "Language Cookies: Store your language selection",
-            "Display Cookies: Remember your display preferences (theme, layout)"
-          ]
-        },
-        "targeting": {
-          "title": "Targeting and Advertising Cookies",
-          "content": "These cookies may be set through our site by our advertising partners to build a profile of your interests and show you relevant content.",
-          "items": [
-            "Marketing Cookies: Track your visits across websites",
-            "Social Media Cookies: Enable sharing on social platforms",
-            "Retargeting Cookies: Show relevant ads on other websites"
-          ]
-        }
-      },
-      "thirdParty": {
-        "title": "4. Third-Party Cookies",
-        "intro": "We may use third-party services that set their own cookies. These services include:",
+      "s3": {
+        "title": "3. Third-Party Services",
+        "intro": "The following third-party services may set their own cookies or store data when you use our platform:",
         "items": [
-          "Google Analytics: For website analytics and insights",
-          "Payment Processors: For secure payment processing",
-          "Email Services: For sending transactional emails",
-          "Social Media Platforms: For social sharing and login features",
-          "AI Services: For powering our AI chat assistance"
+          { "name": "Supabase", "desc": "Our authentication and database provider. Supabase stores authentication tokens securely in local storage to maintain your login session." },
+          { "name": "Google Services (Optional)", "desc": "If you connect your Google account for calendar synchronization, Google may set cookies for authentication purposes. Additionally, Google Maps embeds may set cookies when viewing business locations." },
+          { "name": "Netlify", "desc": "Our hosting provider may set cookies for security and performance purposes." }
+        ]
+      },
+      "s4": {
+        "title": "4. What We Do NOT Use",
+        "intro": "To be transparent, we want to clarify that we currently do NOT use:",
+        "items": [
+          "Google Analytics or other website analytics tracking",
+          "Advertising or marketing cookies",
+          "Social media tracking pixels",
+          "Retargeting or behavioral advertising technologies",
+          "Cross-site tracking cookies"
         ],
-        "note": "These third parties have their own privacy policies and cookie policies. We recommend reviewing them."
+        "note": "If we add any of these services in the future, we will update this policy and provide appropriate notice."
       },
-      "duration": {
-        "title": "5. Cookie Duration",
-        "sessionTitle": "Session Cookies",
-        "sessionContent": "These temporary cookies are deleted when you close your browser. They help maintain your session while browsing our website.",
-        "persistentTitle": "Persistent Cookies",
-        "persistentContent": "These cookies remain on your device for a set period (ranging from days to years) or until you delete them. They help us recognize you when you return to our website."
+      "s5": {
+        "title": "5. Storage Duration",
+        "sessionTitle": "Session Data",
+        "sessionContent": "Authentication tokens are refreshed automatically and persist until you log out or clear your browser data. Supabase sessions have configurable expiration times for security.",
+        "preferenceTitle": "Preference Data",
+        "preferenceContent": "Language preferences persist indefinitely until you change them or clear your browser's local storage."
       },
-      "managing": {
-        "title": "6. Managing Your Cookie Preferences",
+      "s6": {
+        "title": "6. Managing Your Browser Storage",
+        "clearingTitle": "Clearing Local Storage",
+        "clearingIntro": "You can clear the data we store by:",
+        "clearingItems": [
+          "Logging out of your account (clears session data)",
+          "Using your browser's \"Clear Site Data\" feature",
+          "Clearing your browser's local storage through developer tools"
+        ],
         "browserTitle": "Browser Settings",
-        "browserIntro": "Most web browsers allow you to control cookies through their settings. You can:",
+        "browserIntro": "To manage local storage and cookies in your browser:",
         "browserItems": [
-          "View what cookies are stored and delete them individually",
-          "Block third-party cookies",
-          "Block cookies from specific websites",
-          "Block all cookies",
-          "Delete all cookies when you close your browser"
-        ],
-        "browserInstructions": "To manage cookies in popular browsers:",
-        "chromeInstructions": "Chrome: Settings → Privacy and security → Cookies and other site data",
-        "firefoxInstructions": "Firefox: Options → Privacy & Security → Cookies and Site Data",
-        "safariInstructions": "Safari: Preferences → Privacy → Manage Website Data",
-        "edgeInstructions": "Edge: Settings → Cookies and site permissions → Cookies and data stored",
-        "optOutTitle": "Opt-Out Tools",
-        "optOutContent": "You can opt-out of specific tracking services"
+          "Chrome: Settings → Privacy and security → Site Settings → View permissions and data stored across sites",
+          "Firefox: Settings → Privacy & Security → Cookies and Site Data → Manage Data",
+          "Safari: Preferences → Privacy → Manage Website Data",
+          "Edge: Settings → Cookies and site permissions → Manage and delete cookies and site data"
+        ]
       },
-      "contact": {
-        "title": "7. Contact Us",
-        "intro": "If you have any questions about our Cookie Policy, please contact us:",
-        "email": "Email",
-        "phone": "Phone",
-        "address": "Address"
+      "s7": {
+        "title": "7. Impact of Clearing Storage",
+        "intro": "If you clear your browser's local storage for our site:",
+        "items": [
+          "You will be logged out and need to sign in again",
+          "Your language preference will reset to the default",
+          "You will need to reconnect any Google Calendar integration"
+        ],
+        "note": "Your account data, appointments, and business information are stored on our servers and will not be affected by clearing browser storage."
+      },
+      "s8": {
+        "title": "8. Updates to This Policy",
+        "content": "We may update this Cookie Policy when we add new features or third-party integrations. We will update the \"Last updated\" date at the top of this page. We encourage you to review this policy periodically."
+      },
+      "s9": {
+        "title": "9. More Information",
+        "content": "For more information about how we handle your personal data, please review our Privacy Policy."
+      },
+      "s10": {
+        "title": "10. Contact Us",
+        "intro": "If you have any questions about our use of cookies and local storage, please contact us:",
+        "emailLabel": "Email:",
+        "addressLabel": "Address:"
       }
     }
   },

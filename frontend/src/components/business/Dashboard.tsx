@@ -173,14 +173,14 @@ const Dashboard: React.FC = () => {
           <div className="bg-white overflow-hidden shadow-md rounded-xl border border-gray-200">
             <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="flex items-center sm:flex-row flex-col sm:items-center">
-                <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-3">
-                  <Users className="h-6 w-6 sm:h-7 sm:w-7 text-green-600" />
+                <div className="hidden sm:flex flex-shrink-0 rounded-xl p-3">
+                  <Users className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>
                     <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">{t('dashboard.tabs.employees')}</dt>
                     <dd className="flex items-baseline justify-center sm:justify-start">
-                      <div className="text-2xl sm:text-3xl font-bold text-gray-900">{employees.length}</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-primary">{employees.length}</div>
                     </dd>
                   </dl>
                 </div>
@@ -191,7 +191,7 @@ const Dashboard: React.FC = () => {
             <div className="px-4 py-5 sm:px-6 sm:py-6">
               <div className="flex items-center sm:flex-row flex-col sm:items-center">
                 <div className="hidden sm:flex flex-shrink-0 bg-gradient-to-br from-accent/20 to-accent/30 rounded-xl p-3">
-                  <Briefcase className="h-6 w-6 sm:h-7 sm:w-7 text-accent" />
+                  <Briefcase className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
                 </div>
                 <div className="sm:ml-5 w-full text-center sm:text-left">
                   <dl>

@@ -39,8 +39,7 @@ const ContactPage: React.FC = () => {
     {
       icon: Mail,
       title: t('contact.info.emailUs'),
-      details: 'etrithasolli5@gmail.com',
-      details2: 'lerdi890@gmail.com',
+      details: 'info@appointly-ks.com',
       description: t('contact.info.emailDesc'),
     },
     {
@@ -263,32 +262,15 @@ const ContactPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Frequently Asked Questions
+              {t('contact.faq.title')}
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              Common questions about our services and process.
+              {t('contact.faq.subtitle')}
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                question: 'What are your business hours?',
-                answer: 'We\'re available Monday through Friday, 9:00 AM to 6:00 PM CET. For urgent matters outside business hours, please email us and we\'ll respond as soon as possible.',
-              },
-              {
-                question: 'How quickly will I get a response?',
-                answer: 'We typically respond to all inquiries within 24 hours during business days. For urgent technical issues, we aim to respond within 4 hours.',
-              },
-              {
-                question: 'Do you offer demos?',
-                answer: 'Yes! We\'d be happy to provide a personalized demo of our platform. Simply select "Request a Demo" in the contact form and we\'ll schedule a demo at your convenience.',
-              },
-              {
-                question: 'Can I get support in Albanian?',
-                answer: 'Absolutely! Our team is fluent in both English and Albanian. Feel free to contact us in whichever language you\'re most comfortable with.',
-              },
-            ].map((faq, index) => (
+            {(t('contact.faq.items', { returnObjects: true }) as Array<{ question: string; answer: string }>).map((faq, index) => (
               <div 
                 key={index}
                 className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-primary/20"

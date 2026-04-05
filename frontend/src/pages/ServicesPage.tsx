@@ -174,7 +174,7 @@ const ServicesPage: React.FC = () => {
                     <p className="text-lg text-gray-700 mb-8 leading-relaxed">{service.description}</p>
                     
                     <div className="mb-8">
-                      <h3 className="font-semibold text-gray-900 mb-4 text-lg">What's Included:</h3>
+                      <h3 className="font-semibold text-gray-900 mb-4 text-lg">{t('services.whatsIncluded')}</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {service.features.map((feature, featureIndex) => (
                           <div key={featureIndex} className="flex items-center hover:-translate-y-1 transition-all duration-200">
@@ -186,7 +186,7 @@ const ServicesPage: React.FC = () => {
                     </div>
 
                     <div className="mb-8">
-                      <h3 className="font-semibold text-gray-900 mb-4 text-lg">Technologies:</h3>
+                      <h3 className="font-semibold text-gray-900 mb-4 text-lg">{t('services.technologies')}</h3>
                       <div className="flex flex-wrap gap-2">
                         {service.technologies.map((tech, techIndex) => (
                           <span key={techIndex} className="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium hover:scale-105 transition-transform duration-200">
@@ -209,7 +209,7 @@ const ServicesPage: React.FC = () => {
                           <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
                           <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
                           <div className="h-32 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-                            <Icon className="h-16 w-16 text-primary animate-pulse" />
+                            <Icon className="h-16 w-16 text-white animate-pulse" />
                           </div>
                           <div className="flex space-x-2">
                             <div className="flex-1 h-8 bg-primary rounded hover:scale-105 transition-transform"></div>
@@ -231,10 +231,10 @@ const ServicesPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Additional Features
+              {t('services.additional.sectionTitle')}
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              Complete your appointment management with our complementary features.
+              {t('services.additional.sectionSubtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -262,19 +262,14 @@ const ServicesPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Our Process
+              {t('services.process.title')}
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              A proven methodology that ensures successful implementation.
+              {t('services.process.subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              { step: '01', title: 'Discovery', description: 'Understanding your business and requirements' },
-              { step: '02', title: 'Setup', description: 'Configuring your account and preferences' },
-              { step: '03', title: 'Integration', description: 'Connecting with your existing tools' },
-              { step: '04', title: 'Launch', description: 'Going live with ongoing support' },
-            ].map((phase, index) => (
+            {(t('services.process.steps', { returnObjects: true }) as Array<{ step: string; title: string; description: string }>).map((phase, index) => (
               <div 
                 key={index}
                 className="text-center transition-all duration-300 hover:-translate-y-2"

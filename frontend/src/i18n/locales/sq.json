@@ -14,6 +14,7 @@
     "yes": "Po",
     "no": "Jo",
     "search": "Kërko",
+    "and": "dhe",
     "noResults": "Nuk u gjetën rezultate",
     "required": "E detyrueshme",
     "optional": "Opsionale",
@@ -448,8 +449,8 @@
     "subtitle": "Jemi një ekip i pasionuar zhvilluesish, dizajnerësh dhe inovatorësh të përkushtuar për të krijuar përvojë të jashtëzakonshme rezervimi terminesh që sjellin rezultate reale biznesi.",
     "ourStory": {
       "title": "Historia Jonë",
-      "p1": "Filloi gjithçka në fund të vitit 2024, në zemër të Prishtinës, Kosovë. Pesë zhvillues të pasionuar u ulën në një kafene të vogël, të frustruar nga thirrjet e pafundme telefonike dhe terminet e humbura që i shihnin bizneset duke luftuar çdo ditë. \"Duhet të ketë një mënyrë më të mirë,\" tha Etriti, dhe ajo shkëndijë ideje do të bëhej së shpejti Appointly-ks.",
-      "p2": "Ajo që filloi si sesione kodimi natën vonë dhe filxhanë kafeje të pafund u evoluua shpejt në diçka më të madhe. Lerdi solli ekspertizën e tij në integrimin e AI-së, duke ëndërruar për një chatbot që mund t'i trajtonte rezervimet aq natyrshëm sa një recepsioniste njerëzore. Fatlumi, Jasini dhe Marjani punuan pa pushim për të ndërtuar një backend të fortë që mund të trajtonte mijëra termine pa u lodhur.",
+      "p1": "Filloi gjithçka në fund të vitit 2024, në zemër të Prishtinës, Kosovë. Katër zhvillues të pasionuar u ulën në një kafene të vogël, të frustruar nga thirrjet e pafundme telefonike dhe terminet e humbura që i shihnin bizneset duke luftuar çdo ditë. \"Duhet të ketë një mënyrë më të mirë,\" tha Etriti, dhe ajo shkëndijë ideje do të bëhej së shpejti Appointly-ks.",
+      "p2": "Ajo që filloi si sesione kodimi natën vonë dhe filxhanë kafeje të pafund u evoluua shpejt në diçka më të madhe. Lerdi solli ekspertizën e tij në integrimin e AI-së, duke ëndërruar për një chatbot që mund t'i trajtonte rezervimet aq natyrshëm sa një recepsioniste njerëzore. Jasini dhe Marjani punuan pa pushim për të ndërtuar një backend të fortë që mund të trajtonte mijëra termine pa u lodhur.",
       "p3": "Filluam me një pyetje të thjeshtë:",
       "p3Highlight": "\"Po sikur rezervimi i një termini të ishte aq i lehtë sa dërgimi i një mesazhi?\"",
       "p3End": "Muaj zhvillimi, përsëritje të panumërta dhe qindra filxhanë kafeje më vonë, kishim përgjigjen tonë. Appointly-ks lindi – një platformë që nuk planifikon vetëm termine, por transformon mënyrën si bizneset lidhen me klientët e tyre.",
@@ -586,6 +587,8 @@
       }
     },
     "additional": {
+      "sectionTitle": "Veçori Shtesë",
+      "sectionSubtitle": "Plotësojeni menaxhimin e termineve me veçoritë tona plotësuese.",
       "timeManagement": {
         "title": "Menaxhimi i Kohës",
         "description": "Optimizoni orarin tuaj me menaxhim të zgjuar të sloteve kohore."
@@ -604,7 +607,17 @@
       }
     },
     "whatsIncluded": "Çfarë Përfshihet:",
-    "technologies": "Teknologjitë:"
+    "technologies": "Teknologjitë:",
+    "process": {
+      "title": "Procesi Ynë",
+      "subtitle": "Metodologji e provuar që siguron zbatim të suksesshëm.",
+      "steps": [
+        { "step": "01", "title": "Zbulim", "description": "Të kuptuarit e biznesit dhe kërkesave tuaja" },
+        { "step": "02", "title": "Konfigurim", "description": "Konfigurimi i llogarisë dhe preferencave tuaja" },
+        { "step": "03", "title": "Integrim", "description": "Lidhja me mjetet ekzistuese tuaja" },
+        { "step": "04", "title": "Nisje", "description": "Aktivizimi me mbështetje të vazhdueshme" }
+      ]
+    }
   },
   "contact": {
     "title": "Na",
@@ -646,6 +659,28 @@
       "workingHours": "Orari i Punës",
       "workingDesc": "Ora e Europës Qendrore",
       "weekendClosed": "Fundjavë: Mbyllur"
+    },
+    "faq": {
+      "title": "Pyetjet e Shpeshta",
+      "subtitle": "Pyetjet e zakonshme rreth shërbimeve dhe procesit tonë.",
+      "items": [
+        {
+          "question": "Cilat janë oraret tuaja të punës?",
+          "answer": "Jemi të disponueshëm të Hënën deri të Premten, nga ora 9:00 deri në 18:00 CET. Për çështje urgjente jashtë orarit të punës, ju lutem na dërgoni email dhe do t'ju përgjigjemi sa më shpejt të jetë e mundur."
+        },
+        {
+          "question": "Sa shpejt do të marr një përgjigje?",
+          "answer": "Zakonisht i përgjigjemi të gjitha pyetjeve brenda 24 orëve gjatë ditëve të punës. Për çështje teknike urgjente, synojmë të përgjigjemi brenda 4 orëve."
+        },
+        {
+          "question": "A ofroni demo?",
+          "answer": "Po! Do të ishim të lumtur t'ju ofrojmë një demo të personalizuar të platformës sonë. Thjesht zgjidhni \"Kërko një Demo\" në formularin e kontaktit dhe do të planifikojmë një demo sipas disponueshmërisë suaj."
+        },
+        {
+          "question": "A mund të marr mbështetje në gjuhën shqipe?",
+          "answer": "Natyrisht! Ekipi ynë flet rrjedhshëm si anglisht ashtu edhe shqip. Mos ngurroni të na kontaktoni në çfarëdo gjuhe që ju është më e rehatshme."
+        }
+      ]
     }
   },
   "employees": {
@@ -1014,94 +1049,140 @@
     "lastUpdated": "Përditësuar së fundi",
     "backToHome": "Kthehu në Faqen Kryesore",
     "sections": {
-      "introduction": {
+      "s1": {
         "title": "1. Hyrje",
-        "content": "Mirë se vini në Appointly-ks (\"ne,\" \"jonë,\" ose \"na\"). Jemi të përkushtuar për të mbrojtur informacionin tuaj personal dhe të drejtën tuaj për privatësi. Kjo Politikë e Privatësisë shpjegon si mbledhim, përdorim, zbulojmë dhe mbrojmë informacionin tuaj kur përdorni platformën tonë të rezervimit të termineve."
+        "content": "Mirë se vini në Appointly-ks (\"ne,\" \"jonë,\" ose \"na\"). Jemi të përkushtuar për të mbrojtur informacionin tuaj personal dhe të drejtën tuaj për privatësi. Kjo Politikë e Privatësisë shpjegon si mbledhim, përdorim, zbulojmë dhe mbrojmë informacionin tuaj kur përdorni platformën tonë të rezervimit të termineve që operon në Kosovë."
       },
-      "informationCollected": {
+      "s2": {
         "title": "2. Informacioni që Mbledhim",
-        "personalInfoTitle": "Informacioni Personal",
-        "personalInfoDesc": "Ne mbledhim informacion që na e jepni drejtpërdrejt, duke përfshirë:",
-        "personalInfoItems": [
-          "Emri, adresa email dhe numri i telefonit",
-          "Informacioni i biznesit (për llogaritë e biznesit)",
-          "Detajet dhe preferencat e termineve",
-          "Informacioni i pagesës (procesuar në mënyrë të sigurt përmes procesuesve të palëve të treta)",
-          "Komunikimet me ne, përfshirë pyetjet e mbështetjes së klientit"
+        "businessTitle": "Informacioni Personal për Llogaritë e Biznesit",
+        "businessDesc": "Kur regjistroni një llogari biznesi, ne mbledhim:",
+        "businessItems": [
+          "Emri i biznesit, emri i pronarit dhe informacioni i kontaktit (email, telefon)",
+          "Përshkrimi dhe kategoria e biznesit",
+          "Adresa e biznesit (për qëllime të shfaqjes në hartë)",
+          "Logoja e biznesit (ruajtur në ruajtjen tonë të sigurt cloud)",
+          "Kredencialet e llogarisë (email dhe fjalëkalim i kodifikuar në mënyrë të sigurt)"
         ],
-        "autoCollectedTitle": "Informacioni i Mbledhur Automatikisht",
-        "autoCollectedItems": [
-          "Informacioni i pajisjes (adresa IP, lloji i shfletuesit, sistemi operativ)",
-          "Të dhënat e përdorimit (faqet e vizituara, koha e kaluar, veçoritë e përdorura)",
-          "Cookie-t dhe teknologjitë e ngjashme të gjurmimit",
-          "Të dhënat e vendndodhjes (me lejen tuaj)"
+        "employeeTitle": "Informacioni i Punonjësve",
+        "employeeDesc": "Llogaritë e biznesit mund të shtojnë të dhëna për punonjësit, duke përfshirë:",
+        "employeeItems": [
+          "Emri, email-i, telefoni dhe roli i punonjësit",
+          "Oraret dhe planifikimet e punës",
+          "Fotot e profilit"
+        ],
+        "customerTitle": "Informacioni i Klientëve",
+        "customerDesc": "Kur klientët rezervojnë termine, ne mbledhim:",
+        "customerItems": [
+          "Emri, adresa email dhe numri i telefonit",
+          "Detajet e terminit (data, ora, shërbimi, shënimet)",
+          "Preferencat e komunikimit"
+        ],
+        "googleTitle": "Informacioni i Llogarisë Google (Opsional)",
+        "googleDesc": "Nëse zgjidhni të lidhni llogarinë tuaj Google për sinkronizim kalendari, ne mbledhim:",
+        "googleItems": [
+          "Identifikuesi i llogarisë Google dhe email-i",
+          "Tokenat e aksesit dhe rifreskimit OAuth (të ruajtur në mënyrë të sigurt)",
+          "Lejet e aksesit në kalendar që ju jepni"
+        ],
+        "autoTitle": "Informacioni i Mbledhur Automatikisht",
+        "autoItems": [
+          "Lloji i shfletuesit dhe informacioni i pajisjes",
+          "Preferencat gjuhësore",
+          "Të dhënat e sesionit për qëllime autentifikimi"
         ]
       },
-      "howWeUse": {
+      "s3": {
         "title": "3. Si e Përdorim Informacionin Tuaj",
         "intro": "Ne përdorim informacionin që mbledhim për të:",
         "items": [
           "Ofruar, mirëmbajtur dhe përmirësuar shërbimet tona të rezervimit të termineve",
-          "Procesuar terminet dhe dërguar konfirmime",
-          "Dërguar njoftime automatike përmes email-it dhe SMS-it",
+          "Procesuar rezervimet e termineve dhe dërguar email konfirmimi",
+          "Dërguar njoftime SMS për konfirmime dhe kujtesa termini (përmes Twilio)",
+          "Sinkronizuar terminet me Google Calendar (kur është aktivizuar)",
+          "Mundësuar analitikën dhe raportimin e panelit të biznesit",
           "Ofruar mbështetje për klientët dhe iu përgjigjur pyetjeve",
-          "Procesuar pagesat dhe parandaluar mashtrimin",
-          "Analizuar modelet e përdorimit për të përmirësuar përvojën e përdoruesit",
-          "Dërguar komunikime marketingu (me pëlqimin tuaj)",
-          "Përmbushur detyrimet ligjore",
-          "Përmirësuar veçoritë dhe rekomandimet tona të fuqizuara nga AI"
+          "Dërguar komunikime për rivendosjen e fjalëkalimit dhe verifikimin e email-it",
+          "Shfaqur vendndodhjen e biznesit në harta (duke përdorur Google Maps)",
+          "Përmbushur detyrimet ligjore"
         ]
       },
-      "sharing": {
-        "title": "4. Ndarja dhe Zbulimi i Informacionit",
+      "s4": {
+        "title": "4. Shërbimet e Palëve të Treta",
+        "intro": "Ne përdorim shërbimet e mëposhtme të palëve të treta për të operuar platformën tonë:",
+        "items": [
+          { "name": "Supabase", "desc": "Ruajtja e bazës së të dhënave, autentifikimi i përdoruesve dhe ruajtja e skedarëve" },
+          { "name": "Twilio", "desc": "Njoftime SMS për konfirmime dhe kujtesa termini" },
+          { "name": "Gmail/SMTP", "desc": "Dërgimi i email-eve transaksionale (konfirmimet, rivendosjet e fjalëkalimit)" },
+          { "name": "Google OAuth", "desc": "Hyrje opsionale dhe integrim kalendari" },
+          { "name": "Google Maps", "desc": "Shfaqja e adresës së biznesit dhe shërbime vendndodhjeje" },
+          { "name": "Netlify", "desc": "Hosting i aplikacionit dhe funksione serverless" }
+        ],
+        "note": "Secili prej këtyre shërbimeve ka politikat e veta të privatësisë. Rekomandojmë t'i shqyrtoni ato për më shumë informacion mbi praktikat e tyre të të dhënave."
+      },
+      "s5": {
+        "title": "5. Ndarja dhe Zbulimi i Informacionit",
         "intro": "Ne mund të ndajmë informacionin tuaj me:",
         "items": [
-          "Ofruesit e Shërbimeve: Kompanitë e palëve të treta që na ndihmojnë të operojmë platformën tonë",
-          "Partnerët e Biznesit: Kur rezervoni termine me bizneset që përdorin platformën tonë",
-          "Kërkesat Ligjore: Kur kërkohet nga ligji ose për të mbrojtur të drejtat tona",
-          "Transferimet e Biznesit: Në lidhje me bashkim, blerje ose shitje të aseteve"
+          { "name": "Ofruesit e Shërbimeve", "desc": "Kompanitë e palëve të treta që na ndihmojnë të operojmë platformën tonë (siç është listuar më lart)" },
+          { "name": "Marrëdhënia Biznes-Klient", "desc": "Informacioni i klientit ndahet me biznesin tek i cili rezervojnë termine" },
+          { "name": "Kërkesat Ligjore", "desc": "Kur kërkohet nga ligji ose për të mbrojtur të drejtat tona" },
+          { "name": "Transferimet e Biznesit", "desc": "Në lidhje me bashkim, blerje ose shitje të aseteve" }
         ],
         "noSell": "Ne nuk e shesim informacionin tuaj personal palëve të treta."
       },
-      "security": {
-        "title": "5. Siguria e të Dhënave",
-        "content": "Ne zbatojmë masa të përshtatshme teknike dhe organizative të sigurisë për të mbrojtur informacionin tuaj personal, duke përfshirë enkriptimin, serverët e sigurt dhe auditimet e rregullta të sigurisë. Megjithatë, asnjë metodë transmetimi përmes internetit nuk është 100% e sigurt, dhe ne nuk mund të garantojmë siguri absolute."
+      "s6": {
+        "title": "6. Ruajtja dhe Siguria e të Dhënave",
+        "intro": "Të dhënat tuaja ruhen në mënyrë të sigurt duke përdorur infrastrukturën e Supabase. Ne zbatojmë masa të përshtatshme teknike dhe organizative të sigurisë, duke përfshirë:",
+        "items": [
+          "Transmetimi i enkriptuar i të dhënave (HTTPS/TLS)",
+          "Kodifikimi i sigurt i fjalëkalimit",
+          "Rrjedha OAuth 2.0 PKCE për autentifikim",
+          "Politikat e sigurisë në nivel rreshti në tabelat e bazës së të dhënave",
+          "Ruajtja e sigurt e tokenave për integrimet e palëve të treta"
+        ],
+        "note": "Megjithatë, asnjë metodë transmetimi përmes internetit nuk është 100% e sigurt, dhe ne nuk mund të garantojmë siguri absolute."
       },
-      "rights": {
-        "title": "6. Të Drejtat dhe Zgjedhjet Tuaja",
+      "s7": {
+        "title": "7. Ruajtja Lokale dhe të Dhënat e Shfletuesit",
+        "intro": "Ne ruajmë të dhënat e mëposhtme në ruajtjen lokale të shfletuesit tuaj:",
+        "items": [
+          { "name": "Sesioni i Autentifikimit (Supabase Auth)", "desc": "Ju mban të identifikuar dhe mirëmban sigurinë e sesionit tuaj. Menaxhuar nga sistemi i autentifikimit Supabase duke përdorur tokena të sigurta." },
+          { "name": "Profili i Përdoruesit", "desc": "Cache-on informacionin e profilit tuaj lokalisht për ngarkim më të shpejtë të faqeve." },
+          { "name": "Preferencat Gjuhësore", "desc": "Gjuha juaj e zgjedhur (anglisht ose shqip)." }
+        ],
+        "note": "Për më shumë detaje, ju lutem shikoni Politikën tonë të Cookie-ve."
+      },
+      "s8": {
+        "title": "8. Të Drejtat dhe Zgjedhjet Tuaja",
         "intro": "Ju keni të drejtë të:",
         "items": [
           "Aksesoni dhe merrni një kopje të informacionit tuaj personal",
-          "Korrigjoni ose përditësoni informacionin tuaj",
+          "Korrigjoni ose përditësoni informacionin tuaj përmes cilësimeve të profilit",
           "Fshini llogarinë tuaj dhe informacionin personal",
-          "Refuzoni komunikimet e marketingut",
-          "Çaktivizoni cookie-t përmes cilësimeve të shfletuesit tuaj",
-          "Kundërshtoni ose kufizoni aktivitete të caktuara të procesimit të të dhënave"
+          "Shkëputni integrimin e Google Calendar në çdo kohë",
+          "Çregjistroheni nga njoftimet SMS",
+          "Pastroni ruajtjen e shfletuesit përmes cilësimeve të shfletuesit tuaj"
         ],
         "contactInfo": "Për të ushtruar këto të drejta, ju lutem na kontaktoni në"
       },
-      "retention": {
-        "title": "7. Ruajtja e të Dhënave",
-        "content": "Ne e ruajmë informacionin tuaj personal për aq kohë sa është e nevojshme për të ofruar shërbimet tona, përmbushur detyrimet ligjore, zgjidhur mosmarrëveshjet dhe zbatuar marrëveshjet tona. Kur fshini llogarinë tuaj, ne do të fshijmë ose anonimizojmë informacionin tuaj brenda 30 ditëve, përveç kur ruajtja kërkohet nga ligji."
+      "s9": {
+        "title": "9. Mbajtja e të Dhënave",
+        "content": "Ne e ruajmë informacionin tuaj personal për aq kohë sa është e nevojshme për të ofruar shërbimet tona dhe për të përmbushur detyrimet ligjore. Rekordet e termineve mbahen për qëllime raportimi biznesi. Kur fshini llogarinë tuaj, ne do të fshijmë ose anonimizojmë informacionin tuaj brenda 30 ditëve, përveç kur ruajtja kërkohet nga ligji."
       },
-      "international": {
-        "title": "8. Transferimet Ndërkombëtare të të Dhënave",
-        "content": "Informacioni juaj mund të transferohet dhe procesohet në vende të tjera përveç vendit tuaj të rezidencës. Ne sigurojmë që mbrojtjet e përshtatshme të jenë në fuqi për të mbrojtur informacionin tuaj në përputhje me ligjet e aplikueshme për mbrojtjen e të dhënave."
-      },
-      "children": {
-        "title": "9. Privatësia e Fëmijëve",
+      "s10": {
+        "title": "10. Privatësia e Fëmijëve",
         "content": "Shërbimet tona nuk janë të destinuara për individë nën moshën 18 vjeç. Ne nuk mbledhim me vetëdije informacion personal nga fëmijët. Nëse besoni se kemi mbledhur informacion nga një fëmijë, ju lutem na kontaktoni menjëherë."
       },
-      "changes": {
-        "title": "10. Ndryshimet në Këtë Politikë të Privatësisë",
+      "s11": {
+        "title": "11. Ndryshimet në Këtë Politikë të Privatësisë",
         "content": "Ne mund ta përditësojmë këtë Politikë të Privatësisë herë pas here. Do t'ju njoftojmë për çdo ndryshim duke postuar Politikën e re të Privatësisë në këtë faqe dhe duke përditësuar datën \"Përditësuar së fundi\". Ju inkurajojmë të shqyrtoni këtë Politikë të Privatësisë periodikisht."
       },
-      "contact": {
-        "title": "11. Na Kontaktoni",
+      "s12": {
+        "title": "12. Na Kontaktoni",
         "intro": "Nëse keni ndonjë pyetje rreth kësaj Politike të Privatësisë ose praktikave tona të privatësisë, ju lutem na kontaktoni:",
-        "email": "Email",
-        "phone": "Telefon",
-        "address": "Adresa"
+        "emailLabel": "Email:",
+        "addressLabel": "Adresa:"
       }
     }
   },
@@ -1110,116 +1191,147 @@
     "lastUpdated": "Përditësuar së fundi",
     "backToHome": "Kthehu në Faqen Kryesore",
     "sections": {
-      "acceptance": {
+      "s1": {
         "title": "1. Pranimi i Kushteve",
-        "content": "Duke aksesuar dhe përdorur Appointly-ks (\"Shërbimi,\" \"Platforma,\" \"ne,\" \"na,\" ose \"jonë\"), ju pranoni dhe pajtoheni të jeni të lidhur nga këto Kushte të Shërbimit. Nëse nuk pajtoheni me këto kushte, ju lutem mos e përdorni Shërbimin tonë."
+        "content": "Duke aksesuar dhe përdorur Appointly-ks (\"Shërbimi,\" \"Platforma,\" \"ne,\" \"na,\" ose \"jonë\"), ju pranoni dhe pajtoheni të jeni të lidhur nga këto Kushte të Shërbimit (\"Kushtet\"). Nëse nuk pajtoheni me këto Kushte, ju lutem mos e përdorni Shërbimin tonë. Këto Kushte zbatohen për të gjithë vizitorët, përdoruesit dhe të tjerët që aksesojnë ose përdorin Shërbimin."
       },
-      "description": {
+      "s2": {
         "title": "2. Përshkrimi i Shërbimit",
-        "intro": "Appointly-ks është një platformë SaaS e rezervimit të termineve e fuqizuar nga AI që u mundëson bizneseve të menaxhojnë terminet, punonjësit dhe shërbimet ndërsa u lejon klientëve të rezervojnë termine online. Shërbimi ynë përfshin:",
+        "intro": "Appointly-ks është një platformë e rezervimit të termineve që u mundëson bizneseve në Kosovë të menaxhojnë terminet, punonjësit dhe shërbimet ndërsa u lejon klientëve të rezervojnë termine online. Shërbimi ynë përfshin:",
         "items": [
-          "Panelin dhe mjetet e menaxhimit të biznesit",
-          "Menaxhimin e punonjësve dhe shërbimeve",
-          "Planifikimin e termineve dhe njoftimet",
-          "Asistencën e chat-it të fuqizuar nga AI",
-          "Veçoritë e analitikës dhe raportimit",
-          "Ndërfaqen e rezervimit të klientëve"
+          "Panel biznesi për menaxhimin e termineve, shërbimeve dhe punonjësve",
+          "Planifikim online i termineve dhe menaxhim kalendari",
+          "Njoftime me email dhe SMS për konfirmime dhe kujtesa terminesh",
+          "Sinkronizim opsional me Google Calendar",
+          "Ndërfaqe rezervimi për klientët me zgjedhje shërbimi",
+          "Veçori analitike dhe raportimi biznesi",
+          "Sistem vlerësimi dhe komentesh"
         ]
       },
-      "accounts": {
+      "s3": {
         "title": "3. Llogaritë e Përdoruesve",
         "registrationTitle": "Regjistrimi",
         "registrationIntro": "Për të përdorur veçori të caktuara, duhet të regjistroheni për një llogari. Ju pajtoheni të:",
         "registrationItems": [
-          "Ofroni informacion të saktë, aktual dhe të plotë",
+          "Ofroni informacion të saktë, aktual dhe të plotë gjatë regjistrimit",
+          "Verifikoni adresën tuaj email për të aktivizuar llogarinë",
           "Mirëmbani dhe përditësoni informacionin tuaj për ta mbajtur të saktë",
           "Mirëmbani sigurinë e fjalëkalimit dhe llogarisë tuaj",
-          "Na njoftoni menjëherë për çdo përdorim të paautorizuar",
+          "Na njoftoni menjëherë për çdo përdorim të paautorizuar të llogarisë tuaj",
           "Jeni përgjegjës për të gjitha aktivitetet nën llogarinë tuaj"
         ],
         "accountTypesTitle": "Llojet e Llogarive",
-        "businessAccount": "Llogaritë e Biznesit: Për bizneset që ofrojnë shërbime me bazë terminesh",
-        "customerAccount": "Llogaritë e Klientëve: Për individët që rezervojnë termine"
+        "businessAccount": "Llogaritë e Biznesit: Për bizneset që ofrojnë shërbime me bazë terminesh. Përfshin akses në panel, menaxhim punonjësish, konfigurim shërbimesh dhe analitikë.",
+        "guestBooking": "Rezervimi si Mysafir: Klientët mund të rezervojnë termine pa krijuar llogari duke ofruar informacion kontakti."
       },
-      "acceptableUse": {
-        "title": "4. Politika e Përdorimit të Pranueshëm",
+      "s4": {
+        "title": "4. Planet e Shërbimit dhe Çmimet",
+        "intro": "Appointly-ks ofron planet e mëposhtme të shërbimit:",
+        "items": [
+          { "name": "Plani Falas", "desc": "Planifikim bazik terminesh me veçori të kufizuara, deri në 50 termine në muaj dhe 2 punonjës" },
+          { "name": "Plani Starter (€9.99/muaj)", "desc": "Termine të pakufizuara, deri në 5 punonjës, kujtesa email dhe analitikë bazike" },
+          { "name": "Plani Professional (€24.99/muaj)", "desc": "Të gjitha veçoritë duke përfshirë punonjës të pakufizuar, kujtesa SMS, analitikë e avancuar, mbështetje prioritare dhe branding të personalizuar" }
+        ],
+        "note": "Planet me pagesë janë aktualisht në zhvillim. Të gjithë përdoruesit aktualisht kanë akses në veçoritë e nivelit falas. Do t'i njoftojmë përdoruesit e regjistruar kur veçoritë me pagesë të bëhen të disponueshme."
+      },
+      "s5": {
+        "title": "5. Politika e Përdorimit të Pranueshëm",
         "intro": "Ju pajtoheni që NUK do të:",
         "items": [
           "Përdorni Shërbimin për ndonjë qëllim të paligjshëm ose të paautorizuar",
-          "Shkelni ndonjë ligj në juridiksionin tuaj",
+          "Shkelni ndonjë ligj në juridiksionin tuaj, duke përfshirë ligjin e Kosovës",
           "Cenoni të drejtat e pronësisë intelektuale",
           "Transmetoni kod të dëmshëm, viruse ose malware",
-          "Ndërhyni ose prishni Shërbimin",
+          "Ndërhyni ose prishni Shërbimin ose serverët e tij",
           "Përpiqeni të fitoni akses të paautorizuar në sistemet tona",
           "Ngacmoni, abuzoni ose dëmtoni përdorues të tjerë",
-          "Rrëmbeni, kopjoni ose riprodhoni përmbajtje pa leje",
-          "Krijoni termine të rreme ose mashtruese",
-          "Përdorni sisteme të automatizuara për të aksesuar Shërbimin në mënyrë të tepruar"
+          "Krijoni profile biznesi të rreme ose mashtruese",
+          "Rezervoni termine të rreme ose abuzoni sistemin e rezervimit",
+          "Përdorni sisteme të automatizuara për të aksesuar Shërbimin në mënyrë të tepruar",
+          "Rrëmbeni, kopjoni ose riprodhoni përmbajtje pa leje"
         ]
       },
-      "appointments": {
-        "title": "5. Terminet dhe Rezervimet",
+      "s6": {
+        "title": "6. Terminet dhe Rezervimet",
         "forBusinessesTitle": "Për Bizneset",
         "forBusinessesItems": [
-          "Jeni përgjegjës për menaxhimin e kalendarit dhe disponueshmërisë tuaj",
+          "Jeni përgjegjës për mirëmbajtjen e disponueshmërisë dhe orareve të sakta të punës",
           "Duhet të respektoni terminet e konfirmuara ose të ofroni njoftim të arsyeshëm anulimi",
-          "Duhet të ofroni përshkrime dhe çmime të sakta të shërbimeve",
-          "Jeni përgjegjës për cilësinë e shërbimeve të ofruara"
+          "Duhet të ofroni përshkrime, kohëzgjatje dhe çmime të sakta të shërbimeve",
+          "Jeni përgjegjës për cilësinë e shërbimeve të ofruara klientëve",
+          "Duhet t'u përgjigjeni pyetjeve të klientëve në kohë të përshtatshme"
         ],
         "forCustomersTitle": "Për Klientët",
         "forCustomersItems": [
-          "Duhet të ofroni informacion të saktë kur rezervoni",
-          "Duhet të arrini në kohë ose të ofroni njoftim anulimi",
-          "Pajtoheni me politikat e anulimit dhe rimbursimit të biznesit",
-          "Jeni përgjegjës për çdo tarifë ose detyrim të shkaktuar"
+          "Duhet të ofroni informacion të saktë kontakti kur rezervoni",
+          "Duhet të arrini në kohë për terminet",
+          "Mund të anuloni terminet brenda një ore nga rezervimi përmes linkut të ofruar të anulimit",
+          "Pajtoheni me politikat individuale të anulimit dhe shërbimit të biznesit",
+          "Jeni përgjegjës për çdo tarifë të ngarkuar nga biznesi për shërbimet e ofruara"
         ]
       },
-      "payment": {
-        "title": "6. Kushtet e Pagesës",
-        "intro": "Për llogaritë e biznesit:",
+      "s7": {
+        "title": "7. Integrimet e Palëve të Treta",
+        "intro": "Shërbimi ynë integrohet me shërbime të palëve të treta. Duke përdorur këto integrime, ju pajtoheni me kushtet e tyre respektive:",
         "items": [
-          "Tarifat e abonimit faturohen sipas planit tuaj të zgjedhur",
-          "Të gjitha tarifat janë të parikthyeshme përveç siç kërkohet nga ligji",
-          "Ne mund të ndryshojmë çmimet me 30 ditë njoftim",
-          "Procesimi i pagesave trajtohet nga ofrues të palëve të treta",
-          "Ju na autorizoni të ngarkojmë metodën tuaj të pagesës në dosje",
-          "Pagesat e vonuara mund të rezultojnë në pezullim të shërbimit"
-        ]
+          { "name": "Google Calendar", "desc": "Kur lidhni llogarinë tuaj Google, na autorizoni të krijojmë, lexojmë dhe përditësojmë ngjarjet e kalendarit në emrin tuaj" },
+          { "name": "Njoftime SMS", "desc": "Duke ofruar një numër telefoni, ju pajtoheni të merrni mesazhe SMS të lidhura me terminin përmes Twilio" },
+          { "name": "Komunikimet me Email", "desc": "Do të merrni email-e transaksionale të lidhura me llogarinë dhe terminet tuaja" }
+        ],
+        "note": "Mund të shkëputni integrimin e Google Calendar në çdo kohë përmes cilësimeve të llogarisë suaj."
       },
-      "intellectualProperty": {
-        "title": "7. Pronësia Intelektuale",
+      "s8": {
+        "title": "8. Pronësia Intelektuale",
         "content1": "Shërbimi, duke përfshirë të gjithë përmbajtjen, veçoritë dhe funksionalitetin, është në pronësi të Appointly-ks dhe mbrohet nga ligjet ndërkombëtare të të drejtës së autorit, markës tregtare dhe pronësisë intelektuale.",
-        "content2": "Ju mbani pronësinë e përmbajtjes që krijoni ose ngarkoni, por na jepni një licencë për ta përdorur, ruajtur dhe shfaqur siç është e nevojshme për të ofruar Shërbimin."
+        "content2": "Ju mbani pronësinë e përmbajtjes që krijoni ose ngarkoni (si logot e biznesit, përshkrimet e shërbimeve dhe informacioni i profilit), por na jepni një licencë jo ekskluzive, botërore për ta përdorur, ruajtur dhe shfaqur siç është e nevojshme për të ofruar Shërbimin."
       },
-      "privacyData": {
-        "title": "8. Privatësia dhe Mbrojtja e të Dhënave",
-        "content": "Privatësia juaj është e rëndësishme për ne. Mbledhja dhe përdorimi ynë i informacionit personal përshkruhet në Politikën tonë të Privatësisë. Duke përdorur Shërbimin, ju pëlqeni praktikat tona të të dhënave siç përshkruhen në Politikën e Privatësisë."
+      "s9": {
+        "title": "9. Privatësia dhe Mbrojtja e të Dhënave",
+        "content": "Privatësia juaj është e rëndësishme për ne. Mbledhja dhe përdorimi ynë i informacionit personal përshkruhet në Politikën tonë të Privatësisë. Duke përdorur Shërbimin, ju pëlqeni praktikat tona të të dhënave siç përshkruhen në Politikën e Privatësisë dhe Politikën e Cookie-ve."
       },
-      "disclaimers": {
-        "title": "9. Mohime dhe Kufizime të Përgjegjësisë",
+      "s10": {
+        "title": "10. Mohime dhe Kufizime të Përgjegjësisë",
         "asIsTitle": "Shërbimi \"Siç Është\"",
         "asIsContent": "Shërbimi ofrohet \"siç është\" dhe \"siç është i disponueshëm\" pa garanci të ndonjë lloji, qoftë të shprehura ose të nënkuptuara, duke përfshirë por pa u kufizuar në garancitë e tregtueshmërisë, përshtatshmërisë për një qëllim të veçantë, ose mos-cenimit.",
+        "platformTitle": "Roli i Platformës",
+        "platformIntro": "Appointly-ks është një platformë që lidh bizneset me klientët. Ne nuk jemi përgjegjës për:",
+        "platformItems": [
+          "Cilësinë e shërbimeve të ofruara nga bizneset",
+          "Mosmarrëveshjet midis bizneseve dhe klientëve",
+          "Anulimet e bizneseve ose mosprezencën",
+          "Saktësinë e informacionit të biznesit të ofruar nga përdoruesit"
+        ],
         "limitationTitle": "Kufizimi i Përgjegjësisë",
-        "limitationContent": "Në masën maksimale të lejuar nga ligji, Appointly-ks nuk do të jetë përgjegjës për ndonjë dëm indirekt, incidental, të veçantë, pasojues, ose ndëshkues, ose ndonjë humbje fitimesh ose të ardhurave, qoftë të shkaktuara drejtpërdrejt ose indirekt, ose ndonjë humbje të dhënash, përdorimi, emri të mirë, ose humbjeve të tjera të paprekshme që rezultojnë nga përdorimi juaj i Shërbimit."
+        "limitationContent": "Në masën maksimale të lejuar nga ligji, Appointly-ks nuk do të jetë përgjegjës për ndonjë dëm indirekt, incidental, të veçantë, pasojues, ose ndëshkues, ose ndonjë humbje fitimesh, të ardhurave, të dhënash ose emri të mirë që rezulton nga përdorimi juaj i Shërbimit."
       },
-      "indemnification": {
-        "title": "10. Dëmshpërblimi",
-        "content": "Ju pajtoheni të dëmshpërbleni, mbroni dhe mbani të padëmshëm Appointly-ks dhe oficerët, drejtorët, punonjësit dhe agjentët e tij nga çdo pretendim, detyrime, dëme, humbje dhe shpenzime që lindin nga përdorimi juaj i Shërbimit ose shkelja e këtyre Kushteve."
+      "s11": {
+        "title": "11. Dëmshpërblimi",
+        "content": "Ju pajtoheni të dëmshpërbleni, mbroni dhe mbani të padëmshëm Appointly-ks dhe oficerët, drejtorët, punonjësit dhe agjentët e tij nga çdo pretendim, detyrime, dëme, humbje dhe shpenzime që lindin nga përdorimi juaj i Shërbimit, shkelja juaj e këtyre Kushteve, ose shkelja juaj e të drejtave të një tjetri."
       },
-      "termination": {
-        "title": "11. Përfundimi",
-        "content": "Ne mund të përfundojmë ose pezullojmë llogarinë tuaj dhe aksesin në Shërbim në çdo kohë, me ose pa shkak, dhe me ose pa njoftim. Pas përfundimit, e drejta juaj për të përdorur Shërbimin do të ndërpritet menjëherë."
+      "s12": {
+        "title": "12. Përfundimi",
+        "intro": "Ne mund të përfundojmë ose pezullojmë llogarinë tuaj dhe aksesin në Shërbim menjëherë, pa njoftim paraprak, për:",
+        "items": [
+          "Shkelje të këtyre Kushteve",
+          "Aktivitet mashtrues ose të paligjshëm",
+          "Abuzim të sistemit të rezervimit",
+          "Sipas gjykimit tonë për çdo arsye me njoftim të arsyeshëm"
+        ],
+        "note": "Mund të anuloni llogarinë tuaj në çdo kohë duke na kontaktuar. Pas përfundimit, e drejta juaj për të përdorur Shërbimin do të ndërpritet menjëherë."
       },
-      "governingLaw": {
-        "title": "12. Ligji në Fuqi",
-        "content": "Këto Kushte do të qeverisen dhe interpretohen në përputhje me ligjet e Kosovës, pa marrë parasysh dispozitat e konfliktit të ligjit të saj."
+      "s13": {
+        "title": "13. Ndryshimet e Kushteve",
+        "content": "Ne rezervojmë të drejtën të modifikojmë këto Kushte në çdo kohë. Do të ofrojmë njoftim për ndryshimet materiale duke postuar Kushtet e përditësuara në Shërbim dhe duke përditësuar datën \"Përditësuar së fundi\". Përdorimi juaj i vazhdueshëm i Shërbimit pas ndryshimeve përbën pranim të Kushteve të reja."
       },
-      "contact": {
-        "title": "13. Na Kontaktoni",
-        "intro": "Nëse keni ndonjë pyetje rreth këtyre Kushteve të Shërbimit, ju lutem na kontaktoni:",
-        "email": "Email",
-        "phone": "Telefon",
-        "address": "Adresa"
+      "s14": {
+        "title": "14. Ligji Qeverisës",
+        "content": "Këto Kushte do të qeverisen dhe interpretohen në përputhje me ligjet e Republikës së Kosovës, pa marrë parasysh dispozitat e konfliktit të ligjit të saj. Çdo mosmarrëveshje që lind nga këto Kushte ose përdorimi juaj i Shërbimit do të zgjidhet në gjykatat e Prishtinës, Kosovë."
+      },
+      "s15": {
+        "title": "15. Informacioni i Kontaktit",
+        "intro": "Për pyetje rreth këtyre Kushteve të Shërbimit, ju lutem na kontaktoni:",
+        "emailLabel": "Email:",
+        "addressLabel": "Adresa:"
       }
     }
   },
@@ -1228,106 +1340,93 @@
     "lastUpdated": "Përditësuar së fundi",
     "backToHome": "Kthehu në Faqen Kryesore",
     "sections": {
-      "whatAreCookies": {
-        "title": "1. Çfarë Janë Cookie-t?",
-        "content": "Cookie-t janë skedarë të vegjël teksti që vendosen në pajisjen tuaj (kompjuter, smartphone, ose tablet) kur vizitoni faqen tonë të internetit. Ato përdoren gjerësisht për të bërë faqet e internetit të funksionojnë më efiçentisht dhe për të ofruar informacion pronarëve të faqes. Appointly-ks përdor cookie për të përmirësuar përvojën tuaj dhe për të përmirësuar shërbimet tona."
+      "s1": {
+        "title": "1. Çfarë Janë Cookie-t dhe Ruajtja Lokale?",
+        "content": "Cookie-t janë skedarë të vegjël teksti të ruajtur në pajisjen tuaj kur vizitoni faqe interneti. Ruajtja lokale është një teknologji e ngjashme që lejon faqet e internetit të ruajnë të dhëna në shfletuesin tuaj. Appointly-ks përdor kryesisht ruajtjen lokale (jo cookie-t tradicionale) për të përmirësuar përvojën tuaj dhe për të ofruar funksionalitetin bazë."
       },
-      "howWeUse": {
-        "title": "2. Si i Përdorim Cookie-t",
-        "intro": "Ne përdorim cookie për disa arsye të rëndësishme:",
-        "items": [
-          "Për t'ju mbajtur të identifikuar në llogarinë tuaj",
-          "Për të mbajtur mend preferencat dhe cilësimet tuaja",
-          "Për të kuptuar si e përdorni platformën tonë",
-          "Për të përmirësuar performancën dhe funksionalitetin e shërbimeve tona",
-          "Për të ofruar përmbajtje dhe rekomandime të personalizuara",
-          "Për të analizuar trafikun dhe sjelljen e përdoruesve",
-          "Për të përmirësuar sigurinë dhe parandaluar mashtrimin"
+      "s2": {
+        "title": "2. Çfarë Ruajmë në Shfletuesin Tuaj",
+        "essentialTitle": "Ruajtja Esenciale (E Detyrueshme)",
+        "essentialDesc": "Këto janë të nevojshme që platforma të funksionojë si duhet. Ju nuk mund të çregjistroheni nga këto pasi janë të nevojshme për funksionalitetin bazë.",
+        "essentialItems": [
+          { "name": "Sesioni i Autentifikimit (Supabase Auth)", "desc": "Ju mban të identifikuar dhe mirëmban sigurinë e sesionit tuaj. Menaxhuar nga sistemi i autentifikimit Supabase duke përdorur tokena të sigurta." },
+          { "name": "Të Dhënat e Profilit të Përdoruesit", "desc": "Cache-on informacionin e profilit tuaj lokalisht për ngarkim më të shpejtë të faqeve." }
+        ],
+        "preferenceTitle": "Ruajtja e Preferencave",
+        "preferenceDesc": "Këto mbajnë mend preferencat dhe cilësimet tuaja.",
+        "preferenceItems": [
+          { "name": "Preferencat Gjuhësore", "desc": "Mban mend gjuhën tuaj të zgjedhur (anglisht ose shqip)." }
         ]
       },
-      "typesOfCookies": {
-        "title": "3. Llojet e Cookie-ve që Përdorim",
-        "essential": {
-          "title": "Cookie-t Esenciale",
-          "content": "Këto cookie janë të nevojshme që faqja e internetit të funksionojë si duhet. Ato mundësojnë funksionalitetin bazë si siguria, menaxhimi i rrjetit dhe aksesueshmëria. Ju nuk mund të refuzoni këto cookie.",
-          "items": [
-            "Cookie-t e Sesionit: Ju mbajnë të identifikuar gjatë vizitës tuaj",
-            "Cookie-t e Autentifikimit: Verifikojnë identitetin dhe të drejtat tuaja të aksesit",
-            "Cookie-t e Sigurisë: Mbrojnë kundër aktivitetit mashtrues"
-          ]
-        },
-        "performance": {
-          "title": "Cookie-t e Performancës dhe Analitikës",
-          "content": "Këto cookie mbledhin informacion rreth asaj se si vizitorët përdorin faqen tonë të internetit, si cilat faqe vizitohen më shpesh dhe nëse merren mesazhe gabimi. Kjo na ndihmon të përmirësojmë si funksionon faqja jonë e internetit.",
-          "items": [
-            "Google Analytics: Gjurmon përdorimin e faqes së internetit dhe gjeneron statistika",
-            "Monitorimi i Performancës: Identifikon probleme teknike dhe gabime",
-            "Gjurmimi i Përdorimit: Analizon adoptimin e veçorive dhe sjelljen e përdoruesve"
-          ]
-        },
-        "functionality": {
-          "title": "Cookie-t e Funksionalitetit",
-          "content": "Këto cookie lejojnë faqen tonë të internetit të mbajë mend zgjedhjet që bëni dhe ofrojnë veçori të zgjeruara, të personalizuara.",
-          "items": [
-            "Cookie-t e Preferencave: Mbajnë mend cilësimet dhe preferencat tuaja",
-            "Cookie-t e Gjuhës: Ruajnë zgjedhjen tuaj të gjuhës",
-            "Cookie-t e Shfaqjes: Mbajnë mend preferencat tuaja të shfaqjes (tema, paraqitja)"
-          ]
-        },
-        "targeting": {
-          "title": "Cookie-t e Synimit dhe Reklamimit",
-          "content": "Këto cookie mund të vendosen përmes faqes sonë nga partnerët tanë të reklamimit për të ndërtuar një profil të interesave tuaja dhe për t'ju shfaqur përmbajtje relevante.",
-          "items": [
-            "Cookie-t e Marketingut: Gjurmojnë vizitat tuaja nëpër faqe interneti",
-            "Cookie-t e Mediave Sociale: Mundësojnë ndarjen në platformat sociale",
-            "Cookie-t e Risynimit: Shfaqin reklama relevante në faqe të tjera interneti"
-          ]
-        }
-      },
-      "thirdParty": {
-        "title": "4. Cookie-t e Palëve të Treta",
-        "intro": "Ne mund të përdorim shërbime të palëve të treta që vendosin cookie-t e tyre. Këto shërbime përfshijnë:",
+      "s3": {
+        "title": "3. Shërbimet e Palëve të Treta",
+        "intro": "Shërbimet e mëposhtme të palëve të treta mund të vendosin cookie-t e tyre ose të ruajnë të dhëna kur përdorni platformën tonë:",
         "items": [
-          "Google Analytics: Për analitikën dhe njohuritë e faqes së internetit",
-          "Procesuesit e Pagesave: Për procesimin e sigurt të pagesave",
-          "Shërbimet e Email-it: Për dërgimin e email-eve transaksionale",
-          "Platformat e Mediave Sociale: Për veçoritë e ndarjes sociale dhe hyrjes",
-          "Shërbimet e AI: Për fuqizimin e asistencës sonë të chat-it AI"
+          { "name": "Supabase", "desc": "Ofruesi ynë i autentifikimit dhe bazës së të dhënave. Supabase ruan tokena autentifikimi në mënyrë të sigurt në ruajtjen lokale për të mirëmbajtur sesionin tuaj të hyrjes." },
+          { "name": "Shërbimet Google (Opsionale)", "desc": "Nëse lidhni llogarinë tuaj Google për sinkronizim kalendari, Google mund të vendosë cookie për qëllime autentifikimi. Gjithashtu, integrimet e Google Maps mund të vendosin cookie kur shikoni vendndodhjet e bizneseve." },
+          { "name": "Netlify", "desc": "Ofruesi ynë i hosting-ut mund të vendosë cookie për qëllime sigurie dhe performance." }
+        ]
+      },
+      "s4": {
+        "title": "4. Çfarë NUK Përdorim",
+        "intro": "Për të qenë transparent, duam të sqarojmë që aktualisht NUK përdorim:",
+        "items": [
+          "Google Analytics ose gjurmim tjetër të analitikës së faqeve të internetit",
+          "Cookie reklamimi ose marketingu",
+          "Pixelat e gjurmimit të mediave sociale",
+          "Teknologji reklamimi të sjelljes ose risynimit",
+          "Cookie-t e gjurmimit ndër-faqe"
         ],
-        "note": "Këto palë të treta kanë politikat e tyre të privatësisë dhe cookie-ve. Ju rekomandojmë t'i shqyrtoni ato."
+        "note": "Nëse shtojmë ndonjë nga këto shërbime në të ardhmen, do ta përditësojmë këtë politikë dhe do të ofrojmë njoftim të përshtatshëm."
       },
-      "duration": {
-        "title": "5. Kohëzgjatja e Cookie-ve",
-        "sessionTitle": "Cookie-t e Sesionit",
-        "sessionContent": "Këto cookie të përkohshme fshihen kur mbyllni shfletuesin tuaj. Ato ndihmojnë të mbajnë sesionin tuaj ndërsa shfletoni faqen tonë të internetit.",
-        "persistentTitle": "Cookie-t e Përhershme",
-        "persistentContent": "Këto cookie mbeten në pajisjen tuaj për një periudhë të caktuar (që varion nga ditë në vite) ose derisa t'i fshini. Ato na ndihmojnë t'ju njohin kur ktheheni në faqen tonë të internetit."
+      "s5": {
+        "title": "5. Kohëzgjatja e Ruajtjes",
+        "sessionTitle": "Të Dhënat e Sesionit",
+        "sessionContent": "Tokenat e autentifikimit rifresohen automatikisht dhe vazhdojnë deri sa të dilni ose të pastroni të dhënat e shfletuesit tuaj. Sesionet e Supabase kanë kohë skadimi të konfigurueshme për siguri.",
+        "preferenceTitle": "Të Dhënat e Preferencave",
+        "preferenceContent": "Preferencat gjuhësore vazhdojnë pa afat kohor deri sa t'i ndryshoni ose të pastroni ruajtjen lokale të shfletuesit tuaj."
       },
-      "managing": {
-        "title": "6. Menaxhimi i Preferencave Tuaja të Cookie-ve",
+      "s6": {
+        "title": "6. Menaxhimi i Ruajtjes së Shfletuesit Tuaj",
+        "clearingTitle": "Pastrimi i Ruajtjes Lokale",
+        "clearingIntro": "Mund të pastroni të dhënat që ruajmë duke:",
+        "clearingItems": [
+          "Dalë nga llogaria juaj (pastron të dhënat e sesionit)",
+          "Përdorur funksionin \"Pastrimi i të Dhënave të Faqes\" të shfletuesit tuaj",
+          "Pastruar ruajtjen lokale të shfletuesit tuaj përmes mjeteve të zhvilluesit"
+        ],
         "browserTitle": "Cilësimet e Shfletuesit",
-        "browserIntro": "Shumica e shfletuesve të uebit ju lejojnë të kontrolloni cookie-t përmes cilësimeve të tyre. Ju mund të:",
+        "browserIntro": "Për të menaxhuar ruajtjen lokale dhe cookie-t në shfletuesin tuaj:",
         "browserItems": [
-          "Shihni cilat cookie janë ruajtur dhe t'i fshini individualisht",
-          "Bllokoni cookie-t e palëve të treta",
-          "Bllokoni cookie-t nga faqe specifike interneti",
-          "Bllokoni të gjitha cookie-t",
-          "Fshini të gjitha cookie-t kur mbyllni shfletuesin tuaj"
-        ],
-        "browserInstructions": "Për të menaxhuar cookie-t në shfletuesit popullarë:",
-        "chromeInstructions": "Chrome: Cilësimet → Privatësia dhe siguria → Cookie-t dhe të dhënat e tjera të faqes",
-        "firefoxInstructions": "Firefox: Opsionet → Privatësia & Siguria → Cookie-t dhe të Dhënat e Faqes",
-        "safariInstructions": "Safari: Preferencat → Privatësia → Menaxho të Dhënat e Faqes së Internetit",
-        "edgeInstructions": "Edge: Cilësimet → Cookie-t dhe lejet e faqes → Cookie-t dhe të dhënat e ruajtura",
-        "optOutTitle": "Mjetet e Refuzimit",
-        "optOutContent": "Ju mund të refuzoni shërbimet specifike të gjurmimit"
+          "Chrome: Cilësimet → Privatësia dhe siguria → Cilësimet e faqes → Shiko lejet dhe të dhënat e ruajtura nëpër faqe",
+          "Firefox: Cilësimet → Privatësia & Siguria → Cookie-t dhe të Dhënat e Faqes → Menaxho të Dhënat",
+          "Safari: Preferencat → Privatësia → Menaxho të Dhënat e Faqes së Internetit",
+          "Edge: Cilësimet → Lejet e cookie-ve dhe faqes → Menaxho dhe fshi cookie-t dhe të dhënat e faqes"
+        ]
       },
-      "contact": {
-        "title": "7. Na Kontaktoni",
-        "intro": "Nëse keni ndonjë pyetje rreth Politikës sonë të Cookie-ve, ju lutem na kontaktoni:",
-        "email": "Email",
-        "phone": "Telefon",
-        "address": "Adresa"
+      "s7": {
+        "title": "7. Ndikimi i Pastrimit të Ruajtjes",
+        "intro": "Nëse pastroni ruajtjen lokale të shfletuesit tuaj për faqen tonë:",
+        "items": [
+          "Do të dilni dhe do të duhet të identifikoheni përsëri",
+          "Preferencat tuaja gjuhësore do të rivendosen në parazgjedhje",
+          "Do të duhet të rilidhi çdo integrim të Google Calendar"
+        ],
+        "note": "Të dhënat e llogarisë tuaj, terminet dhe informacioni i biznesit janë ruajtur në serverët tanë dhe nuk do të preken nga pastrimi i ruajtjes së shfletuesit."
+      },
+      "s8": {
+        "title": "8. Përditësimet e Kësaj Politike",
+        "content": "Ne mund ta përditësojmë këtë Politikë Cookie-sh kur shtojmë veçori të reja ose integrime me palë të treta. Do të përditësojmë datën \"Përditësuar së fundi\" në krye të kësaj faqeje. Ju inkurajojmë të shqyrtoni këtë politikë periodikisht."
+      },
+      "s9": {
+        "title": "9. Më Shumë Informacion",
+        "content": "Për më shumë informacion se si trajtojmë të dhënat tuaja personale, ju lutem shqyrtoni Politikën tonë të Privatësisë."
+      },
+      "s10": {
+        "title": "10. Na Kontaktoni",
+        "intro": "Nëse keni ndonjë pyetje rreth përdorimit tonë të cookie-ve dhe ruajtjes lokale, ju lutem na kontaktoni:",
+        "emailLabel": "Email:",
+        "addressLabel": "Adresa:"
       }
     }
   },

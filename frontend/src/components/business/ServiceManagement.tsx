@@ -230,17 +230,17 @@ const ServiceManagement: React.FC = () => {
       {/* Service List */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => (
-          <Card key={service.id} className="hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-green-300 group">
+          <Card key={service.id} className="hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-primary/30 group">
             <CardContent className="p-8">
               <div className="flex justify-between items-start mb-6">
                               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center shadow-sm">
-                  {React.createElement(getIconComponent(service.icon || 'Briefcase'), { className: "h-6 w-6 text-green-600" })}
+                <div className="w-12 h-12 bg-gradient-to-br from-primary/10 to-primary/20 rounded-full flex items-center justify-center shadow-sm">
+                  {React.createElement(getIconComponent(service.icon || 'Briefcase'), { className: "h-6 w-6 text-primary" })}
                 </div>
                                   <div className="ml-4">
                     <h3 className="font-semibold text-gray-900 text-lg mb-2">{service.name}</h3>
                     {service.price != null && service.price !== undefined && (
-                      <p className="text-lg font-bold text-green-600">{formatPrice(service.price)}</p>
+                      <p className="text-lg font-bold text-primary">{formatPrice(service.price)}</p>
                     )}
                   </div>
               </div>
@@ -270,9 +270,9 @@ const ServiceManagement: React.FC = () => {
                   <span className="font-medium">{formatDuration(service.duration)}</span>
                 </div>
                 {service.price != null && service.price !== undefined && (
-                  <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                    <DollarSign className="h-4 w-4 mr-3 text-green-500" />
-                    <span className="font-bold text-green-700">{formatPrice(service.price)}</span>
+                  <div className="flex items-center p-3 bg-primary/5 rounded-lg border border-primary/20">
+                    <DollarSign className="h-4 w-4 mr-3 text-primary" />
+                    <span className="font-bold text-primary">{formatPrice(service.price)}</span>
                   </div>
                 )}
               </div>
@@ -285,7 +285,7 @@ const ServiceManagement: React.FC = () => {
       {isAddingService && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-[80] p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border-0 shadow-2xl relative">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200">
+            <CardHeader className="bg-gradient-to-r from-surface to-background border-b border-gray-200">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -321,7 +321,7 @@ const ServiceManagement: React.FC = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder={t('servicesManagement.namePlaceholder')}
-                    className="border-gray-300 focus:border-green-500 focus:ring-green-500"
+                    className="border-gray-300 focus:border-primary focus:ring-primary"
                     required
                   />
                 </div>
@@ -335,7 +335,7 @@ const ServiceManagement: React.FC = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     placeholder={t('servicesManagement.descriptionPlaceholder')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none outline-none"
                     rows={3}
                     required
                   />
@@ -354,20 +354,20 @@ const ServiceManagement: React.FC = () => {
                         onClick={() => setFormData(prev => ({ ...prev, icon: option.name }))}
                         className={`p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
                           formData.icon === option.name
-                            ? 'border-green-500 bg-green-50 shadow-md'
+                            ? 'border-primary bg-primary/5 shadow-md'
                             : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                         title={`${option.name} (${option.category})`}
                       >
                         {React.createElement(option.icon, { 
-                          className: `h-5 w-5 ${formData.icon === option.name ? 'text-green-600' : 'text-gray-600'}` 
+                          className: `h-5 w-5 ${formData.icon === option.name ? 'text-primary' : 'text-gray-600'}` 
                         })}
                       </button>
                     ))}
                   </div>
                   <p className="text-xs text-gray-500 flex items-center">
                     <span className="mr-2">Selected:</span>
-                    {React.createElement(getIconComponent(formData.icon), { className: "h-4 w-4 text-green-600 mr-1" })}
+                    {React.createElement(getIconComponent(formData.icon), { className: "h-4 w-4 text-primary mr-1" })}
                     <span className="font-medium">{formData.icon}</span>
                   </p>
                 </div>
@@ -384,7 +384,7 @@ const ServiceManagement: React.FC = () => {
                       onChange={handleInputChange}
                       placeholder="30"
                       min="1"
-                      className="border-gray-300 focus:border-green-500 focus:ring-green-500"
+                      className="border-gray-300 focus:border-primary focus:ring-primary"
                       required
                     />
                     <p className="text-xs text-gray-500 mt-2 bg-gray-50 px-3 py-1.5 rounded">
@@ -403,10 +403,10 @@ const ServiceManagement: React.FC = () => {
                       placeholder="25.00"
                       min="0"
                       step="0.01"
-                      className="border-gray-300 focus:border-green-500 focus:ring-green-500"
+                      className="border-gray-300 focus:border-primary focus:ring-primary"
                     />
                     {formData.price != null && (
-                      <p className="text-xs text-gray-500 mt-2 bg-green-50 px-3 py-1.5 rounded text-green-700">
+                      <p className="text-xs text-gray-500 mt-2 bg-primary/5 px-3 py-1.5 rounded text-primary">
                         {formatPrice(formData.price)}
                       </p>
                     )}
@@ -426,7 +426,7 @@ const ServiceManagement: React.FC = () => {
                   >
                     {t('servicesManagement.cancel')}
                   </Button>
-                  <Button type="submit" className="px-6 py-2 bg-green-600 hover:bg-green-700">
+                  <Button type="submit" className="px-6 py-2 bg-primary hover:bg-primary-light">
                     {editingService ? t('servicesManagement.updateService') : t('servicesManagement.addService')}
                   </Button>
                 </div>

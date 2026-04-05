@@ -60,16 +60,14 @@ const Footer: React.FC = () => {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0 mt-0.5 border border-white/[0.06]">
+                  <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0 border border-white/[0.06]">
                     <Mail size={14} className="text-steel-400" />
                   </div>
                   <div>
-                    <a href="mailto:etrithasolli5@gmail.com" className="text-steel-400 hover:text-white transition-colors text-sm block">
-                      Etrit Hasolli
+                    <a href="mailto:info@appointly-ks.com" className="text-steel-400 hover:text-white my-1.5 transition-colors text-sm block">
+                        info@appointly-ks.com
                     </a>
-                    <a href="mailto:lerdi890@gmail.com" className="text-steel-400 hover:text-white transition-colors text-sm block">
-                      Lerdi Salihi
-                    </a>
+                    
                   </div>
                 </li>
               </ul>
