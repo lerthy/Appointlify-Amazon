@@ -16,8 +16,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import CancelAppointment from './components/customer/CancelAppointment';
 import ProfilePage from './pages/ProfilePage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
-// import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
-// import AIChatbot from './components/shared/AIChatbot';
+import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
+import AIChatbot from './components/shared/AIChatbot';
 import BusinessAIChatPage from './pages/BusinessAIChatPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -72,7 +72,7 @@ function AppContent() {
         <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-        {/* <Route path="/ai-demo" element={<AIChatbotDemoPage />} /> */}
+        <Route path="/ai-demo" element={<AIChatbotDemoPage />} />
         <Route path="/ai-business-chat" element={<BusinessAIChatPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
@@ -85,7 +85,7 @@ function AppContent() {
       </Routes>
       
       {/* AI Chatbot - Hidden on auth pages */}
-      {/* {shouldShowAIChat && <AIChatbot />} */}
+      {shouldShowAIChat && <AIChatbot />}
     </>
   );
 }
