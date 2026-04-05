@@ -89,7 +89,7 @@ const Header: React.FC = () => {
                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-steel-300 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200"
                   >
                     <CreditCard className="h-4 w-4" />
-                    {/* {t('header.pricing')} */}
+                    {t('header.pricing')}
                   </button>
                   <LanguageSelector />
                   <div className="w-px h-5 bg-white/10 mx-1" />
@@ -175,10 +175,10 @@ const Header: React.FC = () => {
                   </button>
                   <button
                     onClick={() => navigate('/pricing')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-steel-300 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all duration-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white hover:text-accent rounded-lg hover:bg-white/[0.06] transition-all duration-200"
                   >
-                    <CreditCard className="h-3.5 w-3.5" />
-                    {/* {t('header.pricing')} */}
+                    <CreditCard className="h-4 w-4" />
+                    {t('header.pricing')}
                   </button>
                   
                   <div className="w-px h-5 bg-white mx-2"></div>

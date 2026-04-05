@@ -86,13 +86,6 @@ const PricingPage: React.FC = () => {
               animate="visible"
               variants={stagger}
             >
-              <motion.p
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-sm font-medium mb-6"
-                variants={fadeUp}
-              >
-                <Sparkles className="w-4 h-4" />
-                {t('pricing.badge')}
-              </motion.p>
               
               <motion.h1
                 className="text-4xl sm:text-5xl font-bold text-navy-900 mb-4"

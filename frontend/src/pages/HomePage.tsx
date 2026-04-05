@@ -225,8 +225,8 @@ const HomePage: React.FC = () => {
                 variants={fadeUp}
                 custom={0}
               >
-                <Sparkles className="w-4 h-4 text-accent mr-2" />
-                <span className="text-steel-200 text-sm font-medium tracking-wide">{t('home.hero.badge')}</span>
+                <Sparkles className="w-4 h-4 text-white mr-2" />
+                <span className="text-white text-sm font-medium tracking-wide">{t('home.hero.badge')}</span>
               </motion.div>
               
               <motion.h1 
@@ -242,7 +242,7 @@ const HomePage: React.FC = () => {
               </motion.h1>
 
               <motion.p 
-                className="text-lg md:text-xl text-steel-300 mb-10 leading-relaxed max-w-2xl mx-auto"
+                className="text-lg md:text-xl text-white mb-10 leading-relaxed max-w-2xl mx-auto"
                 variants={fadeUp}
                 custom={2}
               >
