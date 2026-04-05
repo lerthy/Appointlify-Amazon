@@ -151,22 +151,22 @@ const LoginPage: React.FC = () => {
     >
       {/* Title */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">{t('login.signInTitle')}</h2>
-          <p className="text-sm text-gray-500">{t('login.subtitle')}</p>
+          <h2 className="text-2xl font-bold text-navy-900 mb-1">{t('login.signInTitle')}</h2>
+          <p className="text-sm text-muted">{t('login.subtitle')}</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('login.emailLabel')}</label>
+            <label className="block text-sm font-medium text-navy-800 mb-1.5">{t('login.emailLabel')}</label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                 placeholder={t('login.emailPlaceholder')}
                 autoComplete="email"
                 required
@@ -176,7 +176,7 @@ const LoginPage: React.FC = () => {
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-sm font-medium text-gray-700">{t('login.passwordLabel')}</label>
+              <label className="block text-sm font-medium text-navy-800">{t('login.passwordLabel')}</label>
               <button
                 type="button"
                 className="text-xs text-primary hover:text-primary-light font-medium transition-colors"
@@ -186,13 +186,13 @@ const LoginPage: React.FC = () => {
               </button>
             </div>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="password"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                 placeholder={t('login.passwordPlaceholder')}
                 autoComplete="current-password"
                 required
@@ -237,7 +237,7 @@ const LoginPage: React.FC = () => {
           {/* Submit button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3.5 rounded-xl text-sm transition-all duration-300 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+            className="w-full bg-primary hover:bg-primary-light text-white font-semibold py-3.5 rounded-xl text-sm transition-all duration-300 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow-ghost-lg hover:shadow-ghost-xl"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -256,7 +256,7 @@ const LoginPage: React.FC = () => {
 
         {/* Footer links */}
         <div className="mt-8 text-center space-y-3">
-          <p className="text-gray-500 text-sm">
+          <p className="text-muted text-sm">
             {t('login.noAccount')}{' '}
             <button
               className="text-primary hover:text-primary-light font-semibold hover:underline transition-colors"

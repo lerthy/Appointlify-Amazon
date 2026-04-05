@@ -17,8 +17,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import CancelAppointment from './components/customer/CancelAppointment';
 import ProfilePage from './pages/ProfilePage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
-import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
-import AIChatbot from './components/shared/AIChatbot';
+// import AIChatbotDemoPage from './pages/AIChatbotDemoPage';
+// import AIChatbot from './components/shared/AIChatbot';
 import BusinessAIChatPage from './pages/BusinessAIChatPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -26,6 +26,7 @@ import CookiePolicy from './pages/CookiePolicy';
 import AboutUsPage from './pages/AboutUsPage';
 import ServicesPage from './pages/ServicesPage';
 import ContactPage from './pages/ContactPage';
+import PricingPage from './pages/PricingPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ConfirmAppointmentPage from './pages/ConfirmAppointmentPage';
 import GoogleOAuthCallbackPage from './pages/GoogleOAuthCallbackPage';
@@ -72,7 +73,7 @@ function AppContent() {
         <Route path="/cancel/:appointmentId" element={<CancelAppointment />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
-        <Route path="/ai-demo" element={<AIChatbotDemoPage />} />
+        {/* <Route path="/ai-demo" element={<AIChatbotDemoPage />} /> */}
         <Route path="/ai-business-chat" element={<BusinessAIChatPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
@@ -80,11 +81,12 @@ function AppContent() {
         <Route path="/about" element={<AboutUsPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       
       {/* AI Chatbot - Hidden on auth pages */}
-      {shouldShowAIChat && <AIChatbot />}
+      {/* {shouldShowAIChat && <AIChatbot />} */}
     </>
   );
 }

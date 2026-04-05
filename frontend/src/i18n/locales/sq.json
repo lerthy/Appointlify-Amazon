@@ -28,6 +28,7 @@
   "header": {
     "forBusinesses": "Për Biznese",
     "forClients": "Për Klientë",
+    "pricing": "Çmimet",
     "login": "Hyr",
     "register": "Regjistrohu",
     "home": "Kryefaqja",
@@ -38,6 +39,47 @@
     "signOut": "Dil",
     "openMenu": "Hap menunë kryesore",
     "language": "Gjuha"
+  },
+  "pricing": {
+    "badge": "Çmime të Thjeshta",
+    "title": "Zgjidhni Planin e Duhur për Biznesin Tuaj",
+    "subtitle": "Filloni me provën tonë falas dhe përditësoni ndërsa biznesi juaj rritet. Pa tarifa të fshehura, anuloni kurdo.",
+    "perMonth": "muaj",
+    "freeTrial": "14 ditë provë falas e përfshirë",
+    "mostPopular": "Më i Popullarizuar",
+    "comingSoon": "Së Shpejti",
+    "backToHome": "Kthehu në Kryefaqe",
+    "note": "Të gjitha planet përfshijnë planifikimin bazë të termineve. Veçoritë me pagesë janë aktualisht në zhvillim dhe do të jenë të disponueshme së shpejti. Filloni me planin tonë falas sot!",
+    "plans": {
+      "free": {
+        "name": "Falas",
+        "description": "Perfekt për të filluar me planifikimin bazë të termineve."
+      },
+      "starter": {
+        "name": "Fillestar",
+        "description": "I shkëlqyer për bizneset e vogla që duan të rriten dhe angazhojnë klientët."
+      },
+      "professional": {
+        "name": "Profesional",
+        "description": "Për bizneset e etabluara që kanë nevojë për veçori të avancuara dhe analitikë."
+      }
+    },
+    "features": {
+      "appointments": "Deri në 50 termine/muaj",
+      "appointmentsUnlimited": "Termine të pakufizuara",
+      "employees": "Deri në 2 punonjës",
+      "employeesUp5": "Deri në 5 punonjës",
+      "employeesUnlimited": "Punonjës të pakufizuar",
+      "basicDashboard": "Panel bazë",
+      "fullDashboard": "Qasje e plotë në panel",
+      "emailReminders": "Kujtesa me email",
+      "smsReminders": "Kujtesa me SMS",
+      "analytics": "Analitikë & raporte",
+      "basicAnalytics": "Analitikë bazë",
+      "advancedAnalytics": "Analitikë e avancuar & raporte",
+      "prioritySupport": "Mbështetje prioritare",
+      "customBranding": "Markë e personalizuar"
+    }
   },
   "footer": {
     "companyDescription": "Duke e bërë rezervimin e termineve të thjeshtë dhe të përshtatshëm për bizneset dhe klientët.",
@@ -91,6 +133,7 @@
       "stat4Value": "500+",
       "stat4Label": "Biznese Aktive",
       "ctaButton": "Bashkohu Appointly Sot - FALAS",
+      "ctaButtonLoggedIn": "Shiko Planet e Çmimeve",
       "ctaSubtext": "Nuk kërkohet kartë krediti • Konfigurim në 5 minuta"
     },
     "forClients": {

@@ -254,7 +254,7 @@ const EmployeeManagement: React.FC = () => {
       {/* Employee List */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {employees.map((employee) => (
-          <Card key={employee.id} className="hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-primary/40 group">
+          <Card key={employee.id} className="hover:shadow-ghost-lg transition-all duration-300 border border-gray-200 hover:border-primary/30 group bg-white">
             <CardContent className="p-8">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center">
@@ -270,7 +270,7 @@ const EmployeeManagement: React.FC = () => {
                     </div>
                   )}
                   <div className="ml-4">
-                    <h3 className="font-semibold text-gray-900 text-lg">{employee.name}</h3>
+                    <h3 className="font-bold text-navy-900 text-lg">{employee.name}</h3>
                   </div>
                 </div>
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -289,18 +289,24 @@ const EmployeeManagement: React.FC = () => {
                 </div>
               </div>
               
-              <div className="space-y-3 text-sm text-gray-600 border-t border-gray-100 pt-6">
-                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="font-medium">{employee.email}</span>
+              <div className="space-y-2.5 text-sm border-t border-gray-100 pt-5">
+                <div className="flex items-center p-3 bg-gradient-to-r from-primary/[0.04] to-primary/[0.08] rounded-xl border border-primary/10">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                    <Mail className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="font-medium text-navy-800">{employee.email}</span>
                 </div>
-                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                  <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="font-medium">{employee.phone}</span>
+                <div className="flex items-center p-3 bg-gradient-to-r from-accent/[0.04] to-accent/[0.08] rounded-xl border border-accent/10">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center mr-3">
+                    <Phone className="h-4 w-4 text-accent" />
+                  </div>
+                  <span className="font-medium text-navy-800">{employee.phone}</span>
                 </div>
-                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                  <Briefcase className="h-4 w-4 mr-3 text-gray-400" />
-                  <span className="font-medium">{employee.role}</span>
+                <div className="flex items-center p-3 bg-gradient-to-r from-steel-50 to-steel-100/50 rounded-xl border border-steel-100">
+                  <div className="w-8 h-8 rounded-lg bg-steel-100 flex items-center justify-center mr-3">
+                    <Briefcase className="h-4 w-4 text-steel-400" />
+                  </div>
+                  <span className="font-medium text-navy-800">{employee.role}</span>
                 </div>
               </div>
             </CardContent>

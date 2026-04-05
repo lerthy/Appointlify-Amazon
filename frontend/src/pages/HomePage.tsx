@@ -22,6 +22,7 @@ import {
 import Container from '../components/ui/Container';
 import Button from '../components/ui/Button';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import ReviewModal from '../components/shared/ReviewModal';
@@ -81,9 +82,31 @@ function AnimatedCounter({ target, suffix = '' }: { target: string; suffix?: str
   return <span ref={ref}>{value}</span>;
 }
 
+const categoryKeyMap: Record<string, string> = {
+  'Health & Wellness': 'healthWellness',
+  'Beauty & Spa': 'beautySpa',
+  'Fitness': 'fitness',
+  'Education': 'education',
+  'Professional Services': 'professionalServices',
+  'Medical': 'medical',
+  'Legal': 'legal',
+  'Consulting': 'consulting',
+  'Automotive': 'automotive',
+  'Home Services': 'homeServices',
+  'Entertainment': 'entertainment',
+  'Other': 'other',
+};
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  const translateCategory = (category: string | null | undefined): string => {
+    if (!category) return t('profile.categories.other');
+    const key = categoryKeyMap[category];
+    return key ? t(`profile.categories.${key}`) : category;
+  };
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [filteredBusinesses, setFilteredBusinesses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,7 +175,7 @@ const HomePage: React.FC = () => {
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <Star key={i} className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+      <Star key={i} className={`w-3.5 h-3.5 ${i < rating ? 'text-amber-400 fill-amber-400' : 'text-navy-700'}`} />
     ));
   };
 
@@ -178,14 +201,14 @@ const HomePage: React.FC = () => {
               />
             </div>
           ))}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0a2a1e]/95 via-primary/90 to-primary-light/80"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-navy-950/97 via-navy-900/93 to-navy-800/88"></div>
         </div>
 
         {/* Floating decorative elements */}
         <div className="absolute inset-0 z-[1] overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-[10%] w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-float"></div>
-          <div className="absolute bottom-20 right-[15%] w-96 h-96 bg-primary-light/15 rounded-full blur-3xl animate-float-delayed"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl animate-pulse-soft"></div>
+          <div className="absolute top-20 left-[10%] w-72 h-72 bg-accent/10 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-20 right-[15%] w-96 h-96 bg-steel-400/8 rounded-full blur-3xl animate-float-delayed"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/[0.03] rounded-full blur-3xl animate-pulse-soft"></div>
         </div>
 
         {/* Content */}
@@ -198,12 +221,12 @@ const HomePage: React.FC = () => {
               variants={stagger}
             >
               <motion.div 
-                className="mb-6 inline-flex items-center bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/20"
+                className="mb-6 inline-flex items-center bg-white/[0.06] backdrop-blur-md px-5 py-2.5 rounded-full border border-white/[0.08]"
                 variants={fadeUp}
                 custom={0}
               >
                 <Sparkles className="w-4 h-4 text-accent mr-2" />
-                <span className="text-white/90 text-sm font-medium tracking-wide">{t('home.hero.badge')}</span>
+                <span className="text-steel-200 text-sm font-medium tracking-wide">{t('home.hero.badge')}</span>
               </motion.div>
               
               <motion.h1 
@@ -213,13 +236,13 @@ const HomePage: React.FC = () => {
               >
                 {t('home.hero.title')}
                 <br />
-                <span className="bg-gradient-to-r from-accent via-emerald-400 to-teal-300 bg-clip-text text-transparent">
+                <span className="gradient-text-hero">
                   {t('home.hero.titleHighlight')}
                 </span>
               </motion.h1>
 
               <motion.p 
-                className="text-lg md:text-xl text-slate-200/90 mb-10 leading-relaxed max-w-2xl mx-auto"
+                className="text-lg md:text-xl text-steel-300 mb-10 leading-relaxed max-w-2xl mx-auto"
                 variants={fadeUp}
                 custom={2}
               >
@@ -233,27 +256,39 @@ const HomePage: React.FC = () => {
               >
                 <button
                   onClick={() => document.getElementById('clients-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="group px-8 py-4 bg-accent hover:bg-accent/90 text-white font-semibold rounded-2xl text-base transition-all duration-300 shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 flex items-center gap-2"
+                  className="group px-8 py-4 bg-accent hover:bg-steel-400 text-white font-semibold rounded-2xl text-base transition-all duration-300 shadow-ghost-lg hover:shadow-ghost-xl hover:-translate-y-0.5 flex items-center gap-2"
                 >
                   <Calendar className="w-5 h-5" />
                   {t('home.forClients.title')}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
+                {!user && (
                 <button
                   onClick={() => navigate('/register')}
-                  className="group px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold rounded-2xl text-base transition-all duration-300 border border-white/20 hover:border-white/40 flex items-center gap-2"
+                  className="group px-8 py-4 bg-white/[0.06] hover:bg-white/[0.1] backdrop-blur-sm text-white font-semibold rounded-2xl text-base transition-all duration-300 border border-white/[0.1] hover:border-white/[0.2] flex items-center gap-2"
                 >
                   <Users className="w-5 h-5" />
                   {t('home.forBusinesses.ctaButton')}
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
+                )}
+                {user && (
+                <button
+                  onClick={() => navigate('/pricing')}
+                  className="group px-8 py-4 bg-white/[0.06] hover:bg-white/[0.1] backdrop-blur-sm text-white font-semibold rounded-2xl text-base transition-all duration-300 border border-white/[0.1] hover:border-white/[0.2] flex items-center gap-2"
+                >
+                  <DollarSign className="w-5 h-5" />
+                  {t('home.forBusinesses.ctaButtonLoggedIn')}
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+                )}
               </motion.div>
             </motion.div>
           </Container>
         </div>
 
-        {/* Image Indicators — track sits above the curve on dark hero; contrast works on light too */}
-        <div className="absolute bottom-[5.5rem] sm:bottom-24 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-2 rounded-full bg-black/35 backdrop-blur-md border border-white/20 shadow-lg">
+        {/* Image Indicators */}
+        <div className="absolute bottom-[5.5rem] sm:bottom-24 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-2 rounded-full bg-navy-950/50 backdrop-blur-md border border-white/[0.08] shadow-ghost-lg">
           {heroImages.map((_, index) => (
             <button
               key={index}
@@ -262,7 +297,7 @@ const HomePage: React.FC = () => {
               className={`h-2 rounded-full transition-all duration-500 ${
                 index === currentImageIndex
                   ? 'bg-accent w-8 shadow-sm'
-                  : 'bg-white/85 hover:bg-white w-2.5 opacity-90 hover:opacity-100'
+                  : 'bg-white/60 hover:bg-white w-2.5 opacity-80 hover:opacity-100'
               }`}
               onClick={() => setCurrentImageIndex(index)}
             />
@@ -281,7 +316,7 @@ const HomePage: React.FC = () => {
       <section className="py-12 bg-background relative -mt-1">
         <Container maxWidth="full">
           <motion.div 
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
@@ -291,18 +326,18 @@ const HomePage: React.FC = () => {
               { value: t('home.forBusinesses.stat1Value'), label: t('home.forBusinesses.stat1Label'), color: 'text-primary' },
               { value: t('home.forBusinesses.stat2Value'), label: t('home.forBusinesses.stat2Label'), color: 'text-accent' },
               { value: t('home.forBusinesses.stat3Value'), label: t('home.forBusinesses.stat3Label'), color: 'text-primary-light' },
-              { value: t('home.forBusinesses.stat4Value'), label: t('home.forBusinesses.stat4Label'), color: 'text-emerald-600' },
+              { value: t('home.forBusinesses.stat4Value'), label: t('home.forBusinesses.stat4Label'), color: 'text-steel-400' },
             ].map((stat, i) => (
               <motion.div 
                 key={i} 
-                className="text-center p-5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow"
+                className="text-center p-5 rounded-2xl bg-white shadow-ghost hover:shadow-ghost-md transition-all duration-300 border border-gray-100"
                 variants={fadeUp}
                 custom={i}
               >
                 <div className={`text-3xl md:text-4xl font-extrabold ${stat.color} mb-1`}>
                   <AnimatedCounter target={stat.value} />
                 </div>
-                <div className="text-gray-500 text-sm font-medium">{stat.label}</div>
+                <div className="text-muted text-sm font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -311,7 +346,7 @@ const HomePage: React.FC = () => {
 
       {/* FOR BUSINESSES SECTION */}
       <section id="businesses-section" className="py-24 bg-gradient-to-b from-background via-white to-background relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
         
         <Container maxWidth="full">
           <motion.div 
@@ -322,20 +357,20 @@ const HomePage: React.FC = () => {
             variants={stagger}
           >
             <motion.div 
-              className="inline-flex items-center bg-primary/8 border border-primary/15 px-5 py-2 rounded-full mb-5"
+              className="inline-flex items-center bg-primary/[0.06] border border-primary/10 px-5 py-2 rounded-full mb-5"
               variants={fadeUp}
             >
               <Users className="w-4 h-4 text-primary mr-2" />
               <span className="text-primary font-semibold text-sm">{t('home.forBusinesses.title')}</span>
             </motion.div>
             <motion.h2 
-              className="text-4xl md:text-5xl font-extrabold mb-5 text-gray-900 tracking-tight"
+              className="text-4xl md:text-5xl font-extrabold mb-5 text-navy-900 tracking-tight"
               variants={fadeUp}
             >
               {t('home.forBusinesses.headline')}
             </motion.h2>
             <motion.p 
-              className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed"
+              className="text-lg text-muted max-w-2xl mx-auto leading-relaxed"
               variants={fadeUp}
             >
               {t('home.forBusinesses.description')}
@@ -344,7 +379,7 @@ const HomePage: React.FC = () => {
 
           {/* Benefit Cards */}
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-20"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-20"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-80px" }}
@@ -352,9 +387,9 @@ const HomePage: React.FC = () => {
           >
             {[
               {
-                icon: <Clock className="w-7 h-7 text-primary" />,
-                iconBg: 'bg-primary/10',
-                borderColor: 'border-primary/20',
+                icon: <Clock className="w-6 h-6 text-primary" />,
+                iconBg: 'bg-primary/[0.06]',
+                borderColor: 'border-primary/10',
                 accentColor: 'text-primary',
                 title: t('home.forBusinesses.card1Title'),
                 description: t('home.forBusinesses.card1Description'),
@@ -362,20 +397,20 @@ const HomePage: React.FC = () => {
                 featureIcon: <Zap className="w-4 h-4" />
               },
               {
-                icon: <TrendingUp className="w-7 h-7 text-emerald-600" />,
-                iconBg: 'bg-emerald-50',
-                borderColor: 'border-emerald-100',
-                accentColor: 'text-emerald-600',
+                icon: <TrendingUp className="w-6 h-6 text-accent" />,
+                iconBg: 'bg-accent/[0.08]',
+                borderColor: 'border-accent/15',
+                accentColor: 'text-accent',
                 title: t('home.forBusinesses.card2Title'),
                 description: t('home.forBusinesses.card2Description'),
                 feature: t('home.forBusinesses.card2Feature'),
                 featureIcon: <DollarSign className="w-4 h-4" />
               },
               {
-                icon: <Award className="w-7 h-7 text-accent" />,
-                iconBg: 'bg-accent/10',
-                borderColor: 'border-accent/20',
-                accentColor: 'text-accent',
+                icon: <Award className="w-6 h-6 text-steel-400" />,
+                iconBg: 'bg-steel-50',
+                borderColor: 'border-steel-100',
+                accentColor: 'text-steel-400',
                 title: t('home.forBusinesses.card3Title'),
                 description: t('home.forBusinesses.card3Description'),
                 feature: t('home.forBusinesses.card3Feature'),
@@ -384,15 +419,15 @@ const HomePage: React.FC = () => {
             ].map((card, i) => (
               <motion.div 
                 key={i}
-                className={`group bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 border ${card.borderColor} hover:-translate-y-1`}
+                className={`group bg-white p-8 rounded-2xl shadow-ghost hover:shadow-ghost-lg transition-all duration-500 border ${card.borderColor} hover:-translate-y-1`}
                 variants={fadeUp}
                 custom={i}
               >
                 <div className={`${card.iconBg} w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                   {card.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-gray-900">{card.title}</h3>
-                <p className="text-gray-600 leading-relaxed mb-5">{card.description}</p>
+                <h3 className="text-xl font-bold mb-3 text-navy-900">{card.title}</h3>
+                <p className="text-muted leading-relaxed mb-5">{card.description}</p>
                 <div className={`flex items-center ${card.accentColor} font-semibold text-sm`}>
                   {card.featureIcon}
                   <span className="ml-2">{card.feature}</span>
@@ -410,7 +445,7 @@ const HomePage: React.FC = () => {
             variants={stagger}
           >
             <motion.h3 
-              className="text-3xl font-bold text-center mb-10 text-gray-900"
+              className="text-3xl font-bold text-center mb-10 text-navy-900"
               variants={fadeUp}
             >
               {t('home.forBusinesses.testimonialsTitle')}
@@ -438,21 +473,21 @@ const HomePage: React.FC = () => {
               ].map((testimonial, index) => (
                 <motion.div 
                   key={index} 
-                  className="bg-white p-7 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                  className="bg-white p-7 rounded-2xl shadow-ghost border border-gray-100 hover:shadow-ghost-md transition-all duration-300 hover:-translate-y-1"
                   variants={fadeUp}
                   custom={index}
                 >
                   <div className="flex mb-4 gap-0.5">
                     {renderStars(testimonial.rating)}
                   </div>
-                  <p className="text-gray-600 mb-5 leading-relaxed">"{testimonial.content}"</p>
+                  <p className="text-muted mb-5 leading-relaxed">"{testimonial.content}"</p>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-navy-800 to-navy-600 flex items-center justify-center">
                       <span className="text-white font-bold text-sm">{testimonial.name.charAt(0)}</span>
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900 text-sm">{testimonial.name}</div>
-                      <div className="text-xs text-gray-500">{testimonial.role}</div>
+                      <div className="font-bold text-navy-900 text-sm">{testimonial.name}</div>
+                      <div className="text-xs text-muted">{testimonial.role}</div>
                     </div>
                   </div>
                 </motion.div>
@@ -468,23 +503,37 @@ const HomePage: React.FC = () => {
             viewport={{ once: true }}
             variants={fadeUp}
           >
-            <Button 
-              size="lg" 
-              className="px-10 py-4 rounded-2xl bg-gradient-to-r from-primary to-primary-light text-white hover:from-primary-light hover:to-accent shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transform hover:-translate-y-0.5 transition-all duration-300 font-semibold text-base"
-              onClick={() => navigate('/register')}
-            >
-              <Users className="mr-2 w-5 h-5" />
-              {t('home.forBusinesses.ctaButton')}
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-            <p className="mt-4 text-gray-500 text-sm">{t('home.forBusinesses.ctaSubtext')}</p>
+            {!user ? (
+              <>
+                <Button 
+                  size="lg" 
+                  className="px-10 py-4 rounded-2xl bg-primary text-white hover:bg-primary-light shadow-ghost-lg hover:shadow-ghost-xl transform hover:-translate-y-0.5 transition-all duration-300 font-semibold text-base"
+                  onClick={() => navigate('/register')}
+                >
+                  <Users className="mr-2 w-5 h-5" />
+                  {t('home.forBusinesses.ctaButton')}
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+                <p className="mt-4 text-muted text-sm">{t('home.forBusinesses.ctaSubtext')}</p>
+              </>
+            ) : (
+              <Button 
+                size="lg" 
+                className="px-10 py-4 rounded-2xl bg-primary text-white hover:bg-primary-light shadow-ghost-lg hover:shadow-ghost-xl transform hover:-translate-y-0.5 transition-all duration-300 font-semibold text-base"
+                onClick={() => navigate('/pricing')}
+              >
+                <DollarSign className="mr-2 w-5 h-5" />
+                {t('home.forBusinesses.ctaButtonLoggedIn')}
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            )}
           </motion.div>
         </Container>
       </section>
 
-      {/* HOW IT WORKS - visual divider */}
-      <section className="py-20 bg-gradient-to-r from-primary via-primary-light to-accent relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
+      {/* HOW IT WORKS */}
+      <section className="py-20 bg-gradient-to-r from-navy-900 via-navy-800 to-navy-700 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
           <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl"></div>
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
         </div>
@@ -501,7 +550,7 @@ const HomePage: React.FC = () => {
               <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">
                 {t('home.forClients.instantBookingTitle')}
               </h2>
-              <p className="text-white/80 text-lg max-w-xl mx-auto">{t('home.forClients.instantBookingDesc')}</p>
+              <p className="text-steel-300 text-lg max-w-xl mx-auto">{t('home.forClients.instantBookingDesc')}</p>
             </motion.div>
             
             <div className="grid md:grid-cols-3 gap-8">
@@ -517,15 +566,15 @@ const HomePage: React.FC = () => {
                   custom={i}
                 >
                   <div className="relative inline-flex mb-5">
-                    <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white">
+                    <div className="w-16 h-16 rounded-2xl bg-white/[0.06] backdrop-blur-sm border border-white/[0.08] flex items-center justify-center text-white">
                       {item.icon}
                     </div>
-                    <span className="absolute -top-2 -right-2 w-7 h-7 bg-accent rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
+                    <span className="absolute -top-2 -right-2 w-7 h-7 bg-accent rounded-full flex items-center justify-center text-white text-xs font-bold shadow-ghost-lg">
                       {item.step}
                     </span>
                   </div>
                   <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
-                  <p className="text-white/70 text-sm leading-relaxed max-w-xs mx-auto">{item.desc}</p>
+                  <p className="text-steel-400 text-sm leading-relaxed max-w-xs mx-auto">{item.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -535,7 +584,7 @@ const HomePage: React.FC = () => {
 
       {/* FOR CLIENTS SECTION */}
       <section id="clients-section" className="py-24 bg-gradient-to-b from-background via-white to-background relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/[0.03] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
         
         <Container maxWidth="full">
           <motion.div 
@@ -546,20 +595,20 @@ const HomePage: React.FC = () => {
             variants={stagger}
           >
             <motion.div 
-              className="inline-flex items-center bg-accent/8 border border-accent/15 px-5 py-2 rounded-full mb-5"
+              className="inline-flex items-center bg-accent/[0.06] border border-accent/10 px-5 py-2 rounded-full mb-5"
               variants={fadeUp}
             >
               <Calendar className="w-4 h-4 text-accent mr-2" />
               <span className="text-primary font-semibold text-sm">{t('home.forClients.title')}</span>
             </motion.div>
             <motion.h2 
-              className="text-4xl md:text-5xl font-extrabold mb-5 text-gray-900 tracking-tight"
+              className="text-4xl md:text-5xl font-extrabold mb-5 text-navy-900 tracking-tight"
               variants={fadeUp}
             >
               {t('home.forClients.headline')}
             </motion.h2>
             <motion.p 
-              className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed"
+              className="text-lg text-muted max-w-2xl mx-auto leading-relaxed"
               variants={fadeUp}
             >
               {t('home.forClients.description')}
@@ -575,33 +624,28 @@ const HomePage: React.FC = () => {
             variants={fadeUp}
           >
             <div className="relative group">
-              {/* Glow */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary-light rounded-2xl blur opacity-0 group-focus-within:opacity-30 transition-opacity duration-500 pointer-events-none"></div>
-              <div className="relative flex items-center bg-white rounded-2xl shadow-md border border-gray-200 group-focus-within:border-accent/50 transition-all duration-300 overflow-hidden">
-                {/* Icon area */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-accent/20 to-primary-light/20 rounded-2xl blur opacity-0 group-focus-within:opacity-40 transition-opacity duration-500 pointer-events-none"></div>
+              <div className="relative flex items-center bg-white rounded-2xl shadow-ghost-md border border-gray-200 group-focus-within:border-accent/40 transition-all duration-300 overflow-hidden">
                 <div className="pl-5 pr-3 flex items-center">
-                  <Search className="w-5 h-5 text-gray-400 group-focus-within:text-accent transition-colors duration-200 flex-shrink-0" />
+                  <Search className="w-5 h-5 text-muted group-focus-within:text-accent transition-colors duration-200 flex-shrink-0" />
                 </div>
                 <input
                   type="text"
                   placeholder={t('home.forClients.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 py-4 pr-4 text-[15px] text-gray-800 bg-transparent outline-none placeholder:text-gray-400"
+                  className="flex-1 py-4 pr-4 text-[15px] text-navy-900 bg-transparent outline-none placeholder:text-muted"
                 />
-                {/* Clear button */}
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="mr-3 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors flex-shrink-0"
+                    className="mr-3 w-7 h-7 rounded-full bg-surface hover:bg-steel-100 flex items-center justify-center transition-colors flex-shrink-0"
                   >
-                    <span className="text-gray-500 text-sm leading-none">✕</span>
+                    <span className="text-muted text-sm leading-none">✕</span>
                   </button>
                 )}
-                {/* Search pill */}
-                <div className="mr-3 hidden sm:flex items-center gap-1 bg-primary/8 text-primary text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0">
+                <div className="mr-3 hidden sm:flex items-center gap-1 bg-primary/[0.06] text-primary text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0">
                   <Search className="w-3 h-3" />
-                  <span>{filteredBusinesses.length}</span>
                 </div>
               </div>
             </div>
@@ -611,18 +655,18 @@ const HomePage: React.FC = () => {
           <div className="mb-12">
             {loading ? (
               <div className="text-center py-16">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/[0.06] mb-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
                 </div>
-                <p className="text-gray-500">{t('home.forClients.loadingBusinesses')}</p>
+                <p className="text-muted">{t('home.forClients.loadingBusinesses')}</p>
               </div>
             ) : filteredBusinesses.length === 0 ? (
               <div className="text-center py-16">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                  <Calendar className="w-8 h-8 text-gray-400" />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-surface mb-4">
+                  <Calendar className="w-8 h-8 text-muted" />
                 </div>
-                <p className="text-lg text-gray-600 font-medium mb-1">{t('home.forClients.noBusinessesFound')}</p>
-                <p className="text-sm text-gray-400">{t('home.forClients.tryDifferentSearch')}</p>
+                <p className="text-lg text-navy-800 font-medium mb-1">{t('home.forClients.noBusinessesFound')}</p>
+                <p className="text-sm text-muted">{t('home.forClients.tryDifferentSearch')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
@@ -635,65 +679,59 @@ const HomePage: React.FC = () => {
                     <motion.div
                       key={business.id}
                       onClick={() => navigate(`/book/${business.id}`)}
-                      className="group relative bg-white rounded-2xl border-2 border-gray-300 shadow-md shadow-gray-900/10 cursor-pointer flex flex-col p-5 transition-all duration-300 ease-out hover:-translate-y-2 hover:border-primary hover:shadow-[0_22px_44px_-14px_rgba(15,61,46,0.28),0_10px_24px_-12px_rgba(0,0,0,0.12)] hover:ring-2 hover:ring-primary/15 active:translate-y-0 active:scale-[0.99] outline-none"
+                      className="group relative bg-white rounded-2xl border border-gray-200 shadow-ghost cursor-pointer flex flex-col p-5 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-ghost-xl active:translate-y-0 active:scale-[0.99] outline-none"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.07, duration: 0.35, ease: 'easeOut' }}
                     >
-                      {/* Top row: logo + category + stars */}
                       <div className="flex items-start gap-3 mb-4">
-                        {/* Logo */}
                         {business.logo ? (
                           <img
                             src={business.logo}
                             alt={business.name}
-                            className="w-14 h-14 object-cover rounded-xl flex-shrink-0 bg-gray-50 border-2 border-gray-200 group-hover:border-primary/30 transition-colors duration-300"
+                            className="w-14 h-14 object-cover rounded-xl flex-shrink-0 bg-surface border border-gray-100 group-hover:border-accent/30 transition-colors duration-300"
                           />
                         ) : (
-                          <div className="w-14 h-14 rounded-xl flex-shrink-0 bg-gradient-to-br from-primary to-primary-light flex items-center justify-center border-2 border-white shadow-md group-hover:shadow-lg transition-shadow duration-300">
+                          <div className="w-14 h-14 rounded-xl flex-shrink-0 bg-gradient-to-br from-navy-800 to-navy-600 flex items-center justify-center shadow-ghost">
                             <span className="text-white text-xl font-bold">
                               {business.name.charAt(0).toUpperCase()}
                             </span>
                           </div>
                         )}
 
-                        {/* Name + category */}
                         <div className="flex-1 min-w-0 pt-0.5">
-                          <h3 className="text-[15px] font-bold text-gray-900 group-hover:text-primary transition-colors truncate leading-snug">
+                          <h3 className="text-[15px] font-bold text-navy-900 group-hover:text-primary transition-colors truncate leading-snug">
                             {business.name}
                           </h3>
-                          <span className="inline-block mt-1 text-[11px] font-medium text-primary bg-primary/8 px-2 py-0.5 rounded-full">
-                            {business.category || 'Other'}
+                          <span className="inline-block mt-1 text-[11px] font-medium text-accent bg-accent/[0.08] px-2 py-0.5 rounded-full">
+                            {translateCategory(business.category)}
                           </span>
                         </div>
                       </div>
 
-                      {/* Description */}
                       {hasDesc && (
-                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-3">
+                        <p className="text-muted text-sm leading-relaxed line-clamp-2 mb-3">
                           {business.description}
                         </p>
                       )}
 
-                      {/* Divider */}
-                      <div className="h-px bg-gray-200 mb-3" />
+                      <div className="h-px bg-gray-100 mb-3" />
 
-                      {/* Bottom row: stars + address + button */}
                       <div className="mt-auto space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-0.5">
                             {renderStars(5)}
-                            <span className="text-[11px] text-gray-600 font-medium ml-1.5">4.9</span>
+                            <span className="text-[11px] text-muted font-medium ml-1.5">4.9</span>
                           </div>
                           {showAddress && (
-                            <div className="flex items-center text-gray-400 text-[11px] gap-1 max-w-[140px]">
+                            <div className="flex items-center text-muted text-[11px] gap-1 max-w-[140px]">
                               <MapPin className="w-3 h-3 flex-shrink-0" />
                               <span className="truncate">{address}</span>
                             </div>
                           )}
                         </div>
 
-                        <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-gray-300 bg-gray-50/80 text-gray-800 font-semibold text-sm transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-white">
+                        <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 bg-surface/60 text-navy-800 font-semibold text-sm transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-white">
                           <Calendar className="w-4 h-4 group-hover:scale-110 transition-transform" />
                           {t('home.forClients.bookAppointment')}
                         </button>
@@ -719,10 +757,10 @@ const HomePage: React.FC = () => {
           >
             <motion.div className="flex items-center justify-center gap-2 mb-4" variants={fadeUp}>
               <Shield className="w-5 h-5 text-accent" />
-              <span className="text-sm font-semibold text-gray-600 uppercase tracking-wider">{t('home.forBusinesses.ctaSubtext')}</span>
+              <span className="text-sm font-semibold text-muted uppercase tracking-wider">{t('home.forBusinesses.ctaSubtext')}</span>
             </motion.div>
             <motion.div 
-              className="flex flex-wrap justify-center items-center gap-8 md:gap-12 text-gray-400"
+              className="flex flex-wrap justify-center items-center gap-8 md:gap-12 text-muted"
               variants={fadeUp}
             >
               <div className="flex items-center gap-2 text-sm font-medium">

@@ -173,7 +173,7 @@ const AppointmentPage: React.FC = () => {
               >
                 {/* Left Column: Appointment Form */}
                 <motion.div
-                  className="bg-white rounded-xl shadow-xl p-4 sm:p-6 md:p-8 relative"
+                  className="bg-white rounded-2xl shadow-ghost-lg border border-gray-100 p-4 sm:p-6 md:p-8 relative"
                   variants={fadeUp}
                   initial="initial"
                   animate="animate"
@@ -182,7 +182,7 @@ const AppointmentPage: React.FC = () => {
                   <motion.button
                     type="button"
                     onClick={() => navigate('/')}
-                    className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 p-2 rounded-lg text-primary hover:text-primary-light hover:bg-primary/5 transition-colors duration-200"
+                    className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 p-2 rounded-lg text-navy-800 hover:text-primary hover:bg-primary/[0.05] transition-colors duration-200"
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
                     aria-label={t('appointmentPage.backToHome')}
@@ -214,7 +214,7 @@ const AppointmentPage: React.FC = () => {
                       {business.name}
                     </motion.h1>
                     <motion.p
-                      className="text-gray-600 mb-4 text-center text-sm"
+                      className="text-muted mb-4 text-center text-sm"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0, transition: { delay: 0.2, duration: 0.5 } }}
                     >
@@ -227,11 +227,11 @@ const AppointmentPage: React.FC = () => {
                 {/* Right Column: Map */}
                 {showMap && coords && (
                   <motion.div
-                    className="bg-white rounded-xl shadow-xl p-4 sm:p-6 overflow-hidden max-h-fit self-center"
+                    className="bg-white rounded-2xl shadow-ghost-lg border border-gray-100 p-4 sm:p-6 overflow-hidden max-h-fit self-center"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0, transition: { delay: 0.4, duration: 0.5 } }}
                   >
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Location</h3>
+                    <h3 className="text-lg font-semibold mb-3 text-navy-900">Location</h3>
                     <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                       <iframe
                         width="100%"
@@ -243,7 +243,7 @@ const AppointmentPage: React.FC = () => {
                         src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(coords.lng) - 0.01},${parseFloat(coords.lat) - 0.01},${parseFloat(coords.lng) + 0.01},${parseFloat(coords.lat) + 0.01}&layer=mapnik&marker=${coords.lat},${coords.lng}`}
                         title="Business Location"
                       />
-                      <div className="text-xs text-gray-500 text-center py-2 bg-gray-50 border-t border-gray-200">
+                      <div className="text-xs text-muted text-center py-2 bg-surface border-t border-gray-100">
                         <a
                           href={`https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}&zoom=17`}
                           target="_blank"

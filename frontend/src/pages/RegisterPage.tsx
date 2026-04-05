@@ -133,8 +133,8 @@ const RegisterPage: React.FC = () => {
     >
       {/* Title */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">{t('register.title')}</h2>
-          <p className="text-sm text-gray-500">{t('register.subtitle')}</p>
+          <h2 className="text-2xl font-bold text-navy-900 mb-1">{t('register.title')}</h2>
+          <p className="text-sm text-muted">{t('register.subtitle')}</p>
         </div>
 
         {/* Form */}
@@ -142,15 +142,15 @@ const RegisterPage: React.FC = () => {
           {/* Name + Email row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.nameLabel')}</label>
+              <label className="block text-sm font-medium text-navy-800 mb-1.5">{t('register.nameLabel')}</label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="text"
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                  className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                   placeholder={t('register.namePlaceholder')}
                   autoComplete="name"
                   required
@@ -158,15 +158,15 @@ const RegisterPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.emailLabel')}</label>
+              <label className="block text-sm font-medium text-navy-800 mb-1.5">{t('register.emailLabel')}</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="email"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                  className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                   placeholder={t('register.emailPlaceholder')}
                   autoComplete="email"
                   required
@@ -177,15 +177,15 @@ const RegisterPage: React.FC = () => {
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.phoneLabel')}</label>
+            <label className="block text-sm font-medium text-navy-800 mb-1.5">{t('register.phoneLabel')}</label>
             <div className="relative">
-              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="tel"
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                 placeholder={t('register.phonePlaceholder')}
                 autoComplete="tel"
                 required
@@ -196,15 +196,15 @@ const RegisterPage: React.FC = () => {
           {/* Password row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.passwordLabel')}</label>
+              <label className="block text-sm font-medium text-navy-800 mb-1.5">{t('register.passwordLabel')}</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="password"
                   name="password"
                   value={form.password}
                   onChange={handleChange}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                  className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                   placeholder={t('register.passwordPlaceholder')}
                   autoComplete="new-password"
                   required
@@ -212,15 +212,15 @@ const RegisterPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.confirmPasswordLabel')}</label>
+              <label className="block text-sm font-medium text-navy-800 mb-1.5">{t('register.confirmPasswordLabel')}</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="password"
                   name="confirm"
                   value={form.confirm}
                   onChange={handleChange}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm transition-all duration-200 placeholder:text-gray-400"
+                  className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                   placeholder={t('register.confirmPasswordPlaceholder')}
                   autoComplete="new-password"
                   required
@@ -231,14 +231,14 @@ const RegisterPage: React.FC = () => {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.descriptionLabel')}</label>
+            <label className="block text-sm font-medium text-navy-800 mb-1.5">{t('register.descriptionLabel')}</label>
             <div className="relative">
-              <FileText className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
+              <FileText className="absolute left-3.5 top-3.5 w-4 h-4 text-muted" />
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all resize-none text-sm placeholder:text-gray-400"
+                className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none transition-all resize-none text-sm placeholder:text-muted"
                 placeholder={t('register.descriptionPlaceholder')}
                 required
                 rows={2}
@@ -248,13 +248,13 @@ const RegisterPage: React.FC = () => {
 
           {/* Logo upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.logoLabel')}</label>
+            <label className="block text-sm font-medium text-navy-800 mb-1.5">{t('register.logoLabel')}</label>
             <label
               htmlFor="file-upload"
               className={`flex items-center justify-center gap-3 px-4 py-3.5 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
                 logoFile 
                   ? 'border-accent bg-accent/5 text-accent' 
-                  : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50 text-gray-500'
+                  : 'border-gray-200 hover:border-accent/40 hover:bg-surface text-muted'
               }`}
             >
               {logoFile ? (
@@ -263,8 +263,8 @@ const RegisterPage: React.FC = () => {
                     <ImagePlus className="w-4 h-4 text-accent" />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium text-gray-900 truncate">{logoFile.name}</p>
-                    <p className="text-xs text-gray-500">{(logoFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-sm font-medium text-navy-900 truncate">{logoFile.name}</p>
+                    <p className="text-xs text-muted">{(logoFile.size / 1024 / 1024).toFixed(2)} MB</p>
                   </div>
                   <span className="text-xs font-medium text-primary">{t('register.changeFile')}</span>
                 </>
@@ -272,7 +272,7 @@ const RegisterPage: React.FC = () => {
                 <>
                   <ImagePlus className="w-5 h-5" />
                   <span className="text-sm font-medium">{t('register.uploadFile')}</span>
-                  <span className="text-xs text-gray-400">{t('register.fileTypes')}</span>
+                  <span className="text-xs text-muted">{t('register.fileTypes')}</span>
                 </>
               )}
               <input
@@ -296,7 +296,7 @@ const RegisterPage: React.FC = () => {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-accent text-white font-semibold py-3.5 rounded-xl text-sm transition-all duration-300 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+            className="w-full bg-primary hover:bg-primary-light text-white font-semibold py-3.5 rounded-xl text-sm transition-all duration-300 transform hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 shadow-ghost-lg hover:shadow-ghost-xl"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -315,7 +315,7 @@ const RegisterPage: React.FC = () => {
 
         {/* Footer */}
         <div className="mt-6 text-center space-y-3">
-          <p className="text-gray-500 text-sm">
+          <p className="text-muted text-sm">
             {t('register.alreadyHaveAccount')}{' '}
             <button
               className="text-primary hover:text-primary-light font-semibold hover:underline transition-colors"

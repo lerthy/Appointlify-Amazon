@@ -26,7 +26,6 @@ const LanguageSelector: React.FC = () => {
     setIsOpen(false);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -48,30 +47,30 @@ const LanguageSelector: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200 text-gray-700 text-sm font-medium"
+        className="flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-lg border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-colors duration-200 text-steel-300 text-sm font-medium"
         aria-label="Select language"
         aria-expanded={isOpen}
       >
-        <Globe className="h-4 w-4 shrink-0 text-gray-500" />
+        <Globe className="h-4 w-4 shrink-0 text-steel-300" />
         <span className="tabular-nums">{currentLanguage.code.toUpperCase()}</span>
-        <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-3 w-3 shrink-0 text-steel-300 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+        <div className="absolute right-0 mt-2 w-40 bg-navy-900/95 backdrop-blur-xl rounded-lg shadow-ghost-xl border border-white/[0.08] py-1 z-50">
           {languages.map((language) => (
             <button
               key={language.code}
               onClick={() => handleLanguageChange(language.code)}
-              className={`w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-100 transition-colors duration-150 ${
-                currentLanguage.code === language.code ? 'bg-primary/10 text-primary' : 'text-gray-700'
+              className={`w-full flex items-center justify-between px-4 py-2 text-left transition-colors duration-150 ${
+                currentLanguage.code === language.code ? 'bg-accent/15 text-accent' : 'text-steel-200 hover:bg-white/[0.06]'
               }`}
             >
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium">{language.name}</span>
               </div>
               {currentLanguage.code === language.code && (
-                <Check className="h-4 w-4 text-primary" />
+                <Check className="h-4 w-4 text-accent" />
               )}
             </button>
           ))}

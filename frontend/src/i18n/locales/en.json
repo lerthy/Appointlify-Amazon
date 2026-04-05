@@ -28,6 +28,7 @@
   "header": {
     "forBusinesses": "For Businesses",
     "forClients": "For Clients",
+    "pricing": "Pricing",
     "login": "Login",
     "register": "Register",
     "home": "Home",
@@ -38,6 +39,47 @@
     "signOut": "Sign Out",
     "openMenu": "Open main menu",
     "language": "Language"
+  },
+  "pricing": {
+    "badge": "Simple Pricing",
+    "title": "Choose the Right Plan for Your Business",
+    "subtitle": "Start with our free trial and upgrade as your business grows. No hidden fees, cancel anytime.",
+    "perMonth": "month",
+    "freeTrial": "14-day free trial included",
+    "mostPopular": "Most Popular",
+    "comingSoon": "Coming Soon",
+    "backToHome": "Back to Home",
+    "note": "All plans include basic appointment scheduling. Paid features are currently under development and will be available soon. Start with our free plan today!",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "description": "Perfect for getting started with basic appointment scheduling."
+      },
+      "starter": {
+        "name": "Starter",
+        "description": "Great for small businesses looking to grow and engage customers."
+      },
+      "professional": {
+        "name": "Professional",
+        "description": "For established businesses that need advanced features and analytics."
+      }
+    },
+    "features": {
+      "appointments": "Up to 50 appointments/month",
+      "appointmentsUnlimited": "Unlimited appointments",
+      "employees": "Up to 2 employees",
+      "employeesUp5": "Up to 5 employees",
+      "employeesUnlimited": "Unlimited employees",
+      "basicDashboard": "Basic dashboard",
+      "fullDashboard": "Full dashboard access",
+      "emailReminders": "Email reminders",
+      "smsReminders": "SMS reminders",
+      "analytics": "Analytics & reports",
+      "basicAnalytics": "Basic analytics",
+      "advancedAnalytics": "Advanced analytics & reports",
+      "prioritySupport": "Priority support",
+      "customBranding": "Custom branding"
+    }
   },
   "footer": {
     "companyDescription": "Making appointment booking simple and convenient for both businesses and customers.",
@@ -91,6 +133,7 @@
       "stat4Value": "500+",
       "stat4Label": "Active Businesses",
       "ctaButton": "Join Appointly Today - FREE",
+      "ctaButtonLoggedIn": "View Pricing Plans",
       "ctaSubtext": "No credit card required • Setup in 5 minutes"
     },
     "forClients": {
