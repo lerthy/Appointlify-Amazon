@@ -10,8 +10,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import HomePage from './pages/HomePage';
 import AppointmentPage from './pages/AppointmentPage';
 import DashboardPage from './pages/DashboardPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import AuthPage from './pages/AuthPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import CancelAppointment from './components/customer/CancelAppointment';
@@ -62,8 +61,8 @@ function AppContent() {
         <Route path="/book" element={<AppointmentPage />} />
         <Route path="/book/:businessId" element={<AppointmentPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
