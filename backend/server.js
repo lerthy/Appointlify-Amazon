@@ -1674,7 +1674,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 const isServerlessEnv = Boolean(
   process.env.LAMBDA_TASK_ROOT ||
   process.env.AWS_LAMBDA_FUNCTION_NAME ||

@@ -381,7 +381,7 @@ const Analytics: React.FC = () => {
                       {t('analytics.noEmployeeData')}
                     </div>
                   )
-                ) : (
+                ) : appointmentsPerEmployee.some(e => e.count > 0) ? (
                   <Histogram
                     data={appointmentsPerEmployee.map((emp, index) => ({
                       label: emp.name,
@@ -390,6 +390,10 @@ const Analytics: React.FC = () => {
                     }))}
                     maxHeight={200}
                   />
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-gray-400 text-sm">
+                    {t('analytics.noEmployeeData')}
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -431,7 +435,7 @@ const Analytics: React.FC = () => {
             </CardHeader>
             <CardContent>
               {serviceChartMode === 'pie' ? (
-                serviceDistribution.length > 0 ? (
+                serviceDistribution.length > 0 && serviceDistribution.some(s => s.count > 0) ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -462,7 +466,7 @@ const Analytics: React.FC = () => {
                     {t('analytics.noServiceData')}
                   </div>
                 )
-              ) : (
+              ) : serviceDistribution.some(s => s.count > 0) ? (
                 <div className="space-y-4">
                   <Histogram
                     data={serviceDistribution.map((s) => ({
@@ -486,6 +490,10 @@ const Analytics: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-400 text-sm">
+                  {t('analytics.noServiceData')}
                 </div>
               )}
             </CardContent>
@@ -563,7 +571,7 @@ const Analytics: React.FC = () => {
                       {t('analytics.noDayData')}
                     </div>
                   )
-                ) : (
+                ) : dailyDistribution.some(d => d.count > 0) ? (
                   <Histogram
                     data={dailyDistribution.map((day, index) => ({
                       label: day.day.slice(0, 3),
@@ -572,6 +580,10 @@ const Analytics: React.FC = () => {
                     }))}
                     maxHeight={130}
                   />
+                ) : (
+                  <div className="flex items-center justify-center h-[280px] text-gray-400 text-sm">
+                    {t('analytics.noDayData')}
+                  </div>
                 )}
               </div>
             </CardContent>

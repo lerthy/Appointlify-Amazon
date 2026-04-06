@@ -292,6 +292,11 @@
       "success": "Password changed successfully!",
       "emailNotFound": "User email not found. Please reload the page.",
       "unexpectedError": "An unexpected error occurred."
+    },
+    "errors": {
+      "ownerNameRequired": "Owner name is required.",
+      "phoneInvalid": "Please enter a valid phone number (e.g. +383 44 123 456).",
+      "categoryRequired": "Please select a business category."
     }
   },
   "dashboard": {
@@ -721,6 +726,14 @@
     },
     "errors": {
       "fillRequired": "Please fill in all required fields.",
+      "nameRequired": "Employee name is required.",
+      "roleRequired": "Please select or enter a role.",
+      "emailRequired": "Email address is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "emailDuplicate": "This email is already used by another employee.",
+      "phoneRequired": "Phone number is required.",
+      "phoneInvalid": "Please enter a valid phone number (e.g. +1 234 567 8900).",
+      "phoneDuplicate": "This phone number is already used by another employee.",
       "businessLoading": "Business is still loading. Please try again in a moment.",
       "saveFailed": "Failed to save employee. Please try again.",
       "deleteFailed": "Failed to delete employee. Please try again."
@@ -805,7 +818,11 @@
     },
     "saveSettings": "Save Settings",
     "saving": "Saving...",
-    "saved": "Settings saved successfully!"
+    "saved": "Settings saved successfully!",
+    "errors": {
+      "closingAfterOpening": "Closing time must be after opening time.",
+      "breakOutsideHours": "Break times must be within business hours."
+    }
   },
   "analytics": {
     "title": "Analytics",

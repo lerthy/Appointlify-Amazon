@@ -34,6 +34,7 @@ const EmployeeManagement: React.FC = () => {
   const [editingEmployee, setEditingEmployee] = useState<string | null>(null);
   const [deletingEmployee, setDeletingEmployee] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
     email: '',
@@ -54,6 +55,10 @@ const EmployeeManagement: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear field error on change
+    if (formErrors[name]) {
+      setFormErrors(prev => { const next = { ...prev }; delete next[name]; return next; });
+    }
   };
 
   const handleWorkingHoursChange = (day: string, field: string, value: string | boolean) => {
@@ -65,11 +70,60 @@ const EmployeeManagement: React.FC = () => {
     }));
   };
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Name: required, not blank
+    if (!formData.name.trim()) {
+      errors.name = t('employees.errors.nameRequired');
+    }
+
+    // Role: required, not blank
+    if (!formData.role.trim()) {
+      errors.role = t('employees.errors.roleRequired');
+    }
+
+    // Email: required + basic format
+    const emailTrimmed = formData.email.trim();
+    if (!emailTrimmed) {
+      errors.email = t('employees.errors.emailRequired');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      errors.email = t('employees.errors.emailInvalid');
+    } else {
+      // Duplicate check — skip the employee currently being edited
+      const duplicate = employees.find(
+        emp => emp.email.toLowerCase() === emailTrimmed.toLowerCase() && emp.id !== editingEmployee
+      );
+      if (duplicate) {
+        errors.email = t('employees.errors.emailDuplicate');
+      }
+    }
+
+    // Phone: required + format validation
+    const phoneTrimmed = formData.phone.trim();
+    if (!phoneTrimmed) {
+      errors.phone = t('employees.errors.phoneRequired');
+    } else if (!/^\+?[\d\s\-()]{7,20}$/.test(phoneTrimmed)) {
+      errors.phone = t('employees.errors.phoneInvalid');
+    } else {
+      // Duplicate check
+      const normalizePhone = (p: string) => p.replace(/[\s\-()]/g, '');
+      const duplicate = employees.find(
+        emp => normalizePhone(emp.phone) === normalizePhone(phoneTrimmed) && emp.id !== editingEmployee
+      );
+      if (duplicate) {
+        errors.phone = t('employees.errors.phoneDuplicate');
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.phone || !formData.role) {
-      showNotification(t('employees.errors.fillRequired'), 'error');
+    if (!validateForm()) {
       return;
     }
 
@@ -153,6 +207,7 @@ const EmployeeManagement: React.FC = () => {
         { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
       ]
     });
+    setFormErrors({});
   };
 
   const defaultWorkingHours = [
@@ -355,9 +410,10 @@ const EmployeeManagement: React.FC = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder={t('employees.namePlaceholder')}
-                      className="border-gray-300 focus:border-primary focus:ring-primary"
+                      className={`border-gray-300 focus:border-primary focus:ring-primary ${formErrors.name ? 'border-red-400' : ''}`}
                       required
                     />
+                    {formErrors.name && <p className="text-xs text-red-500 mt-1">{formErrors.name}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
@@ -369,9 +425,10 @@ const EmployeeManagement: React.FC = () => {
                       value={formData.role}
                       onChange={handleInputChange}
                       placeholder={t('employees.rolePlaceholder')}
-                      className="border-gray-300 focus:border-primary focus:ring-primary"
+                      className={`border-gray-300 focus:border-primary focus:ring-primary ${formErrors.role ? 'border-red-400' : ''}`}
                       required
                     />
+                    {formErrors.role && <p className="text-xs text-red-500 mt-1">{formErrors.role}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
@@ -383,9 +440,10 @@ const EmployeeManagement: React.FC = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder={t('employees.emailPlaceholder')}
-                      className="border-gray-300 focus:border-primary focus:ring-primary"
+                      className={`border-gray-300 focus:border-primary focus:ring-primary ${formErrors.email ? 'border-red-400' : ''}`}
                       required
                     />
+                    {formErrors.email && <p className="text-xs text-red-500 mt-1">{formErrors.email}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700">
@@ -397,9 +455,10 @@ const EmployeeManagement: React.FC = () => {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder={t('employees.phonePlaceholder')}
-                      className="border-gray-300 focus:border-primary focus:ring-primary"
+                      className={`border-gray-300 focus:border-primary focus:ring-primary ${formErrors.phone ? 'border-red-400' : ''}`}
                       required
                     />
+                    {formErrors.phone && <p className="text-xs text-red-500 mt-1">{formErrors.phone}</p>}
                   </div>
                 </div>
 

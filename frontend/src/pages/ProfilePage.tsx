@@ -37,6 +37,7 @@ const ProfilePage: React.FC = () => {
   const [notificationMessage, setNotificationMessage] = useState('');
   const [coords, setCoords] = useState<{ lat: string; lng: string } | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Sync form with user data when user changes
   useEffect(() => {
@@ -131,7 +132,11 @@ const ProfilePage: React.FC = () => {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    if (formErrors[name]) {
+      setFormErrors(prev => { const next = { ...prev }; delete next[name]; return next; });
+    }
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,6 +147,26 @@ const ProfilePage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors: Record<string, string> = {};
+
+    if (!form.ownerName.trim()) {
+      errors.ownerName = t('profile.errors.ownerNameRequired');
+    }
+
+    if (form.phone.trim() && !/^\+?[\d\s\-()]{7,20}$/.test(form.phone.trim())) {
+      errors.phone = t('profile.errors.phoneInvalid');
+    }
+
+    if (!form.category) {
+      errors.category = t('profile.errors.categoryRequired');
+    }
+
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     let logoUrl = user.logo || '';
@@ -363,8 +388,10 @@ const ProfilePage: React.FC = () => {
                       value={form.ownerName}
                       onChange={handleChange}
                       placeholder="Enter owner name"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100 ${formErrors.ownerName ? 'border-red-400' : 'border-gray-300'}`}
+                      required
                     />
+                    {formErrors.ownerName && <p className="text-xs text-red-500 mt-1">{formErrors.ownerName}</p>}
                   </div>
 
                   <div>
@@ -378,8 +405,10 @@ const ProfilePage: React.FC = () => {
                       value={form.phone}
                       onChange={handleChange}
                       placeholder="+383 XX XXX XXX"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
+                      pattern="\+?[\d\s\-()]{7,20}"
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100 ${formErrors.phone ? 'border-red-400' : 'border-gray-300'}`}
                     />
+                    {formErrors.phone && <p className="text-xs text-red-500 mt-1">{formErrors.phone}</p>}
                   </div>
 
                   <div>
@@ -445,15 +474,17 @@ const ProfilePage: React.FC = () => {
                       name="category"
                       value={form.category}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100"
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100 ${formErrors.category ? 'border-red-400' : 'border-gray-300'}`}
+                      required
                     >
-                      <option value="">{t('profile.selectCategory')}</option>
+                      <option value="" disabled>{t('profile.selectCategory')}</option>
                       {categories.map((cat) => (
                         <option key={cat.key} value={cat.value}>
                           {t(`profile.categories.${cat.key}`)}
                         </option>
                       ))}
                     </select>
+                    {formErrors.category && <p className="text-xs text-red-500 mt-1">{formErrors.category}</p>}
                   </div>
                 </div>
               </div>

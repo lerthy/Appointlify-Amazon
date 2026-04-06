@@ -705,7 +705,7 @@ app.post('/api/verify-email', async (req, res) => {
         <p style="color: #999; font-size: 12px; margin-top: 30px;">This link will expire in 24 hours.</p>
       </div>`;
     try {
-      const apiBase = process.env.BACKEND_URL || process.env.VITE_API_URL || 'http://localhost:5001';
+      const apiBase = process.env.BACKEND_URL || process.env.VITE_API_URL || 'http://localhost:5000';
       const sendRes = await fetch(`${apiBase.replace(/\/$/, '')}/api/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1464,7 +1464,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 const isServerlessEnv = Boolean(
   process.env.LAMBDA_TASK_ROOT ||
   process.env.AWS_LAMBDA_FUNCTION_NAME ||

@@ -11,7 +11,7 @@ export default defineConfig({
       '/api': {
         // Local dev: proxy to local backend. VITE_PROXY_TARGET overrides (e.g. for production API).
         // Use VITE_PROXY_TARGET, NOT VITE_API_URL - so .env VITE_API_URL doesn't break local dev.
-        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5001',
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
         ws: true,
@@ -25,26 +25,26 @@ export default defineConfig({
         },
       },
       '/.well-known/appspecific/com.chrome.devtools.json': {
-        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5001',
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
       },
       '/.netlify/functions/chat': {
-        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5001',
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
         rewrite: (p) => p.replace('/.netlify/functions/chat', '/api/chat'),
       },
       '/.netlify/functions/book-appointment': {
-        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5001',
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
         rewrite: (p) => p.replace('/.netlify/functions/book-appointment', '/api/book-appointment'),
       },
       '/.netlify/functions/send-sms': {
-        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5001',
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
         rewrite: (p) => p.replace('/.netlify/functions/send-sms', '/api/send-sms'),
       },
       '/.netlify/functions/confirm-appointment': {
-        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5001',
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
         rewrite: (p) => p.replace('/.netlify/functions/confirm-appointment', '/api/confirm-appointment'),
       },

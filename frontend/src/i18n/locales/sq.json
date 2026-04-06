@@ -292,6 +292,11 @@
       "success": "Fjalëkalimi u ndryshua me sukses!",
       "emailNotFound": "Email-i i përdoruesit nuk u gjet. Ju lutem rifreskoni faqen.",
       "unexpectedError": "Ndodhi një gabim i papritur."
+    },
+    "errors": {
+      "ownerNameRequired": "Emri i pronarit është i detyrueshëm.",
+      "phoneInvalid": "Ju lutem shkruani një numër telefoni të vlefshëm (p.sh. +383 44 123 456).",
+      "categoryRequired": "Ju lutem zgjidhni një kategori biznesi."
     }
   },
   "dashboard": {
@@ -721,6 +726,14 @@
     },
     "errors": {
       "fillRequired": "Ju lutem plotësoni të gjitha fushat e detyrueshme.",
+      "nameRequired": "Emri i punonjësit është i detyrueshëm.",
+      "roleRequired": "Ju lutem zgjidhni ose shkruani një rol.",
+      "emailRequired": "Adresa e emailit është e detyrueshme.",
+      "emailInvalid": "Ju lutem shkruani një adresë email të vlefshme.",
+      "emailDuplicate": "Ky email përdoret tashmë nga një punonjës tjetër.",
+      "phoneRequired": "Numri i telefonit është i detyrueshëm.",
+      "phoneInvalid": "Ju lutem shkruani një numër telefoni të vlefshëm (p.sh. +383 44 123 456).",
+      "phoneDuplicate": "Ky numër telefoni përdoret tashmë nga një punonjës tjetër.",
       "businessLoading": "Biznesi ende po ngarkohet. Ju lutem provoni përsëri pas një çasti.",
       "saveFailed": "Dështoi ruajtja e punonjësit. Ju lutem provoni përsëri.",
       "deleteFailed": "Dështoi fshirja e punonjësit. Ju lutem provoni përsëri."
@@ -805,7 +818,11 @@
     },
     "saveSettings": "Ruaj Cilësimet",
     "saving": "Duke ruajtur...",
-    "saved": "Cilësimet u ruajtën me sukses!"
+    "saved": "Cilësimet u ruajtën me sukses!",
+    "errors": {
+      "closingAfterOpening": "Ora e mbylljes duhet të jetë pas orës së hapjes.",
+      "breakOutsideHours": "Kohët e pushimit duhet të jenë brenda orarit të punës."
+    }
   },
   "analytics": {
     "title": "Analitika",

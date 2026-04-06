@@ -130,18 +130,16 @@ const Settings: React.FC = () => {
   }, [refreshCalendarState, user]);
 
   const handleAddBreak = () => {
-    
-    
-    
-    
-    
+    setError('');
     if (!breakStart || !breakEnd) {
-      
       return;
     }
     if (breakStart >= breakEnd) {
       setError(t('common.errors.breakEndAfterStart'));
-      
+      return;
+    }
+    if (breakStart < opening || breakEnd > closing) {
+      setError(t('settings.errors.breakOutsideHours'));
       return;
     }
     
@@ -164,6 +162,24 @@ const Settings: React.FC = () => {
   };
 
   const handleSave = async () => {
+    // Validate opening < closing
+    if (opening >= closing) {
+      setError(t('settings.errors.closingAfterOpening'));
+      return;
+    }
+
+    // Validate all existing breaks
+    for (const brk of breaks) {
+      if (brk.start >= brk.end) {
+        setError(t('common.errors.breakEndAfterStart'));
+        return;
+      }
+      if (brk.start < opening || brk.end > closing) {
+        setError(t('settings.errors.breakOutsideHours'));
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -365,6 +381,11 @@ const Settings: React.FC = () => {
             <p className="text-xs md:text-sm text-gray-500 mt-3">
               Set your regular business hours.
             </p>
+            {opening >= closing && opening !== '' && closing !== '' && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-md text-xs md:text-sm mt-3">
+                {t('settings.errors.closingAfterOpening')}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -386,6 +407,8 @@ const Settings: React.FC = () => {
                   type="time"
                   value={breakStart}
                   onChange={e => setBreakStart(e.target.value)}
+                  min={opening}
+                  max={closing}
                   className="w-full text-sm md:text-base"
                 />
               </div>
@@ -397,6 +420,8 @@ const Settings: React.FC = () => {
                   type="time"
                   value={breakEnd}
                   onChange={e => setBreakEnd(e.target.value)}
+                  min={breakStart || opening}
+                  max={closing}
                   className="w-full text-sm md:text-base"
                 />
               </div>
@@ -409,6 +434,12 @@ const Settings: React.FC = () => {
             >
               Add Break
             </Button>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-md text-xs md:text-sm mb-4">
+                {error}
+              </div>
+            )}
 
             {breaks.length > 0 && (
               <div className="mt-4">

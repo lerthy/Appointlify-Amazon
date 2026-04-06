@@ -21,7 +21,6 @@ i18n
   .init({
     resources,
     fallbackLng: 'sq', // Albanian as default
-    lng: 'sq', // Force Albanian as initial language
     debug: false,
     interpolation: {
       escapeValue: false // React already safes from XSS
