@@ -36,8 +36,8 @@ function safeOrigin(url) {
 console.log('Env at startup:', {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: process.env.PORT || 5000,
-  CORS_ORIGINS: "http://localhost:3000" || process.env.CORS_ORIGINS || '',
-  FRONTEND_URL: "http://localhost:5000" || process.env.FRONTEND_URL || '',
+  CORS_ORIGINS: process.env.CORS_ORIGINS || '(default allowlist)',
+  FRONTEND_URL: process.env.FRONTEND_URL || '(unset → email links use http://localhost:3000 in dev)',
   SUPABASE_URL: process.env.SUPABASE_URL ? safeOrigin(process.env.SUPABASE_URL) : 'missing',
   SUPABASE_SERVICE_ROLE_KEY: maskValue(process.env.SUPABASE_SERVICE_ROLE_KEY),
   OPENAI_API_KEY: maskValue(process.env.OPENAI_API_KEY),

@@ -1345,24 +1345,14 @@ app.patch('/api/users/:id', async (req, res) => {
 app.get('/api/business/:businessId/appointments', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
-    const { includeUnconfirmed } = req.query;
 
-
-
-    let query = supabase!
+    // Business dashboard must list all appointments (including awaiting customer confirmation).
+    // Customer confirmation is tracked via confirmation_status; UI shows "Awaiting confirmation" for pending.
+    const { data, error } = await supabase!
       .from('appointments')
       .select('*')
-      .eq('business_id', businessId);
-
-    // By default, only show confirmed appointments in business dashboard
-    // Unless explicitly requested to include unconfirmed
-    if (includeUnconfirmed !== 'true') {
-      query = query.eq('confirmation_status', 'confirmed');
-    }
-
-    query = query.order('date', { ascending: true });
-
-    const { data, error } = await query;
+      .eq('business_id', businessId)
+      .order('date', { ascending: true });
 
     if (error) {
       console.error('[appointments] Supabase error:', error.message, error);
@@ -1583,29 +1573,112 @@ app.post('/api/appointments', requireDb, async (req, res) => {
 app.patch('/api/appointments/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
-    if (!status) {
-      console.error('[PATCH /api/appointments/:id] Missing status in request body');
-      return res.status(400).json({
-        success: false,
-        error: 'Status is required'
-      });
+    const { status, date, employee_id, service_id, name, email, phone, notes, duration } = req.body;
+
+    console.log('[PATCH /api/appointments/:id] Updating appointment', { id, fields: Object.keys(req.body) });
+
+    const updates: Record<string, any> = {};
+    if (status !== undefined) {
+      updates.status = status;
+      if (status === 'confirmed') {
+        updates.confirmation_status = 'confirmed';
+      }
+    }
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+    if (phone !== undefined) updates.phone = phone;
+    if (notes !== undefined) updates.notes = notes;
+    if (employee_id !== undefined) updates.employee_id = employee_id;
+    if (service_id !== undefined) updates.service_id = service_id;
+    if (duration !== undefined) {
+      const d = Number(duration);
+      if (Number.isFinite(d) && d > 0) updates.duration = Math.round(d);
+    }
+
+    if (date !== undefined) {
+      const newDate = new Date(date);
+      if (isNaN(newDate.getTime())) {
+        return res.status(400).json({ success: false, error: 'Invalid date format' });
+      }
+      if (newDate < new Date()) {
+        return res.status(400).json({ success: false, error: 'Cannot update appointment to a past date/time' });
+      }
+      updates.date = newDate.toISOString();
+    }
+
+    // Overlap check if scheduling fields change
+    if (date !== undefined || employee_id !== undefined || duration !== undefined) {
+      const { data: current } = await supabase!
+        .from('appointments')
+        .select('date, duration, employee_id, business_id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (current) {
+        const checkDate = updates.date ? new Date(updates.date) : new Date((current as any).date);
+        const checkEmployee = updates.employee_id || (current as any).employee_id;
+        const checkDuration = updates.duration || (current as any).duration || 30;
+
+        const startOfDay = new Date(checkDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(checkDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const { data: existing } = await supabase!
+          .from('appointments')
+          .select('id, date, duration, status')
+          .eq('business_id', (current as any).business_id)
+          .eq('employee_id', checkEmployee)
+          .neq('id', id)
+          .gte('date', startOfDay.toISOString())
+          .lte('date', endOfDay.toISOString())
+          .in('status', ['scheduled', 'confirmed', 'completed']);
+
+        if (existing && existing.length > 0) {
+          const appointmentEnd = new Date(checkDate.getTime() + checkDuration * 60000);
+          const hasOverlap = (existing as any[]).some((appt: any) => {
+            const s = new Date(appt.date);
+            const e = new Date(s.getTime() + (appt.duration || 30) * 60000);
+            return checkDate < e && appointmentEnd > s;
+          });
+
+          if (hasOverlap) {
+            console.warn('[PATCH /api/appointments/:id] Overlap detected', { id, checkDate, checkEmployee });
+            return res.status(409).json({
+              success: false,
+              error: 'This time slot overlaps with an existing appointment. Please choose another time.'
+            });
+          }
+        }
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, error: 'No valid fields to update' });
     }
 
     const { data, error } = await supabase!
       .from('appointments')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update(updates)
       .eq('id', id)
-      .select()
-      .single();
+      .select();
 
     if (error) {
       console.error('[PATCH /api/appointments/:id] Supabase error:', error);
-      throw error;
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to update appointment',
+        code: error.code,
+        details: error.details,
+      });
     }
 
+    if (!data || data.length === 0) {
+      return res.status(404).json({ success: false, error: 'Appointment not found' });
+    }
 
-    return res.json({ success: true, appointment: data });
+    console.log('[PATCH /api/appointments/:id] Updated successfully', { id });
+    return res.json({ success: true, appointment: data[0] });
   } catch (error: any) {
     console.error('[PATCH /api/appointments/:id] Error:', {
       message: error?.message,
@@ -1702,19 +1775,80 @@ app.post('/api/customers', requireDb, async (req, res) => {
   }
 });
 
+function normalizeServicePriceInput(price: unknown): number | null | undefined {
+  if (price === undefined) return undefined;
+  if (price === null || price === '') return null;
+  const n = typeof price === 'number' ? price : parseFloat(String(price).trim());
+  return Number.isFinite(n) ? n : null;
+}
+
+// Helper: compute max workday duration in minutes from working_hours array
+function computeMaxWorkdayMinutes(workingHours: any[]): number {
+  if (!Array.isArray(workingHours) || workingHours.length === 0) return 480;
+  let max = 0;
+  for (const day of workingHours) {
+    if (day.isClosed) continue;
+    const [openH = 9, openM = 0] = (day.open || '09:00').split(':').map(Number);
+    const [closeH = 17, closeM = 0] = (day.close || '17:00').split(':').map(Number);
+    const mins = (closeH * 60 + closeM) - (openH * 60 + openM);
+    if (mins > max) max = mins;
+  }
+  return max > 0 ? max : 480;
+}
+
 // Services CRUD
 app.post('/api/services', requireDb, async (req, res) => {
   try {
-    const service = req.body;
+    const { business_id, name: rawName, description: rawDesc, duration, price, icon } = req.body;
+
+    const name = String(rawName ?? '').trim();
+    const description = String(rawDesc ?? '').trim();
+
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'Service name is required' });
+    }
+    if (!description) {
+      return res.status(400).json({ success: false, error: 'Service description is required' });
+    }
+    const parsedDuration = parseInt(String(duration), 10);
+    if (!parsedDuration || parsedDuration <= 0) {
+      return res.status(400).json({ success: false, error: 'Duration must be greater than 0' });
+    }
+
+    // Validate duration does not exceed the longest work day
+    if (business_id) {
+      const { data: settings } = await supabase!
+        .from('business_settings')
+        .select('working_hours')
+        .eq('business_id', business_id)
+        .single();
+      if ((settings as any)?.working_hours) {
+        const maxDuration = computeMaxWorkdayMinutes((settings as any).working_hours);
+        if (parsedDuration > maxDuration) {
+          const h = Math.floor(maxDuration / 60);
+          const m = maxDuration % 60;
+          const label = m > 0 ? `${h}h ${m}m` : `${h}h`;
+          return res.status(400).json({
+            success: false,
+            error: `Service duration cannot exceed the longest work day (${label})`
+          });
+        }
+      }
+    }
+
+    const normalizedPrice = normalizeServicePriceInput(price);
+    const priceForInsert = normalizedPrice === undefined ? null : normalizedPrice;
+
+    console.log('[POST /api/services] Creating service', { business_id, name, duration: parsedDuration });
     const { data, error } = await supabase!
       .from('services')
-      .insert([service])
+      .insert([{ business_id, name, description, duration: parsedDuration, price: priceForInsert, icon }])
       .select()
       .single();
     if (error) throw error;
     return res.json({ success: true, service: data });
   } catch (error) {
-    console.error('Error creating service:', error);
+    console.error('[POST /api/services] Error:', error);
     return res.status(500).json({ success: false, error: 'Failed to create service' });
   }
 });
@@ -1722,18 +1856,109 @@ app.post('/api/services', requireDb, async (req, res) => {
 app.patch('/api/services/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body || {};
-    const { data, error } = await supabase!
+    const { name: rawName, description: rawDesc, duration, price, icon, business_id } = req.body || {};
+
+    const updates: Record<string, any> = {};
+
+    if (rawName !== undefined) {
+      const name = String(rawName ?? '').trim();
+      if (!name) {
+        return res.status(400).json({ success: false, error: 'Service name cannot be empty' });
+      }
+      updates.name = name;
+    }
+    if (rawDesc !== undefined) {
+      const description = String(rawDesc ?? '').trim();
+      if (!description) {
+        return res.status(400).json({ success: false, error: 'Service description cannot be empty' });
+      }
+      updates.description = description;
+    }
+    if (duration !== undefined) {
+      const parsedDuration = parseInt(String(duration), 10);
+      if (!parsedDuration || parsedDuration <= 0) {
+        return res.status(400).json({ success: false, error: 'Duration must be greater than 0' });
+      }
+
+      if (business_id) {
+        const { data: settings } = await supabase!
+          .from('business_settings')
+          .select('working_hours')
+          .eq('business_id', business_id)
+          .single();
+        if ((settings as any)?.working_hours) {
+          const maxDuration = computeMaxWorkdayMinutes((settings as any).working_hours);
+          if (parsedDuration > maxDuration) {
+            const h = Math.floor(maxDuration / 60);
+            const m = maxDuration % 60;
+            const label = m > 0 ? `${h}h ${m}m` : `${h}h`;
+            return res.status(400).json({
+              success: false,
+              error: `Service duration cannot exceed the longest work day (${label})`
+            });
+          }
+        }
+      }
+      updates.duration = parsedDuration;
+    }
+    if (price !== undefined) {
+      updates.price = normalizeServicePriceInput(price);
+    }
+    if (icon !== undefined) updates.icon = icon;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, error: 'No fields to update' });
+    }
+
+    console.log('[PATCH /api/services/:id] Updating service', { id, updates });
+    const { data: rows, error } = await supabase!
       .from('services')
       .update(updates)
       .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
+      .select();
+    if (error) {
+      const code = error.code || '';
+      const msg = error.message || error.details || String(error);
+      console.error('[PATCH /api/services/:id] Supabase error:', { code, msg, error });
+
+      if (code === '23502' || /not-null|not null/i.test(msg)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot clear price: the database still requires a price. Run the migration that makes services.price nullable, or leave a numeric price.',
+          details: msg,
+          code
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update service',
+        details: msg,
+        code: code || undefined
+      });
+    }
+
+    const data = Array.isArray(rows) ? rows[0] : rows;
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        error: 'Service not found',
+        details: 'No row was updated for the given id'
+      });
+    }
+
     return res.json({ success: true, service: data });
-  } catch (error) {
-    console.error('Error updating service:', error);
-    return res.status(500).json({ success: false, error: 'Failed to update service' });
+  } catch (error: any) {
+    const msg =
+      error?.message ||
+      error?.details ||
+      (typeof error === 'object' ? JSON.stringify(error) : String(error));
+    console.error('[PATCH /api/services/:id] Error:', msg, error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update service',
+      details: msg
+    });
   }
 });
 

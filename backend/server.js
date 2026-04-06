@@ -57,6 +57,27 @@ const corsOptions = {
 };
 
 const app = express();
+
+/** Where the React SPA is served (Vite :3000 in dev, Netlify in prod). Email links must use this, not the API port. */
+function getPublicAppOrigin() {
+  const raw = process.env.FRONTEND_URL;
+  let base = raw ? raw.split(',')[0].trim().replace(/\/$/, '') : 'http://localhost:3000';
+  try {
+    const u = new URL(base);
+    // Common mistake: FRONTEND_URL=http://localhost:5000 (Express API). Vite SPA is on :3000.
+    if ((u.hostname === 'localhost' || u.hostname === '127.0.0.1') && u.port === '5000') {
+      u.port = '3000';
+      base = u.origin;
+    }
+  } catch (_) {
+    /* keep base */
+  }
+  if (!raw && process.env.NODE_ENV === 'production') {
+    console.warn('[config] FRONTEND_URL is unset; email/redirect links default to http://localhost:3000 — set FRONTEND_URL in production.');
+  }
+  return base;
+}
+
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -221,6 +242,18 @@ app.get('/', (req, res) => {
     </ul>
   </body>
 </html>`);
+});
+
+// Email links may point at the API host by mistake (e.g. old FRONTEND_URL). Send users to the SPA.
+app.get('/confirm-appointment', (req, res) => {
+  const base = getPublicAppOrigin();
+  const q = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  res.redirect(302, `${base}/confirm-appointment${q}`);
+});
+
+app.get('/cancel/:appointmentId', (req, res) => {
+  const base = getPublicAppOrigin();
+  res.redirect(302, `${base}/cancel/${req.params.appointmentId}`);
 });
 
 // Middleware: guard DB-backed routes if Supabase isn't configured
@@ -436,6 +469,10 @@ app.post('/api/send-sms', async (req, res) => {
   }
 });
 
+/** White Appointly logo for dark email header (Supabase public storage). */
+const APPOINTLY_CONFIRMATION_EMAIL_LOGO =
+  'https://dvbgblopuepbisvdgyci.supabase.co/storage/v1/object/public/logos/appointly-logo.png';
+
 /**
  * Send appointment confirmation email (fire-and-forget). Never throws.
  * Logs success/failure with appointmentId. Used after successful appointment insert.
@@ -451,13 +488,10 @@ async function sendAppointmentConfirmationEmail(params) {
     service_name,
     cancel_link,
     confirmation_link,
-    business_logo_url,
   } = params;
   try {
     const subject = `Appointment Confirmation - ${business_name}`;
-    const logoBlock = business_logo_url
-      ? `<div style="text-align: center; padding: 24px 20px 16px;"><img src="${business_logo_url}" alt="${business_name}" style="max-width: 180px; max-height: 80px; object-fit: contain;" /></div>`
-      : '';
+    const logoBlock = `<div style="text-align: center; padding: 24px 20px 16px;"><img src="${APPOINTLY_CONFIRMATION_EMAIL_LOGO}" alt="Appointly" style="max-width: 180px; max-height: 80px; object-fit: contain;" /></div>`;
     const html = `
     <!DOCTYPE html>
     <html>
@@ -1071,15 +1105,32 @@ app.post('/api/appointments', requireDb, async (req, res) => {
     const { business_id, service_id, employee_id, name, phone, email, notes, date, duration, confirmation_token, confirmation_token_expires } = req.body;
     const appointmentDate = new Date(date);
 
+    // Check for overlapping active appointments for the same employee
+    const activeStatuses = ['scheduled', 'confirmed', 'completed'];
+    const appointmentEnd = new Date(appointmentDate.getTime() + (duration || 30) * 60000);
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
     const { data: existing } = await supabase
       .from('appointments')
-      .select('id')
+      .select('id, date, duration, status')
       .eq('business_id', business_id)
-      .gte('date', appointmentDate.toISOString())
-      .lt('date', new Date(appointmentDate.getTime() + 60000).toISOString());
-    
+      .eq('employee_id', employee_id)
+      .gte('date', startOfDay.toISOString())
+      .lte('date', endOfDay.toISOString())
+      .in('status', activeStatuses);
+
     if (existing && existing.length > 0) {
-      return res.status(409).json({ success: false, error: 'Time slot already booked' });
+      const hasOverlap = existing.some(appt => {
+        const s = new Date(appt.date);
+        const e = new Date(s.getTime() + (appt.duration || 30) * 60000);
+        return appointmentDate < e && appointmentEnd > s;
+      });
+      if (hasOverlap) {
+        return res.status(409).json({ success: false, error: 'This time slot overlaps with an existing appointment. Please choose another time.' });
+      }
     }
 
     let customerId = '';
@@ -1133,6 +1184,9 @@ app.post('/api/appointments', requireDb, async (req, res) => {
     if (confirmation_token_expires) {
       appointmentData.confirmation_token_expires = confirmation_token_expires;
     }
+    if (confirmation_token) {
+      appointmentData.confirmation_status = 'pending';
+    }
 
     const { data: inserted, error: insertErr } = await supabase
       .from('appointments')
@@ -1144,7 +1198,7 @@ app.post('/api/appointments', requireDb, async (req, res) => {
 
     console.log('[appointments] Created appointment', { appointmentId: inserted.id, business_id, email });
 
-    const baseUrl = (process.env.FRONTEND_URL || 'http://localhost:5000').split(',')[0].trim().replace(/\/$/, '');
+    const baseUrl = getPublicAppOrigin();
     const cancelLink = `${baseUrl}/cancel/${inserted.id}`;
     const confirmationLink = inserted.confirmation_token
       ? `${baseUrl}/confirm-appointment?token=${inserted.confirmation_token}`
@@ -1194,15 +1248,117 @@ app.post('/api/appointments', requireDb, async (req, res) => {
 app.patch('/api/appointments/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
-    const { error } = await supabase
+    const { status, date, employee_id, service_id, name, email, phone, notes, duration } = req.body;
+
+    console.log('[PATCH /api/appointments/:id] Updating appointment', { id, fields: Object.keys(req.body) });
+
+    // Do not set updated_at here — many appointments schemas only have created_at; writing unknown columns causes 500s.
+    const updates = {};
+    if (status !== undefined) {
+      updates.status = status;
+      if (status === 'confirmed') {
+        updates.confirmation_status = 'confirmed';
+      }
+    }
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+    if (phone !== undefined) updates.phone = phone;
+    if (notes !== undefined) updates.notes = notes;
+    if (employee_id !== undefined) updates.employee_id = employee_id;
+    if (service_id !== undefined) updates.service_id = service_id;
+    if (duration !== undefined) {
+      const d = Number(duration);
+      if (Number.isFinite(d) && d > 0) updates.duration = Math.round(d);
+    }
+
+    if (date !== undefined) {
+      const newDate = new Date(date);
+      if (isNaN(newDate.getTime())) {
+        return res.status(400).json({ success: false, error: 'Invalid date format' });
+      }
+      if (newDate < new Date()) {
+        return res.status(400).json({ success: false, error: 'Cannot update appointment to a past date/time' });
+      }
+      updates.date = newDate.toISOString();
+    }
+
+    // Overlap check if scheduling fields change
+    if (date !== undefined || employee_id !== undefined || duration !== undefined) {
+      const { data: current } = await supabase
+        .from('appointments')
+        .select('date, duration, employee_id, business_id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (current) {
+        const checkDate = updates.date ? new Date(updates.date) : new Date(current.date);
+        const checkEmployee = updates.employee_id || current.employee_id;
+        const checkDuration = updates.duration || current.duration || 30;
+
+        const startOfDay = new Date(checkDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(checkDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const { data: existing } = await supabase
+          .from('appointments')
+          .select('id, date, duration, status')
+          .eq('business_id', current.business_id)
+          .eq('employee_id', checkEmployee)
+          .neq('id', id)
+          .gte('date', startOfDay.toISOString())
+          .lte('date', endOfDay.toISOString())
+          .in('status', ['scheduled', 'confirmed', 'completed']);
+
+        if (existing && existing.length > 0) {
+          const appointmentEnd = new Date(checkDate.getTime() + checkDuration * 60000);
+          const hasOverlap = existing.some(appt => {
+            const s = new Date(appt.date);
+            const e = new Date(s.getTime() + (appt.duration || 30) * 60000);
+            return checkDate < e && appointmentEnd > s;
+          });
+
+          if (hasOverlap) {
+            console.warn('[PATCH /api/appointments/:id] Overlap detected', { id, checkDate, checkEmployee });
+            return res.status(409).json({
+              success: false,
+              error: 'This time slot overlaps with an existing appointment. Please choose another time.'
+            });
+          }
+        }
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, error: 'No valid fields to update' });
+    }
+
+    const { data, error } = await supabase
       .from('appointments')
-      .update({ status })
-      .eq('id', id);
-    if (error) throw error;
-    return res.json({ success: true });
+      .update(updates)
+      .eq('id', id)
+      .select();
+    if (error) {
+      console.error('[PATCH /api/appointments/:id] Supabase error:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to update appointment',
+        code: error.code,
+        details: error.details,
+      });
+    }
+    if (!data || data.length === 0) {
+      return res.status(404).json({ success: false, error: 'Appointment not found' });
+    }
+    console.log('[PATCH /api/appointments/:id] Updated successfully', { id });
+    return res.json({ success: true, appointment: data[0] });
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Failed to update appointment' });
+    console.error('[PATCH /api/appointments/:id] Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error?.message || 'Failed to update appointment',
+      details: String(error),
+    });
   }
 });
 
@@ -1265,12 +1421,11 @@ app.get('/api/confirm-appointment', requireDb, async (req, res) => {
       });
     }
 
-    // Confirm the appointment
+    // Customer confirmed via email: mark confirmation_status only. Keep status 'scheduled' until the business confirms in the dashboard.
     const { error: updateError } = await supabase
       .from('appointments')
       .update({
         confirmation_status: 'confirmed',
-        status: 'confirmed', // Also update the main status
         confirmation_token: null,
         confirmation_token_expires: null
       })
@@ -1485,17 +1640,80 @@ app.post('/api/customers', requireDb, async (req, res) => {
   }
 });
 
+// Normalize optional service price for DB (nullable numeric)
+function normalizeServicePriceInput(price) {
+  if (price === undefined) return undefined;
+  if (price === null || price === '') return null;
+  const n = typeof price === 'number' ? price : parseFloat(String(price).trim());
+  return Number.isFinite(n) ? n : null;
+}
+
+// Helper: compute max workday duration in minutes from working_hours array
+function computeMaxWorkdayMinutes(workingHours) {
+  if (!Array.isArray(workingHours) || workingHours.length === 0) return 480;
+  let max = 0;
+  for (const day of workingHours) {
+    if (day.isClosed) continue;
+    const [openH = 9, openM = 0] = (day.open || '09:00').split(':').map(Number);
+    const [closeH = 17, closeM = 0] = (day.close || '17:00').split(':').map(Number);
+    const mins = (closeH * 60 + closeM) - (openH * 60 + openM);
+    if (mins > max) max = mins;
+  }
+  return max > 0 ? max : 480;
+}
+
 app.post('/api/services', requireDb, async (req, res) => {
   try {
-    const service = req.body;
+    const { business_id, name: rawName, description: rawDesc, duration, price, icon } = req.body;
+
+    const name = String(rawName ?? '').trim();
+    const description = String(rawDesc ?? '').trim();
+
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'Service name is required' });
+    }
+    if (!description) {
+      return res.status(400).json({ success: false, error: 'Service description is required' });
+    }
+    const parsedDuration = parseInt(duration, 10);
+    if (!parsedDuration || parsedDuration <= 0) {
+      return res.status(400).json({ success: false, error: 'Duration must be greater than 0' });
+    }
+
+    // Validate duration does not exceed the longest work day
+    if (business_id) {
+      const { data: settings } = await supabase
+        .from('business_settings')
+        .select('working_hours')
+        .eq('business_id', business_id)
+        .single();
+      if (settings?.working_hours) {
+        const maxDuration = computeMaxWorkdayMinutes(settings.working_hours);
+        if (parsedDuration > maxDuration) {
+          const h = Math.floor(maxDuration / 60);
+          const m = maxDuration % 60;
+          const label = m > 0 ? `${h}h ${m}m` : `${h}h`;
+          return res.status(400).json({
+            success: false,
+            error: `Service duration cannot exceed the longest work day (${label})`
+          });
+        }
+      }
+    }
+
+    const normalizedPrice = normalizeServicePriceInput(price);
+    const priceForInsert = normalizedPrice === undefined ? null : normalizedPrice;
+
+    console.log('[POST /api/services] Creating service', { business_id, name, duration: parsedDuration });
     const { data, error } = await supabase
       .from('services')
-      .insert([service])
+      .insert([{ business_id, name, description, duration: parsedDuration, price: priceForInsert, icon }])
       .select()
       .single();
     if (error) throw error;
     return res.json({ success: true, service: data });
   } catch (error) {
+    console.error('[POST /api/services] Error:', error);
     return res.status(500).json({ success: false, error: 'Failed to create service' });
   }
 });
@@ -1503,17 +1721,108 @@ app.post('/api/services', requireDb, async (req, res) => {
 app.patch('/api/services/:id', requireDb, async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body || {};
-    const { data, error } = await supabase
+    const { name: rawName, description: rawDesc, duration, price, icon, business_id } = req.body || {};
+
+    const updates = {};
+
+    if (rawName !== undefined) {
+      const name = String(rawName ?? '').trim();
+      if (!name) {
+        return res.status(400).json({ success: false, error: 'Service name cannot be empty' });
+      }
+      updates.name = name;
+    }
+    if (rawDesc !== undefined) {
+      const description = String(rawDesc ?? '').trim();
+      if (!description) {
+        return res.status(400).json({ success: false, error: 'Service description cannot be empty' });
+      }
+      updates.description = description;
+    }
+    if (duration !== undefined) {
+      const parsedDuration = parseInt(duration, 10);
+      if (!parsedDuration || parsedDuration <= 0) {
+        return res.status(400).json({ success: false, error: 'Duration must be greater than 0' });
+      }
+
+      // Validate against business working hours if business_id provided
+      if (business_id) {
+        const { data: settings } = await supabase
+          .from('business_settings')
+          .select('working_hours')
+          .eq('business_id', business_id)
+          .single();
+        if (settings?.working_hours) {
+          const maxDuration = computeMaxWorkdayMinutes(settings.working_hours);
+          if (parsedDuration > maxDuration) {
+            const h = Math.floor(maxDuration / 60);
+            const m = maxDuration % 60;
+            const label = m > 0 ? `${h}h ${m}m` : `${h}h`;
+            return res.status(400).json({
+              success: false,
+              error: `Service duration cannot exceed the longest work day (${label})`
+            });
+          }
+        }
+      }
+      updates.duration = parsedDuration;
+    }
+    if (price !== undefined) {
+      updates.price = normalizeServicePriceInput(price);
+    }
+    if (icon !== undefined) updates.icon = icon;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, error: 'No fields to update' });
+    }
+
+    console.log('[PATCH /api/services/:id] Updating service', { id, updates });
+    const { data: rows, error } = await supabase
       .from('services')
       .update(updates)
       .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
+      .select();
+    if (error) {
+      const code = error.code || '';
+      const msg = error.message || error.details || String(error);
+      console.error('[PATCH /api/services/:id] Supabase error:', { code, msg, error });
+
+      // Nullable price requires migration: make_service_price_nullable.sql
+      if (code === '23502' || /not-null|not null/i.test(msg)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot clear price: the database still requires a price. Run the migration that makes services.price nullable, or leave a numeric price.',
+          details: msg,
+          code
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update service',
+        details: msg,
+        code: code || undefined
+      });
+    }
+
+    const data = Array.isArray(rows) ? rows[0] : rows;
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        error: 'Service not found',
+        details: 'No row was updated for the given id'
+      });
+    }
+
     return res.json({ success: true, service: data });
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Failed to update service' });
+    const msg = error?.message || error?.details || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+    console.error('[PATCH /api/services/:id] Error:', msg, error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update service',
+      details: msg
+    });
   }
 });
 

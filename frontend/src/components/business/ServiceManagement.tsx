@@ -83,7 +83,7 @@ const getIconComponent = (iconName: string) => {
 
 const ServiceManagement: React.FC = () => {
   const { t } = useTranslation();
-  const { services, addService, updateService, deleteService, businessId } = useApp();
+  const { services, addService, updateService, deleteService, businessId, businessSettings } = useApp();
   const { showNotification } = useNotification();
   const [isAddingService, setIsAddingService] = useState(false);
   const [editingService, setEditingService] = useState<string | null>(null);
@@ -96,6 +96,21 @@ const ServiceManagement: React.FC = () => {
     icon: 'Briefcase'
   });
 
+  // Compute max duration from business working hours
+  const maxDuration = React.useMemo(() => {
+    const wh = businessSettings?.working_hours;
+    if (!Array.isArray(wh) || wh.length === 0) return 480;
+    let max = 0;
+    for (const day of wh) {
+      if (day.isClosed) continue;
+      const [openH = 9, openM = 0] = (day.open || '09:00').split(':').map(Number);
+      const [closeH = 17, closeM = 0] = (day.close || '17:00').split(':').map(Number);
+      const mins = (closeH * 60 + closeM) - (openH * 60 + openM);
+      if (mins > max) max = mins;
+    }
+    return max > 0 ? max : 480;
+  }, [businessSettings?.working_hours]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ 
@@ -106,9 +121,20 @@ const ServiceManagement: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.description || formData.duration <= 0) {
+
+    const trimmedName = formData.name.trim();
+    const trimmedDescription = formData.description.trim();
+
+    if (!trimmedName || !trimmedDescription || formData.duration <= 0) {
       showNotification(t('servicesManagement.errors.fillRequired'), 'error');
+      return;
+    }
+
+    if (formData.duration > maxDuration) {
+      const h = Math.floor(maxDuration / 60);
+      const m = maxDuration % 60;
+      const label = m > 0 ? `${h}h ${m}m` : `${h}h`;
+      showNotification(`Duration cannot exceed the longest work day (${label})`, 'error');
       return;
     }
 
@@ -121,20 +147,21 @@ const ServiceManagement: React.FC = () => {
       if (editingService) {
         // Update existing service
         await updateService(editingService, {
-          name: formData.name,
-          description: formData.description,
+          name: trimmedName,
+          description: trimmedDescription,
           duration: formData.duration,
           price: formData.price ?? null,
-          icon: formData.icon
-        });
+          icon: formData.icon,
+          business_id: businessId
+        } as any);
         showNotification(t('servicesManagement.success.updated'), 'success');
         setEditingService(null);
       } else {
         // Add new service - use businessId from AppContext
         await addService({
-          business_id: businessId || '', // Use the resolved business ID from AppContext
-          name: formData.name,
-          description: formData.description,
+          business_id: businessId || '',
+          name: trimmedName,
+          description: trimmedDescription,
           duration: formData.duration,
           price: formData.price ?? null,
           icon: formData.icon
@@ -164,8 +191,8 @@ const ServiceManagement: React.FC = () => {
     const service = services.find(svc => svc.id === serviceId);
     if (service) {
       setFormData({
-        name: service.name,
-        description: service.description,
+        name: service.name ?? '',
+        description: service.description ?? '',
         duration: service.duration,
         price: service.price ?? null,
         icon: service.icon || 'Briefcase'
@@ -203,7 +230,7 @@ const ServiceManagement: React.FC = () => {
     if (price == null || (typeof price === 'number' && isNaN(price))) return '';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'EUR'
     }).format(price);
   };
 
@@ -384,11 +411,16 @@ const ServiceManagement: React.FC = () => {
                       onChange={handleInputChange}
                       placeholder="30"
                       min="1"
+                      max={maxDuration}
                       className="border-gray-300 focus:border-primary focus:ring-primary"
                       required
                     />
                     <p className="text-xs text-gray-500 mt-2 bg-gray-50 px-3 py-1.5 rounded">
                       {formatDuration(formData.duration)}
+                      {' '}
+                      <span className="text-gray-400">
+                        (Max: {formatDuration(maxDuration)} — longest work day)
+                      </span>
                     </p>
                   </div>
                   <div className="space-y-2">

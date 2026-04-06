@@ -1,197 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Your Email - Appointly</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Your Email - Appointly</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+<body style="margin:0; padding:0; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+<!--
+  Appointly brand (matches frontend/src/index.css + tailwind navy):
+  --primary: #111d35 | --primary-light: #1c3660 | --accent: #6b8cae | header navy-950: #0a0f1a
+  Paste into Supabase → Authentication → Email Templates → Confirm signup
+  Variables: {{ .ConfirmationURL }}
+-->
+<!-- HEADER WRAPPER -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f6f8fa; padding:40px 20px;">
+  <tr>
+    <td align="center">
+
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:16px; box-shadow:0 4px 12px rgba(10,15,26,0.08); overflow:hidden;">
+
+        <!-- HEADER: navy (matches site nav) + white logo -->
         <tr>
-            <td align="center">
-                <!-- Main Container -->
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
-                    
-                    <!-- Header with Gradient -->
-                    <tr>
-                        <td style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); padding: 40px 40px 30px 40px; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
-                                Appointly
-                            </h1>
-                            <p style="margin: 10px 0 0 0; color: #E0E7FF; font-size: 14px; font-weight: 500;">
-                                Your Business Appointment Platform
-                            </p>
-                        </td>
-                    </tr>
-                    
-                    <!-- Content -->
-                    <tr>
-                        <td style="padding: 40px;">
-                            <!-- Icon -->
-                            <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td align="center" style="padding-bottom: 30px;">
-                                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
-                                            <span style="font-size: 40px;">📧</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Title -->
-                            <h2 style="margin: 0 0 20px 0; color: #111827; font-size: 28px; font-weight: 700; text-align: center; line-height: 1.2;">
-                                Confirm Your Email
-                            </h2>
-                            
-                            <!-- Message -->
-                            <p style="margin: 0 0 30px 0; color: #6B7280; font-size: 16px; line-height: 1.6; text-align: center;">
-                                Welcome to <strong style="color: #4F46E5;">Appointly</strong>! We're excited to have you on board. 
-                                To get started and access your business dashboard, please verify your email address by clicking the button below.
-                            </p>
-                            
-                            <!-- Button -->
-                            <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td align="center" style="padding: 20px 0;">
-                                        <!--[if mso]>
-                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ .ConfirmationURL }}" style="height:50px;v-text-anchor:middle;width:200px;" arcsize="16%" stroke="f" fillcolor="#4F46E5">
-                                        <w:anchorlock/>
-                                        <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:600;">Verify Email Address</center>
-                                        </v:roundrect>
-                                        <![endif]-->
-                                        <!--[if !mso]><!-->
-                                        <a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);">
-                                            Verify Email Address
-                                        </a>
-                                        <!--<![endif]-->
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Alternative Link -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
-                                <tr>
-                                    <td style="padding: 20px; background-color: #F9FAFB; border-radius: 8px; border-left: 4px solid #4F46E5;">
-                                        <p style="margin: 0 0 10px 0; color: #374151; font-size: 14px; font-weight: 600;">
-                                            Button not working?
-                                        </p>
-                                        <p style="margin: 0; color: #6B7280; font-size: 13px; line-height: 1.5;">
-                                            Copy and paste this link into your browser:
-                                        </p>
-                                        <p style="margin: 10px 0 0 0; word-break: break-all;">
-                                            <a href="{{ .ConfirmationURL }}" style="color: #4F46E5; font-size: 13px; text-decoration: underline;">{{ .ConfirmationURL }}</a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Security Notice -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
-                                <tr>
-                                    <td style="padding: 15px; background-color: #FEF3C7; border-radius: 8px; border-left: 4px solid #F59E0B;">
-                                        <p style="margin: 0; color: #92400E; font-size: 13px; line-height: 1.5;">
-                                            <strong>⚠️ Security Notice:</strong> This link will expire in <strong>24 hours</strong>. 
-                                            If you didn't create an account with Appointly, please ignore this email.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
-                    <!-- Features Section -->
-                    <tr>
-                        <td style="padding: 0 40px 40px 40px;">
-                            <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td align="center" style="padding-bottom: 20px;">
-                                        <p style="margin: 0; color: #9CA3AF; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                                            What's Next?
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <!-- Feature 1 -->
-                                    <td width="33%" align="center" style="padding: 10px;">
-                                        <div style="font-size: 32px; margin-bottom: 10px;">📅</div>
-                                        <p style="margin: 0; color: #374151; font-size: 13px; font-weight: 600;">Manage Appointments</p>
-                                        <p style="margin: 5px 0 0 0; color: #9CA3AF; font-size: 12px;">Track all bookings</p>
-                                    </td>
-                                    
-                                    <!-- Feature 2 -->
-                                    <td width="33%" align="center" style="padding: 10px;">
-                                        <div style="font-size: 32px; margin-bottom: 10px;">👥</div>
-                                        <p style="margin: 0; color: #374151; font-size: 13px; font-weight: 600;">Customer Management</p>
-                                        <p style="margin: 5px 0 0 0; color: #9CA3AF; font-size: 12px;">Build relationships</p>
-                                    </td>
-                                    
-                                    <!-- Feature 3 -->
-                                    <td width="33%" align="center" style="padding: 10px;">
-                                        <div style="font-size: 32px; margin-bottom: 10px;">📊</div>
-                                        <p style="margin: 0; color: #374151; font-size: 13px; font-weight: 600;">Business Insights</p>
-                                        <p style="margin: 5px 0 0 0; color: #9CA3AF; font-size: 12px;">Grow your business</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td style="background-color: #F9FAFB; padding: 30px 40px; border-top: 1px solid #E5E7EB;">
-                            <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td align="center">
-                                        <p style="margin: 0 0 10px 0; color: #6B7280; font-size: 14px; font-weight: 600;">
-                                            Appointly
-                                        </p>
-                                        <p style="margin: 0 0 15px 0; color: #9CA3AF; font-size: 13px; line-height: 1.5;">
-                                            Your trusted partner for appointment management
-                                        </p>
-                                        
-                                        <!-- Social Links (Optional) -->
-                                        <table cellpadding="0" cellspacing="0" style="margin: 15px auto 20px auto;">
-                                            <tr>
-                                                <td style="padding: 0 10px;">
-                                                    <a href="#" style="color: #6B7280; text-decoration: none; font-size: 12px;">Support</a>
-                                                </td>
-                                                <td style="padding: 0 10px; color: #D1D5DB;">|</td>
-                                                <td style="padding: 0 10px;">
-                                                    <a href="#" style="color: #6B7280; text-decoration: none; font-size: 12px;">Privacy</a>
-                                                </td>
-                                                <td style="padding: 0 10px; color: #D1D5DB;">|</td>
-                                                <td style="padding: 0 10px;">
-                                                    <a href="#" style="color: #6B7280; text-decoration: none; font-size: 12px;">Terms</a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        
-                                        <p style="margin: 0; color: #9CA3AF; font-size: 12px;">
-                                            © 2025 Appointly. All rights reserved.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-                
-                <!-- Bottom Spacer -->
-                <table width="600" cellpadding="0" cellspacing="0" style="margin-top: 20px;">
-                    <tr>
-                        <td align="center">
-                            <p style="margin: 0; color: #9CA3AF; font-size: 12px; line-height: 1.5;">
-                                This is an automated message. Please do not reply to this email.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
+          <td align="center" style="background-color:#0a0f1a; padding:36px 40px 32px 40px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" align="center">
+              <tr>
+                <td align="center" style="padding-bottom:16px;">
+                  <img src="https://dvbgblopuepbisvdgyci.supabase.co/storage/v1/object/public/logos/appointly-logo.png" alt="Appointly" width="180" height="auto" style="display:block; max-width:180px; height:auto; margin:0 auto;">
+                </td>
+              </tr>
+              <tr>
+                <td align="center">
+                  <h1 style="margin:0; color:#ffffff; font-size:28px; font-weight:700; letter-spacing:-0.5px;">
+                    Appointly
+                  </h1>
+                  <p style="margin:10px 0 0; color:#a8c4de; font-size:14px; font-weight:500;">
+                    Your Business Appointment Platform
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
         </tr>
-    </table>
+
+        <!-- CONTENT -->
+        <tr>
+          <td style="padding:40px;">
+
+            <h2 style="margin:0 0 20px; color:#0a0f1a; font-size:26px; font-weight:700; text-align:center;">
+              Confirm Your Email
+            </h2>
+
+            <p style="margin:0 0 30px; color:#6b7280; font-size:16px; line-height:1.6; text-align:center;">
+              Welcome to <strong style="color:#1c3660;">Appointly</strong>.<br>
+              Click below to verify your email and unlock your dashboard.
+            </p>
+
+            <!-- BUTTON -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:20px 0;">
+                  <!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ .ConfirmationURL }}" style="height:50px;v-text-anchor:middle;width:240px;" arcsize="12%" stroke="f" fillcolor="#111d35">
+                  <w:anchorlock/>
+                  <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:600;">Verify Email Address</center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <a href="{{ .ConfirmationURL }}"
+                     style="display:inline-block; padding:16px 40px; background-color:#111d35; color:#ffffff !important; text-decoration:none; font-size:16px; font-weight:600; border-radius:8px; box-shadow:0 4px 12px rgba(17,29,53,0.25);">
+                    Verify Email Address
+                  </a>
+                  <!--<![endif]-->
+                </td>
+              </tr>
+            </table>
+
+            <!-- ALT LINK -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+              <tr>
+                <td style="padding:20px; background:#eaf1f7; border-radius:8px; border-left:4px solid #1c3660;">
+                  <p style="margin:0 0 10px; color:#111d35; font-size:14px; font-weight:600;">Button not working?</p>
+                  <p style="margin:0; color:#6b7280; font-size:13px;">Copy and paste this link:</p>
+                  <p style="margin:10px 0 0; word-break:break-all;">
+                    <a href="{{ .ConfirmationURL }}" style="color:#1c3660; font-size:13px; text-decoration:underline;">{{ .ConfirmationURL }}</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- SECURITY -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+              <tr>
+                <td style="padding:15px; background:#FEF3C7; border-radius:8px; border-left:4px solid #F59E0B;">
+                  <p style="margin:0; color:#92400E; font-size:13px; line-height:1.5;">
+                    <strong>Security Notice:</strong> This link expires in 24 hours.<br>
+                    If you did not sign up, you may ignore this message.
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- FEATURES -->
+        <tr>
+          <td style="padding:0 40px 40px 40px;">
+            <p style="text-align:center; margin:0 0 20px; color:#8d99a8; font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+              What's Next?
+            </p>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="33%" align="center" valign="top" style="padding:10px;">
+                  <p style="font-size:28px; margin:0 0 10px; line-height:1;">&#128197;</p>
+                  <p style="margin:0; color:#111d35; font-size:13px; font-weight:600;">Manage Appointments</p>
+                  <p style="margin:5px 0 0; color:#8d99a8; font-size:12px; line-height:1.4;">Track all bookings</p>
+                </td>
+                <td width="33%" align="center" valign="top" style="padding:10px;">
+                  <p style="font-size:28px; margin:0 0 10px; line-height:1;">&#128101;</p>
+                  <p style="margin:0; color:#111d35; font-size:13px; font-weight:600;">Customer Management</p>
+                  <p style="margin:5px 0 0; color:#8d99a8; font-size:12px; line-height:1.4;">Build relationships</p>
+                </td>
+                <td width="33%" align="center" valign="top" style="padding:10px;">
+                  <p style="font-size:28px; margin:0 0 10px; line-height:1;">&#128202;</p>
+                  <p style="margin:0; color:#111d35; font-size:13px; font-weight:600;">Business Insights</p>
+                  <p style="margin:5px 0 0; color:#8d99a8; font-size:12px; line-height:1.4;">Grow wisely</p>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td style="background:#eef2f6; padding:30px 40px; border-top:1px solid #d1e0ed; text-align:center;">
+            <p style="margin:0 0 10px; color:#111d35; font-size:14px; font-weight:600;">Appointly</p>
+            <p style="margin:0 0 15px; color:#6b7280; font-size:13px;">Your trusted partner for appointment management</p>
+            <p style="margin:0; color:#8d99a8; font-size:12px;">
+              &copy; 2026 Appointly. All rights reserved.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+      <p style="margin:20px 0 0; color:#8d99a8; font-size:12px;">
+        This is an automated message. Do not reply.
+      </p>
+
+    </td>
+  </tr>
+</table>
 </body>
 </html>
-

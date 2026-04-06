@@ -407,12 +407,6 @@ const AppointmentManagement: React.FC = () => {
                 </div>
               )}
               
-              {appointment.status === 'cancelled' && (
-                <div className="text-sm text-red-600 font-medium">
-                  ✗ {t('appointmentManagement.status.cancelled')}
-                </div>
-              )}
-              
               {appointment.status === 'no-show' && (
                 <div className="text-sm text-orange-600 font-medium">
                   ⚠ {t('appointmentManagement.status.noShow')}

@@ -1,12 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import {
+  ArrowLeft, Calendar, Clock, User, Briefcase, Phone, Mail, FileText,
+  CheckCircle, XCircle, Edit3, Save, ChevronLeft
+} from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 import { useNotification } from '../../context/NotificationContext';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import AlertDialog from '../ui/AlertDialog';
+import Header from '../shared/Header';
+import Footer from '../shared/Footer';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/style.css';
+
+interface WorkingHourEntry {
+  day: string;
+  open?: string;
+  close?: string;
+  isClosed?: boolean;
+}
+
+interface Employee {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  working_hours?: WorkingHourEntry[] | null;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  description?: string;
+  duration: number;
+  price: number | null;
+}
 
 interface AppointmentData {
   id: string;
@@ -23,30 +55,33 @@ interface AppointmentData {
   reminder_sent: boolean;
   notes?: string;
   created_at: string;
-  // Related data
-  customer?: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    created_at: string;
-  };
-  service?: {
-    id: string;
-    name: string;
-    description?: string;
-    duration: number;
-    price: number;
-    created_at: string;
-  };
-  employee?: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: string;
-    created_at: string;
-  };
+  customer?: { id: string; name: string; email: string; phone: string; created_at: string };
+  service?: Service;
+  employee?: Employee;
+}
+
+interface EditState {
+  name: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+  notes: string;
+  employee_id: string;
+  service_id: string;
+}
+
+function parseLocalDate(yyyyMmDd: string): Date {
+  const [y, m, d] = yyyyMmDd.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
+}
+
+function formatDisplayDate(dateStr: string): string {
+  return parseLocalDate(dateStr).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
 }
 
 const CancelAppointment: React.FC = () => {
@@ -54,6 +89,7 @@ const CancelAppointment: React.FC = () => {
   const { appointmentId } = useParams<{ appointmentId: string }>();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [appointment, setAppointment] = useState<AppointmentData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,45 +97,87 @@ const CancelAppointment: React.FC = () => {
   const [cancelled, setCancelled] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [editData, setEditData] = useState<Partial<AppointmentData>>({});
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
 
-  // Sample services list removed (unused)
+  // Data for selectors
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [businessSettings, setBusinessSettings] = useState<{ working_hours?: WorkingHourEntry[]; blocked_dates?: string[] } | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  // Edit form state
+  const [editData, setEditData] = useState<EditState>({
+    name: '',
+    email: '',
+    phone: '',
+    date: '',
+    time: '',
+    notes: '',
+    employee_id: '',
+    service_id: ''
+  });
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchAppointment = async () => {
       if (!appointmentId) {
         setError(t('common.errors.invalidAppointmentId'));
+        setLoading(false);
         return;
       }
 
       setLoading(true);
       try {
-        // Fetch appointment with related data
         const { data, error } = await supabase
           .from('appointments')
-          .select(`
-            *,
-            customer:customers(*),
-            service:services(*),
-            employee:employees(*)
-          `)
+          .select(`*, customer:customers(*), service:services(*), employee:employees(*)`)
           .eq('id', appointmentId)
           .single();
 
-        if (error || !data) {
-          throw new Error('Appointment not found');
-        }
+        if (error || !data) throw new Error('Appointment not found');
 
         setAppointment(data);
+        const apptDate = new Date(data.date);
+        const y = apptDate.getFullYear();
+        const mo = String(apptDate.getMonth() + 1).padStart(2, '0');
+        const da = String(apptDate.getDate()).padStart(2, '0');
+        const hh = String(apptDate.getHours()).padStart(2, '0');
+        const mm = String(apptDate.getMinutes()).padStart(2, '0');
         setEditData({
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          date: data.date,
-          notes: data.notes,
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          date: `${y}-${mo}-${da}`,
+          time: `${hh}:${mm}`,
+          notes: data.notes || '',
+          employee_id: data.employee_id || '',
+          service_id: data.service_id || ''
         });
-      } catch (err) {
+
+        // Load business data in parallel
+        if (data.business_id) {
+          const [empRes, svcRes, settingsRes] = await Promise.all([
+            fetch(`/api/employees?businessId=${data.business_id}`),
+            fetch(`/api/business/${data.business_id}/services`),
+            fetch(`/api/business/${data.business_id}/settings`)
+          ]);
+          if (empRes.ok) {
+            const empJson = await empRes.json();
+            setEmployees(empJson?.employees || []);
+          }
+          if (svcRes.ok) {
+            const svcJson = await svcRes.json();
+            setServices(svcJson?.services || []);
+          }
+          if (settingsRes.ok) {
+            const settingsJson = await settingsRes.json();
+            setBusinessSettings(settingsJson?.settings || null);
+          }
+        }
+      } catch {
         setError(t('common.errors.appointmentNotFound'));
       } finally {
         setLoading(false);
@@ -109,12 +187,241 @@ const CancelAppointment: React.FC = () => {
     fetchAppointment();
   }, [appointmentId, t]);
 
+  // Compute effective working hours for the selected employee
+  const getEffectiveWorkingHours = useCallback((): WorkingHourEntry[] => {
+    const emp = employees.find(e => e.id === editData.employee_id);
+    if (emp?.working_hours && Array.isArray(emp.working_hours) && emp.working_hours.length > 0) {
+      return emp.working_hours;
+    }
+    return businessSettings?.working_hours || [];
+  }, [employees, editData.employee_id, businessSettings]);
+
+  // Same 60-day window + blocked/closed rules as AppointmentForm (book page)
+  const availableDates = useMemo(() => {
+    let workingHours = getEffectiveWorkingHours();
+    if ((!Array.isArray(workingHours) || workingHours.length === 0) && businessSettings) {
+      workingHours = [
+        { day: 'Monday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Tuesday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Wednesday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Thursday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Friday', open: '09:00', close: '17:00', isClosed: false },
+        { day: 'Saturday', open: '10:00', close: '15:00', isClosed: false },
+        { day: 'Sunday', open: '00:00', close: '00:00', isClosed: true }
+      ];
+    }
+    if (!Array.isArray(workingHours) || workingHours.length === 0) return [];
+    const blockedDates = businessSettings?.blocked_dates || [];
+    const dates: Date[] = [];
+    const today = new Date();
+    for (let i = 0; i < 60; i++) {
+      const date = new Date();
+      date.setDate(today.getDate() + i);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const dayWorkingHours = workingHours.find((wh) => wh.day === dayOfWeek);
+      if (dayWorkingHours && !dayWorkingHours.isClosed && !blockedDates.includes(dateString)) {
+        if (i === 0) {
+          const now = new Date();
+          const [closeHour, closeMinute] = (dayWorkingHours.close || '00:00').split(':').map(Number);
+          const closeTime = new Date(now);
+          closeTime.setHours(closeHour, closeMinute, 0, 0);
+          if (now >= closeTime) continue;
+        }
+        dates.push(date);
+      }
+    }
+    return dates;
+  }, [getEffectiveWorkingHours, businessSettings]);
+
+  useEffect(() => {
+    if (!isEditing || !editData.date || availableDates.length === 0) return;
+    const dateStr = editData.date;
+    const isInAvailable = availableDates.some((d) => {
+      const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      return ds === dateStr;
+    });
+    if (!isInAvailable) {
+      const first = availableDates[0];
+      const fy = first.getFullYear();
+      const fm = String(first.getMonth() + 1).padStart(2, '0');
+      const fd = String(first.getDate()).padStart(2, '0');
+      setEditData((prev) => ({ ...prev, date: `${fy}-${fm}-${fd}`, time: '' }));
+    }
+  }, [availableDates, editData.date, isEditing]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setShowDatePicker(false);
+      setShowTimePicker(false);
+    }
+  }, [isEditing]);
+
+  // Compute available time slots for the selected date + employee + service
+  const fetchAvailableSlots = useCallback(async (date: string, employeeId: string, serviceId: string) => {
+    if (!date || !employeeId || !serviceId || !appointment?.business_id) return;
+
+    setLoadingSlots(true);
+    try {
+      const service = services.find(s => s.id === serviceId);
+      const duration = service?.duration || appointment.duration || 30;
+
+      const res = await fetch(
+        `/api/business/${appointment.business_id}/appointmentsByDay?date=${date}&employeeId=${employeeId}`
+      );
+      const json = res.ok ? await res.json() : { appointments: [] };
+      const bookedAppts = (json.appointments || []).filter(
+        (a: any) => a.id !== appointmentId && ['scheduled', 'confirmed', 'completed'].includes(a.status)
+      );
+
+      const selectedDate = new Date(`${date}T00:00:00`);
+      const wh = getEffectiveWorkingHours();
+      const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+      const dayHours = wh.find(d => d.day === dayName);
+
+      if (!dayHours || dayHours.isClosed) {
+        setAvailableSlots([]);
+        setLoadingSlots(false);
+        return;
+      }
+
+      const [openH, openM] = (dayHours.open || '09:00').split(':').map(Number);
+      const [closeH, closeM] = (dayHours.close || '17:00').split(':').map(Number);
+      const openTime = new Date(selectedDate);
+      openTime.setHours(openH, openM, 0, 0);
+      const closeTime = new Date(selectedDate);
+      closeTime.setHours(closeH, closeM, 0, 0);
+
+      const slots: string[] = [];
+      const now = new Date();
+      const isToday = selectedDate.toDateString() === now.toDateString();
+      let current = new Date(openTime);
+
+      while (current < closeTime) {
+        if (isToday && current < new Date(now.getTime() + 5 * 60000)) {
+          current.setMinutes(current.getMinutes() + 30);
+          continue;
+        }
+        const slotEnd = new Date(current.getTime() + duration * 60000);
+        if (slotEnd > closeTime) break;
+
+        const hasOverlap = bookedAppts.some((appt: any) => {
+          const s = new Date(appt.date);
+          const e = new Date(s.getTime() + (appt.duration || 30) * 60000);
+          return current < e && slotEnd > s;
+        });
+
+        if (!hasOverlap) slots.push(current.toTimeString().slice(0, 5));
+        current.setMinutes(current.getMinutes() + 30);
+      }
+
+      setAvailableSlots(slots);
+    } catch (err) {
+      console.error('[CancelAppointment] Error fetching slots:', err);
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, [appointment?.business_id, appointment?.duration, appointmentId, services, getEffectiveWorkingHours]);
+
+  // Reload slots when date/employee/service changes
+  useEffect(() => {
+    if (isEditing && editData.date && editData.employee_id && editData.service_id) {
+      fetchAvailableSlots(editData.date, editData.employee_id, editData.service_id);
+    }
+  }, [isEditing, editData.date, editData.employee_id, editData.service_id, fetchAvailableSlots]);
+
   const isWithinOneHourOfCreation = () => {
     if (!appointment?.created_at) return false;
-    const createdAt = new Date(appointment.created_at);
-    const now = Date.now();
-    const hoursSinceCreation = (now - createdAt.getTime()) / (1000 * 60 * 60);
-    return hoursSinceCreation <= 1 && hoursSinceCreation >= 0;
+    const hoursSince = (Date.now() - new Date(appointment.created_at).getTime()) / (1000 * 60 * 60);
+    return hoursSince <= 1 && hoursSince >= 0;
+  };
+
+  const validateEditForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!editData.name.trim()) errors.name = 'Name is required';
+    if (!editData.email.trim()) errors.email = 'Email is required';
+    if (!editData.phone.trim()) errors.phone = 'Phone is required';
+    if (!editData.service_id) errors.service_id = 'Service is required';
+    if (!editData.employee_id) errors.employee_id = 'Employee is required';
+    if (!editData.date) {
+      errors.date = 'Date is required';
+    } else {
+      const inList = availableDates.some((d) => {
+        const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return ds === editData.date;
+      });
+      if (!inList) {
+        errors.date = 'Please select an available date';
+      } else if (editData.time) {
+        const [h, min] = editData.time.split(':').map(Number);
+        const dt = parseLocalDate(editData.date);
+        dt.setHours(h, min || 0, 0, 0);
+        if (dt <= new Date()) {
+          errors.date = 'Cannot select a past date or time';
+        }
+      }
+    }
+    if (!editData.time) errors.time = 'Time is required';
+
+    setEditErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleEdit = async () => {
+    if (!validateEditForm()) return;
+
+    setSaving(true);
+    try {
+      const [hours, minutes] = editData.time.split(':').map(Number);
+      const appointmentDate = parseLocalDate(editData.date);
+      appointmentDate.setHours(hours, minutes || 0, 0, 0);
+      appointmentDate.setSeconds(0, 0);
+      const newDateTime = appointmentDate.toISOString();
+      const service = services.find(s => s.id === editData.service_id);
+
+      const res = await fetch(`/api/appointments/${appointmentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editData.name.trim(),
+          email: editData.email.trim(),
+          phone: editData.phone.trim(),
+          notes: editData.notes,
+          date: newDateTime,
+          employee_id: editData.employee_id,
+          service_id: editData.service_id,
+          duration: service?.duration ?? appointment?.duration ?? 30
+        })
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        const detail = [json.details, json.code].filter(Boolean).join(' ').trim();
+        throw new Error(
+          detail ? `${json.error || 'Failed to update appointment'} (${detail})` : json.error || 'Failed to update appointment'
+        );
+      }
+
+      // Refresh local appointment data
+      const { data: updated } = await supabase
+        .from('appointments')
+        .select(`*, customer:customers(*), service:services(*), employee:employees(*)`)
+        .eq('id', appointmentId)
+        .single();
+      if (updated) setAppointment(updated);
+
+      setIsEditing(false);
+      showNotification(t('cancelAppointment.updateSuccess'), 'success');
+    } catch (err: any) {
+      console.error('[CancelAppointment] Edit error:', err);
+      showNotification(err.message || t('cancelAppointment.updateFailed'), 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = async () => {
@@ -125,421 +432,538 @@ const CancelAppointment: React.FC = () => {
 
     setCancelling(true);
     try {
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: 'cancelled' })
-        .eq('id', appointmentId);
+      const res = await fetch(`/api/appointments/${appointmentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' })
+      });
 
-      if (error) throw error;
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to cancel');
 
       setCancelled(true);
       setShowCancelConfirmModal(false);
       showNotification(t('cancelAppointment.success'), 'success');
       setTimeout(() => navigate('/'), 3000);
-    } catch (err) {
-      showNotification(t('cancelAppointment.cancelFailed'), 'error');
+    } catch (err: any) {
+      showNotification(err.message || t('cancelAppointment.cancelFailed'), 'error');
     } finally {
       setCancelling(false);
     }
   };
 
-  const handleEdit = async () => {
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('appointments')
-        .update(editData)
-        .eq('id', appointmentId);
-
-      if (error) throw error;
-
-      setAppointment(prev => prev ? { ...prev, ...editData } : null);
-      setIsEditing(false);
-      showNotification(t('cancelAppointment.updateSuccess'), 'success');
-    } catch (err) {
-      showNotification(t('cancelAppointment.updateFailed'), 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const formatDateTime = (date: string) => {
-    const dateObj = new Date(date);
+    const d = new Date(date);
     return {
-      date: dateObj.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }),
-      time: dateObj.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
+      date: d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+      time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     };
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const getStatusConfig = (status: string) => {
+    const configs: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
+      confirmed: { bg: 'bg-green-100', text: 'text-green-800', icon: <CheckCircle className="h-4 w-4" /> },
+      scheduled: { bg: 'bg-blue-100', text: 'text-blue-800', icon: <Clock className="h-4 w-4" /> },
+      completed: { bg: 'bg-primary/10', text: 'text-primary', icon: <CheckCircle className="h-4 w-4" /> },
+      cancelled: { bg: 'bg-red-100', text: 'text-red-800', icon: <XCircle className="h-4 w-4" /> },
+      'no-show': { bg: 'bg-orange-100', text: 'text-orange-800', icon: <XCircle className="h-4 w-4" /> }
+    };
+    return configs[status] || { bg: 'bg-gray-100', text: 'text-gray-800', icon: null };
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800';
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-primary/10 text-primary';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'no-show': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const withinOneHour = isWithinOneHourOfCreation();
+  const hoursSince = appointment
+    ? Math.floor((Date.now() - new Date(appointment.created_at).getTime()) / (1000 * 60 * 60))
+    : 0;
+
+  // ─── Loading / Error / Cancelled states ──────────────────────────────────
+
+  const pageWrapper = (content: React.ReactNode) => (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-background">
+      <Header />
+      <main className="flex-grow py-6 sm:py-10 px-4">
+        <div className="max-w-3xl mx-auto">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors mb-6 group"
+          >
+            <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+            Back to Home
+          </button>
+          {content}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl">
-          <CardContent className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <h3 className="text-lg font-semibold text-gray-700">{t('cancelAppointment.loading')}</h3>
-            <p className="text-gray-500 mt-2">{t('cancelAppointment.loadingDescription')}</p>
-          </CardContent>
-        </Card>
-      </div>
+    return pageWrapper(
+      <Card className="shadow-sm">
+        <CardContent className="text-center py-16">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-gray-600 font-medium">{t('cancelAppointment.loading')}</p>
+          <p className="text-sm text-gray-400 mt-1">{t('cancelAppointment.loadingDescription')}</p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl">
-          <CardHeader className="bg-red-50 border-red-200">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h2 className="text-xl font-bold text-red-800">{t('cancelAppointment.notFound')}</h2>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="py-8">
-            <div className="text-center">
-              <p className="text-red-600 mb-6">{error}</p>
-              <Button onClick={() => navigate('/')} variant="primary">
-                {t('cancelAppointment.backToHome')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    return pageWrapper(
+      <Card className="shadow-sm border-red-200">
+        <CardContent className="py-12 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <XCircle className="h-8 w-8 text-red-500" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{t('cancelAppointment.notFound')}</h2>
+          <p className="text-red-600 mb-6">{error}</p>
+          <Button onClick={() => navigate('/')} variant="primary" icon={<ArrowLeft className="h-4 w-4" />}>
+            {t('cancelAppointment.backToHome')}
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   if (cancelled) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl">
-          <CardHeader className="bg-green-50 border-green-200">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h2 className="text-xl font-bold text-green-800">{t('cancelAppointment.appointmentCancelled')}</h2>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="py-8">
-            <div className="text-center">
-              <p className="text-green-600 mb-6">{t('cancelAppointment.successCancelledMessage')}</p>
-              <p className="text-gray-500">{t('cancelAppointment.redirectingMessage')}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    return pageWrapper(
+      <Card className="shadow-sm border-green-200">
+        <CardContent className="py-12 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-8 w-8 text-green-500" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{t('cancelAppointment.appointmentCancelled')}</h2>
+          <p className="text-green-700 mb-2">{t('cancelAppointment.successCancelledMessage')}</p>
+          <p className="text-sm text-gray-500">{t('cancelAppointment.redirectingMessage')}</p>
+        </CardContent>
+      </Card>
     );
   }
 
-  const withinOneHourOfCreation = isWithinOneHourOfCreation();
-  const hoursSinceCreation = appointment ? Math.floor((new Date().getTime() - new Date(appointment.created_at).getTime()) / (1000 * 60 * 60)) : 0;
   const { date: formattedDate, time: formattedTime } = formatDateTime(appointment?.date || '');
+  const statusConfig = getStatusConfig(appointment?.status || '');
+  const currentService = services.find(s => s.id === editData.service_id) || appointment?.service;
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-background py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <Card className="w-full">
-          <CardHeader className="bg-gradient-to-r from-primary to-primary-light text-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <svg className="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <h2 className="text-2xl font-bold">{t('cancelAppointment.appointmentDetails')}</h2>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment?.status || '')}`}>
-                {appointment?.status?.toUpperCase()}
-              </span>
+  // ─── View Mode ───────────────────────────────────────────────────────────
+
+  const viewMode = (
+    <div className="space-y-4">
+      {/* Service Info */}
+      <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <Briefcase className="h-4 w-4 text-primary" />
+          Service
+        </h3>
+        <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div>
+            <span className="text-gray-500">Service:</span>{' '}
+            <span className="font-medium">{appointment?.service?.name || appointment?.name || '—'}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Duration:</span>{' '}
+            <span className="font-medium">{appointment?.duration} min</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Date:</span>{' '}
+            <span className="font-medium">{formattedDate}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Time:</span>{' '}
+            <span className="font-medium">{formattedTime}</span>
+          </div>
+          {appointment?.service?.price != null && (
+            <div>
+              <span className="text-gray-500">Price:</span>{' '}
+              <span className="font-semibold text-primary">${appointment.service.price}</span>
             </div>
-          </CardHeader>
+          )}
+        </div>
+      </div>
 
-          <CardContent className="p-6">
-            {!isEditing ? (
-              // View Mode
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {t('cancelAppointment.serviceDetails')}
-                    </h3>
-                    <div className="space-y-2">
-                      <p><span className="font-medium">{t('cancelAppointment.labels.service')}:</span> {appointment?.service?.name || appointment?.name || t('cancelAppointment.notSpecified')}</p>
-                      <p><span className="font-medium">{t('cancelAppointment.labels.date')}:</span> {formattedDate}</p>
-                      <p><span className="font-medium">{t('cancelAppointment.labels.time')}:</span> {formattedTime}</p>
-                      <p><span className="font-medium">{t('cancelAppointment.labels.duration')}:</span> {appointment?.duration || 0} {t('cancelAppointment.minutes')}</p>
-                      {appointment?.service?.price != null && (
-                        <p><span className="font-medium">{t('cancelAppointment.labels.price')}:</span> ${appointment.service.price}</p>
-                      )}
-                      {appointment?.service?.description && (
-                        <p><span className="font-medium">{t('cancelAppointment.labels.description')}:</span> {appointment.service.description}</p>
-                      )}
-                    </div>
-                  </div>
+      {/* Customer Info */}
+      <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <User className="h-4 w-4 text-primary" />
+          Customer
+        </h3>
+        <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div className="flex items-center gap-2">
+            <User className="h-3.5 w-3.5 text-gray-400" />
+            <span>{appointment?.name || appointment?.customer?.name || '—'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Mail className="h-3.5 w-3.5 text-gray-400" />
+            <span>{appointment?.email || appointment?.customer?.email || '—'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Phone className="h-3.5 w-3.5 text-gray-400" />
+            <span>{appointment?.phone || appointment?.customer?.phone || '—'}</span>
+          </div>
+        </div>
+      </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      {t('cancelAppointment.customerInformation')}
-                    </h3>
-                    <div className="space-y-2">
-                      <p><span className="font-medium">{t('cancelAppointment.labels.name')}:</span> {appointment?.name || appointment?.customer?.name || t('cancelAppointment.notProvided')}</p>
-                      <p><span className="font-medium">{t('cancelAppointment.labels.email')}:</span> {appointment?.email || appointment?.customer?.email || t('cancelAppointment.notProvided')}</p>
-                      <p><span className="font-medium">{t('cancelAppointment.labels.phone')}:</span> {appointment?.phone || appointment?.customer?.phone || t('cancelAppointment.notProvided')}</p>
-                      {appointment?.customer_id && (
-                        <p><span className="font-medium">{t('cancelAppointment.labels.customerId')}:</span> {appointment.customer_id}</p>
-                      )}
-                    </div>
-                  </div>
+      {/* Employee Info */}
+      {appointment?.employee && (
+        <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+            <User className="h-4 w-4 text-primary" />
+            Service Provider
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <div>
+              <span className="text-gray-500">Name:</span>{' '}
+              <span className="font-medium">{appointment.employee.name}</span>
+            </div>
+            <div>
+              <span className="text-gray-500">Role:</span>{' '}
+              <span className="font-medium">{appointment.employee.role}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
-                  {appointment?.employee && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        {t('cancelAppointment.serviceProvider')}
-                      </h3>
-                      <div className="space-y-2">
-                        <p><span className="font-medium">{t('cancelAppointment.labels.name')}:</span> {appointment.employee.name}</p>
-                        <p><span className="font-medium">{t('cancelAppointment.labels.role')}:</span> {appointment.employee.role}</p>
-                        <p><span className="font-medium">{t('cancelAppointment.labels.email')}:</span> {appointment.employee.email}</p>
-                        <p><span className="font-medium">{t('cancelAppointment.labels.phone')}:</span> {appointment.employee.phone}</p>
-                      </div>
-                    </div>
-                  )}
+      {/* Notes */}
+      {appointment?.notes && (
+        <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" />
+            Notes
+          </h3>
+          <p className="text-sm text-gray-700">{appointment.notes}</p>
+        </div>
+      )}
 
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {t('cancelAppointment.bookingInformation')}
-                    </h3>
-                    <div className="space-y-2">
-                      <p><span className="font-medium">{t('cancelAppointment.labels.appointmentId')}:</span> {appointment?.id}</p>
-                      <p><span className="font-medium">{t('cancelAppointment.labels.created')}:</span> {appointment?.created_at ? formatDate(appointment.created_at) : t('cancelAppointment.notAvailable')}</p>
-                      <p><span className="font-medium">{t('cancelAppointment.labels.reminderSent')}:</span> {appointment?.reminder_sent ? t('cancelAppointment.yes') : t('cancelAppointment.no')}</p>
-                    </div>
-                  </div>
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <Button
+          onClick={() => setIsEditing(true)}
+          variant="primary"
+          className="flex-1"
+          icon={<Edit3 className="h-4 w-4" />}
+        >
+          {t('cancelAppointment.editAppointment')}
+        </Button>
+        <Button
+          onClick={() => setShowCancelConfirmModal(true)}
+          isLoading={cancelling}
+          variant="danger"
+          className="flex-1"
+          disabled={!withinOneHour}
+          icon={<XCircle className="h-4 w-4" />}
+        >
+          {withinOneHour ? t('cancelAppointment.cancelButton') : t('cancelAppointment.cannotCancelButton')}
+        </Button>
+      </div>
 
-                  {appointment?.notes && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        {t('cancelAppointment.labels.notes')}
-                      </h3>
-                      <p className="text-gray-700">{appointment.notes}</p>
-                    </div>
-                  )}
-                </div>
+      {!withinOneHour && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+          <Clock className="h-4 w-4 mt-0.5 shrink-0" />
+          <p>
+            {t('cancelAppointment.cannotCancelDescription')}
+            {' '}
+            {t('cancelAppointment.createdTimeAgo', { hours: hoursSince })}
+          </p>
+        </div>
+      )}
+    </div>
+  );
 
-                <div className="space-y-4">
-                  {!withinOneHourOfCreation && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <div className="flex items-center mb-3">
-                        <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                        <h3 className="text-lg font-semibold text-red-800">{t('cancelAppointment.cannotCancelTitle')}</h3>
-                      </div>
-                      <p className="text-red-700 mb-2">{t('cancelAppointment.cannotCancelDescription')}</p>
-                      <p className="text-red-700 font-medium">{t('cancelAppointment.createdTimeAgo', { hours: hoursSinceCreation })}</p>
-                    </div>
-                  )}
+  // ─── Edit Mode ───────────────────────────────────────────────────────────
 
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                      <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {t('cancelAppointment.actions')}
-                    </h3>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => setIsEditing(true)}
-                        variant="primary"
-                        fullWidth
-                        icon={
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        }
-                      >
-                        {t('cancelAppointment.editAppointment')}
-                      </Button>
-                      
-                      <Button 
-                        onClick={() => setShowCancelConfirmModal(true)} 
-                        isLoading={cancelling} 
-                        variant="danger"
-                        fullWidth
-                        disabled={!withinOneHourOfCreation}
-                        icon={
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        }
-                      >
-                        {withinOneHourOfCreation 
-                          ? t('cancelAppointment.cancelButton')
-                          : t('cancelAppointment.cannotCancelButton')}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              // Edit Mode
-              <div className="space-y-6">
-                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                    <svg className="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    {t('cancelAppointment.editDetails')}
-                  </h3>
-                  <p className="text-blue-700">{t('cancelAppointment.editDescription')}</p>
-                </div>
+  const editMode = (
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-xl p-4">
+        <Edit3 className="h-5 w-5 text-primary shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-gray-800">{t('cancelAppointment.editDetails')}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t('cancelAppointment.editDescription')}</p>
+        </div>
+      </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <Input
-                      label={t('cancelAppointment.labels.customerName')}
-                      value={editData.name || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
-                    />
-                    
-                    <Input
-                      label={t('cancelAppointment.labels.email')}
-                      type="email"
-                      value={editData.email || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
-                    />
-                    
-                    <Input
-                      label={t('cancelAppointment.labels.phone')}
-                      type="tel"
-                      value={editData.phone || ''}
-                      onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
-                    />
-                  </div>
+      {/* Customer fields */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <Input
+            label={t('cancelAppointment.labels.customerName')}
+            value={editData.name}
+            onChange={e => setEditData(p => ({ ...p, name: e.target.value }))}
+          />
+          {editErrors.name && <p className="text-xs text-red-500 mt-1">{editErrors.name}</p>}
+        </div>
+        <div>
+          <Input
+            label={t('cancelAppointment.labels.phone')}
+            type="tel"
+            value={editData.phone}
+            onChange={e => setEditData(p => ({ ...p, phone: e.target.value }))}
+          />
+          {editErrors.phone && <p className="text-xs text-red-500 mt-1">{editErrors.phone}</p>}
+        </div>
+        <div className="sm:col-span-2">
+          <Input
+            label={t('cancelAppointment.labels.email')}
+            type="email"
+            value={editData.email}
+            onChange={e => setEditData(p => ({ ...p, email: e.target.value }))}
+          />
+          {editErrors.email && <p className="text-xs text-red-500 mt-1">{editErrors.email}</p>}
+        </div>
+      </div>
 
-                  <div className="space-y-4">
-                    <Input
-                      label={t('cancelAppointment.labels.date')}
-                      type="date"
-                      value={editData.date ? new Date(editData.date).toISOString().split('T')[0] : ''}
-                      onChange={(e) => {
-                        const currentTime = appointment?.date ? new Date(appointment.date).toTimeString().split(' ')[0] : '12:00';
-                        const newDateTime = `${e.target.value}T${currentTime}`;
-                        setEditData(prev => ({ ...prev, date: newDateTime }));
-                      }}
-                    />
-                    
-                    <Input
-                      label={t('cancelAppointment.labels.time')}
-                      type="time"
-                      value={editData.date ? new Date(editData.date).toTimeString().split(' ')[0] : ''}
-                      onChange={(e) => {
-                        const currentDate = appointment?.date ? new Date(appointment.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-                        const newDateTime = `${currentDate}T${e.target.value}`;
-                        setEditData(prev => ({ ...prev, date: newDateTime }));
-                      }}
-                    />
-                  </div>
-                </div>
+      {/* Service & Employee selectors */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm bg-white"
+            value={editData.service_id}
+            onChange={e => setEditData(p => ({ ...p, service_id: e.target.value, time: '' }))}
+          >
+            <option value="">Select service</option>
+            {services.map(s => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.duration} min{s.price != null ? ` — $${s.price}` : ''})
+              </option>
+            ))}
+          </select>
+          {editErrors.service_id && <p className="text-xs text-red-500 mt-1">{editErrors.service_id}</p>}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm bg-white"
+            value={editData.employee_id}
+            onChange={e => setEditData(p => ({ ...p, employee_id: e.target.value, time: '' }))}
+          >
+            <option value="">Select employee</option>
+            {employees.map(emp => (
+              <option key={emp.id} value={emp.id}>
+                {emp.name} ({emp.role})
+              </option>
+            ))}
+          </select>
+          {editErrors.employee_id && <p className="text-xs text-red-500 mt-1">{editErrors.employee_id}</p>}
+        </div>
+      </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('cancelAppointment.labels.notesSection')}
-                  </label>
-                  <textarea
-                    className="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                    rows={4}
-                    value={editData.notes || ''}
-                    onChange={(e) => setEditData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder={t('cancelAppointment.notesPlaceholder')}
+      {/* Date & Time — same UI as book appointment (DayPicker + slot grid) */}
+      {editData.service_id && editData.employee_id && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="relative">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <Calendar className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+              {t('cancelAppointment.labels.date')}
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              className={`w-full px-3 py-2 border rounded-lg text-left text-sm sm:text-base transition-colors ${
+                editErrors.date ? 'border-red-500' : 'border-gray-300 hover:border-primary focus:border-primary'
+              } ${editData.date ? 'text-gray-900' : 'text-gray-500'}`}
+            >
+              {editData.date ? formatDisplayDate(editData.date) : 'Select a date'}
+            </button>
+            {editErrors.date && <p className="text-red-600 text-xs mt-1">{editErrors.date}</p>}
+            {availableDates.length === 0 && businessSettings && (
+              <p className="text-xs text-amber-600 mt-1">No bookable days in the next 60 days. Check business hours.</p>
+            )}
+            {showDatePicker && (
+              <>
+                <div className="fixed inset-0 z-[90]" onClick={() => setShowDatePicker(false)} aria-hidden="true" />
+                <div className="absolute z-[100] mt-1 left-0 bg-white border border-gray-200 rounded-xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <DayPicker
+                    mode="single"
+                    selected={editData.date ? parseLocalDate(editData.date) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const y = date.getFullYear();
+                        const m = String(date.getMonth() + 1).padStart(2, '0');
+                        const d = String(date.getDate()).padStart(2, '0');
+                        setEditData((prev) => ({ ...prev, date: `${y}-${m}-${d}`, time: '' }));
+                        setEditErrors((prev) => ({ ...prev, date: '', time: '' }));
+                        setShowDatePicker(false);
+                      }
+                    }}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const cal = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                      if (cal < today) return true;
+                      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                      return !availableDates.some(
+                        (ad) =>
+                          `${ad.getFullYear()}-${String(ad.getMonth() + 1).padStart(2, '0')}-${String(ad.getDate()).padStart(2, '0')}` === dateStr
+                      );
+                    }}
+                    fromDate={new Date()}
+                    toDate={(() => {
+                      const end = new Date();
+                      end.setDate(end.getDate() + 60);
+                      return end;
+                    })()}
+                    className="rdp-root"
                   />
                 </div>
-
-                <div className="flex space-x-3">
-                  <Button 
-                    onClick={handleEdit}
-                    isLoading={saving}
-                    variant="primary"
-                    icon={
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    }
-                  >
-                    {t('cancelAppointment.saveChanges')}
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => setIsEditing(false)}
-                    variant="outline"
-                    icon={
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    }
-                  >
-                    {t('cancelAppointment.cancelEdit')}
-                  </Button>
-                </div>
-              </div>
+              </>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="relative">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <Clock className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+              {t('cancelAppointment.labels.time')}
+            </label>
+            <button
+              type="button"
+              onClick={() => editData.date && setShowTimePicker(!showTimePicker)}
+              disabled={!editData.date}
+              className={`w-full px-3 py-2 border rounded-lg text-left text-sm sm:text-base transition-colors ${
+                editErrors.time ? 'border-red-500' : 'border-gray-300 hover:border-primary focus:border-primary'
+              } ${editData.time ? 'text-gray-900' : 'text-gray-500'} ${!editData.date ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {editData.time || (editData.date ? 'Select a time' : 'Select date first')}
+            </button>
+            {editErrors.time && <p className="text-red-600 text-xs mt-1">{editErrors.time}</p>}
+            {showTimePicker && editData.date && (
+              <>
+                <div className="fixed inset-0 z-[90]" onClick={() => setShowTimePicker(false)} aria-hidden="true" />
+                <div className="absolute z-[100] mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl p-4 animate-in fade-in slide-in-from-top-2 duration-200 max-h-80 overflow-y-auto">
+                  {loadingSlots ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2" />
+                      <p className="text-sm">Loading times…</p>
+                    </div>
+                  ) : availableSlots.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                      <Clock className="w-10 h-10 mb-2 opacity-40" />
+                      <p className="text-sm font-medium">No available times</p>
+                      <p className="text-xs mt-1">Try selecting another date</p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-xs text-gray-500 mb-3 font-medium">
+                        Available times for {formatDisplayDate(editData.date)}
+                      </p>
+                      <div className="grid grid-cols-4 gap-2 max-h-[220px] overflow-y-auto pr-1">
+                        {availableSlots.map((slot) => {
+                          const isSelected = editData.time === slot;
+                          return (
+                            <button
+                              key={slot}
+                              type="button"
+                              onClick={() => {
+                                setEditData((prev) => ({ ...prev, time: slot }));
+                                setEditErrors((prev) => ({ ...prev, time: '' }));
+                                setShowTimePicker(false);
+                              }}
+                              className={`py-2.5 px-1 rounded-lg text-sm font-medium transition-all duration-150 border ${
+                                isSelected
+                                  ? 'bg-primary text-white border-primary shadow-md'
+                                  : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-primary/10 hover:border-primary/40 hover:text-primary'
+                              }`}
+                            >
+                              {slot}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Notes */}
+      <div>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+          <FileText className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+          {t('cancelAppointment.labels.notesSection')}
+        </label>
+        <textarea
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary resize-none outline-none focus:border-primary text-sm sm:text-base"
+          rows={3}
+          value={editData.notes}
+          onChange={e => setEditData(p => ({ ...p, notes: e.target.value }))}
+          placeholder={t('cancelAppointment.notesPlaceholder')}
+        />
       </div>
+
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-1">
+        <Button
+          onClick={handleEdit}
+          isLoading={saving}
+          variant="primary"
+          className="flex-1"
+          icon={<Save className="h-4 w-4" />}
+        >
+          {t('cancelAppointment.saveChanges')}
+        </Button>
+        <Button
+          onClick={() => {
+            setIsEditing(false);
+            setEditErrors({});
+            if (appointment) {
+              const apptDate = new Date(appointment.date);
+              const yy = apptDate.getFullYear();
+              const mo = String(apptDate.getMonth() + 1).padStart(2, '0');
+              const da = String(apptDate.getDate()).padStart(2, '0');
+              const hh = String(apptDate.getHours()).padStart(2, '0');
+              const mm = String(apptDate.getMinutes()).padStart(2, '0');
+              setEditData({
+                name: appointment.name || '',
+                email: appointment.email || '',
+                phone: appointment.phone || '',
+                date: `${yy}-${mo}-${da}`,
+                time: `${hh}:${mm}`,
+                notes: appointment.notes || '',
+                employee_id: appointment.employee_id || '',
+                service_id: appointment.service_id || ''
+              });
+            }
+          }}
+          variant="outline"
+          className="flex-1"
+          icon={<XCircle className="h-4 w-4" />}
+        >
+          {t('cancelAppointment.cancelEdit')}
+        </Button>
+      </div>
+    </div>
+  );
+
+  // ─── Main Render ─────────────────────────────────────────────────────────
+
+  return pageWrapper(
+    <Card className="shadow-sm overflow-visible">
+      {/* Card Header — rounded top only; card must not use overflow-hidden or DayPicker popovers clip */}
+      <CardHeader className="bg-gradient-to-r from-primary to-primary-light px-6 py-5 rounded-t-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">{t('cancelAppointment.appointmentDetails')}</h1>
+              <p className="text-white/70 text-sm mt-0.5">Appointment ID: {appointment?.id?.slice(0, 8)}…</p>
+            </div>
+          </div>
+          {appointment?.status && (
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.text}`}>
+              {statusConfig.icon}
+              {appointment.status.toUpperCase()}
+            </span>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6 rounded-b-xl">
+        {isEditing ? editMode : viewMode}
+      </CardContent>
 
       <AlertDialog
         isOpen={showCancelConfirmModal}
@@ -554,7 +978,7 @@ const CancelAppointment: React.FC = () => {
         cancelLabel={t('cancelAppointment.keepAppointment')}
         variant="danger"
       />
-    </div>
+    </Card>
   );
 };
 

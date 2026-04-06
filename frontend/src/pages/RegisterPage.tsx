@@ -84,10 +84,11 @@ const RegisterPage: React.FC = () => {
         name: form.name,
         phone: form.phone,
         description: form.description,
-        logo: logoUrlFinal || logoUrl
+        logo: logoUrlFinal || logoUrl,
+        signup_method: 'email',
       };
       Object.keys(metadata).forEach(key => {
-        if (!["name", "phone", "description", "logo"].includes(key)) {
+        if (!['name', 'phone', 'description', 'logo', 'signup_method'].includes(key)) {
           delete (metadata as any)[key];
         }
       });

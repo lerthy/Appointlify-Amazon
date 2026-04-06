@@ -105,12 +105,11 @@ export const handler = async (event, context) => {
         };
       }
 
-      // Confirm the appointment
+      // Customer confirmed via email: clear token and mark confirmation_status; business workflow keeps status until they confirm in dashboard.
       const { error: updateError } = await supabase
         .from('appointments')
         .update({
           confirmation_status: 'confirmed',
-          status: 'confirmed', // Also update the main status
           confirmation_token: null,
           confirmation_token_expires: null
         })

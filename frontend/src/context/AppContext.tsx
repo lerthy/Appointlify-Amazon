@@ -38,6 +38,7 @@ interface AppContextType {
     duration: number;
   }) => Promise<string>;
   updateAppointmentStatus: (id: string, status: Appointment['status']) => Promise<void>;
+  updateAppointment: (id: string, data: Record<string, unknown>) => Promise<void>;
   getAppointmentById: (id: string) => Appointment | undefined;
   refreshAppointments: () => Promise<void>;
   
@@ -217,7 +218,9 @@ export const AppProvider: React.FC<{
     try {
       if (!skipBackend) {
         try {
-          const res = await fetch(`/api/business/${businessId}/appointments`);
+          const res = await fetch(`/api/business/${businessId}/appointments`, {
+            cache: 'no-store',
+          });
           if (res.ok) {
             const json = await res.json();
             setAppointments(json?.appointments || []);
@@ -281,7 +284,9 @@ export const AppProvider: React.FC<{
             console.log('[Realtime] Updated appointment:', updatedAppointment);
             setAppointments(prev =>
               prev.map(apt =>
-                apt.id === updatedAppointment.id ? updatedAppointment : apt
+                apt.id === updatedAppointment.id
+                  ? { ...apt, ...updatedAppointment }
+                  : apt
               )
             );
           } else if (payload.eventType === 'DELETE') {
@@ -533,11 +538,37 @@ export const AppProvider: React.FC<{
     }
   };
 
+  const updateAppointment = async (id: string, data: Record<string, unknown>) => {
+    try {
+      console.log('[updateAppointment] Updating:', { id, data });
+      const res = await fetch(`/api/appointments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[updateAppointment] Error response:', errorData);
+        throw new Error(errorData.error || `Failed to update appointment: ${res.statusText}`);
+      }
+
+      const json = await res.json();
+      console.log('[updateAppointment] Success:', json);
+      await refreshAppointments();
+    } catch (error) {
+      console.error('[updateAppointment] Exception:', error);
+      throw error;
+    }
+  };
+
   // Add refresh function for appointments (memoized to prevent infinite loops)
   const refreshAppointments = useCallback(async () => {
     if (!businessId) return;
     try {
-      const res = await fetch(`/api/business/${businessId}/appointments`);
+      const res = await fetch(`/api/business/${businessId}/appointments`, {
+        cache: 'no-store',
+      });
       if (!res.ok) return;
       const json = await res.json();
       setAppointments(json?.appointments || []);
@@ -664,7 +695,11 @@ export const AppProvider: React.FC<{
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(service),
     });
-    if (!res.ok) throw new Error('Failed to update service');
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({} as { error?: string; details?: string }));
+      const msg = errBody.details || errBody.error || 'Failed to update service';
+      throw new Error(msg);
+    }
     const json = await res.json();
     if (json?.service) setServices(prev => prev.map(svc => svc.id === id ? json.service : svc));
   };
@@ -734,6 +769,7 @@ export const AppProvider: React.FC<{
       dashboardLoading,
       addAppointment,
       updateAppointmentStatus,
+      updateAppointment,
       refreshAppointments,
       addCustomer,
       addService,

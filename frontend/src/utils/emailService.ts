@@ -1,5 +1,9 @@
 // Backend email relay; the backend will handle the actual send
 
+/** White Appointly logo for dark confirmation email header */
+const APPOINTLY_CONFIRMATION_EMAIL_LOGO =
+  'https://dvbgblopuepbisvdgyci.supabase.co/storage/v1/object/public/logos/appointly-logo.png';
+
 interface EmailParams {
   to_name: string;
   to_email: string;
@@ -34,9 +38,7 @@ export const sendAppointmentConfirmation = async (params: EmailParams): Promise<
     
     // In local development (not netlify dev), use Express server endpoint
     if (isDevelopment && isLocalhost && window.location.port !== '8888') {
-      const logoBlock = params.business_logo_url
-        ? `<div style="text-align: center; padding: 24px 20px 16px;"><img src="${params.business_logo_url}" alt="${params.business_name}" style="max-width: 180px; max-height: 80px; object-fit: contain;" /></div>`
-        : '';
+      const logoBlock = `<div style="text-align: center; padding: 24px 20px 16px;"><img src="${APPOINTLY_CONFIRMATION_EMAIL_LOGO}" alt="Appointly" style="max-width: 180px; max-height: 80px; object-fit: contain;" /></div>`;
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: #1e3a5f; color: white; padding: 24px 20px; text-align: center; border-radius: 8px 8px 0 0;">

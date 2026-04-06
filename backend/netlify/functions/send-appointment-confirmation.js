@@ -3,6 +3,10 @@
 
 import nodemailer from 'nodemailer';
 
+/** White Appointly logo for dark email header */
+const APPOINTLY_CONFIRMATION_EMAIL_LOGO =
+  'https://dvbgblopuepbisvdgyci.supabase.co/storage/v1/object/public/logos/appointly-logo.png';
+
 export const handler = async (event, context) => {
   // Enable CORS
   const headers = {
@@ -126,11 +130,9 @@ export const handler = async (event, context) => {
   }
 };
 
-// Generate the email HTML template: clean layout, optional logo, structured details, solid buttons
+// Generate the email HTML template: clean layout, Appointly white logo, structured details, solid buttons
 function generateEmailHTML(params) {
-  const logoBlock = params.business_logo_url
-    ? `<div style="text-align: center; padding: 24px 20px 16px;"><img src="${params.business_logo_url}" alt="${params.business_name}" style="max-width: 180px; max-height: 80px; object-fit: contain;" /></div>`
-    : '';
+  const logoBlock = `<div style="text-align: center; padding: 24px 20px 16px;"><img src="${APPOINTLY_CONFIRMATION_EMAIL_LOGO}" alt="Appointly" style="max-width: 180px; max-height: 80px; object-fit: contain;" /></div>`;
   return `
     <!DOCTYPE html>
     <html>
