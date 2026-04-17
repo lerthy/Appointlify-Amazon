@@ -533,6 +533,82 @@ function buildGroundedFallbackResponse(messages: any[], catalog: ChatCatalog): s
   return `I can help with bookings using live data. Current businesses include: ${names}. Tell me which one you want.`;
 }
 
+type KnownBookingFields = {
+  name: string | null;
+  business: string | null;
+  service: string | null;
+  date: string | null;
+  time: string | null;
+  email: string | null;
+  phone: string | null;
+};
+
+function extractKnownBookingFields(messages: any[], catalog: ChatCatalog): KnownBookingFields {
+  const fields: KnownBookingFields = {
+    name: null,
+    business: null,
+    service: null,
+    date: null,
+    time: null,
+    email: null,
+    phone: null,
+  };
+
+  const allText = messages.map((m: any) => String(m?.content || '')).join('\n');
+  const lower = allText.toLowerCase();
+
+  const emailMatch = allText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}/);
+  if (emailMatch) fields.email = emailMatch[0];
+
+  const phoneMatch = allText.match(/(\+?\d[\d\s\-()]{7,}\d)/);
+  if (phoneMatch) fields.phone = phoneMatch[1].trim();
+
+  const timeMatch = allText.match(/\b(\d{1,2}(:\d{2})?\s?(am|pm))\b/i);
+  if (timeMatch) fields.time = timeMatch[1];
+
+  if (/\btomorrow\b/i.test(allText)) fields.date = 'tomorrow';
+  else {
+    const isoDate = allText.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+    if (isoDate) fields.date = isoDate[1];
+  }
+
+  const knownBusinesses = catalog.businesses || [];
+  for (const business of knownBusinesses) {
+    if (lower.includes(String(business.name).toLowerCase())) {
+      fields.business = business.name;
+      break;
+    }
+  }
+
+  const knownServices = catalog.services || [];
+  for (const service of knownServices) {
+    if (lower.includes(String(service.name).toLowerCase())) {
+      fields.service = service.name;
+      break;
+    }
+  }
+
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = String(messages[i]?.content || '').trim();
+    if (!msg) continue;
+    const match = msg.match(/(?:my name is|i am|i'm|name is)\s+([a-zA-Z][a-zA-Z\s'-]{1,40})/i);
+    if (match) {
+      fields.name = match[1].trim();
+      break;
+    }
+  }
+
+  if (!fields.name && messages.length >= 2) {
+    const lastMsg = String(messages[messages.length - 1]?.content || '').trim();
+    const prevMsg = String(messages[messages.length - 2]?.content || '').toLowerCase();
+    if (/\b(name)\b/.test(prevMsg) && /^[a-zA-Z][a-zA-Z'-]{1,30}$/.test(lastMsg)) {
+      fields.name = lastMsg;
+    }
+  }
+
+  return fields;
+}
+
 // AI Chatbot endpoint - supports Groq (preferred), OpenAI, and Mock fallback
 // Handle both /api/chat and /chat paths for compatibility
 const handleChat = async (req: any, res: any) => {
@@ -615,11 +691,13 @@ const handleChat = async (req: any, res: any) => {
 
 
     const catalog = await loadChatCatalog();
+    const knownFields = extractKnownBookingFields(messages, catalog);
     console.log('chat catalog status:', {
       status: catalog.status,
       issue: catalog.issue,
       businesses: catalog.businesses.length,
       services: catalog.services.length,
+      knownFields,
     });
 
     // Check provider availability: Groq first, then OpenAI, then grounded fallback
@@ -642,6 +720,15 @@ ${catalog.businessList}
 LIVE BUSINESS -> SERVICES:
 ${catalog.businessServicesList}
 
+KNOWN BOOKING FIELDS (from conversation, use exact values):
+- name: ${knownFields.name || 'missing'}
+- business: ${knownFields.business || 'missing'}
+- service: ${knownFields.service || 'missing'}
+- date: ${knownFields.date || 'missing'}
+- time: ${knownFields.time || 'missing'}
+- email: ${knownFields.email || 'missing'}
+- phone: ${knownFields.phone || 'missing'}
+
 AVAILABLE TIME SLOTS (if provided by UI context):
 ${context?.availableTimes?.join(', ') || 'Checking availability...'}
 
@@ -649,11 +736,15 @@ BOOKING INSTRUCTIONS:
 1. Be friendly and conversational
 2. Help customers choose the right service
 3. Collect: Customer name, business selection, service selection, preferred date and time
-4. Confirm all details before finalizing
-5. If they have all required info, respond with: "BOOKING_READY: {name: 'Customer Name', business: 'Business Name', service: 'Service Name', date: 'YYYY-MM-DD', time: 'HH:MM AM/PM'}"
-6. Never invent, guess, or fabricate business names or services.
-7. If live database status is not "ok", explicitly say you cannot access current business data right now and ask the user to retry.
-8. Only mention services under their actual business mapping from LIVE BUSINESS -> SERVICES.
+4. Collect EMAIL and PHONE before asking final confirmation.
+5. Confirm all details before finalizing.
+6. If they have all required info, respond with: "BOOKING_READY: {name: 'Customer Name', business: 'Business Name', service: 'Service Name', date: 'YYYY-MM-DD', time: 'HH:MM AM/PM', email: 'email@example.com', phone: '+123456789'}"
+7. Never invent, guess, or fabricate business names or services.
+8. If live database status is not "ok", explicitly say you cannot access current business data right now and ask the user to retry.
+9. Only mention services under their actual business mapping from LIVE BUSINESS -> SERVICES.
+10. NEVER change user-provided field values (especially name). Copy exact spelling from KNOWN BOOKING FIELDS or latest user message.
+11. If user says only a name (e.g. "lerdi"), repeat exactly that name.
+12. Do not ask for confirmation until required fields are complete: name, business, service, date, time, email, phone.
 
 PERSONALITY:
 - Professional but friendly
@@ -689,7 +780,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
           model,
           messages: chatMessages,
           max_tokens: 500,
-          temperature: 0.7,
+          temperature: 0.2,
         });
 
 
@@ -741,7 +832,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
           model: 'gpt-3.5-turbo',
           messages: chatMessages,
           max_tokens: 500,
-          temperature: 0.7,
+          temperature: 0.2,
         });
 
 
