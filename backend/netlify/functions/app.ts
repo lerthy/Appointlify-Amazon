@@ -588,11 +588,11 @@ function extractBookingReadyData(text: string): BookingData | null {
 }
 
 function isAffirmative(text: string): boolean {
-  return /\b(yes|yeah|yep|confirm|book it|go ahead|correct)\b/i.test(text);
+  return /\b(yes|yeah|yep|confirm|book it|go ahead|correct|po|dakord|konfirmo|vazhdo)\b/i.test(text);
 }
 
 function isNegative(text: string): boolean {
-  return /\b(no|nope|change|edit|cancel|wrong)\b/i.test(text);
+  return /\b(no|nope|change|edit|cancel|wrong|jo|ndrysho|anulo|gabim)\b/i.test(text);
 }
 
 function getBaseSiteUrl(req: any): string {
@@ -611,16 +611,30 @@ function parseAppointmentDateFlexible(dateInput: string, timeInput: string): str
   const target = new Date(now);
   target.setSeconds(0, 0);
 
-  if (normalizedDate === 'today') {
+  if (normalizedDate === 'today' || normalizedDate === 'sot') {
     // keep today
-  } else if (normalizedDate === 'tomorrow') {
+  } else if (normalizedDate === 'tomorrow' || normalizedDate === 'neser' || normalizedDate === 'nesër') {
     target.setDate(target.getDate() + 1);
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
     const [y, m, d] = normalizedDate.split('-').map(Number);
     target.setFullYear(y, m - 1, d);
   } else {
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const idx = days.indexOf(normalizedDate);
+    const dayAliases: Record<string, string> = {
+      'e diel': 'sunday',
+      'e hene': 'monday',
+      'e hënë': 'monday',
+      'e marte': 'tuesday',
+      'e martë': 'tuesday',
+      'e merkure': 'wednesday',
+      'e mërkurë': 'wednesday',
+      'e enjte': 'thursday',
+      'e premte': 'friday',
+      'e shtune': 'saturday',
+      'e shtunë': 'saturday',
+    };
+    const normalizedDay = dayAliases[normalizedDate] || normalizedDate;
+    const idx = days.indexOf(normalizedDay);
     if (idx >= 0) {
       const current = target.getDay();
       let delta = idx - current;
@@ -741,14 +755,18 @@ async function getOrCreateCustomerId(booking: BookingData): Promise<string | nul
   return String(created.data.id);
 }
 
-async function createAppointmentFromBooking(booking: BookingData, req: any): Promise<{ appointmentId: string; appointmentIso: string; businessName: string; serviceName: string; confirmationToken: string } | null> {
-  if (!supabase) return null;
+type CreateAppointmentResult =
+  | { success: true; appointmentId: string; appointmentIso: string; businessName: string; serviceName: string; confirmationToken: string }
+  | { success: false; error: string; conflict?: boolean };
+
+async function createAppointmentFromBooking(booking: BookingData, req: any): Promise<CreateAppointmentResult> {
+  if (!supabase) return { success: false, error: 'Database not configured' };
 
   const business = await resolveBusinessByName(booking.business);
-  if (!business) return null;
+  if (!business) return { success: false, error: 'Business not found' };
 
   const service = await resolveServiceForBusiness(booking.service, business.id);
-  if (!service) return null;
+  if (!service) return { success: false, error: 'Service not found for selected business' };
 
   const employeeRes = await supabase
     .from('employees')
@@ -756,12 +774,41 @@ async function createAppointmentFromBooking(booking: BookingData, req: any): Pro
     .eq('business_id', business.id)
     .limit(1);
   const employeeId = employeeRes.data?.[0]?.id;
-  if (!employeeId) return null;
+  if (!employeeId) return { success: false, error: 'No available employee for selected business' };
 
   const customerId = await getOrCreateCustomerId(booking);
-  if (!customerId) return null;
+  if (!customerId) return { success: false, error: 'Could not create customer record' };
 
   const appointmentIso = parseAppointmentDateFlexible(booking.date, booking.time);
+  const appointmentStart = new Date(appointmentIso);
+  const appointmentDuration = service.duration || 30;
+  const appointmentEnd = new Date(appointmentStart.getTime() + appointmentDuration * 60000);
+
+  const startOfDay = new Date(appointmentStart);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(appointmentStart);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const existing = await supabase
+    .from('appointments')
+    .select('id, date, duration')
+    .eq('business_id', business.id)
+    .eq('employee_id', employeeId)
+    .gte('date', startOfDay.toISOString())
+    .lte('date', endOfDay.toISOString())
+    .in('status', ['scheduled', 'confirmed', 'completed']);
+
+  if (!existing.error && Array.isArray(existing.data) && existing.data.length > 0) {
+    const hasOverlap = existing.data.some((appt: any) => {
+      const existingStart = new Date(appt.date);
+      const existingEnd = new Date(existingStart.getTime() + (appt.duration || 30) * 60000);
+      return appointmentStart < existingEnd && appointmentEnd > existingStart;
+    });
+    if (hasOverlap) {
+      return { success: false, conflict: true, error: 'Selected time slot is already booked' };
+    }
+  }
+
   const confirmationToken = randomUUID().replace(/-/g, '');
   const tokenExpiry = new Date();
   tokenExpiry.setHours(tokenExpiry.getHours() + 48);
@@ -790,8 +837,9 @@ async function createAppointmentFromBooking(booking: BookingData, req: any): Pro
     .select('id')
     .single();
 
-  if (inserted.error || !inserted.data?.id) return null;
+  if (inserted.error || !inserted.data?.id) return { success: false, error: inserted.error?.message || 'Failed to create appointment' };
   return {
+    success: true,
     appointmentId: String(inserted.data.id),
     appointmentIso,
     businessName: business.name,
@@ -1009,11 +1057,13 @@ const handleChat = async (req: any, res: any) => {
     // If user is confirming a pending booking, finalize it here (same as form flow intent)
     if (pendingBooking && isAffirmative(latestUserMessage)) {
       const appointment = await createAppointmentFromBooking(pendingBooking, req);
-      if (!appointment) {
+      if (!appointment.success) {
+        const conflictMessage = 'That time slot is already booked in our database. Please choose another time.';
         return res.json({
           success: false,
-          message: 'Sorry, I could not create the appointment. Please verify business/service details and try again.',
+          message: appointment.conflict ? conflictMessage : `Sorry, I could not create the appointment: ${appointment.error}`,
           provider: 'booking-error',
+          conflict: Boolean(appointment.conflict),
         });
       }
       await sendBookingNotifications(pendingBooking, appointment, req);
@@ -1067,6 +1117,7 @@ ${context?.availableTimes?.join(', ') || 'Checking availability...'}
 
 BOOKING INSTRUCTIONS:
 1. Be friendly and conversational
+1a. Always reply in the same language as the user (English or Albanian).
 2. Help customers choose the right service
 3. Collect: Customer name, business selection, service selection, preferred date and time
 4. Collect EMAIL and PHONE before asking final confirmation.
@@ -1078,6 +1129,7 @@ BOOKING INSTRUCTIONS:
 10. NEVER change user-provided field values (especially name). Copy exact spelling from KNOWN BOOKING FIELDS or latest user message.
 11. If user says only a name (e.g. "lerdi"), repeat exactly that name.
 12. Do not ask for confirmation until required fields are complete: name, business, service, date, time, email, phone.
+13. Understand Albanian date/time words and typos, e.g. "neser", "sot", "2om" (treat as 2pm contextually).
 
 PERSONALITY:
 - Professional but friendly
