@@ -668,6 +668,23 @@ function extractPendingBookingFromMessages(messages: any[]): BookingData | null 
   return null;
 }
 
+function extractPendingBookingFromContext(context: any): BookingData | null {
+  const pending = context?.pendingBooking;
+  if (!pending) return null;
+  const required = ['name', 'business', 'service', 'date', 'time', 'email', 'phone'];
+  const hasAll = required.every((k) => typeof pending?.[k] === 'string' && String(pending[k]).trim().length > 0);
+  if (!hasAll) return null;
+  return {
+    name: String(pending.name).trim(),
+    business: String(pending.business).trim(),
+    service: String(pending.service).trim(),
+    date: String(pending.date).trim(),
+    time: String(pending.time).trim(),
+    email: String(pending.email).trim(),
+    phone: String(pending.phone).trim(),
+  };
+}
+
 async function resolveBusinessByName(name: string): Promise<{ id: string; name: string } | null> {
   if (!supabase) return null;
   const exact = await supabase
@@ -979,7 +996,7 @@ const handleChat = async (req: any, res: any) => {
     const catalog = await loadChatCatalog();
     const knownFields = extractKnownBookingFields(messages, catalog);
     const latestUserMessage = String(messages[messages.length - 1]?.content || '');
-    const pendingBooking = extractPendingBookingFromMessages(messages);
+    const pendingBooking = extractPendingBookingFromContext(context) || extractPendingBookingFromMessages(messages);
     console.log('chat catalog status:', {
       status: catalog.status,
       issue: catalog.issue,
@@ -1108,7 +1125,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 
         const bookingReady = extractBookingReadyData(assistantMessage);
         if (bookingReady) {
-          const confirmationMessage = `I have all details needed to book your appointment.\n\nBusiness: ${bookingReady.business}\nService: ${bookingReady.service}\nDate: ${bookingReady.date}\nTime: ${bookingReady.time}\nName: ${bookingReady.name}\nEmail: ${bookingReady.email}\nPhone: ${bookingReady.phone}\n\nType "yes" to finalize the booking, or "no" to change details.\n\nBOOKING_PENDING: ${JSON.stringify(bookingReady)}`;
+          const confirmationMessage = `I have all details needed to book your appointment.\n\nBusiness: ${bookingReady.business}\nService: ${bookingReady.service}\nDate: ${bookingReady.date}\nTime: ${bookingReady.time}\nName: ${bookingReady.name}\nEmail: ${bookingReady.email}\nPhone: ${bookingReady.phone}\n\nType "yes" to finalize the booking, or "no" to change details.`;
           return res.json({
             success: true,
             message: confirmationMessage,
@@ -1168,7 +1185,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 
         const bookingReady = extractBookingReadyData(assistantMessage);
         if (bookingReady) {
-          const confirmationMessage = `I have all details needed to book your appointment.\n\nBusiness: ${bookingReady.business}\nService: ${bookingReady.service}\nDate: ${bookingReady.date}\nTime: ${bookingReady.time}\nName: ${bookingReady.name}\nEmail: ${bookingReady.email}\nPhone: ${bookingReady.phone}\n\nType "yes" to finalize the booking, or "no" to change details.\n\nBOOKING_PENDING: ${JSON.stringify(bookingReady)}`;
+          const confirmationMessage = `I have all details needed to book your appointment.\n\nBusiness: ${bookingReady.business}\nService: ${bookingReady.service}\nDate: ${bookingReady.date}\nTime: ${bookingReady.time}\nName: ${bookingReady.name}\nEmail: ${bookingReady.email}\nPhone: ${bookingReady.phone}\n\nType "yes" to finalize the booking, or "no" to change details.`;
           return res.json({
             success: true,
             message: confirmationMessage,

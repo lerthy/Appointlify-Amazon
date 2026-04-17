@@ -30,6 +30,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingBooking, setPendingBooking] = useState<any | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sessionId = useRef<string>(`session_${Date.now()}`);
 
@@ -66,7 +67,8 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
         ],
         context: {
           // Removed specific business context to allow AI to respond about all businesses
-          availableTimes: undefined
+          availableTimes: undefined,
+          pendingBooking: pendingBooking || undefined
         }
       };
 
@@ -82,6 +84,12 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
 
       const data = await res.json();
       const aiText = data?.message || t('chatWidget.noResponse');
+      if (data?.requiresConfirmation && data?.bookingData) {
+        setPendingBooking(data.bookingData);
+      }
+      if (data?.provider === 'booking-confirmed') {
+        setPendingBooking(null);
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -136,6 +144,7 @@ const AIChatbot: React.FC<AIChatbotProps> = () => {
     // Clear the conversation when closing
     mockAiService.clearConversation(sessionId.current);
     sessionId.current = `session_${Date.now()}`;
+    setPendingBooking(null);
   };
 
   return (
