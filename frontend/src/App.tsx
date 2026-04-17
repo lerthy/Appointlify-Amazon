@@ -1,10 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
-
-// Using real services from database
+import { getSubdomain, getMainDomainUrl } from './utils/subdomain';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -30,7 +29,61 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ConfirmAppointmentPage from './pages/ConfirmAppointmentPage';
 import GoogleOAuthCallbackPage from './pages/GoogleOAuthCallbackPage';
 
-// Components
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
+// Context for subdomain-specific data
+const SubdomainContext = createContext<{
+  resolvedBusinessId: string | null;
+  isChecking: boolean;
+}>({
+  resolvedBusinessId: null,
+  isChecking: true,
+});
+
+export const useSubdomain = () => useContext(SubdomainContext);
+
+function SubdomainProvider({ children }: { children: React.ReactNode }) {
+  const [resolvedBusinessId, setResolvedBusinessId] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const subdomain = getSubdomain();
+
+    if (!subdomain) {
+      setIsChecking(false);
+      return;
+    }
+
+    // Resolve subdomain → business ID once
+    console.log(`[Subdomain] Detected "${subdomain}", resolving...`);
+    fetch(`${API_BASE}/api/resolve-subdomain/${subdomain}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.business?.id) {
+          console.log(`[Subdomain] Resolved to business ID: ${data.business.id}`);
+          setResolvedBusinessId(data.business.id);
+        } else {
+          console.warn(`[Subdomain] Resolution failed for "${subdomain}":`, data.error);
+          // Redirection to main platform if subdomain is invalid/doesnt exist
+          window.location.replace(getMainDomainUrl('/'));
+        }
+      })
+      .catch(err => {
+        console.error('[Subdomain] Error resolving subdomain:', err);
+        // Fallback to main domain on network error during resolution
+        window.location.replace(getMainDomainUrl('/'));
+      })
+      .finally(() => {
+        setIsChecking(false);
+      });
+  }, []); // Run once on app mount
+
+  return (
+    <SubdomainContext.Provider value={{ resolvedBusinessId, isChecking }}>
+      {children}
+    </SubdomainContext.Provider>
+  );
+}
 
 function Providers({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
@@ -41,15 +94,33 @@ function Providers({ children }: { children: React.ReactNode }) {
 
 function AppProviderWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  
-  // Only enable real-time when on dashboard page
   const enableRealtime = location.pathname === '/dashboard';
-  
   return <AppProvider enableRealtime={enableRealtime}>{children}</AppProvider>;
 }
 
 function AppContent() {
   const location = useLocation();
+  const { resolvedBusinessId, isChecking } = useSubdomain();
+
+  // Enforce root path for subdomains: subdomain.domain.com/anything -> subdomain.domain.com/
+  useEffect(() => {
+    const subdomain = getSubdomain();
+    if (subdomain && location.pathname !== '/') {
+      console.log(`[Subdomain] Path "${location.pathname}" not allowed on subdomain. Redirecting to root.`);
+      window.location.replace('/');
+    }
+  }, [location.pathname]);
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
+          <p className="text-gray-500 text-sm">Loading business page...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Hide AI chat on login and signup, and dashboard pages
   const shouldShowAIChat = !['/login', '/register', '/forgot-password', '/reset-password', '/dashboard', '/verify-email', '/confirm-appointment'].includes(location.pathname);
@@ -57,7 +128,13 @@ function AppContent() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        {/* If we have a resolved business from the subdomain, the root route renders the booking page */}
+        <Route 
+          path="/" 
+          element={resolvedBusinessId ? <AppointmentPage businessIdOverride={resolvedBusinessId} /> : <HomePage />} 
+        />
+        
+        {/* Standard routes */}
         <Route path="/book" element={<AppointmentPage />} />
         <Route path="/book/:businessId" element={<AppointmentPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -84,7 +161,6 @@ function AppContent() {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       
-      {/* AI Chatbot - Hidden on auth pages */}
       {shouldShowAIChat && <AIChatbot />}
     </>
   );
@@ -96,9 +172,11 @@ function App() {
       <Providers>
         <NotificationProvider>
           <Router>
-            <AppProviderWrapper>
-              <AppContent />
-            </AppProviderWrapper>
+            <SubdomainProvider>
+              <AppProviderWrapper>
+                <AppContent />
+              </AppProviderWrapper>
+            </SubdomainProvider>
           </Router>
         </NotificationProvider>
       </Providers>

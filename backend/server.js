@@ -829,6 +829,53 @@ app.get('/api/businesses', requireDb, async (req, res) => {
   }
 });
 
+// Resolve subdomain → business ID (only if business is fully set up: has employees, services, settings)
+app.get('/api/resolve-subdomain/:subdomain', requireDb, async (req, res) => {
+  try {
+    const { subdomain } = req.params;
+    if (!subdomain || subdomain.length < 3) {
+      return res.status(400).json({ success: false, error: 'Invalid subdomain' });
+    }
+
+    // Find user with this subdomain
+    const { data: business, error: bizError } = await supabase
+      .from('users')
+      .select('id, name, description, logo, subdomain, business_address')
+      .eq('subdomain', subdomain.toLowerCase())
+      .single();
+
+    if (bizError || !business) {
+      return res.status(404).json({ success: false, error: 'Business not found' });
+    }
+
+    // Verify business meets homepage requirements (has employees, services, settings)
+    const [empResult, svcResult, setResult] = await Promise.all([
+      supabase.from('employees').select('id').eq('business_id', business.id).limit(1),
+      supabase.from('services').select('id').eq('business_id', business.id).limit(1),
+      supabase.from('business_settings').select('id').eq('business_id', business.id).limit(1),
+    ]);
+
+    const hasEmployees = (empResult.data?.length || 0) > 0;
+    const hasServices = (svcResult.data?.length || 0) > 0;
+    const hasSettings = (setResult.data?.length || 0) > 0;
+    const isEligible = hasEmployees && hasServices && hasSettings;
+
+    return res.json({
+      success: true,
+      business: {
+        id: business.id,
+        name: business.name,
+        subdomain: business.subdomain,
+        isEligible,
+        setupDetails: { hasEmployees, hasServices, hasSettings }
+      },
+    });
+  } catch (error) {
+    console.error('[GET /api/resolve-subdomain] Error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to resolve subdomain' });
+  }
+});
+
 app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
@@ -995,6 +1042,13 @@ app.patch('/api/users/:id', async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
+    console.log('[PATCH /api/users/:id] ▶ Received update request:', {
+      userId: id,
+      fieldsReceived: Object.keys(updates || {}),
+      subdomainValue: updates?.subdomain,
+      bodyType: typeof updates,
+    });
+
     if (!supabase) {
       return res.status(503).json({ 
         success: false, 
@@ -1021,6 +1075,41 @@ app.patch('/api/users/:id', async (req, res) => {
     if (updates.website !== undefined) updateData.website = updates.website;
     if (updates.category !== undefined) updateData.category = updates.category;
     if (updates.owner_name !== undefined) updateData.owner_name = updates.owner_name;
+    if (updates.subdomain !== undefined) {
+      const raw = updates.subdomain;
+      console.log('[PATCH /api/users/:id] 🔗 Subdomain processing:', { raw, type: typeof raw });
+      const subdomain = raw === null || raw === '' ? '' : String(raw).toLowerCase().replace(/\s/g, '').replace(/[^a-z0-9-]/g, '');
+      console.log('[PATCH /api/users/:id] 🔗 Subdomain sanitized:', { sanitized: subdomain });
+      if (subdomain && subdomain.length < 3) {
+        console.log('[PATCH /api/users/:id] ❌ Subdomain too short:', subdomain.length);
+        return res.status(400).json({
+          success: false,
+          error: 'Subdomain must be at least 3 characters',
+        });
+      }
+      if (subdomain) {
+        const { data: existing } = await supabase
+          .from('users')
+          .select('id')
+          .eq('subdomain', subdomain)
+          .neq('id', id)
+          .maybeSingle();
+        if (existing) {
+          console.log('[PATCH /api/users/:id] ❌ Subdomain taken by:', existing.id);
+          return res.status(400).json({
+            success: false,
+            error: 'This subdomain is already taken',
+          });
+        }
+      }
+      updateData.subdomain = subdomain || null;
+      console.log('[PATCH /api/users/:id] ✅ Subdomain set in updateData:', updateData.subdomain);
+    } else {
+      console.log('[PATCH /api/users/:id] ⚠️ No subdomain field in request body');
+    }
+
+    console.log('[PATCH /api/users/:id] 📦 Final updateData keys:', Object.keys(updateData));
+    console.log('[PATCH /api/users/:id] 📦 Final updateData:', JSON.stringify(updateData, null, 2));
 
     // Update the user
     const { data, error } = await supabase
@@ -1031,7 +1120,7 @@ app.patch('/api/users/:id', async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Profile update error:', error);
+      console.error('[PATCH /api/users/:id] ❌ Supabase error:', error);
       return res.status(500).json({ 
         success: false, 
         error: error.message || 'Failed to update profile',
@@ -1040,18 +1129,20 @@ app.patch('/api/users/:id', async (req, res) => {
     }
 
     if (!data) {
+      console.error('[PATCH /api/users/:id] ❌ No data returned from Supabase');
       return res.status(404).json({ 
         success: false, 
         error: 'User not found' 
       });
     }
 
+    console.log('[PATCH /api/users/:id] ✅ Update successful. Returned subdomain:', data.subdomain);
     return res.json({ 
       success: true, 
       user: data 
     });
   } catch (error) {
-    console.error('Profile update exception:', error);
+    console.error('[PATCH /api/users/:id] 💥 Exception:', error);
     return res.status(500).json({ 
       success: false, 
       error: error?.message || 'Failed to update profile' 

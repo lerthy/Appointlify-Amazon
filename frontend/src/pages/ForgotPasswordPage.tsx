@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
 const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/public/issues//logopng1324.png";
 
 const ForgotPasswordPage: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);

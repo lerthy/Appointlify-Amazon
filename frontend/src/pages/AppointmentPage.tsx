@@ -5,11 +5,12 @@ import AppointmentForm from '../components/customer/AppointmentForm';
 import Container from '../components/ui/Container';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
 import { AppProvider } from '../context/AppContext';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 import { motion } from 'framer-motion';
+import { getMainDomainUrl } from '../utils/subdomain';
 import {
   extractCoordinates,
   isValidCoordinates,
@@ -22,14 +23,30 @@ const fadeUp = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 };
 
-const AppointmentPage: React.FC = () => {
+interface AppointmentPageProps {
+  businessIdOverride?: string;
+}
+
+const AppointmentPage: React.FC<AppointmentPageProps> = ({ businessIdOverride }) => {
   const { t } = useTranslation();
-  const { businessId } = useParams<{ businessId?: string }>();
+  const { businessId: urlBusinessId } = useParams<{ businessId?: string }>();
+  const businessId = businessIdOverride || urlBusinessId;
   const navigate = useNavigate();
   const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [coords, setCoords] = useState<{ lat: string; lng: string } | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [eligibility, setEligibility] = useState<{
+    isEligible: boolean;
+    hasServices: boolean;
+    hasEmployees: boolean;
+    hasSettings: boolean;
+  }>({
+    isEligible: true, // Default to true until checked
+    hasServices: true,
+    hasEmployees: true,
+    hasSettings: true,
+  });
 
   useEffect(() => {
     if (!businessId) return;
@@ -38,29 +55,32 @@ const AppointmentPage: React.FC = () => {
       console.log('[AppointmentPage] Fetching business:', businessId);
       
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, name, description, logo, business_address')
-          .eq('id', businessId)
-          .single();
+        // Fetch business info and eligibility requirements in parallel
+        const [bizResult, servicesResult, employeesResult, settingsResult] = await Promise.all([
+          supabase.from('users').select('id, name, description, logo, business_address').eq('id', businessId).single(),
+          supabase.from('services').select('id', { count: 'exact', head: true }).eq('business_id', businessId),
+          supabase.from('employees').select('id', { count: 'exact', head: true }).eq('business_id', businessId),
+          supabase.from('business_settings').select('id', { count: 'exact', head: true }).eq('business_id', businessId),
+        ]);
         
-        if (error) {
-          console.error('[AppointmentPage] Error fetching business:', {
-            code: error.code,
-            message: error.message,
-            details: error.details,
-            hint: error.hint
-          });
-          // If it's a "no rows" error, the business doesn't exist
-          if (error.code === 'PGRST116') {
-            console.warn('[AppointmentPage] Business not found or access denied');
-          }
+        if (bizResult.error) {
+          console.error('[AppointmentPage] Error fetching business:', bizResult.error);
           setBusiness(null);
-        } else if (data) {
-          console.log('[AppointmentPage] Business found:', data);
-          setBusiness(data);
+        } else if (bizResult.data) {
+          console.log('[AppointmentPage] Business found:', bizResult.data);
+          setBusiness(bizResult.data);
+          
+          const hasServices = (servicesResult.count ?? 0) > 0;
+          const hasEmployees = (employeesResult.count ?? 0) > 0;
+          const hasSettings = (settingsResult.count ?? 0) > 0;
+          
+          setEligibility({
+            isEligible: hasServices && hasEmployees && hasSettings,
+            hasServices,
+            hasEmployees,
+            hasSettings,
+          });
         } else {
-          console.error('[AppointmentPage] No business data returned');
           setBusiness(null);
         }
       } catch (err) {
@@ -166,7 +186,7 @@ const AppointmentPage: React.FC = () => {
               {/* Two columns when map is shown; single column otherwise */}
               <div
                 className={
-                  showMap && coords
+                  showMap && coords && eligibility.isEligible
                     ? 'grid grid-cols-1 lg:grid-cols-2 gap-6'
                     : 'mx-auto w-full max-w-2xl flex flex-col gap-6'
                 }
@@ -181,7 +201,13 @@ const AppointmentPage: React.FC = () => {
                 >
                   <motion.button
                     type="button"
-                    onClick={() => navigate('/')}
+                    onClick={() => {
+                      if (businessIdOverride) {
+                        window.location.href = getMainDomainUrl('/');
+                      } else {
+                        navigate('/');
+                      }
+                    }}
                     className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 p-2 rounded-lg text-navy-800 hover:text-primary hover:bg-primary/[0.05] transition-colors duration-200"
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0, transition: { duration: 0.3 } }}
@@ -221,11 +247,63 @@ const AppointmentPage: React.FC = () => {
                       {business.description}
                     </motion.p>
                   </motion.div>
-                  <AppointmentForm businessId={business.id} business={business} />
+
+                  {eligibility.isEligible ? (
+                    <AppointmentForm businessId={business.id} business={business} />
+                  ) : (
+                    <motion.div 
+                      className="p-6 bg-amber-50 rounded-xl border border-amber-200 text-center"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                      <h3 className="text-lg font-bold text-amber-900 mb-2">
+                        Appointments Not Available Yet
+                      </h3>
+                      <p className="text-amber-800 text-sm mb-6">
+                        This business doesn't meet the requirements for an appointment yet. 
+                        The business owner needs to complete their profile setup.
+                      </p>
+                      
+                      <div className="space-y-3 text-left max-w-xs mx-auto">
+                        <div className="flex items-center text-sm">
+                          {eligibility.hasServices ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500 mr-2" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-500 mr-2" />
+                          )}
+                          <span className={eligibility.hasServices ? 'text-green-700' : 'text-red-700 font-medium'}>
+                            Added services
+                          </span>
+                        </div>
+                        <div className="flex items-center text-sm">
+                          {eligibility.hasEmployees ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500 mr-2" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-500 mr-2" />
+                          )}
+                          <span className={eligibility.hasEmployees ? 'text-green-700' : 'text-red-700 font-medium'}>
+                            Added employees
+                          </span>
+                        </div>
+                        <div className="flex items-center text-sm">
+                          {eligibility.hasSettings ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500 mr-2" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-500 mr-2" />
+                          )}
+                          <span className={eligibility.hasSettings ? 'text-green-700' : 'text-red-700 font-medium'}>
+                            Configured working hours
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </motion.div>
 
                 {/* Right Column: Map */}
-                {showMap && coords && (
+                {showMap && coords && eligibility.isEligible && (
                   <motion.div
                     className="bg-white rounded-2xl shadow-ghost-lg border border-gray-100 p-4 sm:p-6 overflow-hidden max-h-fit self-center"
                     initial={{ opacity: 0, x: 20 }}

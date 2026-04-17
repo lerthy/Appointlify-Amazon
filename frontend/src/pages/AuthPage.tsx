@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Phone, FileText, ImagePlus, Shield, CheckCircle, Clock } from 'lucide-react';
+import { Mail, Lock, User, Phone, FileText, ImagePlus, Shield, CheckCircle, Clock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -18,6 +18,7 @@ const LoginForm: React.FC<{ onSwitchToRegister: () => void }> = ({ onSwitchToReg
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResendLoading, setIsResendLoading] = useState(false);
   const [isEmailNotVerified, setIsEmailNotVerified] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -182,15 +183,23 @@ const LoginForm: React.FC<{ onSwitchToRegister: () => void }> = ({ onSwitchToReg
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               name="password"
               value={form.password}
               onChange={handleChange}
-              className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
+              className="w-full pl-11 pr-11 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
               placeholder={t('login.passwordPlaceholder')}
               autoComplete="current-password"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-muted hover:text-navy-900 transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 
@@ -272,6 +281,8 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({ onSwitchToLog
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -302,6 +313,13 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({ onSwitchToLog
 
     if (!form.name || !form.email || !form.password || !form.confirm || !form.description || !form.phone) {
       setError(t('register.errors.fillAllFields'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Phone number validation
+    if (form.phone.trim() && !/^\+?[\d\s\-()]{7,20}$/.test(form.phone.trim())) {
+      setError(t('profile.errors.phoneInvalid'));
       setIsSubmitting(false);
       return;
     }
@@ -448,15 +466,23 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({ onSwitchToLog
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
+                className="w-full pl-11 pr-11 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                 placeholder={t('register.passwordPlaceholder')}
                 autoComplete="new-password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-muted hover:text-navy-900 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
           <div>
@@ -464,15 +490,23 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({ onSwitchToLog
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirm"
                 value={form.confirm}
                 onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
+                className="w-full pl-11 pr-11 py-3 bg-surface border border-gray-200 rounded-xl focus:bg-white focus:border-accent focus:ring-1 focus:ring-accent/20 outline-none text-sm transition-all duration-200 placeholder:text-muted"
                 placeholder={t('register.confirmPasswordPlaceholder')}
                 autoComplete="new-password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-muted hover:text-navy-900 transition-colors"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
         </div>
@@ -659,10 +693,18 @@ const BrandingPanel: React.FC<{ isLogin: boolean }> = ({ isLogin }) => {
 
 /* ─── Main Auth Page ──────────────────────────────────────────── */
 const AuthPage: React.FC = () => {
+  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(location.pathname !== '/register');
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   // Sync state when user navigates via browser back/forward
   useEffect(() => {

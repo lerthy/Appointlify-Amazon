@@ -6,6 +6,7 @@ export interface User {
   password_hash: string;
   description?: string;
   logo?: string;
+  subdomain?: string | null;
   created_at: string;
 }
 

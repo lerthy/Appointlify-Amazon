@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 import SplitAuthLayout from '../components/shared/SplitAuthLayout';
 import AuthPageTransition from '../components/shared/AuthPageTransition';
 
@@ -8,8 +10,15 @@ const LOGO_URL = "https://ijdizbjsobnywmspbhtv.supabase.co/storage/v1/object/pub
 
 const ResetPasswordPage: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
   const token = params.get('token') || '';
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,6 +29,8 @@ const ResetPasswordPage: React.FC = () => {
     score: number;
     feedback: string[];
   }>({ score: 0, feedback: [] });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -143,17 +154,27 @@ const ResetPasswordPage: React.FC = () => {
         <form onSubmit={submit} className="space-y-3">
           <div className="space-y-1">
             <label className="block text-xs font-medium text-gray-700">{t('resetPassword.newPassword')}</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e) => handlePasswordChange(e.target.value)} 
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-all duration-200 ${
-                error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary'
-              }`}
-              placeholder="Enter new password" 
-              disabled={isSubmitting}
-              autoComplete="new-password"
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? 'text' : 'password'}
+                value={password} 
+                onChange={(e) => handlePasswordChange(e.target.value)} 
+                className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-all duration-200 ${
+                  error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary'
+                }`}
+                placeholder="Enter new password" 
+                disabled={isSubmitting}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {password && passwordStrength.feedback.length > 0 && (
               <div className="text-xs text-gray-600 mt-1">
                 <div className="flex space-x-1 mb-1">
@@ -184,17 +205,27 @@ const ResetPasswordPage: React.FC = () => {
           </div>
           <div className="space-y-1">
             <label className="block text-xs font-medium text-gray-700">{t('resetPassword.confirmPassword')}</label>
-            <input 
-              type="password" 
-              value={confirmPassword} 
-              onChange={(e) => setConfirmPassword(e.target.value)} 
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-all duration-200 ${
-                error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary'
-              }`}
-              placeholder="Confirm new password" 
-              disabled={isSubmitting}
-              autoComplete="new-password"
-            />
+            <div className="relative">
+              <input 
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+                className={`w-full px-4 py-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm transition-all duration-200 ${
+                  error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary'
+                }`}
+                placeholder="Confirm new password" 
+                disabled={isSubmitting}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {confirmPassword && password !== confirmPassword && (
               <p className="text-xs text-red-600 mt-1">{t('resetPassword.errors.mismatch')}</p>
             )}

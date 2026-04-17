@@ -1786,6 +1786,51 @@ app.get('/api/businesses', requireDb, async (req, res) => {
   }
 });
 
+// Resolve subdomain → business ID (only if business is fully set up: has employees, services, settings)
+app.get('/api/resolve-subdomain/:subdomain', requireDb, async (req, res) => {
+  try {
+    const { subdomain } = req.params;
+    if (!subdomain || subdomain.length < 3) {
+      return res.status(400).json({ success: false, error: 'Invalid subdomain' });
+    }
+
+    const { data: business, error: bizError } = await supabase!
+      .from('users')
+      .select('id, name, description, logo, subdomain, business_address')
+      .eq('subdomain', subdomain.toLowerCase())
+      .single();
+
+    if (bizError || !business) {
+      return res.status(404).json({ success: false, error: 'Business not found' });
+    }
+
+    const [empResult, svcResult, setResult] = await Promise.all([
+      supabase!.from('employees').select('id').eq('business_id', business.id).limit(1),
+      supabase!.from('services').select('id').eq('business_id', business.id).limit(1),
+      supabase!.from('business_settings').select('id').eq('business_id', business.id).limit(1),
+    ]);
+
+    const hasEmployees = (empResult.data?.length || 0) > 0;
+    const hasServices = (svcResult.data?.length || 0) > 0;
+    const hasSettings = (setResult.data?.length || 0) > 0;
+    const isEligible = hasEmployees && hasServices && hasSettings;
+
+    return res.json({
+      success: true,
+      business: {
+        id: business.id,
+        name: business.name,
+        subdomain: business.subdomain,
+        isEligible,
+        setupDetails: { hasEmployees, hasServices, hasSettings }
+      },
+    });
+  } catch (error: any) {
+    console.error('[GET /api/resolve-subdomain] Error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to resolve subdomain' });
+  }
+});
+
 app.get('/api/business/:businessId/info', requireDb, async (req, res) => {
   try {
     const { businessId } = req.params;
