@@ -399,6 +399,140 @@ async function getMockAIResponse(messages: any[], context: any) {
   return "I'm here to help you book an appointment. You can tell me what service you need, when you'd like to come in, and your name, and I'll get you scheduled!";
 }
 
+type ChatBusiness = {
+  id: string;
+  name: string;
+  description?: string | null;
+};
+
+type ChatService = {
+  id: string;
+  name: string;
+  price?: number | null;
+  duration?: number | null;
+  description?: string | null;
+  business_id: string;
+};
+
+type ChatCatalog = {
+  businesses: ChatBusiness[];
+  services: ChatService[];
+  businessList: string;
+  businessServicesList: string;
+  status: 'ok' | 'empty' | 'unavailable';
+  issue: string | null;
+};
+
+function formatCatalogForPrompt(businesses: ChatBusiness[], services: ChatService[]): Pick<ChatCatalog, 'businessList' | 'businessServicesList'> {
+  if (businesses.length === 0) {
+    return {
+      businessList: 'No businesses found in live database.',
+      businessServicesList: 'No business-service mappings found in live database.',
+    };
+  }
+
+  const serviceMap = new Map<string, ChatService[]>();
+  for (const service of services) {
+    if (!serviceMap.has(service.business_id)) serviceMap.set(service.business_id, []);
+    serviceMap.get(service.business_id)!.push(service);
+  }
+
+  const businessList = businesses
+    .map((business, idx) => `${idx + 1}. ${business.name}${business.description ? ` - ${business.description}` : ''}`)
+    .join('\n');
+
+  const businessServicesList = businesses
+    .map((business) => {
+      const businessServices = serviceMap.get(business.id) || [];
+      if (businessServices.length === 0) return `- ${business.name}: No services available`;
+      const serviceLines = businessServices
+        .map((service) => `  - ${service.name}${service.price != null ? ` ($${service.price})` : ''}${service.duration ? ` (${service.duration} min)` : ''}`)
+        .join('\n');
+      return `- ${business.name}:\n${serviceLines}`;
+    })
+    .join('\n');
+
+  return { businessList, businessServicesList };
+}
+
+async function loadChatCatalog(): Promise<ChatCatalog> {
+  if (!supabase) {
+    return {
+      businesses: [],
+      services: [],
+      businessList: 'Live database unavailable.',
+      businessServicesList: 'Live database unavailable.',
+      status: 'unavailable',
+      issue: 'Supabase client is not configured',
+    };
+  }
+
+  try {
+    const [usersResult, servicesResult] = await Promise.all([
+      supabase.from('users').select('id, name, description').limit(300),
+      supabase.from('services').select('id, name, price, duration, description, business_id').limit(1000),
+    ]);
+
+    if (usersResult.error || servicesResult.error) {
+      return {
+        businesses: [],
+        services: [],
+        businessList: 'Live database query failed.',
+        businessServicesList: 'Live database query failed.',
+        status: 'unavailable',
+        issue: usersResult.error?.message || servicesResult.error?.message || 'Unknown database error',
+      };
+    }
+
+    const allUsers = (usersResult.data || []).filter((u: any) => u?.id && u?.name) as ChatBusiness[];
+    const services = (servicesResult.data || []).filter((s: any) => s?.business_id && s?.name) as ChatService[];
+    const businessIdsWithServices = new Set(services.map((s) => s.business_id));
+    const businesses = allUsers.filter((u) => businessIdsWithServices.has(u.id));
+    const formatted = formatCatalogForPrompt(businesses, services);
+
+    const status: ChatCatalog['status'] = businesses.length > 0 ? 'ok' : 'empty';
+    const issue = businesses.length > 0 ? null : 'No businesses with services were found';
+
+    return {
+      businesses,
+      services,
+      businessList: formatted.businessList,
+      businessServicesList: formatted.businessServicesList,
+      status,
+      issue,
+    };
+  } catch (error: any) {
+    return {
+      businesses: [],
+      services: [],
+      businessList: 'Live database request failed.',
+      businessServicesList: 'Live database request failed.',
+      status: 'unavailable',
+      issue: error?.message || 'Unknown exception while loading catalog',
+    };
+  }
+}
+
+function buildGroundedFallbackResponse(messages: any[], catalog: ChatCatalog): string {
+  const latestUserMessage = String(messages[messages.length - 1]?.content || '').toLowerCase();
+
+  if (catalog.status !== 'ok') {
+    return 'I cannot access the live business catalog right now, so I do not want to guess. Please try again in a moment.';
+  }
+
+  if (/\b(companies|company|businesses|business|what.*here|names)\b/.test(latestUserMessage)) {
+    const names = catalog.businesses.map((b, i) => `${i + 1}. ${b.name}`).join('\n');
+    return `Here are the businesses currently available in our live database:\n\n${names}`;
+  }
+
+  if (/\b(service|services|offer|provides|provide|have)\b/.test(latestUserMessage)) {
+    return `Here are the current business-service mappings from our live database:\n\n${catalog.businessServicesList}`;
+  }
+
+  const names = catalog.businesses.slice(0, 8).map((b) => b.name).join(', ');
+  return `I can help with bookings using live data. Current businesses include: ${names}. Tell me which one you want.`;
+}
+
 // AI Chatbot endpoint - supports Groq (preferred), OpenAI, and Mock fallback
 // Handle both /api/chat and /chat paths for compatibility
 const handleChat = async (req: any, res: any) => {
@@ -480,7 +614,15 @@ const handleChat = async (req: any, res: any) => {
 
 
 
-    // Check provider availability: Groq first, then OpenAI, then mock
+    const catalog = await loadChatCatalog();
+    console.log('chat catalog status:', {
+      status: catalog.status,
+      issue: catalog.issue,
+      businesses: catalog.businesses.length,
+      services: catalog.services.length,
+    });
+
+    // Check provider availability: Groq first, then OpenAI, then grounded fallback
     const useGroq = Boolean(process.env.GROQ_API_KEY);
     const useOpenAI = Boolean(process.env.OPENAI_API_KEY) && process.env.USE_OPENAI !== 'false';
 
@@ -490,18 +632,28 @@ const handleChat = async (req: any, res: any) => {
     const systemPrompt = `You are an intelligent booking assistant for ${context?.businessName || 'our business'}. 
 You help customers book appointments in a conversational way.
 
-AVAILABLE SERVICES:
-${context?.services?.map((s: any) => `- ${s.name}:${s.price != null ? ` $${s.price}` : ''} (${s.duration} min)${s.description ? ' - ' + s.description : ''}`).join('\n') || 'Loading services...'}
+LIVE DATABASE STATUS:
+- Status: ${catalog.status}
+- Issue: ${catalog.issue || 'none'}
 
-AVAILABLE TIME SLOTS:
+LIVE BUSINESSES:
+${catalog.businessList}
+
+LIVE BUSINESS -> SERVICES:
+${catalog.businessServicesList}
+
+AVAILABLE TIME SLOTS (if provided by UI context):
 ${context?.availableTimes?.join(', ') || 'Checking availability...'}
 
 BOOKING INSTRUCTIONS:
 1. Be friendly and conversational
 2. Help customers choose the right service
-3. Collect: Customer name, service selection, preferred date and time
+3. Collect: Customer name, business selection, service selection, preferred date and time
 4. Confirm all details before finalizing
-5. If they have all required info, respond with: "BOOKING_READY: {name: 'Customer Name', service: 'Service Name', date: 'YYYY-MM-DD', time: 'HH:MM AM/PM'}"
+5. If they have all required info, respond with: "BOOKING_READY: {name: 'Customer Name', business: 'Business Name', service: 'Service Name', date: 'YYYY-MM-DD', time: 'HH:MM AM/PM'}"
+6. Never invent, guess, or fabricate business names or services.
+7. If live database status is not "ok", explicitly say you cannot access current business data right now and ask the user to retry.
+8. Only mention services under their actual business mapping from LIVE BUSINESS -> SERVICES.
 
 PERSONALITY:
 - Professional but friendly
@@ -611,26 +763,13 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
       }
     }
 
-    // Fall back to mock AI service
-
-    try {
-      const mockResponse = await getMockAIResponse(messages, context || {});
-      return res.json({
-        success: true,
-        message: mockResponse,
-        provider: 'mock',
-        note: 'Using mock AI service. Set GROQ_API_KEY or OPENAI_API_KEY to use AI providers.'
-      });
-    } catch (mockError: any) {
-      console.error('app.ts: Mock AI error:', mockError);
-      // Last resort - return a basic response
-      return res.json({
-        success: true,
-        message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments with various businesses. How can I assist you today?",
-        provider: 'emergency-fallback',
-        note: 'All services unavailable, using emergency fallback.'
-      });
-    }
+    const groundedFallback = buildGroundedFallbackResponse(messages, catalog);
+    return res.json({
+      success: true,
+      message: groundedFallback,
+      provider: 'grounded-fallback',
+      note: 'AI provider unavailable; answered from live database context without guessing.'
+    });
   } catch (error: any) {
     console.error('app.ts: Top-level error in chat endpoint:', {
       message: error?.message,
@@ -638,23 +777,13 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
     });
 
     // Always return a response, never 500
-    try {
-      const mockResponse = await getMockAIResponse(req.body?.messages || [], req.body?.context || {});
-      return res.json({
-        success: true,
-        message: mockResponse,
-        provider: 'error-fallback',
-        note: 'Error occurred, using fallback response.'
-      });
-    } catch (fallbackError: any) {
-      console.error('app.ts: Fallback also failed:', fallbackError);
-      return res.json({
-        success: true,
-        message: "Hello! I'm your AI assistant for Appointly. I can help you book appointments. How can I assist you today?",
-        provider: 'emergency',
-        note: 'Service error, using emergency response.'
-      });
-    }
+    const catalog = await loadChatCatalog();
+    return res.json({
+      success: true,
+      message: buildGroundedFallbackResponse(req.body?.messages || [], catalog),
+      provider: 'error-fallback',
+      note: 'A processing error occurred; response is grounded and non-fabricated.'
+    });
   }
 };
 
