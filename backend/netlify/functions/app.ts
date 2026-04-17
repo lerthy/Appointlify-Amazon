@@ -6,6 +6,7 @@ import cors, { CorsOptions } from 'cors';
 import OpenAI from 'openai';
 import Groq from 'groq-sdk';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { randomUUID } from 'crypto';
 import googleAuthRouter from '../../routes/googleAuthRouter.js';
 
 // Initialize Supabase client//
@@ -543,6 +544,291 @@ type KnownBookingFields = {
   phone: string | null;
 };
 
+type BookingData = {
+  name: string;
+  business: string;
+  service: string;
+  date: string;
+  time: string;
+  email: string;
+  phone: string;
+};
+
+function normalizeJsonLike(raw: string): string {
+  return raw
+    .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
+    .replace(/'/g, '"');
+}
+
+function extractBookingReadyData(text: string): BookingData | null {
+  const match = text.match(/BOOKING_READY:\s*({[\s\S]*})/i);
+  if (!match) return null;
+  const raw = match[1].trim();
+  const candidates = [raw, normalizeJsonLike(raw)];
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      const required = ['name', 'business', 'service', 'date', 'time', 'email', 'phone'];
+      const hasAll = required.every((k) => typeof parsed?.[k] === 'string' && String(parsed[k]).trim().length > 0);
+      if (!hasAll) return null;
+      return {
+        name: String(parsed.name).trim(),
+        business: String(parsed.business).trim(),
+        service: String(parsed.service).trim(),
+        date: String(parsed.date).trim(),
+        time: String(parsed.time).trim(),
+        email: String(parsed.email).trim(),
+        phone: String(parsed.phone).trim(),
+      };
+    } catch {
+      // continue
+    }
+  }
+  return null;
+}
+
+function isAffirmative(text: string): boolean {
+  return /\b(yes|yeah|yep|confirm|book it|go ahead|correct)\b/i.test(text);
+}
+
+function isNegative(text: string): boolean {
+  return /\b(no|nope|change|edit|cancel|wrong)\b/i.test(text);
+}
+
+function getBaseSiteUrl(req: any): string {
+  const envUrl = String(process.env.FRONTEND_URL || '').split(',')[0]?.trim();
+  if (envUrl) return envUrl.replace(/\/$/, '');
+  const proto = String(req.headers?.['x-forwarded-proto'] || 'https');
+  const host = String(req.headers?.host || 'appointly-ks.netlify.app');
+  return `${proto}://${host}`.replace(/\/$/, '');
+}
+
+function parseAppointmentDateFlexible(dateInput: string, timeInput: string): string {
+  const now = new Date();
+  const normalizedDate = String(dateInput || '').trim().toLowerCase();
+  const normalizedTime = String(timeInput || '').trim().toLowerCase().replace(/\bom\b/g, 'pm');
+
+  const target = new Date(now);
+  target.setSeconds(0, 0);
+
+  if (normalizedDate === 'today') {
+    // keep today
+  } else if (normalizedDate === 'tomorrow') {
+    target.setDate(target.getDate() + 1);
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+    const [y, m, d] = normalizedDate.split('-').map(Number);
+    target.setFullYear(y, m - 1, d);
+  } else {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const idx = days.indexOf(normalizedDate);
+    if (idx >= 0) {
+      const current = target.getDay();
+      let delta = idx - current;
+      if (delta <= 0) delta += 7;
+      target.setDate(target.getDate() + delta);
+    } else {
+      // fallback to tomorrow
+      target.setDate(target.getDate() + 1);
+    }
+  }
+
+  const timeMatch = normalizedTime.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (timeMatch) {
+    let hour = parseInt(timeMatch[1], 10);
+    const minute = parseInt(timeMatch[2] || '0', 10);
+    const meridian = (timeMatch[3] || '').toLowerCase();
+    if (meridian === 'pm' && hour < 12) hour += 12;
+    if (meridian === 'am' && hour === 12) hour = 0;
+    if (!meridian && hour >= 1 && hour <= 7) hour += 12; // user likely means afternoon
+    target.setHours(hour, minute, 0, 0);
+  } else {
+    target.setHours(10, 0, 0, 0);
+  }
+
+  return target.toISOString();
+}
+
+function extractPendingBookingFromMessages(messages: any[]): BookingData | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const content = String(messages[i]?.content || '');
+    const pending = content.match(/BOOKING_PENDING:\s*({[\s\S]*})/i);
+    if (pending) {
+      try {
+        const parsed = JSON.parse(pending[1]);
+        if (parsed?.name && parsed?.business && parsed?.service && parsed?.date && parsed?.time && parsed?.email && parsed?.phone) {
+          return parsed as BookingData;
+        }
+      } catch {
+        // continue
+      }
+    }
+    const bookingReady = extractBookingReadyData(content);
+    if (bookingReady) return bookingReady;
+  }
+  return null;
+}
+
+async function resolveBusinessByName(name: string): Promise<{ id: string; name: string } | null> {
+  if (!supabase) return null;
+  const exact = await supabase
+    .from('users')
+    .select('id, name')
+    .eq('name', name)
+    .limit(1);
+  if (!exact.error && exact.data?.[0]) return exact.data[0] as { id: string; name: string };
+
+  const partial = await supabase
+    .from('users')
+    .select('id, name')
+    .ilike('name', `%${name}%`)
+    .limit(1);
+  if (!partial.error && partial.data?.[0]) return partial.data[0] as { id: string; name: string };
+  return null;
+}
+
+async function resolveServiceForBusiness(serviceName: string, businessId: string): Promise<{ id: string; name: string; duration?: number | null } | null> {
+  if (!supabase) return null;
+  const exact = await supabase
+    .from('services')
+    .select('id, name, duration')
+    .eq('business_id', businessId)
+    .eq('name', serviceName)
+    .limit(1);
+  if (!exact.error && exact.data?.[0]) return exact.data[0] as { id: string; name: string; duration?: number | null };
+
+  const partial = await supabase
+    .from('services')
+    .select('id, name, duration')
+    .eq('business_id', businessId)
+    .ilike('name', `%${serviceName}%`)
+    .limit(1);
+  if (!partial.error && partial.data?.[0]) return partial.data[0] as { id: string; name: string; duration?: number | null };
+  return null;
+}
+
+async function getOrCreateCustomerId(booking: BookingData): Promise<string | null> {
+  if (!supabase) return null;
+  const existing = await supabase
+    .from('customers')
+    .select('id')
+    .eq('email', booking.email)
+    .limit(1);
+  if (!existing.error && existing.data?.[0]?.id) return String(existing.data[0].id);
+
+  const created = await supabase
+    .from('customers')
+    .insert([{ id: randomUUID(), name: booking.name, email: booking.email, phone: booking.phone, created_at: new Date().toISOString() }])
+    .select('id')
+    .single();
+  if (created.error || !created.data?.id) return null;
+  return String(created.data.id);
+}
+
+async function createAppointmentFromBooking(booking: BookingData, req: any): Promise<{ appointmentId: string; appointmentIso: string; businessName: string; serviceName: string; confirmationToken: string } | null> {
+  if (!supabase) return null;
+
+  const business = await resolveBusinessByName(booking.business);
+  if (!business) return null;
+
+  const service = await resolveServiceForBusiness(booking.service, business.id);
+  if (!service) return null;
+
+  const employeeRes = await supabase
+    .from('employees')
+    .select('id')
+    .eq('business_id', business.id)
+    .limit(1);
+  const employeeId = employeeRes.data?.[0]?.id;
+  if (!employeeId) return null;
+
+  const customerId = await getOrCreateCustomerId(booking);
+  if (!customerId) return null;
+
+  const appointmentIso = parseAppointmentDateFlexible(booking.date, booking.time);
+  const confirmationToken = randomUUID().replace(/-/g, '');
+  const tokenExpiry = new Date();
+  tokenExpiry.setHours(tokenExpiry.getHours() + 48);
+
+  const inserted = await supabase
+    .from('appointments')
+    .insert([{
+      id: randomUUID(),
+      business_id: business.id,
+      service_id: service.id,
+      customer_id: customerId,
+      employee_id: employeeId,
+      name: booking.name,
+      email: booking.email,
+      phone: booking.phone,
+      date: appointmentIso,
+      duration: service.duration || 30,
+      status: 'scheduled',
+      confirmation_status: 'pending',
+      confirmation_token: confirmationToken,
+      confirmation_token_expires: tokenExpiry.toISOString(),
+      reminder_sent: false,
+      notes: 'Booked via AI chat',
+      created_at: new Date().toISOString(),
+    }])
+    .select('id')
+    .single();
+
+  if (inserted.error || !inserted.data?.id) return null;
+  return {
+    appointmentId: String(inserted.data.id),
+    appointmentIso,
+    businessName: business.name,
+    serviceName: service.name,
+    confirmationToken,
+  };
+}
+
+async function sendBookingNotifications(booking: BookingData, details: { appointmentId: string; appointmentIso: string; businessName: string; serviceName: string; confirmationToken: string }, req: any): Promise<void> {
+  const baseUrl = getBaseSiteUrl(req);
+  const dateObj = new Date(details.appointmentIso);
+  const dateString = dateObj.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const cancelLink = `${baseUrl}/cancel/${details.appointmentId}`;
+  const confirmationLink = `${baseUrl}/confirm-appointment?token=${details.confirmationToken}`;
+
+  try {
+    await fetch(`${baseUrl}/.netlify/functions/send-appointment-confirmation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to_name: booking.name,
+        to_email: booking.email,
+        appointment_date: dateString,
+        appointment_time: timeString,
+        business_name: details.businessName,
+        service_name: details.serviceName,
+        cancel_link: cancelLink,
+        confirmation_link: confirmationLink,
+      }),
+    });
+  } catch (error) {
+    console.error('chat booking email notification failed:', error);
+  }
+
+  try {
+    await fetch(`${baseUrl}/.netlify/functions/send-sms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: booking.phone,
+        message: `Hi ${booking.name}! Your ${details.serviceName} appointment at ${details.businessName} is booked for ${dateString} at ${timeString}.`,
+      }),
+    });
+  } catch (error) {
+    console.error('chat booking sms notification failed:', error);
+  }
+}
+
 function extractKnownBookingFields(messages: any[], catalog: ChatCatalog): KnownBookingFields {
   const fields: KnownBookingFields = {
     name: null,
@@ -692,13 +978,43 @@ const handleChat = async (req: any, res: any) => {
 
     const catalog = await loadChatCatalog();
     const knownFields = extractKnownBookingFields(messages, catalog);
+    const latestUserMessage = String(messages[messages.length - 1]?.content || '');
+    const pendingBooking = extractPendingBookingFromMessages(messages);
     console.log('chat catalog status:', {
       status: catalog.status,
       issue: catalog.issue,
       businesses: catalog.businesses.length,
       services: catalog.services.length,
       knownFields,
+      hasPendingBooking: !!pendingBooking,
     });
+
+    // If user is confirming a pending booking, finalize it here (same as form flow intent)
+    if (pendingBooking && isAffirmative(latestUserMessage)) {
+      const appointment = await createAppointmentFromBooking(pendingBooking, req);
+      if (!appointment) {
+        return res.json({
+          success: false,
+          message: 'Sorry, I could not create the appointment. Please verify business/service details and try again.',
+          provider: 'booking-error',
+        });
+      }
+      await sendBookingNotifications(pendingBooking, appointment, req);
+      return res.json({
+        success: true,
+        message: `Appointment confirmed for ${pendingBooking.name}.\n\nBusiness: ${appointment.businessName}\nService: ${appointment.serviceName}\nDate: ${pendingBooking.date}\nTime: ${pendingBooking.time}\n\nA confirmation email and SMS have been sent.`,
+        provider: 'booking-confirmed',
+        appointmentId: appointment.appointmentId,
+      });
+    }
+
+    if (pendingBooking && isNegative(latestUserMessage)) {
+      return res.json({
+        success: true,
+        message: 'No problem. Tell me what you want to change (business, service, date, time, or contact details), and I will update it.',
+        provider: 'booking-edit',
+      });
+    }
 
     // Check provider availability: Groq first, then OpenAI, then grounded fallback
     const useGroq = Boolean(process.env.GROQ_API_KEY);
@@ -790,6 +1106,18 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
           throw new Error('Groq returned empty response');
         }
 
+        const bookingReady = extractBookingReadyData(assistantMessage);
+        if (bookingReady) {
+          const confirmationMessage = `I have all details needed to book your appointment.\n\nBusiness: ${bookingReady.business}\nService: ${bookingReady.service}\nDate: ${bookingReady.date}\nTime: ${bookingReady.time}\nName: ${bookingReady.name}\nEmail: ${bookingReady.email}\nPhone: ${bookingReady.phone}\n\nType "yes" to finalize the booking, or "no" to change details.\n\nBOOKING_PENDING: ${JSON.stringify(bookingReady)}`;
+          return res.json({
+            success: true,
+            message: confirmationMessage,
+            provider: 'groq-booking-pending',
+            requiresConfirmation: true,
+            bookingData: bookingReady,
+          });
+        }
+
 
 
         return res.json({
@@ -837,6 +1165,18 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 
 
         const assistantMessage = completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+
+        const bookingReady = extractBookingReadyData(assistantMessage);
+        if (bookingReady) {
+          const confirmationMessage = `I have all details needed to book your appointment.\n\nBusiness: ${bookingReady.business}\nService: ${bookingReady.service}\nDate: ${bookingReady.date}\nTime: ${bookingReady.time}\nName: ${bookingReady.name}\nEmail: ${bookingReady.email}\nPhone: ${bookingReady.phone}\n\nType "yes" to finalize the booking, or "no" to change details.\n\nBOOKING_PENDING: ${JSON.stringify(bookingReady)}`;
+          return res.json({
+            success: true,
+            message: confirmationMessage,
+            provider: 'openai-booking-pending',
+            requiresConfirmation: true,
+            bookingData: bookingReady,
+          });
+        }
 
         return res.json({
           success: true,
