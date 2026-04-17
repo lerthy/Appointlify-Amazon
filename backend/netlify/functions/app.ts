@@ -612,6 +612,82 @@ function bookingConfirmationMessage(booking: BookingData, lang: 'sq' | 'en'): st
   return `I have all details needed to book your appointment.\n\nBusiness: ${booking.business}\nService: ${booking.service}\nDate: ${booking.date}\nTime: ${booking.time}\nName: ${booking.name}\nEmail: ${booking.email}\nPhone: ${booking.phone}\n\nType "yes" to finalize the booking, or "no" to change details.`;
 }
 
+function buildAlbanianGuidedResponse(
+  latestUserMessage: string,
+  knownFields: KnownBookingFields,
+  catalog: ChatCatalog
+): { message: string; requiresConfirmation?: boolean; bookingData?: BookingData } | null {
+  if (catalog.status !== 'ok') return null;
+
+  const lower = latestUserMessage.toLowerCase();
+  const asksBusinesses =
+    /(qfare|çfarë|cilat|cilat|biznese|bizneset|keni)/i.test(lower) &&
+    /(biznes|biznese|kompani)/i.test(lower);
+
+  if (asksBusinesses && !knownFields.business) {
+    const list = catalog.businesses.map((b, i) => `${i + 1}. ${b.name}`).join('\n');
+    return {
+      message: `Bizneset që kemi në platformë janë:\n\n${list}\n\nCilin biznes dëshiron të rezervosh?`,
+    };
+  }
+
+  if (!knownFields.business) {
+    const list = catalog.businesses.map((b) => b.name).join(', ');
+    return {
+      message: `Të lutem zgjedh fillimisht biznesin. Bizneset aktive janë: ${list}.`,
+    };
+  }
+
+  const business = catalog.businesses.find((b) => b.name === knownFields.business) || null;
+  const servicesForBusiness = business
+    ? catalog.services.filter((s) => s.business_id === business.id)
+    : [];
+
+  if (!knownFields.service) {
+    if (servicesForBusiness.length === 0) {
+      return { message: `${knownFields.business} aktualisht nuk ka shërbime të publikuara.` };
+    }
+    const serviceList = servicesForBusiness
+      .map((s) => `- ${s.name}${s.duration ? ` (${s.duration} min)` : ''}`)
+      .join('\n');
+    return {
+      message: `Për ${knownFields.business} kemi këto shërbime:\n${serviceList}\n\nCilin shërbim dëshiron të rezervosh?`,
+    };
+  }
+
+  if (!knownFields.date || !knownFields.time) {
+    return { message: 'Shkruaj datën dhe orën që dëshiron (p.sh. "nesër në ora 14:30").' };
+  }
+
+  if (!knownFields.name) {
+    return { message: 'Të lutem më shkruaj emrin tënd.' };
+  }
+
+  if (!knownFields.email) {
+    return { message: 'Të lutem më shkruaj email-in tënd.' };
+  }
+
+  if (!knownFields.phone) {
+    return { message: 'Të lutem më shkruaj numrin e telefonit.' };
+  }
+
+  const bookingData: BookingData = {
+    name: knownFields.name,
+    business: knownFields.business,
+    service: knownFields.service,
+    date: knownFields.date,
+    time: knownFields.time,
+    email: knownFields.email,
+    phone: knownFields.phone,
+  };
+
+  return {
+    message: bookingConfirmationMessage(bookingData, 'sq'),
+    requiresConfirmation: true,
+    bookingData,
+  };
+}
+
 function getBaseSiteUrl(req: any): string {
   const envUrl = String(process.env.FRONTEND_URL || '').split(',')[0]?.trim();
   if (envUrl) return envUrl.replace(/\/$/, '');
@@ -1122,6 +1198,20 @@ const handleChat = async (req: any, res: any) => {
         message: editMessage,
         provider: 'booking-edit',
       });
+    }
+
+    // Deterministic Albanian booking guidance to avoid poor/unstable model Albanian.
+    if (conversationLang === 'sq') {
+      const guided = buildAlbanianGuidedResponse(latestUserMessage, knownFields, catalog);
+      if (guided) {
+        return res.json({
+          success: true,
+          message: guided.message,
+          provider: 'sq-guided-flow',
+          requiresConfirmation: Boolean(guided.requiresConfirmation),
+          bookingData: guided.bookingData,
+        });
+      }
     }
 
     // Check provider availability: Groq first, then OpenAI, then grounded fallback
