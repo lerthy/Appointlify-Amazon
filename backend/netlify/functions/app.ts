@@ -595,6 +595,23 @@ function isNegative(text: string): boolean {
   return /\b(no|nope|change|edit|cancel|wrong|jo|ndrysho|anulo|gabim)\b/i.test(text);
 }
 
+function detectConversationLanguage(messages: any[]): 'sq' | 'en' {
+  const text = messages.map((m: any) => String(m?.content || '')).join(' ').toLowerCase();
+  const albanianHints = [
+    'pershendetje', 'përshëndetje', 'qfare', 'çfarë', 'biznese', 'termin', 'rezerv', 'neser', 'nesër',
+    'sot', 'ora', 'po', 'jo', 'ndrysho', 'anulo', 'shërbim', 'emri', 'telefoni', 'emaili'
+  ];
+  const score = albanianHints.reduce((sum, token) => sum + (text.includes(token) ? 1 : 0), 0);
+  return score >= 2 ? 'sq' : 'en';
+}
+
+function bookingConfirmationMessage(booking: BookingData, lang: 'sq' | 'en'): string {
+  if (lang === 'sq') {
+    return `I kam të gjitha detajet për rezervimin tënd.\n\nBiznesi: ${booking.business}\nShërbimi: ${booking.service}\nData: ${booking.date}\nOra: ${booking.time}\nEmri: ${booking.name}\nEmail: ${booking.email}\nTelefoni: ${booking.phone}\n\nShkruaj "po" për ta finalizuar rezervimin, ose "jo" për të ndryshuar detajet.`;
+  }
+  return `I have all details needed to book your appointment.\n\nBusiness: ${booking.business}\nService: ${booking.service}\nDate: ${booking.date}\nTime: ${booking.time}\nName: ${booking.name}\nEmail: ${booking.email}\nPhone: ${booking.phone}\n\nType "yes" to finalize the booking, or "no" to change details.`;
+}
+
 function getBaseSiteUrl(req: any): string {
   const envUrl = String(process.env.FRONTEND_URL || '').split(',')[0]?.trim();
   if (envUrl) return envUrl.replace(/\/$/, '');
@@ -606,7 +623,13 @@ function getBaseSiteUrl(req: any): string {
 function parseAppointmentDateFlexible(dateInput: string, timeInput: string): string {
   const now = new Date();
   const normalizedDate = String(dateInput || '').trim().toLowerCase();
-  const normalizedTime = String(timeInput || '').trim().toLowerCase().replace(/\bom\b/g, 'pm');
+  const normalizedTime = String(timeInput || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\bom\b/g, 'pm')
+    .replace(/\bn[eë]\s*ora\b/g, '')
+    .replace(/\bora\b/g, '')
+    .trim();
 
   const target = new Date(now);
   target.setSeconds(0, 0);
@@ -646,10 +669,15 @@ function parseAppointmentDateFlexible(dateInput: string, timeInput: string): str
     }
   }
 
-  const timeMatch = normalizedTime.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  const albanianMinuteFormat = normalizedTime.match(/(\d{1,2})\s*e\s*(\d{1,2})\s*(am|pm)?/i);
+  const dottedMinuteFormat = normalizedTime.match(/(\d{1,2})\.(\d{2})\s*(am|pm)?/i);
+  const timeMatch =
+    albanianMinuteFormat ||
+    dottedMinuteFormat ||
+    normalizedTime.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
   if (timeMatch) {
     let hour = parseInt(timeMatch[1], 10);
-    const minute = parseInt(timeMatch[2] || '0', 10);
+    const minute = Math.min(59, parseInt(timeMatch[2] || '0', 10));
     const meridian = (timeMatch[3] || '').toLowerCase();
     if (meridian === 'pm' && hour < 12) hour += 12;
     if (meridian === 'am' && hour === 12) hour = 0;
@@ -1044,6 +1072,7 @@ const handleChat = async (req: any, res: any) => {
     const catalog = await loadChatCatalog();
     const knownFields = extractKnownBookingFields(messages, catalog);
     const latestUserMessage = String(messages[messages.length - 1]?.content || '');
+    const conversationLang = detectConversationLanguage(messages);
     const pendingBooking = extractPendingBookingFromContext(context) || extractPendingBookingFromMessages(messages);
     console.log('chat catalog status:', {
       status: catalog.status,
@@ -1052,33 +1081,45 @@ const handleChat = async (req: any, res: any) => {
       services: catalog.services.length,
       knownFields,
       hasPendingBooking: !!pendingBooking,
+      lang: conversationLang,
     });
 
     // If user is confirming a pending booking, finalize it here (same as form flow intent)
     if (pendingBooking && isAffirmative(latestUserMessage)) {
       const appointment = await createAppointmentFromBooking(pendingBooking, req);
       if (!appointment.success) {
-        const conflictMessage = 'That time slot is already booked in our database. Please choose another time.';
+        const conflictMessage = conversationLang === 'sq'
+          ? 'Ky termin eshte i zene ne databaze. Ju lutem zgjidhni nje orar tjeter.'
+          : 'That time slot is already booked in our database. Please choose another time.';
+        const genericErrorMessage = conversationLang === 'sq'
+          ? `Na fal, nuk munda ta krijoj rezervimin: ${appointment.error}`
+          : `Sorry, I could not create the appointment: ${appointment.error}`;
         return res.json({
           success: false,
-          message: appointment.conflict ? conflictMessage : `Sorry, I could not create the appointment: ${appointment.error}`,
+          message: appointment.conflict ? conflictMessage : genericErrorMessage,
           provider: 'booking-error',
           conflict: Boolean(appointment.conflict),
         });
       }
       await sendBookingNotifications(pendingBooking, appointment, req);
+      const successMessage = conversationLang === 'sq'
+        ? `Rezervimi u konfirmua per ${pendingBooking.name}.\n\nBiznesi: ${appointment.businessName}\nSherbimi: ${appointment.serviceName}\nData: ${pendingBooking.date}\nOra: ${pendingBooking.time}\n\nEmail-i dhe SMS-ja e konfirmimit jane derguar.`
+        : `Appointment confirmed for ${pendingBooking.name}.\n\nBusiness: ${appointment.businessName}\nService: ${appointment.serviceName}\nDate: ${pendingBooking.date}\nTime: ${pendingBooking.time}\n\nA confirmation email and SMS have been sent.`;
       return res.json({
         success: true,
-        message: `Appointment confirmed for ${pendingBooking.name}.\n\nBusiness: ${appointment.businessName}\nService: ${appointment.serviceName}\nDate: ${pendingBooking.date}\nTime: ${pendingBooking.time}\n\nA confirmation email and SMS have been sent.`,
+        message: successMessage,
         provider: 'booking-confirmed',
         appointmentId: appointment.appointmentId,
       });
     }
 
     if (pendingBooking && isNegative(latestUserMessage)) {
+      const editMessage = conversationLang === 'sq'
+        ? 'Pa problem. Me trego cfare do te ndryshosh (biznesin, sherbimin, daten, oren ose kontaktet) dhe do ta perditesoj.'
+        : 'No problem. Tell me what you want to change (business, service, date, time, or contact details), and I will update it.';
       return res.json({
         success: true,
-        message: 'No problem. Tell me what you want to change (business, service, date, time, or contact details), and I will update it.',
+        message: editMessage,
         provider: 'booking-edit',
       });
     }
@@ -1177,7 +1218,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 
         const bookingReady = extractBookingReadyData(assistantMessage);
         if (bookingReady) {
-          const confirmationMessage = `I have all details needed to book your appointment.\n\nBusiness: ${bookingReady.business}\nService: ${bookingReady.service}\nDate: ${bookingReady.date}\nTime: ${bookingReady.time}\nName: ${bookingReady.name}\nEmail: ${bookingReady.email}\nPhone: ${bookingReady.phone}\n\nType "yes" to finalize the booking, or "no" to change details.`;
+          const confirmationMessage = bookingConfirmationMessage(bookingReady, conversationLang);
           return res.json({
             success: true,
             message: confirmationMessage,
@@ -1237,7 +1278,7 @@ Always respond naturally in conversation. Only use the BOOKING_READY format when
 
         const bookingReady = extractBookingReadyData(assistantMessage);
         if (bookingReady) {
-          const confirmationMessage = `I have all details needed to book your appointment.\n\nBusiness: ${bookingReady.business}\nService: ${bookingReady.service}\nDate: ${bookingReady.date}\nTime: ${bookingReady.time}\nName: ${bookingReady.name}\nEmail: ${bookingReady.email}\nPhone: ${bookingReady.phone}\n\nType "yes" to finalize the booking, or "no" to change details.`;
+          const confirmationMessage = bookingConfirmationMessage(bookingReady, conversationLang);
           return res.json({
             success: true,
             message: confirmationMessage,
