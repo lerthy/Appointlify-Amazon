@@ -124,10 +124,10 @@ const Header: React.FC = () => {
 
                     {dropdownOpen && (
                       <div
-                        className="absolute right-0 top-full mt-1.5 w-56 py-1.5 rounded-xl border border-white/[0.08] bg-navy-900/95 backdrop-blur-xl shadow-ghost-xl z-[60] flex flex-col origin-top-right"
+                        className="absolute right-0 top-full mt-1.5 w-56 pt-0 pb-1.5 rounded-xl border border-white/[0.08] bg-navy-900/95 backdrop-blur-xl shadow-ghost-xl z-[60] flex flex-col origin-top-right"
                         role="menu"
                       >
-|                        {location.pathname !== '/' && (
+                        {location.pathname !== '/' && (
                           <button
                             type="button"
                             role="menuitem"

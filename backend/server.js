@@ -1036,6 +1036,37 @@ app.get('/api/users/by-email', async (req, res) => {
   }
 });
 
+// Fetch user by id (used to validate client session after restore from localStorage)
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: 'User ID is required' });
+    }
+    if (!supabase) {
+      return res.status(503).json({ success: false, error: 'Database not configured' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[GET /api/users/:id] Supabase error:', error);
+      return res.status(500).json({ success: false, error: 'Failed to fetch user' });
+    }
+    if (!data) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    return res.json({ success: true, user: data });
+  } catch (err) {
+    console.error('[GET /api/users/:id] Exception:', err);
+    return res.status(500).json({ success: false, error: 'Failed to fetch user' });
+  }
+});
+
 // Update user profile
 app.patch('/api/users/:id', async (req, res) => {
   try {

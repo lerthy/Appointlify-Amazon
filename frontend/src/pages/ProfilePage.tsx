@@ -357,6 +357,38 @@ const ProfilePage: React.FC = () => {
                     <input type="text" name="name" value={form.name} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-primary to-primary-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100" required />
                   </div>
                   <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <User className="w-4 h-4 mr-1" />
+                      {t('profile.ownerNameLabel')}
+                    </label>
+                    <input
+                      type="text"
+                      name="ownerName"
+                      value={form.ownerName}
+                      onChange={handleChange}
+                      placeholder="Enter owner name"
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100 ${formErrors.ownerName ? 'border-red-400' : 'border-gray-300'}`}
+                      required
+                    />
+                    {formErrors.ownerName && <p className="text-xs text-red-500 mt-1">{formErrors.ownerName}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <Phone className="w-4 h-4 mr-1" />
+                      {t('profile.phoneLabel')}
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="+383 XX XXX XXX"
+                      pattern="\+?[\d\s\-()]{7,20}"
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100 ${formErrors.phone ? 'border-red-400' : 'border-gray-300'}`}
+                    />
+                    {formErrors.phone && <p className="text-xs text-red-500 mt-1">{formErrors.phone}</p>}
+                  </div>
+                  <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">{t('profile.emailLabel')}</label>
                     <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full px-3 py-2 border border-gradient-to-r from-primary to-primary-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100" required />
                   </div>
@@ -391,40 +423,6 @@ const ProfilePage: React.FC = () => {
                   {t('dashboard.businessInfo')}
                 </h2>
                 <div className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
-                      <User className="w-4 h-4 mr-1" />
-                      {t('profile.ownerNameLabel')}
-                    </label>
-                    <input
-                      type="text"
-                      name="ownerName"
-                      value={form.ownerName}
-                      onChange={handleChange}
-                      placeholder="Enter owner name"
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100 ${formErrors.ownerName ? 'border-red-400' : 'border-gray-300'}`}
-                      required
-                    />
-                    {formErrors.ownerName && <p className="text-xs text-red-500 mt-1">{formErrors.ownerName}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
-                      <Phone className="w-4 h-4 mr-1" />
-                      {t('profile.phoneLabel')}
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={form.phone}
-                      onChange={handleChange}
-                      placeholder="+383 XX XXX XXX"
-                      pattern="\+?[\d\s\-()]{7,20}"
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-gray-100 ${formErrors.phone ? 'border-red-400' : 'border-gray-300'}`}
-                    />
-                    {formErrors.phone && <p className="text-xs text-red-500 mt-1">{formErrors.phone}</p>}
-                  </div>
-
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
@@ -507,7 +505,7 @@ const ProfilePage: React.FC = () => {
                       <Link className="w-4 h-4 mr-1" />
                       Custom Subdomain
                     </label>
-                    <div className="flex items-stretch">
+                    <div className="flex w-full items-stretch">
                       <input
                         type="text"
                         name="subdomain"
@@ -515,14 +513,13 @@ const ProfilePage: React.FC = () => {
                         onChange={handleChange}
                         placeholder="my-business"
                         disabled={employees.length === 0 || services.length === 0}
-                        className={`min-w-0 px-3 py-2 border border-r-0 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary text-base text-right transition-all ${
+                        className={`min-w-0 flex-1 px-3 py-2 border border-r-0 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary text-base text-left transition-all ${
                           employees.length === 0 || services.length === 0 
                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300' 
                             : 'bg-gray-100 border-gray-300'
                         } ${formErrors.subdomain ? 'border-red-400' : ''}`}
-                        style={{ width: `${Math.max(10, (form.subdomain?.length || 11) + 2)}ch` }}
                       />
-                      <span className={`inline-flex items-center px-3 text-sm border border-l-0 rounded-r-lg select-none transition-all ${
+                      <span className={`inline-flex flex-shrink-0 items-center px-3 text-sm border border-l-0 rounded-r-lg select-none whitespace-nowrap transition-all ${
                         employees.length === 0 || services.length === 0 
                           ? 'bg-gray-200 text-gray-400 border-gray-300' 
                           : 'bg-gray-200 text-gray-500 border-gray-300'
